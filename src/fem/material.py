@@ -1,6 +1,7 @@
 """
 材料物性を管理するモジュール
 JavaScript版のMaterial機能に対応
+非線形材料（JR総研剛性低減RC型など）もサポート
 """
 from typing import Dict, Optional, List
 import numpy as np
@@ -63,7 +64,7 @@ class BarParameter:
     offset_y: float = 0.0  # y方向オフセット
     offset_z: float = 0.0  # z方向オフセット
     material_id: Optional[int] = None
-    
+
     def __post_init__(self):
         """初期化後の処理"""
         # None値をデフォルト値で置き換え
@@ -71,7 +72,7 @@ class BarParameter:
             self.Iy = 0.0  # shell要素用のデフォルト値
         if self.Iz is None:
             self.Iz = 0.0  # shell要素用のデフォルト値
-            
+
         if self.J is None:
             # 円形断面と仮定してねじり定数を推定
             # Iy, Izがゼロの場合（shell要素など）はゼロとする
@@ -82,11 +83,79 @@ class BarParameter:
             self.kappa_z = 5.0 / 6.0  # デフォルト値
 
 
+@dataclass
+class NonlinearMaterialProperty:
+    """非線形材料物性（JR総研剛性低減RC型用）
+
+    4折線スケルトンカーブと剛性低減パラメータを定義
+
+    Attributes:
+        name: 材料名
+        E: 初期ヤング率
+        nu: ポアソン比
+        delta_1_pos〜P_3_pos: 正側スケルトンカーブパラメータ
+        delta_1_neg〜P_3_neg: 負側スケルトンカーブパラメータ（省略時は正側と同じ）
+        beta: 剛性低減係数
+        K_min: 戻り剛性下限値
+        density: 密度
+    """
+    name: str
+    E: float              # 初期ヤング率
+    nu: float             # ポアソン比
+
+    # スケルトンカーブパラメータ（正側）
+    delta_1_pos: float    # ひび割れ変位
+    delta_2_pos: float    # 降伏変位
+    delta_3_pos: float    # 終局変位
+    P_1_pos: float        # ひび割れ荷重
+    P_2_pos: float        # 降伏荷重
+    P_3_pos: float        # 終局荷重
+
+    # スケルトンカーブパラメータ（負側、省略時は正側と同じ）
+    delta_1_neg: Optional[float] = None
+    delta_2_neg: Optional[float] = None
+    delta_3_neg: Optional[float] = None
+    P_1_neg: Optional[float] = None
+    P_2_neg: Optional[float] = None
+    P_3_neg: Optional[float] = None
+
+    # 剛性低減パラメータ
+    beta: float = 0.4     # 剛性低減係数
+    K_min: Optional[float] = None  # 戻り剛性下限値（省略時は自動計算）
+
+    # その他
+    density: Optional[float] = None
+
+    def __post_init__(self):
+        """負側パラメータが省略された場合は正側と同じ値を設定"""
+        if self.delta_1_neg is None:
+            self.delta_1_neg = self.delta_1_pos
+        if self.delta_2_neg is None:
+            self.delta_2_neg = self.delta_2_pos
+        if self.delta_3_neg is None:
+            self.delta_3_neg = self.delta_3_pos
+        if self.P_1_neg is None:
+            self.P_1_neg = self.P_1_pos
+        if self.P_2_neg is None:
+            self.P_2_neg = self.P_2_pos
+        if self.P_3_neg is None:
+            self.P_3_neg = self.P_3_pos
+        if self.K_min is None:
+            K_1 = self.P_1_pos / self.delta_1_pos
+            self.K_min = K_1 * 0.01
+
+    @property
+    def G(self) -> float:
+        """せん断弾性係数"""
+        return self.E / (2 * (1 + self.nu))
+
+
 class Material:
     """材料データベースを管理するクラス"""
-    
+
     def __init__(self):
         self.materials: Dict[int, MaterialProperty] = {}
+        self.nonlinear_materials: Dict[int, NonlinearMaterialProperty] = {}  # 非線形材料
         self.shell_params: Dict[int, ShellParameter] = {}
         self.bar_params: Dict[int, BarParameter] = {}
         self._initialize_default_materials()
@@ -149,6 +218,44 @@ class Material:
     def get_bar_parameter(self, param_id: int) -> Optional[BarParameter]:
         """梁パラメータを取得"""
         return self.bar_params.get(param_id)
+
+    def add_nonlinear_material(
+        self,
+        material_id: int,
+        material: NonlinearMaterialProperty
+    ) -> None:
+        """非線形材料を追加
+
+        Args:
+            material_id: 材料ID
+            material: 非線形材料プロパティ
+        """
+        self.nonlinear_materials[material_id] = material
+
+    def get_nonlinear_material(
+        self,
+        material_id: int
+    ) -> Optional[NonlinearMaterialProperty]:
+        """非線形材料を取得
+
+        Args:
+            material_id: 材料ID
+
+        Returns:
+            非線形材料プロパティ、存在しない場合はNone
+        """
+        return self.nonlinear_materials.get(material_id)
+
+    def is_nonlinear_material(self, material_id: int) -> bool:
+        """非線形材料かどうかを判定
+
+        Args:
+            material_id: 材料ID
+
+        Returns:
+            非線形材料の場合True
+        """
+        return material_id in self.nonlinear_materials
         
     def get_elastic_matrix_3d(self, material_id: int) -> np.ndarray:
         """3次元弾性マトリックスを取得"""

@@ -6,14 +6,17 @@ from typing import Dict, Any, List, Optional, Union
 import numpy as np
 from .mesh import MeshModel
 from .boundary_condition import BoundaryCondition
-from .material import Material, MaterialProperty, ShellParameter, BarParameter
+from .material import Material, MaterialProperty, ShellParameter, BarParameter, NonlinearMaterialProperty
 from .section import Section
 from .solver import Solver
+from .nonlinear import NonlinearSolver
+from .nonlinear.hysteresis import JRStiffnessReductionParams
 from .file_io import read_model, write_model, read_result, write_result
 from .elements import (
     BarElement, BEBarElement, TBarElement,
     ShellElement, SolidElement, AdvancedElement
 )
+from .elements.nonlinear_bar_element import NonlinearBarElement
 from .result_processor import ResultProcessor
 import math
 
@@ -28,6 +31,7 @@ class FemModel:
         self.material = Material()
         self.section = Section()
         self.solver = Solver()
+        self.nonlinear_solver = NonlinearSolver()  # 非線形ソルバー
         self.elements: Dict[int, Any] = {}
         self.results: Optional[Dict[str, Any]] = None
         self.name: str = "Untitled Model"
@@ -325,21 +329,29 @@ class FemModel:
             'kwargs': kwargs
         }
         
-    def run(self, analysis_type: str = 'static') -> Dict[str, Any]:
+    def run(self, analysis_type: str = 'static', **kwargs) -> Dict[str, Any]:
         """解析を実行
-        
+
         Args:
-            analysis_type: 解析タイプ ('static', 'modal')
-            
+            analysis_type: 解析タイプ
+                - 'static': 線形静解析
+                - 'modal': モード解析
+                - 'material_nonlinear': 材料非線形解析
+            **kwargs: 追加パラメータ
+                - n_load_steps: 荷重増分ステップ数（material_nonlinear用）
+                - max_iterations: 最大反復回数（material_nonlinear用）
+                - tolerance: 収束判定許容差（material_nonlinear用）
+                - n_modes: 固有モード数（modal用）
+
         Returns:
             解析結果
         """
         # 要素の作成（要素分割後に再実行が必要なため毎回実行）
         self._create_elements()
-            
+
         # 節点座標を要素に設定
         self._set_element_coordinates()
-        
+
         if analysis_type == 'static':
             self.results = self.solver.solve(
                 self.mesh, self.material, self.boundary, self.elements
@@ -347,19 +359,118 @@ class FemModel:
         elif analysis_type == 'modal':
             self.results = self.solver.eigenvalue_analysis(
                 self.mesh, self.material, self.boundary, self.elements,
-                n_modes=10
+                n_modes=kwargs.get('n_modes', 10)
+            )
+        elif analysis_type == 'material_nonlinear':
+            self.results = self.nonlinear_solver.solve_nonlinear(
+                self.mesh, self.material, self.boundary, self.elements,
+                n_steps=kwargs.get('n_load_steps', 10),
+                max_iter=kwargs.get('max_iterations', 50),
+                tol=kwargs.get('tolerance', 1e-6)
             )
         else:
             raise ValueError(f"Unknown analysis type: {analysis_type}")
-            
+
         # 結果の後処理
         self._post_process_results()
-        
+
         return self.results
-        
+
+    def add_nonlinear_material(
+        self,
+        material_id: int,
+        name: str,
+        E: float,
+        delta_1: float,
+        delta_2: float,
+        delta_3: float,
+        P_1: float,
+        P_2: float,
+        P_3: float,
+        beta: float = 0.4,
+        K_min: Optional[float] = None,
+        symmetric: bool = True,
+        delta_1_neg: Optional[float] = None,
+        delta_2_neg: Optional[float] = None,
+        delta_3_neg: Optional[float] = None,
+        P_1_neg: Optional[float] = None,
+        P_2_neg: Optional[float] = None,
+        P_3_neg: Optional[float] = None,
+        nu: float = 0.2,
+        density: Optional[float] = None
+    ) -> None:
+        """非線形材料を追加
+
+        JR総研剛性低減RC型のスケルトンカーブパラメータを定義
+
+        Args:
+            material_id: 材料ID
+            name: 材料名
+            E: 初期ヤング率
+            delta_1, delta_2, delta_3: 特性変位（正側）
+            P_1, P_2, P_3: 特性荷重（正側）
+            beta: 剛性低減係数（デフォルト: 0.4）
+            K_min: 戻り剛性下限値（省略時は初期剛性の1%）
+            symmetric: 対称スケルトンカーブを使用するか
+            delta_1_neg, ...: 負側パラメータ（symmetric=Falseの場合に使用）
+            nu: ポアソン比
+            density: 密度
+        """
+        if symmetric:
+            mat = NonlinearMaterialProperty(
+                name=name, E=E, nu=nu,
+                delta_1_pos=delta_1, delta_2_pos=delta_2, delta_3_pos=delta_3,
+                P_1_pos=P_1, P_2_pos=P_2, P_3_pos=P_3,
+                beta=beta, K_min=K_min, density=density
+            )
+        else:
+            mat = NonlinearMaterialProperty(
+                name=name, E=E, nu=nu,
+                delta_1_pos=delta_1, delta_2_pos=delta_2, delta_3_pos=delta_3,
+                P_1_pos=P_1, P_2_pos=P_2, P_3_pos=P_3,
+                delta_1_neg=delta_1_neg, delta_2_neg=delta_2_neg, delta_3_neg=delta_3_neg,
+                P_1_neg=P_1_neg, P_2_neg=P_2_neg, P_3_neg=P_3_neg,
+                beta=beta, K_min=K_min, density=density
+            )
+
+        self.material.add_nonlinear_material(material_id, mat)
+
+        # 線形解析用のMaterialPropertyも追加（互換性のため）
+        linear_mat = MaterialProperty(name=name, E=E, nu=nu, density=density)
+        self.material.add_material(material_id, linear_mat)
+
+    def add_nonlinear_bar_element(
+        self,
+        elem_id: int,
+        node_ids: List[int],
+        material_id: int,
+        section_id: int,
+        hysteresis_dofs: List[str],
+        angle: float = 0.0,
+        shear_correction: bool = True
+    ) -> None:
+        """非線形梁要素を追加
+
+        Args:
+            elem_id: 要素ID
+            node_ids: 構成節点ID
+            material_id: 材料ID
+            section_id: 断面ID
+            hysteresis_dofs: 非線形を適用する自由度のリスト
+                例: ['moment_y'], ['axial', 'moment_y', 'moment_z']
+            angle: 要素座標軸の回転角
+            shear_correction: せん断変形を考慮するか
+        """
+        self.mesh.add_element(
+            elem_id, 'nonlinear_bar', node_ids, material_id,
+            section_id=section_id, angle=angle,
+            shear_correction=shear_correction,
+            hysteresis_dofs=hysteresis_dofs
+        )
+
     def get_results(self) -> Optional[Dict[str, Any]]:
         """解析結果を取得
-        
+
         Returns:
             解析結果（未実行の場合None）
         """
@@ -515,7 +626,46 @@ class FemModel:
             element = AdvancedElement.create_element(elem_type, elem_id,
                                                    node_ids, material_id)
             element.set_material_properties(self.material)
-            
+
+        elif elem_type == 'nonlinear_bar':
+            # 非線形梁要素の作成
+            section_id = elem_data.get('section_id', 1)
+            angle = elem_data.get('angle', 0)
+            shear_correction = elem_data.get('shear_correction', True)
+            hysteresis_dofs = elem_data.get('hysteresis_dofs', [])
+
+            element = NonlinearBarElement(
+                elem_id, node_ids, material_id,
+                section_id, angle, shear_correction
+            )
+
+            # 材料とパラメータを設定
+            bar_param = self._get_bar_parameter(section_id, material_id)
+            element.set_material_properties(self.material, bar_param)
+
+            # 非線形材料から履歴パラメータを設定
+            nl_mat = self.material.get_nonlinear_material(material_id)
+            if nl_mat is not None and hysteresis_dofs:
+                params = JRStiffnessReductionParams(
+                    delta_1_pos=nl_mat.delta_1_pos,
+                    delta_2_pos=nl_mat.delta_2_pos,
+                    delta_3_pos=nl_mat.delta_3_pos,
+                    P_1_pos=nl_mat.P_1_pos,
+                    P_2_pos=nl_mat.P_2_pos,
+                    P_3_pos=nl_mat.P_3_pos,
+                    delta_1_neg=nl_mat.delta_1_neg,
+                    delta_2_neg=nl_mat.delta_2_neg,
+                    delta_3_neg=nl_mat.delta_3_neg,
+                    P_1_neg=nl_mat.P_1_neg,
+                    P_2_neg=nl_mat.P_2_neg,
+                    P_3_neg=nl_mat.P_3_neg,
+                    beta=nl_mat.beta,
+                    K_min=nl_mat.K_min
+                )
+
+                for dof in hysteresis_dofs:
+                    element.set_hysteresis_model(dof, params)
+
         else:
             raise ValueError(f"Unknown element type: {elem_type} (original: {elem_data.get('type', 'N/A')})")
             
