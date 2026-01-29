@@ -164,7 +164,6 @@ doxygen Doxyfile
 ├── Doxyfile
 ├── docs/
 │   ├── v0/              # 旧バージョン
-│   ├── v1/              # バージョンアップする前の状態
 │   └── wiki/            # APIドキュメント（日本語）
 ├── src/
 │   ├── app/             # アプリ本体

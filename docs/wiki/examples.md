@@ -14,7 +14,7 @@ def basic_femmodel_analysis():
     model = FemModel()
     
     # モデル読み込み（自動要素分割実行）
-    model.load_model("tests/testdata/bar/2D_Sample01.json")
+    model.load_model("tests/data/bar/2D_Sample01.json")
     print(f"📊 モデル読み込み完了:")
     print(f" - 節点数: {model.get_node_count()}節点")
     print(f" - 要素数: {model.get_element_count()}要素")
@@ -242,7 +242,7 @@ integration_test_example()
 def new_vs_legacy_comparison():
     """新実装と旧実装の詳細比較例"""
     # テストデータのパス
-    test_model = "tests/testdata/bar/2D_Sample01.json"
+    test_model = "tests/data/bar/2D_Sample01.json"
     
     print(f"📈 新旧実装の比較:")
     
@@ -305,7 +305,7 @@ def project_completion_demonstration():
     
     # 高精度解析のデモ
     model = FemModel()
-    model.load_model("tests/testdata/bar/2D_Sample01.json")
+    model.load_model("tests/data/bar/2D_Sample01.json")
     
     print(f"\n📊 次世代高精度解析システム:")
     print(f" - 最終節点数: {model.get_node_count()}節点")
