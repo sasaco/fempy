@@ -248,9 +248,14 @@ class JRStiffnessReductionModel(BaseHysteresis):
         state: HysteresisState,
         direction: int
     ) -> float:
-        """低減剛性を計算（式7.11.1）
+        """低減剛性を計算（式7.11.1〜7.11.3）
 
-        Kd = K1 * |delta_max/delta_1|^(-beta)  (K_min < Kd < K1)
+        理論マニュアル7.11節に基づく領域別の剛性低減式:
+        - ひび割れ域(δ1 < δmax < δ2): 式(7.11.1) Kd = K1 * |δmax/δ1|^(-β)
+        - 降伏域(δ2 < δmax < δ3): 式(7.11.2) Kd = K2 * |δmax/δ2|^(-β)
+        - 終局域(δmax > δ3): 式(7.11.3) Kd = K2 * |δmax/δ2|^(-β)
+
+        下限値: (F_max - F_1)/(δmax - δ1)（第2勾配相当）
 
         Args:
             state: 現在の状態
@@ -264,21 +269,40 @@ class JRStiffnessReductionModel(BaseHysteresis):
         if direction > 0:
             delta_max = state.delta_max_pos
             delta_1 = p.delta_1_pos
+            delta_2 = p.delta_2_pos
             K_1 = p.K_1_pos
+            K_2 = p.K_2_pos
+            P_max = state.P_max_pos
+            P_1 = p.P_1_pos
         else:
             delta_max = state.delta_max_neg
             delta_1 = p.delta_1_neg
+            delta_2 = p.delta_2_neg
             K_1 = p.K_1_neg
+            K_2 = p.K_2_neg
+            P_max = state.P_max_neg
+            P_1 = p.P_1_neg
 
         # 弾性域（delta_max <= delta_1）では剛性低減なし
         if delta_max <= delta_1:
             return K_1
 
-        # 式(7.11.1): Kd = K1 * |delta_max/delta_1|^(-beta)
-        Kd = K_1 * (delta_max / delta_1) ** (-p.beta)
+        # 領域別の剛性低減式
+        if delta_max <= delta_2:
+            # ひび割れ域: 式(7.11.1) Kd = K1 * |δmax/δ1|^(-β)
+            Kd = K_1 * (delta_max / delta_1) ** (-p.beta)
+        else:
+            # 降伏域以降: 式(7.11.2), (7.11.3) Kd = K2 * |δmax/δ2|^(-β)
+            Kd = K_2 * (delta_max / delta_2) ** (-p.beta)
 
-        # 下限・上限のクリップ: K_min < Kd < K1
-        Kd = max(p.K_min, min(Kd, K_1))
+        # 下限値: (F_max - F_1)/(δmax - δ1)（理論マニュアル準拠）
+        if delta_max > delta_1:
+            K_lower = (P_max - P_1) / (delta_max - delta_1)
+        else:
+            K_lower = 0.0
+
+        # 下限・上限のクリップ
+        Kd = max(K_lower, min(Kd, K_1))
 
         return Kd
 
@@ -289,9 +313,13 @@ class JRStiffnessReductionModel(BaseHysteresis):
     ) -> Tuple[float, float]:
         """最大点指向の目標点を取得
 
-        理論マニュアル4:
-        - 反対側が弾性域の場合は第1折れ点を目指す
-        - それ以外は最大経験点を目指す
+        理論マニュアル7.11節に基づく目標点決定:
+        (2) δ1 < δmax < δ2 の場合:
+            - 反対側が弾性域なら第1折れ点を目指す
+            - それ以外は最大経験点を目指す
+        (3)(4) δmax > δ2 の場合:
+            - 反対側が弾性域またはひび割れ域(δ2以下)なら第2折れ点を目指す
+            - それ以外は最大経験点を目指す
 
         Args:
             delta: 現在の変位（符号で移動方向を判定）
@@ -307,15 +335,29 @@ class JRStiffnessReductionModel(BaseHysteresis):
             if state.delta_max_pos <= p.delta_1_pos:
                 # 正側が弾性域 → 第1折れ点を目指す
                 return p.delta_1_pos, p.P_1_pos
-            else:
-                # 正側の最大経験点を目指す
+            elif state.delta_max_pos <= p.delta_2_pos:
+                # 正側がひび割れ域 → 最大経験点を目指す
                 return state.delta_max_pos, state.P_max_pos
+            else:
+                # 正側が降伏域以上 → 反対側（負側）がひび割れ域以下なら第2折れ点
+                if state.delta_max_neg <= p.delta_2_neg:
+                    return p.delta_2_pos, p.P_2_pos
+                else:
+                    return state.delta_max_pos, state.P_max_pos
         else:
             # 負方向へ移動中 → 負側の目標を設定
             if state.delta_max_neg <= p.delta_1_neg:
+                # 負側が弾性域 → 第1折れ点を目指す
                 return -p.delta_1_neg, -p.P_1_neg
-            else:
+            elif state.delta_max_neg <= p.delta_2_neg:
+                # 負側がひび割れ域 → 最大経験点を目指す
                 return -state.delta_max_neg, -state.P_max_neg
+            else:
+                # 負側が降伏域以上 → 反対側（正側）がひび割れ域以下なら第2折れ点
+                if state.delta_max_pos <= p.delta_2_pos:
+                    return -p.delta_2_neg, -p.P_2_neg
+                else:
+                    return -state.delta_max_neg, -state.P_max_neg
 
     def get_force_and_stiffness(
         self,

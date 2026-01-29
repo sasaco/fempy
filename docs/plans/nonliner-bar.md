@@ -45,18 +45,23 @@
 
 ### 2.2 剛性低減則
 
-除荷時の剛性（戻り剛性）は最大経験変位に基づいて低減される（理論マニュアル7.11節 式7.11.1）：
+除荷時の剛性（戻り剛性）は最大経験変位に基づいて低減される（理論マニュアル7.11節）：
 
+**ひび割れ域（δ1 < δmax < δ2）: 式(7.11.1)**
 ```
-Kd = K1 × |δmax/δ1|^(-β)    (Kmin < Kd < K1)
+Kd = K1 × |δmax/δ1|^(-β)    ((Fmax-F1)/(δmax-δ1) < Kd < K1)
+```
+
+**降伏域以降（δmax > δ2）: 式(7.11.2), (7.11.3)**
+```
+Kd = K2 × |δmax/δ2|^(-β)
 ```
 
 ここで：
 - K1 = P1/δ1（初期剛性）
+- K2 = (P2-P1)/(δ2-δ1)（第2勾配）
 - β は剛性低減係数（典型値: 0.4）
-- Kmin は戻り剛性の下限値（極端な剛性低下を防止）
-
-**注**: 理論マニュアルでは領域（ひび割れ/降伏）によらず単一の式を使用します。
+- 下限値は (Fmax-F1)/(δmax-δ1)（第2勾配相当）
 
 ### 2.3 履歴則
 
@@ -64,7 +69,8 @@ Kd = K1 × |δmax/δ1|^(-β)    (Kmin < Kd < K1)
 2. **② 載荷**: スケルトンカーブに沿う（δ > δ1 で第2勾配 K2 の直線上）
 3. **③ 除荷**: 低減剛性 Kd で除荷。戻り点が新たな最大変形 δmax となる
 4. **④ 最大点指向（P=0通過後）**: 復元力が0を超えると反対側の最大変形点を目指す
-   - 反対側が弾性域の場合は、反対側の第1折れ点を目指す
+   - ひび割れ域(δ1 < δmax < δ2)から除荷の場合：反対側が弾性域なら第1折れ点を目指す
+   - 降伏域以降(δmax > δ2)から除荷の場合：反対側がひび割れ域以下(δ2以下)なら第2折れ点を目指す
    - 目標とする最大変形点は軸力変動により逐次更新
 5. **⑤ 内部ループ**: 最大点指向中に戻る場合は Kd で除荷。P=0を超えると前の反転点を目指す
    - 反転点はスタックで管理（複数回の反転に対応）
@@ -87,7 +93,9 @@ Kd = K1 × |δmax/δ1|^(-β)    (Kmin < Kd < K1)
 | P2_pos / P2_neg | 降伏荷重（正/負） | N |
 | P3_pos / P3_neg | 終局荷重（正/負） | N |
 | β | 剛性低減係数 | - |
-| Kmin | 戻り剛性の下限値 | N/m |
+| Kmin | 戻り剛性の下限値（※後方互換性のため残存、実際の計算では未使用） | N/m |
+
+**注**: 理論マニュアル7.11節に基づき、実際の剛性低減計算では下限値として `(Fmax-F1)/(δmax-δ1)` を使用します。`Kmin` パラメータは後方互換性のために残されていますが、将来のバージョンで非推奨化・削除される予定です。
 
 **注**: 対称なスケルトンカーブの場合は、正側パラメータのみ指定し、負側は自動的に符号反転して設定する簡易モードも提供する。
 
@@ -168,12 +176,13 @@ class JRStiffnessReductionParams:
     P_3_neg: float        # 終局荷重（負、絶対値）
 
     beta: float           # 剛性低減係数（典型値: 0.4）
-    K_min: float          # 戻り剛性の下限値（式7.11.1の Kmin）
+    K_min: float          # 後方互換性のため残存（実際の計算では未使用）
 
     @classmethod
     def symmetric(cls, delta_1, delta_2, delta_3, P_1, P_2, P_3, beta, K_min=None):
         """対称スケルトンカーブ用のコンビニエンスコンストラクタ"""
-        # K_min のデフォルト: 初期剛性の1%
+        # K_min は後方互換性のため残存（実際の剛性低減計算では使用されない）
+        # 理論マニュアル準拠の下限値 (Fmax-F1)/(δmax-δ1) を使用
         if K_min is None:
             K_min = (P_1 / delta_1) * 0.01
         return cls(
@@ -385,50 +394,84 @@ def get_force_and_stiffness(delta, state, params):
 
 def get_target_point(delta, state, params):
     """
-    ④最大点指向の目標点を取得
+    ④最大点指向の目標点を取得（理論マニュアル7.11節）
 
-    - 反対側が弾性域の場合は第1折れ点を目指す
-    - それ以外は最大経験点を目指す
+    (2) ひび割れ域(δ1 < δmax < δ2)から除荷の場合:
+        - 反対側が弾性域なら第1折れ点を目指す
+        - それ以外は最大経験点を目指す
+    (3)(4) 降伏域以降(δmax > δ2)から除荷の場合:
+        - 反対側がひび割れ域以下(δ2以下)なら第2折れ点を目指す
+        - それ以外は最大経験点を目指す
     """
     if delta >= 0:
         if state.delta_max_pos <= params.delta_1_pos:
-            # 反対側が弾性域 → 第1折れ点を目指す
+            # 正側が弾性域 → 第1折れ点を目指す
             return params.delta_1_pos, params.P_1_pos
-        else:
+        elif state.delta_max_pos <= params.delta_2_pos:
+            # 正側がひび割れ域 → 最大経験点を目指す
             return state.delta_max_pos, state.P_max_pos
+        else:
+            # 正側が降伏域以上 → 反対側（負側）がひび割れ域以下なら第2折れ点
+            if state.delta_max_neg <= params.delta_2_neg:
+                return params.delta_2_pos, params.P_2_pos
+            else:
+                return state.delta_max_pos, state.P_max_pos
     else:
         if state.delta_max_neg <= params.delta_1_neg:
             return -params.delta_1_neg, -params.P_1_neg
-        else:
+        elif state.delta_max_neg <= params.delta_2_neg:
             return -state.delta_max_neg, -state.P_max_neg
+        else:
+            if state.delta_max_pos <= params.delta_2_pos:
+                return -params.delta_2_neg, -params.P_2_neg
+            else:
+                return -state.delta_max_neg, -state.P_max_neg
 
 
 def get_reduced_stiffness(state, params, direction):
     """
-    理論マニュアル7.11節 式(7.11.1)に基づく低減剛性を計算
+    理論マニュアル7.11節 式(7.11.1)〜(7.11.3)に基づく低減剛性を計算
 
-    Kd = K1 × |δmax/δ1|^(-β)    (Kmin < Kd < K1)
+    ひび割れ域(δ1 < δmax < δ2): 式(7.11.1) Kd = K1 × |δmax/δ1|^(-β)
+    降伏域以降(δmax > δ2): 式(7.11.2),(7.11.3) Kd = K2 × |δmax/δ2|^(-β)
+    下限値: (Fmax-F1)/(δmax-δ1)
 
     direction: +1 for positive, -1 for negative
     """
     if direction > 0:
         delta_max = state.delta_max_pos
         delta_1 = params.delta_1_pos
+        delta_2 = params.delta_2_pos
         K1 = params.P_1_pos / params.delta_1_pos
+        K2 = (params.P_2_pos - params.P_1_pos) / (params.delta_2_pos - params.delta_1_pos)
+        P_max = state.P_max_pos
+        P_1 = params.P_1_pos
     else:
         delta_max = state.delta_max_neg
         delta_1 = params.delta_1_neg
+        delta_2 = params.delta_2_neg
         K1 = params.P_1_neg / params.delta_1_neg
+        K2 = (params.P_2_neg - params.P_1_neg) / (params.delta_2_neg - params.delta_1_neg)
+        P_max = state.P_max_neg
+        P_1 = params.P_1_neg
 
     # 弾性域（δmax < δ1）では剛性低減なし
     if delta_max <= delta_1:
         return K1
 
-    # 式(7.11.1): Kd = K1 × |δmax/δ1|^(-β)
-    Kd = K1 * (delta_max / delta_1) ** (-params.beta)
+    # 領域別の剛性低減式
+    if delta_max <= delta_2:
+        # ひび割れ域: 式(7.11.1)
+        Kd = K1 * (delta_max / delta_1) ** (-params.beta)
+    else:
+        # 降伏域以降: 式(7.11.2), (7.11.3)
+        Kd = K2 * (delta_max / delta_2) ** (-params.beta)
 
-    # 下限・上限のクリップ: Kmin < Kd < K1
-    Kd = max(params.K_min, min(Kd, K1))
+    # 下限値: (Fmax-F1)/(δmax-δ1)（理論マニュアル準拠）
+    K_lower = (P_max - P_1) / (delta_max - delta_1)
+
+    # 下限・上限のクリップ
+    Kd = max(K_lower, min(Kd, K1))
 
     return Kd
 
@@ -506,7 +549,7 @@ model.add_node(1, 0.0, 0.0, 0.0)
 model.add_node(2, 3.0, 0.0, 0.0)
 
 # 非線形材料パラメータ定義（対称スケルトンカーブ）
-# K_min: 戻り剛性の下限値（省略時は初期剛性の1%）
+# 注: 戻り剛性の下限値は理論マニュアル準拠で (Fmax-F1)/(δmax-δ1) を使用
 model.add_nonlinear_material(
     material_id=1,
     name="RC柱",
@@ -514,7 +557,6 @@ model.add_nonlinear_material(
     delta_1=0.003, delta_2=0.015, delta_3=0.060,
     P_1=100e3, P_2=500e3, P_3=550e3,
     beta=0.4,
-    K_min=None,       # None の場合、K1 * 0.01 が自動設定される
     symmetric=True    # 正負対称
 )
 
@@ -542,6 +584,7 @@ results = model.run(
 
 ```python
 # 非対称スケルトンカーブ（正側と負側で異なる特性）
+# 注: 戻り剛性の下限値は理論マニュアル準拠で (Fmax-F1)/(δmax-δ1) を使用
 model.add_nonlinear_material(
     material_id=2,
     name="非対称RC柱",
@@ -552,8 +595,7 @@ model.add_nonlinear_material(
     # 負側パラメータ（例: 引張側が弱い場合）
     delta_1_neg=0.002, delta_2_neg=0.010, delta_3_neg=0.040,
     P_1_neg=80e3, P_2_neg=400e3, P_3_neg=420e3,
-    beta=0.4,
-    K_min=300e3       # 戻り剛性の下限値を明示的に指定
+    beta=0.4
 )
 ```
 
@@ -597,7 +639,7 @@ model.add_nonlinear_material(
    - δmax = δ1 ちょうどの場合（弾性域と非弾性域の境界）
    - P がちょうど 0 になる場合
    - 反転がスケルトンカーブ上で発生する場合
-   - Kd が Kmin にクリップされる場合
+   - Kd が下限値 `(Fmax-F1)/(δmax-δ1)` にクリップされる場合
 7. **特殊ケーステスト**:
    - 骨格曲線の外側に逸脱した場合の補正処理
    - 内部ループでの複数回反転
@@ -697,6 +739,7 @@ if relative_residual < tol and relative_du < tol:
 3. **適応的ステップサイズ**: 収束困難時のステップサイズ自動調整
 4. **Line Search**: 収束性改善のためのライン探索法追加
 5. **並列化**: 大規模モデルでの要素内力・剛性計算の並列化
+6. **K_min パラメータの非推奨化・削除**: 理論マニュアル準拠の下限値 `(Fmax-F1)/(δmax-δ1)` に移行完了後、後方互換性のために残存している `K_min` パラメータを非推奨化し、将来的に削除
 
 ### 11.5 使用例（実装後の正しいAPI）
 
