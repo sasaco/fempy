@@ -1,0 +1,462 @@
+Material	1	206000	0.29	79844.96124031008	0.00078	45	1
+BarParameter	1	Rectangle	2	1	0	0
+Node	1	0	0	0
+Node	2	0.2	0	0
+Node	3	0.4	0	0
+Node	4	0.6	0	0
+Node	5	0.8	0	0
+Node	6	1	0	0
+Node	7	1.2	0	0
+Node	8	1.4	0	0
+Node	9	1.6	0	0
+Node	10	1.8	0	0
+Node	11	2	0	0
+Node	12	2.2	0	0
+Node	13	2.4	0	0
+Node	14	2.6	0	0
+Node	15	2.8	0	0
+Node	16	3	0	0
+Node	17	3.2	0	0
+Node	18	3.4	0	0
+Node	19	3.6	0	0
+Node	20	3.8	0	0
+Node	21	4	0	0
+Node	22	4.2	0	0
+Node	23	4.4	0	0
+Node	24	4.6	0	0
+Node	25	4.8	0	0
+Node	26	5	0	0
+Node	27	5.2	0	0
+Node	28	5.4	0	0
+Node	29	5.6	0	0
+Node	30	5.8	0	0
+Node	31	6	0	0
+Node	32	6.2	0	0
+Node	33	6.4	0	0
+Node	34	6.6	0	0
+Node	35	6.8	0	0
+Node	36	7	0	0
+Node	37	7.2	0	0
+Node	38	7.4	0	0
+Node	39	7.6	0	0
+Node	40	7.8	0	0
+Node	41	8	0	0
+Node	42	8.2	0	0
+Node	43	8.4	0	0
+Node	44	8.6	0	0
+Node	45	8.8	0	0
+Node	46	9	0	0
+Node	47	9.2	0	0
+Node	48	9.4	0	0
+Node	49	9.6	0	0
+Node	50	9.8	0	0
+Node	51	10	0	0
+BEBarElement	1	1	1	1	2
+BEBarElement	2	1	1	2	3
+BEBarElement	3	1	1	3	4
+BEBarElement	4	1	1	4	5
+BEBarElement	5	1	1	5	6
+BEBarElement	6	1	1	6	7
+BEBarElement	7	1	1	7	8
+BEBarElement	8	1	1	8	9
+BEBarElement	9	1	1	9	10
+BEBarElement	10	1	1	10	11
+BEBarElement	11	1	1	11	12
+BEBarElement	12	1	1	12	13
+BEBarElement	13	1	1	13	14
+BEBarElement	14	1	1	14	15
+BEBarElement	15	1	1	15	16
+BEBarElement	16	1	1	16	17
+BEBarElement	17	1	1	17	18
+BEBarElement	18	1	1	18	19
+BEBarElement	19	1	1	19	20
+BEBarElement	20	1	1	20	21
+BEBarElement	21	1	1	21	22
+BEBarElement	22	1	1	22	23
+BEBarElement	23	1	1	23	24
+BEBarElement	24	1	1	24	25
+BEBarElement	25	1	1	25	26
+BEBarElement	26	1	1	26	27
+BEBarElement	27	1	1	27	28
+BEBarElement	28	1	1	28	29
+BEBarElement	29	1	1	29	30
+BEBarElement	30	1	1	30	31
+BEBarElement	31	1	1	31	32
+BEBarElement	32	1	1	32	33
+BEBarElement	33	1	1	33	34
+BEBarElement	34	1	1	34	35
+BEBarElement	35	1	1	35	36
+BEBarElement	36	1	1	36	37
+BEBarElement	37	1	1	37	38
+BEBarElement	38	1	1	38	39
+BEBarElement	39	1	1	39	40
+BEBarElement	40	1	1	40	41
+BEBarElement	41	1	1	41	42
+BEBarElement	42	1	1	42	43
+BEBarElement	43	1	1	43	44
+BEBarElement	44	1	1	44	45
+BEBarElement	45	1	1	45	46
+BEBarElement	46	1	1	46	47
+BEBarElement	47	1	1	47	48
+BEBarElement	48	1	1	48	49
+BEBarElement	49	1	1	49	50
+BEBarElement	50	1	1	50	51
+Restraint	1	1	0	1	0	1	0	1	0	1	0	1	0
+ResultType	Node
+Displacement	1	0	0	0	0	0	0
+Displacement	2	0	0	0	0	0	0
+Displacement	3	0	0	0	0	0	0
+Displacement	4	0	0	0	0	0	0
+Displacement	5	0	0	0	0	0	0
+Displacement	6	0	0	0	0	0	0
+Displacement	7	0	0	0	0	0	0
+Displacement	8	0	0	0	0	0	0
+Displacement	9	0	0	0	0	0	0
+Displacement	10	0	0	0	0	0	0
+Displacement	11	0	0	0	0	0	0
+Displacement	12	0	0	0	0	0	0
+Displacement	13	0	0	0	0	0	0
+Displacement	14	0	0	0	0	0	0
+Displacement	15	0	0	0	0	0	0
+Displacement	16	0	0	0	0	0	0
+Displacement	17	0	0	0	0	0	0
+Displacement	18	0	0	0	0	0	0
+Displacement	19	0	0	0	0	0	0
+Displacement	20	0	0	0	0	0	0
+Displacement	21	0	0	0	0	0	0
+Displacement	22	0	0	0	0	0	0
+Displacement	23	0	0	0	0	0	0
+Displacement	24	0	0	0	0	0	0
+Displacement	25	0	0	0	0	0	0
+Displacement	26	0	0	0	0	0	0
+Displacement	27	0	0	0	0	0	0
+Displacement	28	0	0	0	0	0	0
+Displacement	29	0	0	0	0	0	0
+Displacement	30	0	0	0	0	0	0
+Displacement	31	0	0	0	0	0	0
+Displacement	32	0	0	0	0	0	0
+Displacement	33	0	0	0	0	0	0
+Displacement	34	0	0	0	0	0	0
+Displacement	35	0	0	0	0	0	0
+Displacement	36	0	0	0	0	0	0
+Displacement	37	0	0	0	0	0	0
+Displacement	38	0	0	0	0	0	0
+Displacement	39	0	0	0	0	0	0
+Displacement	40	0	0	0	0	0	0
+Displacement	41	0	0	0	0	0	0
+Displacement	42	0	0	0	0	0	0
+Displacement	43	0	0	0	0	0	0
+Displacement	44	0	0	0	0	0	0
+Displacement	45	0	0	0	0	0	0
+Displacement	46	0	0	0	0	0	0
+Displacement	47	0	0	0	0	0	0
+Displacement	48	0	0	0	0	0	0
+Displacement	49	0	0	0	0	0	0
+Displacement	50	0	0	0	0	0	0
+Displacement	51	0	0	0	0	0	0
+Strain1	1	0	0	0	0	0	0
+Strain1	2	0	0	0	0	0	0
+Strain1	3	0	0	0	0	0	0
+Strain1	4	0	0	0	0	0	0
+Strain1	5	0	0	0	0	0	0
+Strain1	6	0	0	0	0	0	0
+Strain1	7	0	0	0	0	0	0
+Strain1	8	0	0	0	0	0	0
+Strain1	9	0	0	0	0	0	0
+Strain1	10	0	0	0	0	0	0
+Strain1	11	0	0	0	0	0	0
+Strain1	12	0	0	0	0	0	0
+Strain1	13	0	0	0	0	0	0
+Strain1	14	0	0	0	0	0	0
+Strain1	15	0	0	0	0	0	0
+Strain1	16	0	0	0	0	0	0
+Strain1	17	0	0	0	0	0	0
+Strain1	18	0	0	0	0	0	0
+Strain1	19	0	0	0	0	0	0
+Strain1	20	0	0	0	0	0	0
+Strain1	21	0	0	0	0	0	0
+Strain1	22	0	0	0	0	0	0
+Strain1	23	0	0	0	0	0	0
+Strain1	24	0	0	0	0	0	0
+Strain1	25	0	0	0	0	0	0
+Strain1	26	0	0	0	0	0	0
+Strain1	27	0	0	0	0	0	0
+Strain1	28	0	0	0	0	0	0
+Strain1	29	0	0	0	0	0	0
+Strain1	30	0	0	0	0	0	0
+Strain1	31	0	0	0	0	0	0
+Strain1	32	0	0	0	0	0	0
+Strain1	33	0	0	0	0	0	0
+Strain1	34	0	0	0	0	0	0
+Strain1	35	0	0	0	0	0	0
+Strain1	36	0	0	0	0	0	0
+Strain1	37	0	0	0	0	0	0
+Strain1	38	0	0	0	0	0	0
+Strain1	39	0	0	0	0	0	0
+Strain1	40	0	0	0	0	0	0
+Strain1	41	0	0	0	0	0	0
+Strain1	42	0	0	0	0	0	0
+Strain1	43	0	0	0	0	0	0
+Strain1	44	0	0	0	0	0	0
+Strain1	45	0	0	0	0	0	0
+Strain1	46	0	0	0	0	0	0
+Strain1	47	0	0	0	0	0	0
+Strain1	48	0	0	0	0	0	0
+Strain1	49	0	0	0	0	0	0
+Strain1	50	0	0	0	0	0	0
+Strain1	51	0	0	0	0	0	0
+Stress1	1	0	0	0	0	0	0
+Stress1	2	0	0	0	0	0	0
+Stress1	3	0	0	0	0	0	0
+Stress1	4	0	0	0	0	0	0
+Stress1	5	0	0	0	0	0	0
+Stress1	6	0	0	0	0	0	0
+Stress1	7	0	0	0	0	0	0
+Stress1	8	0	0	0	0	0	0
+Stress1	9	0	0	0	0	0	0
+Stress1	10	0	0	0	0	0	0
+Stress1	11	0	0	0	0	0	0
+Stress1	12	0	0	0	0	0	0
+Stress1	13	0	0	0	0	0	0
+Stress1	14	0	0	0	0	0	0
+Stress1	15	0	0	0	0	0	0
+Stress1	16	0	0	0	0	0	0
+Stress1	17	0	0	0	0	0	0
+Stress1	18	0	0	0	0	0	0
+Stress1	19	0	0	0	0	0	0
+Stress1	20	0	0	0	0	0	0
+Stress1	21	0	0	0	0	0	0
+Stress1	22	0	0	0	0	0	0
+Stress1	23	0	0	0	0	0	0
+Stress1	24	0	0	0	0	0	0
+Stress1	25	0	0	0	0	0	0
+Stress1	26	0	0	0	0	0	0
+Stress1	27	0	0	0	0	0	0
+Stress1	28	0	0	0	0	0	0
+Stress1	29	0	0	0	0	0	0
+Stress1	30	0	0	0	0	0	0
+Stress1	31	0	0	0	0	0	0
+Stress1	32	0	0	0	0	0	0
+Stress1	33	0	0	0	0	0	0
+Stress1	34	0	0	0	0	0	0
+Stress1	35	0	0	0	0	0	0
+Stress1	36	0	0	0	0	0	0
+Stress1	37	0	0	0	0	0	0
+Stress1	38	0	0	0	0	0	0
+Stress1	39	0	0	0	0	0	0
+Stress1	40	0	0	0	0	0	0
+Stress1	41	0	0	0	0	0	0
+Stress1	42	0	0	0	0	0	0
+Stress1	43	0	0	0	0	0	0
+Stress1	44	0	0	0	0	0	0
+Stress1	45	0	0	0	0	0	0
+Stress1	46	0	0	0	0	0	0
+Stress1	47	0	0	0	0	0	0
+Stress1	48	0	0	0	0	0	0
+Stress1	49	0	0	0	0	0	0
+Stress1	50	0	0	0	0	0	0
+Stress1	51	0	0	0	0	0	0
+StrEnergy1	1	0
+StrEnergy1	2	0
+StrEnergy1	3	0
+StrEnergy1	4	0
+StrEnergy1	5	0
+StrEnergy1	6	0
+StrEnergy1	7	0
+StrEnergy1	8	0
+StrEnergy1	9	0
+StrEnergy1	10	0
+StrEnergy1	11	0
+StrEnergy1	12	0
+StrEnergy1	13	0
+StrEnergy1	14	0
+StrEnergy1	15	0
+StrEnergy1	16	0
+StrEnergy1	17	0
+StrEnergy1	18	0
+StrEnergy1	19	0
+StrEnergy1	20	0
+StrEnergy1	21	0
+StrEnergy1	22	0
+StrEnergy1	23	0
+StrEnergy1	24	0
+StrEnergy1	25	0
+StrEnergy1	26	0
+StrEnergy1	27	0
+StrEnergy1	28	0
+StrEnergy1	29	0
+StrEnergy1	30	0
+StrEnergy1	31	0
+StrEnergy1	32	0
+StrEnergy1	33	0
+StrEnergy1	34	0
+StrEnergy1	35	0
+StrEnergy1	36	0
+StrEnergy1	37	0
+StrEnergy1	38	0
+StrEnergy1	39	0
+StrEnergy1	40	0
+StrEnergy1	41	0
+StrEnergy1	42	0
+StrEnergy1	43	0
+StrEnergy1	44	0
+StrEnergy1	45	0
+StrEnergy1	46	0
+StrEnergy1	47	0
+StrEnergy1	48	0
+StrEnergy1	49	0
+StrEnergy1	50	0
+StrEnergy1	51	0
+Strain2	1	0	0	0	0	0	0
+Strain2	2	0	0	0	0	0	0
+Strain2	3	0	0	0	0	0	0
+Strain2	4	0	0	0	0	0	0
+Strain2	5	0	0	0	0	0	0
+Strain2	6	0	0	0	0	0	0
+Strain2	7	0	0	0	0	0	0
+Strain2	8	0	0	0	0	0	0
+Strain2	9	0	0	0	0	0	0
+Strain2	10	0	0	0	0	0	0
+Strain2	11	0	0	0	0	0	0
+Strain2	12	0	0	0	0	0	0
+Strain2	13	0	0	0	0	0	0
+Strain2	14	0	0	0	0	0	0
+Strain2	15	0	0	0	0	0	0
+Strain2	16	0	0	0	0	0	0
+Strain2	17	0	0	0	0	0	0
+Strain2	18	0	0	0	0	0	0
+Strain2	19	0	0	0	0	0	0
+Strain2	20	0	0	0	0	0	0
+Strain2	21	0	0	0	0	0	0
+Strain2	22	0	0	0	0	0	0
+Strain2	23	0	0	0	0	0	0
+Strain2	24	0	0	0	0	0	0
+Strain2	25	0	0	0	0	0	0
+Strain2	26	0	0	0	0	0	0
+Strain2	27	0	0	0	0	0	0
+Strain2	28	0	0	0	0	0	0
+Strain2	29	0	0	0	0	0	0
+Strain2	30	0	0	0	0	0	0
+Strain2	31	0	0	0	0	0	0
+Strain2	32	0	0	0	0	0	0
+Strain2	33	0	0	0	0	0	0
+Strain2	34	0	0	0	0	0	0
+Strain2	35	0	0	0	0	0	0
+Strain2	36	0	0	0	0	0	0
+Strain2	37	0	0	0	0	0	0
+Strain2	38	0	0	0	0	0	0
+Strain2	39	0	0	0	0	0	0
+Strain2	40	0	0	0	0	0	0
+Strain2	41	0	0	0	0	0	0
+Strain2	42	0	0	0	0	0	0
+Strain2	43	0	0	0	0	0	0
+Strain2	44	0	0	0	0	0	0
+Strain2	45	0	0	0	0	0	0
+Strain2	46	0	0	0	0	0	0
+Strain2	47	0	0	0	0	0	0
+Strain2	48	0	0	0	0	0	0
+Strain2	49	0	0	0	0	0	0
+Strain2	50	0	0	0	0	0	0
+Strain2	51	0	0	0	0	0	0
+Stress2	1	0	0	0	0	0	0
+Stress2	2	0	0	0	0	0	0
+Stress2	3	0	0	0	0	0	0
+Stress2	4	0	0	0	0	0	0
+Stress2	5	0	0	0	0	0	0
+Stress2	6	0	0	0	0	0	0
+Stress2	7	0	0	0	0	0	0
+Stress2	8	0	0	0	0	0	0
+Stress2	9	0	0	0	0	0	0
+Stress2	10	0	0	0	0	0	0
+Stress2	11	0	0	0	0	0	0
+Stress2	12	0	0	0	0	0	0
+Stress2	13	0	0	0	0	0	0
+Stress2	14	0	0	0	0	0	0
+Stress2	15	0	0	0	0	0	0
+Stress2	16	0	0	0	0	0	0
+Stress2	17	0	0	0	0	0	0
+Stress2	18	0	0	0	0	0	0
+Stress2	19	0	0	0	0	0	0
+Stress2	20	0	0	0	0	0	0
+Stress2	21	0	0	0	0	0	0
+Stress2	22	0	0	0	0	0	0
+Stress2	23	0	0	0	0	0	0
+Stress2	24	0	0	0	0	0	0
+Stress2	25	0	0	0	0	0	0
+Stress2	26	0	0	0	0	0	0
+Stress2	27	0	0	0	0	0	0
+Stress2	28	0	0	0	0	0	0
+Stress2	29	0	0	0	0	0	0
+Stress2	30	0	0	0	0	0	0
+Stress2	31	0	0	0	0	0	0
+Stress2	32	0	0	0	0	0	0
+Stress2	33	0	0	0	0	0	0
+Stress2	34	0	0	0	0	0	0
+Stress2	35	0	0	0	0	0	0
+Stress2	36	0	0	0	0	0	0
+Stress2	37	0	0	0	0	0	0
+Stress2	38	0	0	0	0	0	0
+Stress2	39	0	0	0	0	0	0
+Stress2	40	0	0	0	0	0	0
+Stress2	41	0	0	0	0	0	0
+Stress2	42	0	0	0	0	0	0
+Stress2	43	0	0	0	0	0	0
+Stress2	44	0	0	0	0	0	0
+Stress2	45	0	0	0	0	0	0
+Stress2	46	0	0	0	0	0	0
+Stress2	47	0	0	0	0	0	0
+Stress2	48	0	0	0	0	0	0
+Stress2	49	0	0	0	0	0	0
+Stress2	50	0	0	0	0	0	0
+Stress2	51	0	0	0	0	0	0
+StrEnergy2	1	0
+StrEnergy2	2	0
+StrEnergy2	3	0
+StrEnergy2	4	0
+StrEnergy2	5	0
+StrEnergy2	6	0
+StrEnergy2	7	0
+StrEnergy2	8	0
+StrEnergy2	9	0
+StrEnergy2	10	0
+StrEnergy2	11	0
+StrEnergy2	12	0
+StrEnergy2	13	0
+StrEnergy2	14	0
+StrEnergy2	15	0
+StrEnergy2	16	0
+StrEnergy2	17	0
+StrEnergy2	18	0
+StrEnergy2	19	0
+StrEnergy2	20	0
+StrEnergy2	21	0
+StrEnergy2	22	0
+StrEnergy2	23	0
+StrEnergy2	24	0
+StrEnergy2	25	0
+StrEnergy2	26	0
+StrEnergy2	27	0
+StrEnergy2	28	0
+StrEnergy2	29	0
+StrEnergy2	30	0
+StrEnergy2	31	0
+StrEnergy2	32	0
+StrEnergy2	33	0
+StrEnergy2	34	0
+StrEnergy2	35	0
+StrEnergy2	36	0
+StrEnergy2	37	0
+StrEnergy2	38	0
+StrEnergy2	39	0
+StrEnergy2	40	0
+StrEnergy2	41	0
+StrEnergy2	42	0
+StrEnergy2	43	0
+StrEnergy2	44	0
+StrEnergy2	45	0
+StrEnergy2	46	0
+StrEnergy2	47	0
+StrEnergy2	48	0
+StrEnergy2	49	0
+StrEnergy2	50	0
+StrEnergy2	51	0

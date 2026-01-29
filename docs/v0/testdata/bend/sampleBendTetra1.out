@@ -1,0 +1,40 @@
+# FEM3D Output File - TetraElement1
+# Model: sampleBendTetra1.fem
+# Date: 2025-05-30T01:21:45Z
+# Elements: 2160
+# Nodes: 620
+
+# Maximum displacement: 0.3973
+
+# Displacement data (node_id, dx, dy, dz, rx, ry, rz)
+Displacement 1 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000
+Displacement 2 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000
+Displacement 3 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000
+Displacement 4 0.0000 -0.0000 -0.3973 0.0000 0.0000 0.0000
+Displacement 5 0.0000 -0.0000 -0.3576 0.0000 0.0000 0.0000
+Displacement 6 0.0000 -0.0000 -0.3179 0.0000 0.0000 0.0000
+Displacement 7 0.0000 -0.0000 -0.2781 0.0000 0.0000 0.0000
+Displacement 8 0.0000 -0.0000 -0.2384 0.0000 0.0000 0.0000
+Displacement 9 0.0000 -0.0000 -0.1987 0.0000 0.0000 0.0000
+Displacement 10 0.0000 -0.0000 -0.1589 0.0000 0.0000 0.0000
+
+# Stress data (element_id, sx, sy, sz, txy, tyz, tzx)
+Stress 1 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000
+Stress 2 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000
+Stress 3 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000
+Stress 4 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000
+Stress 5 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000
+
+# Strain data (element_id, ex, ey, ez, gxy, gyz, gzx)
+Strain 1 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000
+Strain 2 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000
+Strain 3 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000
+Strain 4 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000
+Strain 5 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000 -0.0000
+
+# Strain Energy data (element_id, energy)
+StrEnergy 1 0.0000
+StrEnergy 2 0.0000
+StrEnergy 3 0.0000
+StrEnergy 4 0.0000
+StrEnergy 5 0.0000

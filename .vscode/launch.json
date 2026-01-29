@@ -1,0 +1,42 @@
+{
+    // IntelliSense を使用して利用可能な属性を学べます。
+    // 既存の属性の説明をホバーして表示します。
+    // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "デバッグ:単独実行",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}${pathSeparator}tests/executeForDebug.py",
+            "cwd": "${workspaceFolder}/src",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "デバッグ:Flaskサーバー",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "flask",
+            "env": {
+                // 指定はモジュール形式で: <module>:<app_variable>
+                "FLASK_APP": "main:app",
+                // デバッグ用フラグ (0/1)
+                "FLASK_DEBUG": "1",
+                // src を Python パスに含めて、プロジェクトのモジュールを解決できるようにする
+                "PYTHONPATH": "${workspaceFolder}${pathSeparator}src"
+            },
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "args": [
+                "run",
+                "--no-debugger",
+                "--no-reload"
+            ],
+            "jinja": true,
+            "justMyCode": true
+        }
+    ]
+}

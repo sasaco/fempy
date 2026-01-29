@@ -1,0 +1,10 @@
+Flask==3.0.3
+functions-framework==3.8.1
+numpy==2.1.0
+scipy==1.14.1 
+# 開発用依存（テスト／UIデバッグ）
+pytest==8.3.2
+flet==0.23.2
+flet-core==0.23.2
+flet-runtime==0.23.2
+js2py

@@ -1,0 +1,39 @@
+{
+  "nodes": {
+    "1": [0.0, 0.0, 0.0],
+    "2": [1.0, 0.0, 0.0],
+    "3": [1.0, 1.0, 0.0],
+    "4": [0.0, 1.0, 0.0]
+  },
+  "elements": {
+    "1": {
+      "type": "shell",
+      "nodes": [1, 2, 3, 4],
+      "material_id": 1,
+      "thickness": 0.01
+    }
+  },
+  "materials": {
+    "1": {
+      "name": "Steel",
+      "E": 2.05e11,
+      "nu": 0.3,
+      "density": 7850.0
+    }
+  },
+  "boundary_conditions": {
+    "restraints": {
+      "1": {
+        "dof": [true, true, true, false, false, false],
+        "values": null
+      }
+    },
+    "pressures": [
+      {
+        "element_id": 1,
+        "face": "F1",
+        "pressure": 1000.0
+      }
+    ]
+  }
+}

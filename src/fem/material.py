@@ -1,0 +1,205 @@
+"""
+材料物性を管理するモジュール
+JavaScript版のMaterial機能に対応
+"""
+from typing import Dict, Optional, List
+import numpy as np
+from dataclasses import dataclass
+
+
+@dataclass
+class MaterialProperty:
+    """材料物性の基本クラス"""
+    name: str
+    E: float  # ヤング率
+    nu: float  # ポアソン比
+    density: Optional[float] = None  # 密度
+    alpha: Optional[float] = None  # 線膨張係数
+    k: Optional[float] = None  # 熱伝導率
+    c: Optional[float] = None  # 比熱
+    
+    @property
+    def G(self) -> float:
+        """せん断弾性係数を計算"""
+        return self.E / (2 * (1 + self.nu))
+        
+    @property
+    def bulk_modulus(self) -> float:
+        """体積弾性率を計算"""
+        return self.E / (3 * (1 - 2 * self.nu))
+
+
+@dataclass
+class ShellParameter:
+    """シェル要素用パラメータ"""
+    thickness: float  # 板厚
+    integration_points: int = 5  # 板厚方向の積分点数
+    offset: float = 0.0  # オフセット値
+    material_id: Optional[int] = None
+    
+    def get_integration_points(self) -> List[float]:
+        """板厚方向の積分点座標を取得"""
+        if self.integration_points == 5:
+            # Gauss-Lobatto 5点
+            points = np.array([-1.0, -0.6546536707, 0.0, 0.6546536707, 1.0])
+        elif self.integration_points == 3:
+            # Gauss 3点
+            points = np.array([-0.7745966692, 0.0, 0.7745966692])
+        else:
+            # 等間隔
+            points = np.linspace(-1.0, 1.0, self.integration_points)
+        return points * self.thickness / 2.0
+
+
+@dataclass
+class BarParameter:
+    """梁要素用パラメータ"""
+    area: float  # 断面積
+    Iy: float  # 断面二次モーメント (y軸周り)
+    Iz: float  # 断面二次モーメント (z軸周り)
+    J: Optional[float] = None  # ねじり定数
+    kappa_y: Optional[float] = None  # せん断補正係数 (y方向)
+    kappa_z: Optional[float] = None  # せん断補正係数 (z方向)
+    offset_y: float = 0.0  # y方向オフセット
+    offset_z: float = 0.0  # z方向オフセット
+    material_id: Optional[int] = None
+    
+    def __post_init__(self):
+        """初期化後の処理"""
+        # None値をデフォルト値で置き換え
+        if self.Iy is None:
+            self.Iy = 0.0  # shell要素用のデフォルト値
+        if self.Iz is None:
+            self.Iz = 0.0  # shell要素用のデフォルト値
+            
+        if self.J is None:
+            # 円形断面と仮定してねじり定数を推定
+            # Iy, Izがゼロの場合（shell要素など）はゼロとする
+            self.J = self.Iy + self.Iz if (self.Iy > 0 or self.Iz > 0) else 0.0
+        if self.kappa_y is None:
+            self.kappa_y = 5.0 / 6.0  # デフォルト値
+        if self.kappa_z is None:
+            self.kappa_z = 5.0 / 6.0  # デフォルト値
+
+
+class Material:
+    """材料データベースを管理するクラス"""
+    
+    def __init__(self):
+        self.materials: Dict[int, MaterialProperty] = {}
+        self.shell_params: Dict[int, ShellParameter] = {}
+        self.bar_params: Dict[int, BarParameter] = {}
+        self._initialize_default_materials()
+        
+    def _initialize_default_materials(self) -> None:
+        """デフォルト材料を初期化"""
+        # 鋼材
+        self.add_material(1, MaterialProperty(
+            name="Steel",
+            E=206e9,  # Pa
+            nu=0.3,
+            density=7850.0,  # kg/m^3
+            alpha=1.2e-5,  # 1/K
+            k=50.0,  # W/(m·K)
+            c=450.0  # J/(kg·K)
+        ))
+        
+        # アルミニウム
+        self.add_material(2, MaterialProperty(
+            name="Aluminum",
+            E=70e9,
+            nu=0.33,
+            density=2700.0,
+            alpha=2.3e-5,
+            k=237.0,
+            c=900.0
+        ))
+        
+        # コンクリート
+        self.add_material(3, MaterialProperty(
+            name="Concrete",
+            E=30e9,
+            nu=0.2,
+            density=2400.0,
+            alpha=1.0e-5,
+            k=1.7,
+            c=880.0
+        ))
+        
+    def add_material(self, material_id: int, material: MaterialProperty) -> None:
+        """材料を追加"""
+        self.materials[material_id] = material
+        
+    def add_shell_parameter(self, param_id: int, param: ShellParameter) -> None:
+        """シェルパラメータを追加"""
+        self.shell_params[param_id] = param
+        
+    def add_bar_parameter(self, param_id: int, param: BarParameter) -> None:
+        """梁パラメータを追加"""
+        self.bar_params[param_id] = param
+        
+    def get_material(self, material_id: int) -> Optional[MaterialProperty]:
+        """材料を取得"""
+        return self.materials.get(material_id)
+        
+    def get_shell_parameter(self, param_id: int) -> Optional[ShellParameter]:
+        """シェルパラメータを取得"""
+        return self.shell_params.get(param_id)
+        
+    def get_bar_parameter(self, param_id: int) -> Optional[BarParameter]:
+        """梁パラメータを取得"""
+        return self.bar_params.get(param_id)
+        
+    def get_elastic_matrix_3d(self, material_id: int) -> np.ndarray:
+        """3次元弾性マトリックスを取得"""
+        mat = self.get_material(material_id)
+        if not mat:
+            raise ValueError(f"Material ID {material_id} not found")
+            
+        E, nu = mat.E, mat.nu
+        factor = E / ((1 + nu) * (1 - 2 * nu))
+        
+        D = np.zeros((6, 6))
+        # 正規応力成分
+        D[0:3, 0:3] = (1 - nu) * np.eye(3)
+        D[0, 1] = D[1, 0] = nu
+        D[0, 2] = D[2, 0] = nu
+        D[1, 2] = D[2, 1] = nu
+        # せん断応力成分
+        D[3:6, 3:6] = (1 - 2 * nu) / 2 * np.eye(3)
+        
+        return factor * D
+        
+    def get_elastic_matrix_plane_stress(self, material_id: int) -> np.ndarray:
+        """平面応力状態の弾性マトリックスを取得"""
+        mat = self.get_material(material_id)
+        if not mat:
+            raise ValueError(f"Material ID {material_id} not found")
+            
+        E, nu = mat.E, mat.nu
+        factor = E / (1 - nu * nu)
+        
+        D = np.array([
+            [1, nu, 0],
+            [nu, 1, 0],
+            [0, 0, (1 - nu) / 2]
+        ])
+        
+        return factor * D
+        
+    def get_elastic_matrix_plane_strain(self, material_id: int) -> np.ndarray:
+        """平面ひずみ状態の弾性マトリックスを取得"""
+        mat = self.get_material(material_id)
+        if not mat:
+            raise ValueError(f"Material ID {material_id} not found")
+            
+        E, nu = mat.E, mat.nu
+        factor = E / ((1 + nu) * (1 - 2 * nu))
+        
+        D = np.array([
+            [1 - nu, nu, 0],
+            [nu, 1 - nu, 0],
+            [0, 0, (1 - 2 * nu) / 2]
+        ])
+        
+        return factor * D 

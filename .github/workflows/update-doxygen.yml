@@ -1,0 +1,28 @@
+name: Update Doxygen Docs
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  generate-and-deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Doxygenをインストール
+        run: sudo apt-get install -y doxygen graphviz
+
+      - name: Doxygenドキュメントを生成
+        run: doxygen Doxyfile
+
+      - name: gh-pagesブランチにデプロイ
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/html
