@@ -1,5 +1,17 @@
 # JR総研剛性低減RC型 材料非線形モデル実装計画
 
+## 実装状況 ✅ 完了（2026-01-30）
+
+| Phase | 内容 | 状態 |
+|-------|------|------|
+| Phase 1 | 履歴フレームワーク | ✅ 完了 |
+| Phase 2 | JRモデル実装 | ✅ 完了 |
+| Phase 3 | NonlinearBarElement実装 | ✅ 完了 |
+| Phase 4 | Newton-Raphsonソルバー | ✅ 完了 |
+| Phase 5 | システム統合 | ✅ 完了 |
+
+---
+
 ## 1. 概要
 
 `src/fem` 以下の Python 実装に対して、**JR総研剛性低減RC型**履歴モデル（理論マニュアル 7.11節）を実装します。
@@ -81,21 +93,23 @@ Kd = K1 × |δmax/δ1|^(-β)    (Kmin < Kd < K1)
 
 ## 4. 新規作成ファイル
 
-| ファイル | 内容 |
-|---------|------|
-| `src/fem/nonlinear/__init__.py` | 非線形パッケージ |
-| `src/fem/nonlinear/hysteresis/__init__.py` | 履歴モデルパッケージ |
-| `src/fem/nonlinear/hysteresis/base_hysteresis.py` | `HysteresisState`, `BaseHysteresis` 基底クラス |
-| `src/fem/nonlinear/hysteresis/jr_stiffness_reduction.py` | `JRStiffnessReductionParams`, `JRStiffnessReductionModel` |
-| `src/fem/nonlinear/nonlinear_solver.py` | `NonlinearSolver` (Newton-Raphson) |
-| `src/fem/elements/nonlinear_bar_element.py` | `NonlinearBarElement` |
+| ファイル | 内容 | 状態 |
+|---------|------|------|
+| `src/fem/nonlinear/__init__.py` | 非線形パッケージ | ✅ |
+| `src/fem/nonlinear/hysteresis/__init__.py` | 履歴モデルパッケージ | ✅ |
+| `src/fem/nonlinear/hysteresis/base_hysteresis.py` | `HysteresisState`, `BaseHysteresis` 基底クラス | ✅ |
+| `src/fem/nonlinear/hysteresis/jr_stiffness_reduction.py` | `JRStiffnessReductionParams`, `JRStiffnessReductionModel` | ✅ |
+| `src/fem/nonlinear/nonlinear_solver.py` | `NonlinearSolver` (Newton-Raphson) | ✅ |
+| `src/fem/elements/nonlinear_bar_element.py` | `NonlinearBarElement` | ✅ |
 
 ## 5. 修正ファイル
 
-| ファイル | 修正内容 |
-|---------|----------|
-| `src/fem/material.py` | `NonlinearMaterialProperty` クラス追加 |
-| `src/fem/model.py` | `material_nonlinear` 解析タイプ追加 |
+| ファイル | 修正内容 | 状態 |
+|---------|----------|------|
+| `src/fem/material.py` | `NonlinearMaterialProperty` クラス追加 | ✅ |
+| `src/fem/model.py` | `material_nonlinear` 解析タイプ追加 | ✅ |
+| `src/fem/__init__.py` | 非線形モジュールのエクスポート追加 | ✅ |
+| `src/fem/elements/__init__.py` | `NonlinearBarElement` エクスポート追加 | ✅ |
 
 ## 6. クラス設計
 
@@ -545,31 +559,32 @@ model.add_nonlinear_material(
 
 ## 9. 実装手順
 
-### Phase 1: 履歴フレームワーク
-1. `src/fem/nonlinear/` パッケージ構造作成
-2. `HysteresisState` データクラス実装
-3. `BaseHysteresis` 抽象基底クラス実装
+### Phase 1: 履歴フレームワーク ✅
+1. ✅ `src/fem/nonlinear/` パッケージ構造作成
+2. ✅ `HysteresisState` データクラス実装
+3. ✅ `BaseHysteresis` 抽象基底クラス実装
 
-### Phase 2: JRモデル実装
-1. `JRStiffnessReductionParams` 実装
-2. スケルトンカーブロジック実装
-3. 剛性低減則実装
-4. 履歴経路ロジック実装
+### Phase 2: JRモデル実装 ✅
+1. ✅ `JRStiffnessReductionParams` 実装
+2. ✅ スケルトンカーブロジック実装
+3. ✅ 剛性低減則実装
+4. ✅ 履歴経路ロジック実装
 
-### Phase 3: 要素統合
-1. `NonlinearBarElement` クラス実装
-2. 内力計算 `get_internal_force()`
-3. 接線剛性計算 `get_tangent_stiffness_matrix()`
-4. 状態コミット/ロールバック機構
+### Phase 3: 要素統合 ✅
+1. ✅ `NonlinearBarElement` クラス実装
+2. ✅ 内力計算 `get_internal_force()`
+3. ✅ 接線剛性計算 `get_tangent_stiffness_matrix()`
+4. ✅ 状態コミット/ロールバック機構
 
-### Phase 4: 非線形ソルバー
-1. Newton-Raphson反復ループ
-2. 荷重増分制御
-3. 収束判定
+### Phase 4: 非線形ソルバー ✅
+1. ✅ Newton-Raphson反復ループ
+2. ✅ 荷重増分制御
+3. ✅ 収束判定
 
-### Phase 5: システム統合
-1. `MaterialProperty` 拡張
-2. `FemModel.run()` に `material_nonlinear` 追加
+### Phase 5: システム統合 ✅
+1. ✅ `NonlinearMaterialProperty` クラス追加
+2. ✅ `FemModel.run()` に `material_nonlinear` 追加
+3. ✅ `add_nonlinear_material()`, `add_nonlinear_bar_element()` メソッド追加
 
 ## 10. 検証計画
 
@@ -590,3 +605,139 @@ model.add_nonlinear_material(
    - パラメータ検証（δ1 < δ2 < δ3, P1 < P2 など）
    - 収束失敗時の処理
    - 負の剛性発生時の警告
+
+---
+
+## 11. 実装後の知見・設計変更・Tips
+
+### 11.1 新たな知見
+
+#### 既存コードベースのパターン
+- **TBarElement**: Timoshenko梁としてせん断変形を考慮した剛性行列を実装済み
+- **Solver**: V1レベル数値安定化技術（6段階フォールバック）を持つ堅牢な線形ソルバー
+- **FemModel**: Facadeパターンで各モジュールを統合
+
+#### MeshModel/BoundaryCondition API
+```python
+# ノード追加はリストで座標を渡す
+model.mesh.add_node(1, [0.0, 0.0, 0.0])
+
+# 境界条件は6自由度のboolリスト
+model.boundary.add_restraint(1, [True, True, True, True, True, True])
+
+# 荷重は6自由度のfloatリスト
+model.boundary.add_load(2, [0.0, 1e3, 0.0, 0.0, 0.0, 0.0])
+```
+
+### 11.2 設計変更
+
+#### DOF_MAPPINGの修正
+計画時の設計から実装時に以下のように変更:
+```python
+# 計画時
+DOF_MAPPING = {
+    'axial': 0,       # x方向
+    'moment_z': 4,    # z軸周りモーメント
+    'moment_y': 5,    # y軸周りモーメント
+    'torsion': 3      # ねじり
+}
+
+# 実装時（両端のインデックスをタプルで管理）
+DOF_MAPPING = {
+    'axial': (0, 6),       # (i端, j端)
+    'moment_y': (5, 11),
+    'moment_z': (4, 10),
+    'torsion': (3, 9)
+}
+```
+
+#### 状態管理の改善
+- `current_states`と`committed_states`を両端（i_end, j_end）別に管理
+- `copy.deepcopy`を使用してスタックを含む状態を安全にコピー
+
+### 11.3 実装Tips
+
+#### dataclassの`__post_init__`
+複数のdataclassを同一ファイルに定義する場合、各クラスの`__post_init__`が正しいクラス内に配置されているか注意。
+誤って別クラスに入り込むとAttributeErrorが発生する。
+
+#### 座標系変換
+```python
+# 全体座標系 → 要素座標系
+T = self.get_transformation_matrix(12)
+disp_local = T @ displacement
+
+# 要素座標系 → 全体座標系
+f_global = T.T @ f_local
+K_global = T.T @ K_local @ T
+```
+
+#### Newton-Raphson収束判定
+```python
+# 相対残差
+relative_residual = norm(R) / max(norm(F_ext), 1.0)
+
+# 相対変位増分
+relative_du = norm(du) / max(norm(u), 1.0)
+
+# 両方が許容差以下で収束
+if relative_residual < tol and relative_du < tol:
+    converged = True
+```
+
+#### 状態のコミット/ロールバック
+- **収束時**: `commit_state()` で現在の状態を確定
+- **発散時**: `rollback_state()` で前回のコミット状態に戻す
+- **重要**: 反復中は状態を一時的に更新するが、収束確定までコミットしない
+
+### 11.4 今後の課題
+
+1. **テスト拡充**: 単体テスト・統合テストの追加
+2. **繰返し載荷検証**: 履歴ループのエネルギー散逸確認
+3. **適応的ステップサイズ**: 収束困難時のステップサイズ自動調整
+4. **Line Search**: 収束性改善のためのライン探索法追加
+5. **並列化**: 大規模モデルでの要素内力・剛性計算の並列化
+
+### 11.5 使用例（実装後の正しいAPI）
+
+```python
+from src.fem import FemModel
+from src.fem.material import BarParameter
+
+model = FemModel()
+
+# ノード追加
+model.mesh.add_node(1, [0.0, 0.0, 0.0])
+model.mesh.add_node(2, [3.0, 0.0, 0.0])
+
+# 断面追加
+bar_param = BarParameter(area=0.01, Iy=1e-4, Iz=1e-4, J=2e-4)
+model.material.add_bar_parameter(1, bar_param)
+
+# 非線形材料追加（対称スケルトンカーブ）
+model.add_nonlinear_material(
+    material_id=1, name="RC柱", E=30e9,
+    delta_1=0.003, delta_2=0.015, delta_3=0.060,
+    P_1=100e3, P_2=500e3, P_3=550e3,
+    beta=0.4
+)
+
+# 非線形要素追加
+model.add_nonlinear_bar_element(
+    elem_id=1, node_ids=[1, 2],
+    material_id=1, section_id=1,
+    hysteresis_dofs=['moment_y']
+)
+
+# 境界条件
+model.boundary.add_restraint(1, [True]*6)  # 固定
+model.boundary.add_load(2, [0.0, 1e3, 0.0, 0.0, 0.0, 0.0])  # Y方向荷重
+
+# 非線形解析実行
+results = model.run(
+    analysis_type='material_nonlinear',
+    n_load_steps=20,
+    max_iterations=50,
+    tolerance=1e-6
+)
+```
