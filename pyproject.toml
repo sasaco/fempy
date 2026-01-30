@@ -2,6 +2,11 @@
 name = "FEMPython"
 version = "1.0.0"
 description = "Python FEM解析モジュール"
+readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "StructuralEngine" }
+]
 requires-python = ">=3.11"
 dependencies = [
     "flask>=3.0.3",
