@@ -57,6 +57,13 @@
 
 - **VTK形式出力**: Paraview等での可視化に対応したASCII VTKファイルを生成
 
+### 材料非線形解析（2026年1月追加）
+
+- **JR総研剛性低減RC型**: 鉄筋コンクリート部材の非線形挙動をシミュレート
+- **4折線スケルトンカーブ**: ひび割れ・降伏・終局の3点で定義
+- **履歴ループ**: 除荷・再載荷時の剛性低減を考慮
+- **Newton-Raphson法**: 増分荷重による非線形収束計算
+
 ### 従来機能
 
 - **2D・3Dフレーム解析**: 平面および空間構造の解析
@@ -88,6 +95,21 @@ results = model.run(analysis_type="static")
 displacement = model.get_results()["displacement"]
 print(f"節点数: {len(displacement)}節点（高精度メッシュ）")
 print(f"節点変位: {displacement}")
+```
+
+### 材料非線形解析の実行
+
+```python
+from src.fem import FemModel
+
+# 材料非線形解析の実行
+model = FemModel()
+model.load_model("tests/data/snap/beam001.json")
+
+# Newton-Raphson法による非線形解析
+results = model.run(analysis_type="material_nonlinear")
+displacement = model.get_results()["displacement"]
+print(f"非線形解析完了: 変位={displacement}")
 ```
 
 ### RESTful API使用方法

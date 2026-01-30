@@ -50,15 +50,26 @@ class FemModel:
 
 
     def read_json_model(self, model_data: Dict[str, Any]) -> None:
-      
+
         # データの設定（ここで初期節点数と要素数を記録）
         initial_node_count = len(model_data.get('mesh', MeshModel()).nodes)
         initial_elem_count = len(model_data.get('mesh', MeshModel()).elements)
-        
+
         self.mesh = model_data.get('mesh', MeshModel())
         self.boundary = model_data.get('boundary', BoundaryCondition())
         self.material = model_data.get('material', Material())
         self.section = model_data.get('section', Section())
+
+        # 解析パラメータの設定（JSONのloadセクションから読み込み）
+        if 'analysis_params' in model_data:
+            self.analysis_params = model_data['analysis_params']
+        else:
+            self.analysis_params = {
+                'n_load_steps': 10,
+                'max_iterations': 50,
+                'tolerance': 1e-6,
+                'n_modes': 10,
+            }
         
         # notice_pointsの処理
         if 'notice_points' in model_data:
@@ -329,7 +340,7 @@ class FemModel:
             'kwargs': kwargs
         }
         
-    def run(self, analysis_type: str = 'static', **kwargs) -> Dict[str, Any]:
+    def run(self, analysis_type: str = 'static') -> Dict[str, Any]:
         """解析を実行
 
         Args:
@@ -337,7 +348,9 @@ class FemModel:
                 - 'static': 線形静解析
                 - 'modal': モード解析
                 - 'material_nonlinear': 材料非線形解析
-            **kwargs: 追加パラメータ
+
+        Note:
+            解析パラメータはJSONファイルのloadセクションで指定:
                 - n_load_steps: 荷重増分ステップ数（material_nonlinear用）
                 - max_iterations: 最大反復回数（material_nonlinear用）
                 - tolerance: 収束判定許容差（material_nonlinear用）
@@ -359,14 +372,14 @@ class FemModel:
         elif analysis_type == 'modal':
             self.results = self.solver.eigenvalue_analysis(
                 self.mesh, self.material, self.boundary, self.elements,
-                n_modes=kwargs.get('n_modes', 10)
+                n_modes=self.analysis_params.get('n_modes', 10)
             )
         elif analysis_type == 'material_nonlinear':
             self.results = self.nonlinear_solver.solve_nonlinear(
                 self.mesh, self.material, self.boundary, self.elements,
-                n_steps=kwargs.get('n_load_steps', 10),
-                max_iter=kwargs.get('max_iterations', 50),
-                tol=kwargs.get('tolerance', 1e-6)
+                n_steps=self.analysis_params.get('n_load_steps', 10),
+                max_iter=self.analysis_params.get('max_iterations', 50),
+                tol=self.analysis_params.get('tolerance', 1e-6)
             )
         else:
             raise ValueError(f"Unknown analysis type: {analysis_type}")

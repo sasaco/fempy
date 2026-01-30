@@ -76,6 +76,83 @@ python check_integration_test.py
 
 ---
 
+## 材料非線形解析（2026年1月追加）
+
+### JR総研剛性低減RC型モデル
+```python
+from src.fem import FemModel
+
+# 非線形解析の実行（解析パラメータはJSONで指定）
+model = FemModel()
+model.load_model("tests/data/snap/beam001.json")
+results = model.run(analysis_type="material_nonlinear")
+```
+
+### 解析パラメータ（loadセクションで指定）
+```json
+"load": {
+  "1": {
+    "fix_node": 1,
+    "fix_member": 1,
+    "element": 1,
+    "joint": 1,
+    "n_load_steps": 10,      // 荷重増分ステップ数
+    "max_iterations": 50,    // 最大反復回数
+    "tolerance": 1e-6,       // 収束判定許容差
+    "n_modes": 10,           // 固有モード数（modal用）
+    "load_node": [...]
+  }
+}
+```
+
+### 非線形材料定義（JSON）
+```json
+"element": {
+  "1": {
+    "2": {
+      "E": 26500000,
+      "A": 1000,
+      "Iz": 1000,
+      "nonlinear": {
+        "type": "jr_stiffness_reduction",
+        "delta_1": 1e-05, "delta_2": 0.0001, "delta_3": 0.001,
+        "P_1": 1000.0, "P_2": 3000.0, "P_3": 5000.0,
+        "beta": 0.4,
+        "symmetric": true,
+        "hysteresis_dofs": ["moment_z"]
+      }
+    }
+  }
+}
+```
+
+### 4折線スケルトンカーブパラメータ
+| パラメータ | 説明 | 単位 |
+|-----------|------|------|
+| delta_1 | ひび割れ変位 | m |
+| delta_2 | 降伏変位 | m |
+| delta_3 | 終局変位 | m |
+| P_1 | ひび割れ荷重 | N |
+| P_2 | 降伏荷重 | N |
+| P_3 | 終局荷重 | N |
+| beta | 剛性低減係数 | - |
+
+### 非線形適用自由度（hysteresis_dofs）
+| 値 | 説明 |
+|----|------|
+| `"axial"` | 軸力（N） |
+| `"moment_y"` | Y軸周り曲げモーメント |
+| `"moment_z"` | Z軸周り曲げモーメント |
+| `"torsion"` | ねじりモーメント |
+
+### 解析タイプ
+| タイプ | 説明 |
+|--------|------|
+| `"static"` | 線形静的解析 |
+| `"material_nonlinear"` | 材料非線形解析（Newton-Raphson法） |
+
+---
+
 ## 基本的な使用方法（従来API）
 
 ### 最小限の2Dフレーム解析

@@ -40,6 +40,82 @@ graph TD
 - **新規節点**: 25個の自動生成
 - **荷重ケース**: 24ケース全ての包括的対応
 
+## 材料非線形解析ワークフロー（2026年1月追加）
+
+### 非線形解析フロー
+
+```mermaid
+graph TD
+    A[JSON入力] --> B[入力検証]
+    B --> C[非線形材料パース]
+    C --> D[NonlinearBarElement生成]
+    D --> E[初期荷重設定]
+    E --> F{荷重増分ループ}
+    F --> G[Newton-Raphson反復]
+    G --> H[接線剛性行列組み立て]
+    H --> I[内力計算]
+    I --> J[残差ベクトル計算]
+    J --> K{収束判定}
+    K -->|未収束| L[変位修正]
+    L --> G
+    K -->|収束| M[状態コミット]
+    M --> N{最終ステップ?}
+    N -->|No| F
+    N -->|Yes| O[結果出力]
+    K -->|発散| P[状態ロールバック]
+    P --> Q[エラー処理]
+```
+
+### Newton-Raphson法アルゴリズム
+
+```python
+u = 0
+for step in range(n_steps):
+    lambda_factor = (step + 1) / n_steps
+    F_ext = lambda_factor * F_total
+
+    for iteration in range(max_iter):
+        # 内力計算
+        F_int = assemble_internal_forces(elements, u)
+        R = F_ext - F_int
+
+        # 収束判定
+        R_norm = norm(R) / max(norm(F_ext), 1.0)
+        if iteration > 0:
+            du_norm = norm(du) / max(norm(u), 1.0)
+        else:
+            du_norm = float('inf')
+
+        if R_norm < tol and du_norm < tol:
+            break  # 収束
+
+        # 接線剛性行列組み立て・求解
+        K_tan = assemble_tangent_stiffness(elements, u)
+        du = solve(K_tan, R)
+        u += du
+
+    # Step収束後、状態変数をコミット
+    for elem in elements:
+        elem.update_state(u)
+```
+
+### JR総研剛性低減RC型履歴ルール
+
+1. **初期領域**: |δmax| < δ1 の場合、原点を通る勾配 K1 の直線上
+2. **載荷**: スケルトンカーブに沿う
+3. **除荷**: 低減剛性 Kd で除荷
+4. **最大点指向**: P=0通過後、反対側の最大変形点を目指す
+5. **内部ループ**: 最大点指向中に戻る場合、反転点スタックで管理
+6. **骨格曲線逸脱**: 除荷中に骨格曲線の外側に出た場合は補正
+
+### 剛性低減式
+
+- **ひび割れ域（δ1 < δmax < δ2）**: `Kd = K1 × |δmax/δ1|^(-β)`
+- **降伏域以降（δmax > δ2）**: `Kd = K2 × |δmax/δ2|^(-β)`
+- **下限値**: `(Fmax-F1)/(δmax-δ1)`
+
+---
+
 ## フェーズ1: 入力処理
 
 ### 1.1 JSON検証（新実装対応）

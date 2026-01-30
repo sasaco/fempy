@@ -8,7 +8,7 @@ from typing import Dict, Any, Optional, List
 import numpy as np
 from .mesh import MeshModel
 from .boundary_condition import BoundaryCondition
-from .material import Material, MaterialProperty, ShellParameter, BarParameter
+from .material import Material, MaterialProperty, ShellParameter, BarParameter, NonlinearMaterialProperty
 from .section import Section, CircleSection, RectSection, ISection, TubeSection
 
 
@@ -119,6 +119,9 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
             coord_list = [coords['x'], coords['y'], coords['z']]
             model_data['mesh'].add_node(int(node_id), coord_list)
     
+    # 非線形材料を使用するmemberを追跡するための一時リスト
+    nonlinear_member_info = []
+
     # memberセクションの読み込み（bar要素として扱う）
     if 'member' in data:
         for member_id, member_data in data['member'].items():
@@ -129,12 +132,18 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 ni = int(ni)
             if isinstance(nj, str):
                 nj = int(nj)
-                
+
             material_id = member_data.get('e', 1)  # 材料/断面ID
             # 材料IDも整数に変換
             if isinstance(material_id, str):
                 material_id = int(material_id)
-            
+
+            # 非線形材料を使用する場合は情報を記録（後で処理）
+            nonlinear_member_info.append({
+                'member_id': int(member_id),
+                'material_id': material_id
+            })
+
             model_data['mesh'].add_element(
                 int(member_id),
                 'bar',
@@ -201,6 +210,9 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
             )
     
     # 旧形式の材料情報をelementセクションから読み込む
+    # 非線形材料データも同時に処理
+    nonlinear_materials = {}  # {material_id: {'params': NonlinearMaterialProperty, 'hysteresis_dofs': [...]}}
+
     if 'element' in data:
         for _, elem_defs in data['element'].items():
             for mat_id_str, elem_def in elem_defs.items():
@@ -221,6 +233,92 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                     J=elem_def.get('J', 1.0)         # ねじり定数
                 )
                 model_data['material'].add_bar_parameter(material_id, bp)
+
+                # 非線形材料データの読み込み
+                if 'nonlinear' in elem_def:
+                    nl_data = elem_def['nonlinear']
+                    nl_type = nl_data.get('type', 'jr_stiffness_reduction')
+
+                    if nl_type == 'jr_stiffness_reduction':
+                        # 対称スケルトンカーブかどうか
+                        symmetric = nl_data.get('symmetric', True)
+
+                        # 正側パラメータ
+                        delta_1 = nl_data.get('delta_1', 0.001)
+                        delta_2 = nl_data.get('delta_2', 0.01)
+                        delta_3 = nl_data.get('delta_3', 0.1)
+                        P_1 = nl_data.get('P_1', 100.0)
+                        P_2 = nl_data.get('P_2', 500.0)
+                        P_3 = nl_data.get('P_3', 550.0)
+
+                        # 負側パラメータ（非対称の場合）
+                        if symmetric:
+                            delta_1_neg = delta_1
+                            delta_2_neg = delta_2
+                            delta_3_neg = delta_3
+                            P_1_neg = P_1
+                            P_2_neg = P_2
+                            P_3_neg = P_3
+                        else:
+                            delta_1_neg = nl_data.get('delta_1_neg', delta_1)
+                            delta_2_neg = nl_data.get('delta_2_neg', delta_2)
+                            delta_3_neg = nl_data.get('delta_3_neg', delta_3)
+                            P_1_neg = nl_data.get('P_1_neg', P_1)
+                            P_2_neg = nl_data.get('P_2_neg', P_2)
+                            P_3_neg = nl_data.get('P_3_neg', P_3)
+
+                        beta = nl_data.get('beta', 0.4)
+                        K_min = nl_data.get('K_min', None)
+
+                        # NonlinearMaterialPropertyを作成
+                        nl_mat = NonlinearMaterialProperty(
+                            name=elem_def.get('n', f"Nonlinear{material_id}"),
+                            E=elem_def['E'],
+                            nu=elem_def.get('nu', 0.3),
+                            delta_1_pos=delta_1,
+                            delta_2_pos=delta_2,
+                            delta_3_pos=delta_3,
+                            P_1_pos=P_1,
+                            P_2_pos=P_2,
+                            P_3_pos=P_3,
+                            delta_1_neg=delta_1_neg,
+                            delta_2_neg=delta_2_neg,
+                            delta_3_neg=delta_3_neg,
+                            P_1_neg=P_1_neg,
+                            P_2_neg=P_2_neg,
+                            P_3_neg=P_3_neg,
+                            beta=beta,
+                            K_min=K_min,
+                            density=elem_def.get('den')
+                        )
+
+                        model_data['material'].add_nonlinear_material(material_id, nl_mat)
+
+                        # 履歴を適用する自由度
+                        hysteresis_dofs = nl_data.get('hysteresis_dofs', ['moment_z'])
+                        nonlinear_materials[material_id] = {
+                            'hysteresis_dofs': hysteresis_dofs
+                        }
+
+                        print(f"非線形材料を読み込みました: material_id={material_id}, "
+                              f"P=({P_1}, {P_2}, {P_3}), delta=({delta_1}, {delta_2}, {delta_3}), "
+                              f"hysteresis_dofs={hysteresis_dofs}")
+
+    # 非線形材料を使用するmemberの要素タイプを'nonlinear_bar'に変更
+    for member_info in nonlinear_member_info:
+        member_id = member_info['member_id']
+        material_id = member_info['material_id']
+
+        if material_id in nonlinear_materials:
+            # 要素タイプを'nonlinear_bar'に変更
+            if member_id in model_data['mesh'].elements:
+                elem_data = model_data['mesh'].elements[member_id]
+                elem_data['type'] = 'nonlinear_bar'
+                elem_data['section_id'] = material_id
+                elem_data['hysteresis_dofs'] = nonlinear_materials[material_id]['hysteresis_dofs']
+                elem_data['shear_correction'] = True
+                print(f"要素{member_id}を非線形要素に変換: material_id={material_id}, "
+                      f"hysteresis_dofs={elem_data['hysteresis_dofs']}")
     
     # デフォルト材料を追加（材料が一つも読み込まれなかった場合）
     if len(model_data['material'].materials) == 0:
@@ -311,10 +409,19 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
     if 'load' in data:
         # loadセクション全体をmodel_dataに追加（FemModelで要素分割に使用）
         model_data['load'] = data['load']
-        
+
         # 最初の荷重ケースから荷重データを境界条件に追加
         load_cases = data['load']
         if load_cases:
+            # 最初の荷重ケースから解析パラメータを抽出
+            first_case_key = list(load_cases.keys())[0]
+            first_case = load_cases[first_case_key]
+            model_data['analysis_params'] = {
+                'n_load_steps': first_case.get('n_load_steps', 10),
+                'max_iterations': first_case.get('max_iterations', 50),
+                'tolerance': first_case.get('tolerance', 1e-6),
+                'n_modes': first_case.get('n_modes', 10),
+            }
             # 最初の荷重ケースを使用（通常は基本荷重ケース）
             first_case_key = list(load_cases.keys())[0]
             case_data = load_cases[first_case_key]

@@ -39,6 +39,73 @@
 
 **注意：シェル要素の厚さはAフィールドで指定します（断面積ではなく厚さとして解釈）**
 
+### 非線形材料定義（JR総研剛性低減RC型）
+
+材料非線形解析では、要素特性に`nonlinear`オブジェクトを追加して履歴モデルを定義します。
+
+```json
+"element": {
+  "要素特性ケースID": {
+    "要素ID": {
+      "E": 26500000,
+      "G": 1,
+      "A": 1000,
+      "Iy": 1,
+      "Iz": 1000,
+      "J": 1,
+      "n": "非線形材料",
+      "nonlinear": {
+        "type": "jr_stiffness_reduction",
+        "delta_1": 0.00001,    // ひび割れ変位 (m)
+        "delta_2": 0.0001,     // 降伏変位 (m)
+        "delta_3": 0.001,      // 終局変位 (m)
+        "P_1": 1000.0,         // ひび割れ荷重 (N)
+        "P_2": 3000.0,         // 降伏荷重 (N)
+        "P_3": 5000.0,         // 終局荷重 (N)
+        "beta": 0.4,           // 剛性低減係数
+        "symmetric": true,     // 正負対称スケルトンカーブ
+        "hysteresis_dofs": ["moment_z"]  // 非線形適用自由度
+      }
+    }
+  }
+}
+```
+
+#### 非線形パラメータ
+| パラメータ | 説明 | 単位 |
+|-----------|------|------|
+| type | 履歴モデルタイプ（"jr_stiffness_reduction"） | - |
+| delta_1 | ひび割れ変位 | m |
+| delta_2 | 降伏変位 | m |
+| delta_3 | 終局変位 | m |
+| P_1 | ひび割れ荷重 | N |
+| P_2 | 降伏荷重 | N |
+| P_3 | 終局荷重 | N |
+| beta | 剛性低減係数（典型値: 0.4） | - |
+| symmetric | 正負対称スケルトンカーブ | bool |
+| hysteresis_dofs | 非線形適用自由度 | 配列 |
+
+#### hysteresis_dofs の選択肢
+- `"axial"`: 軸力（N）
+- `"moment_y"`: Y軸周り曲げモーメント（My）
+- `"moment_z"`: Z軸周り曲げモーメント（Mz）
+- `"torsion"`: ねじりモーメント（Mx）
+
+#### 非対称スケルトンカーブ
+正側と負側で異なるパラメータを指定する場合：
+```json
+"nonlinear": {
+  "type": "jr_stiffness_reduction",
+  "delta_1_pos": 0.003, "delta_2_pos": 0.015, "delta_3_pos": 0.060,
+  "P_1_pos": 100000, "P_2_pos": 500000, "P_3_pos": 550000,
+  "delta_1_neg": 0.002, "delta_2_neg": 0.010, "delta_3_neg": 0.040,
+  "P_1_neg": 80000, "P_2_neg": 400000, "P_3_neg": 420000,
+  "beta": 0.4,
+  "symmetric": false,
+  "hysteresis_dofs": ["moment_z"]
+}
+```
+
 ### 部材定義（梁要素：bar）
 ```json
 "member": {
@@ -303,12 +370,24 @@ FrameWeb3 APIは構造モデルデータをJSON形式で受け取ります。以
     "fix_member": 1, // バネケース参照
     "element": 1, // 材料ケース参照
     "joint": 1, // 材端ケース参照
+    "n_load_steps": 10, // 荷重増分ステップ数（材料非線形用）
+    "max_iterations": 50, // 最大反復回数（材料非線形用）
+    "tolerance": 1e-6, // 収束判定許容差（材料非線形用）
+    "n_modes": 10, // 固有モード数（モード解析用）
     "load_node": [...], // 節点荷重
     "load_member": [...], // 部材荷重
     "load_heat": [...] // 温度荷重
   }
 }
 ```
+
+#### 解析パラメータ
+| パラメータ | 説明 | デフォルト値 | 対象解析 |
+|-----------|------|-------------|---------|
+| n_load_steps | 荷重増分ステップ数 | 10 | material_nonlinear |
+| max_iterations | Newton-Raphson最大反復回数 | 50 | material_nonlinear |
+| tolerance | 収束判定許容差 | 1e-6 | material_nonlinear |
+| n_modes | 固有モード数 | 10 | modal |
 
 #### 節点荷重
 ```json

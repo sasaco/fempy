@@ -336,6 +336,231 @@ project_status = project_completion_demonstration()
 
 ---
 
+## 材料非線形解析（2026年1月追加）
+
+**JR総研剛性低減RC型**履歴モデルを使用した材料非線形解析の使用例です。鉄筋コンクリート部材のひび割れ、降伏、剛性低減をシミュレートします。
+
+### 基本的な非線形解析
+
+```python
+from src.fem import FemModel
+
+def basic_nonlinear_analysis():
+    """JR総研剛性低減RC型モデルによる非線形解析の基本例"""
+
+    # モデル読み込み（解析パラメータはJSONのloadセクションで指定）
+    model = FemModel()
+    model.load_model("tests/data/snap/beam001.json")
+
+    print("非線形解析を開始...")
+
+    # Newton-Raphson法による材料非線形解析
+    # 注: 解析パラメータ（n_load_steps, max_iterations, tolerance）は
+    #     JSONファイルのloadセクションで指定します
+    results = model.run(analysis_type="material_nonlinear")
+
+    # 結果取得
+    displacement = model.get_results()["displacement"]
+    print(f"解析完了: {len(displacement)}節点")
+
+    # 最大変位の表示
+    for node_id, disp in displacement.items():
+        print(f"節点{node_id}: dx={disp.get('dx', 0):.6e}, rz={disp.get('rz', 0):.6e}")
+
+    return results
+
+# 実行例
+results = basic_nonlinear_analysis()
+```
+
+### 非線形材料定義を含むJSONモデル
+
+```json
+{
+    "ver": "2.5.1",
+    "dimension": 2,
+    "node": {
+        "1": {"x": 0, "y": -5.0, "z": 0},
+        "2": {"x": 0, "y": -0.2, "z": 0},
+        "3": {"x": 0, "y": -0.1, "z": 0},
+        "4": {"x": 0, "y": 0, "z": 0}
+    },
+    "member": {
+        "1": {"ni": 1, "nj": 2, "e": 1, "cg": 0},
+        "2": {"ni": 2, "nj": 3, "e": 2, "cg": 0},
+        "3": {"ni": 3, "nj": 4, "e": 1, "cg": 0}
+    },
+    "element": {
+        "1": {
+            "1": {
+                "E": 26500000, "G": 1, "A": 1000,
+                "J": 1, "Iy": 1, "Iz": 1000,
+                "n": "剛域"
+            },
+            "2": {
+                "E": 26500000, "G": 1, "A": 1000,
+                "J": 1, "Iy": 1, "Iz": 1000,
+                "n": "非線形材料",
+                "nonlinear": {
+                    "type": "jr_stiffness_reduction",
+                    "delta_1": 1e-05,
+                    "delta_2": 0.0001,
+                    "delta_3": 0.001,
+                    "P_1": 1000.0,
+                    "P_2": 3000.0,
+                    "P_3": 5000.0,
+                    "beta": 0.4,
+                    "symmetric": true,
+                    "hysteresis_dofs": ["moment_z"]
+                }
+            }
+        }
+    },
+    "fix_node": {
+        "1": [{"row": 1, "n": "4", "tx": 1, "ty": 1, "tz": 1, "rx": 1, "ry": 1, "rz": 1}]
+    },
+    "load": {
+        "1": {
+            "rate": 1,
+            "fix_node": 1,
+            "fix_member": 1,
+            "element": 1,
+            "joint": 1,
+            "n_load_steps": 10,
+            "max_iterations": 50,
+            "tolerance": 1e-6,
+            "n_modes": 10,
+            "symbol": "CASE-1",
+            "load_node": [{"n": "1", "tx": 100, "ty": 0, "tz": 0, "rx": 0, "ry": 0, "rz": 0}]
+        }
+    }
+}
+```
+
+### プログラムから非線形材料を定義
+
+```python
+from src.fem import FemModel
+from src.fem.material import BarParameter
+
+def programmatic_nonlinear_model():
+    """プログラムから非線形モデルを構築する例"""
+
+    model = FemModel()
+
+    # ノード追加
+    model.mesh.add_node(1, [0.0, 0.0, 0.0])
+    model.mesh.add_node(2, [3.0, 0.0, 0.0])
+
+    # 断面追加
+    bar_param = BarParameter(area=0.01, Iy=1e-4, Iz=1e-4, J=2e-4)
+    model.material.add_bar_parameter(1, bar_param)
+
+    # 非線形材料追加（対称スケルトンカーブ）
+    model.add_nonlinear_material(
+        material_id=1,
+        name="RC柱",
+        E=30e9,
+        delta_1=0.003,   # ひび割れ変位
+        delta_2=0.015,   # 降伏変位
+        delta_3=0.060,   # 終局変位
+        P_1=100e3,       # ひび割れ荷重
+        P_2=500e3,       # 降伏荷重
+        P_3=550e3,       # 終局荷重
+        beta=0.4         # 剛性低減係数
+    )
+
+    # 非線形要素追加
+    model.add_nonlinear_bar_element(
+        elem_id=1,
+        node_ids=[1, 2],
+        material_id=1,
+        section_id=1,
+        hysteresis_dofs=['moment_y']  # Y軸周り曲げに非線形を適用
+    )
+
+    # 境界条件
+    model.boundary.add_restraint(1, [True]*6)  # 固定
+    model.boundary.add_load(2, [0.0, 1e3, 0.0, 0.0, 0.0, 0.0])  # Y方向荷重
+
+    # 解析パラメータを設定（通常はJSONから読み込まれる）
+    model.analysis_params = {
+        'n_load_steps': 20,
+        'max_iterations': 50,
+        'tolerance': 1e-6,
+        'n_modes': 10
+    }
+
+    # 非線形解析実行
+    results = model.run(analysis_type='material_nonlinear')
+
+    return results
+
+# 実行例
+results = programmatic_nonlinear_model()
+```
+
+### 非対称スケルトンカーブ
+
+正側と負側で異なる特性を持つRC部材の解析例：
+
+```python
+def asymmetric_skeleton_curve():
+    """非対称スケルトンカーブの例（引張側が弱い場合）"""
+
+    model = FemModel()
+
+    # ... ノード・断面設定 ...
+
+    # 非対称スケルトンカーブ
+    model.add_nonlinear_material(
+        material_id=2,
+        name="非対称RC柱",
+        E=30e9,
+        # 正側パラメータ（圧縮側）
+        delta_1_pos=0.003, delta_2_pos=0.015, delta_3_pos=0.060,
+        P_1_pos=100e3, P_2_pos=500e3, P_3_pos=550e3,
+        # 負側パラメータ（引張側 - 弱い）
+        delta_1_neg=0.002, delta_2_neg=0.010, delta_3_neg=0.040,
+        P_1_neg=80e3, P_2_neg=400e3, P_3_neg=420e3,
+        beta=0.4
+    )
+
+    return model
+```
+
+### スケルトンカーブの概念図
+
+```
+荷重(P)
+    ^
+    |           P3 *─────────── K4 (硬化/軟化)
+    |          /
+    |     P2 *       K3 = (P3-P2)/(δ3-δ2)
+    |       /
+    |  P1 *           K2 = (P2-P1)/(δ2-δ1)
+    |   /
+    | /               K1 = P1/δ1 (初期剛性)
+    |/
+    O────*────*────*─────> 変位(δ)
+       δ1   δ2   δ3
+
+特性点:
+- (δ1, P1): ひび割れ点
+- (δ2, P2): 降伏点
+- (δ3, P3): 終局点
+```
+
+### 剛性低減則
+
+除荷時の剛性（戻り剛性）は最大経験変位に基づいて低減されます：
+
+- **ひび割れ域（δ1 < δmax < δ2）**: `Kd = K1 × |δmax/δ1|^(-β)`
+- **降伏域以降（δmax > δ2）**: `Kd = K2 × |δmax/δ2|^(-β)`
+- **下限値**: `(Fmax-F1)/(δmax-δ1)`
+
+---
+
 ## 基本的な2Dフレーム解析（従来API）
 
 この例では、水平梁と垂直柱を持つシンプルな2Dフレーム解析を示します。

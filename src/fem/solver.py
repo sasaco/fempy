@@ -307,7 +307,7 @@ class Solver:
         from scipy.linalg import svd, lstsq
         import warnings
         
-        print(f"🔧 V1レベル数値安定化ソルバー開始")
+        print(f"[Solver] V1レベル数値安定化ソルバー開始")
         print(f"  - 行列サイズ: {K.shape[0]}×{K.shape[1]}")
         print(f"  - 非零要素数: {K.nnz}")
         
@@ -331,20 +331,20 @@ class Solver:
                         self.displacement = spsolve(K, F, use_umfpack=True)
                     
                     if not np.any(np.isnan(self.displacement)):
-                        print("  ✅ 直接法成功")
+                        print("  [OK] 直接法成功")
                         return self.displacement
                     else:
-                        print("  ❌ 直接法でNaN発生")
+                        print("  [NG] 直接法でNaN発生")
                 except:
-                    print("  ❌ 直接法失敗")
+                    print("  [NG] 直接法失敗")
             else:
-                print("  ❌ 条件数不良（>1e12）、安定化手法を適用")
+                print("  [NG] 条件数不良（>1e12）、安定化手法を適用")
                 
         except Exception as e:
-            print(f"  ❌ 条件数チェック失敗: {e}")
+            print(f"  [NG] 条件数チェック失敗: {e}")
         
         # 段階2: 正則化技術（Tikhonov正則化）
-        print("  🔧 Tikhonov正則化を適用")
+        print("  [Step] Tikhonov正則化を適用")
         try:
             # 正則化パラメータ（対角成分の平均の1e-6倍）
             diag_mean = np.mean(np.abs(K.diagonal()))
@@ -361,16 +361,16 @@ class Solver:
                 self.displacement = spsolve(K_reg, F, use_umfpack=False)
             
             if not np.any(np.isnan(self.displacement)):
-                print("  ✅ Tikhonov正則化成功")
+                print("  [OK] Tikhonov正則化成功")
                 return self.displacement
             else:
-                print("  ❌ 正則化でもNaN発生")
+                print("  [NG] 正則化でもNaN発生")
                 
         except Exception as e:
-            print(f"  ❌ 正則化失敗: {e}")
+            print(f"  [NG] 正則化失敗: {e}")
         
         # 段階3: 前処理付き反復法（GMRES）
-        print("  🔧 前処理付きGMRES反復法を適用")
+        print("  [Step] 前処理付きGMRES反復法を適用")
         try:
             # ILU前処理器の作成
             try:
@@ -399,16 +399,16 @@ class Solver:
             )
             
             if info == 0 and not np.any(np.isnan(self.displacement)):
-                print(f"  ✅ GMRES反復法成功（収束）")
+                print(f"  [OK] GMRES反復法成功（収束）")
                 return self.displacement
             else:
-                print(f"  ❌ GMRES反復法失敗（info={info}）")
+                print(f"  [NG] GMRES反復法失敗（info={info}）")
                 
         except Exception as e:
-            print(f"  ❌ GMRES反復法エラー: {e}")
+            print(f"  [NG] GMRES反復法エラー: {e}")
         
         # 段階4: BiCGStab反復法（予備）
-        print("  🔧 BiCGStab反復法を適用")
+        print("  [Step] BiCGStab反復法を適用")
         try:
             x0 = np.zeros(K.shape[0])
             
@@ -417,16 +417,16 @@ class Solver:
             )
             
             if info == 0 and not np.any(np.isnan(self.displacement)):
-                print("  ✅ BiCGStab反復法成功")
+                print("  [OK] BiCGStab反復法成功")
                 return self.displacement
             else:
-                print(f"  ❌ BiCGStab反復法失敗（info={info}）")
+                print(f"  [NG] BiCGStab反復法失敗（info={info}）")
                 
         except Exception as e:
-            print(f"  ❌ BiCGStab反復法エラー: {e}")
+            print(f"  [NG] BiCGStab反復法エラー: {e}")
         
         # 段階5: 最終手段 - SVD疑似逆行列（密行列変換）
-        print("  🔧 最終手段：SVD疑似逆行列を適用")
+        print("  [Step] 最終手段：SVD疑似逆行列を適用")
         try:
             # 小規模問題のみSVDを適用
             if K.shape[0] <= 1000:
@@ -444,34 +444,34 @@ class Solver:
                 self.displacement = Vt.T @ np.diag(1/s_reg) @ U.T @ F
                 
                 if not np.any(np.isnan(self.displacement)):
-                    print("  ✅ SVD疑似逆行列成功")
+                    print("  [OK] SVD疑似逆行列成功")
                     return self.displacement
                 else:
-                    print("  ❌ SVD疑似逆行列でもNaN発生")
+                    print("  [NG] SVD疑似逆行列でもNaN発生")
             else:
                 print("    行列が大きすぎるためSVDをスキップ")
                 
         except Exception as e:
-            print(f"  ❌ SVD疑似逆行列エラー: {e}")
+            print(f"  [NG] SVD疑似逆行列エラー: {e}")
         
         # 段階6: 最小二乗法による近似解
-        print("  🔧 最小二乗法による近似解を計算")
+        print("  [Step] 最小二乗法による近似解を計算")
         try:
             if K.shape[0] <= 2000:
                 K_dense = K.toarray()
                 solution, residuals, rank, s = lstsq(K_dense, F, rcond=1e-12)
                 
                 if not np.any(np.isnan(solution)):
-                    print(f"  ✅ 最小二乗法成功（rank={rank}/{K.shape[0]}）")
+                    print(f"  [OK] 最小二乗法成功（rank={rank}/{K.shape[0]}）")
                     self.displacement = solution
                     return self.displacement
                     
         except Exception as e:
-            print(f"  ❌ 最小二乗法エラー: {e}")
+            print(f"  [NG] 最小二乗法エラー: {e}")
         
         # 全手法失敗の場合
-        print("  🚨 全ての数値安定化手法が失敗")
-        print("  💡 構造の根本的見直しが必要です:")
+        print("  [!!] 全ての数値安定化手法が失敗")
+        print("  [Hint] 構造の根本的見直しが必要です:")
         print("     - 境界条件の不足（剛体モードの存在）")
         print("     - 要素の極端な寸法比")
         print("     - 材料定数の異常値")
