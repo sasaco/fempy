@@ -1,0 +1,334 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FrameWeb: APIエンドポイント</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FrameWeb
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('md_docs_2wiki_2endpoints.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">APIエンドポイント</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="autotoc_md34"></a> </p>
+<h1><a class="anchor" id="autotoc_md35"></a>
+ベースエンドポイント</h1>
+<p><b>URL</b>: <code>/</code> <b>メソッド</b>: <code>GET</code>, <code>POST</code> <b>Content-Type</b>: <code>application/json</code></p>
+<h1><a class="anchor" id="autotoc_md36"></a>
+POST / - 構造解析</h1>
+<p>提供されたモデルデータに対して構造解析を実行します。</p>
+<h2><a class="anchor" id="autotoc_md37"></a>
+リクエスト</h2>
+<h3><a class="anchor" id="autotoc_md38"></a>
+ヘッダー</h3>
+<ul>
+<li><code>Content-Type: application/json</code></li>
+<li><code>Content-Encoding: gzip</code> (オプション、圧縮リクエスト用)</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md39"></a>
+リクエストボディ</h3>
+<p>リクエストボディには構造モデルを表すJSONオブジェクトを含める必要があります。データはgzipエンコーディングを使用してオプションで圧縮できます。</p>
+<p><b>基本構造:</b> </p><div class="fragment"><div class="line">{</div>
+<div class="line">    &quot;node&quot;: { ... },</div>
+<div class="line">    &quot;member&quot;: { ... },</div>
+<div class="line">    &quot;element&quot;: { ... },</div>
+<div class="line">    &quot;fix_node&quot;: { ... },</div>
+<div class="line">    &quot;load&quot;: { ... }</div>
+<div class="line">}</div>
+</div><!-- fragment --><p><b>圧縮サポート:</b> APIは大きなモデルに対してgzip圧縮をサポートします。圧縮データを送信する場合：</p>
+<ol type="1">
+<li>JSON文字列をgzipで圧縮</li>
+<li>圧縮データをbase64でエンコード</li>
+<li><code>Content-Encoding: gzip</code> ヘッダーを設定</li>
+</ol>
+<h2><a class="anchor" id="autotoc_md40"></a>
+レスポンス</h2>
+<h3><a class="anchor" id="autotoc_md41"></a>
+成功レスポンス (200 OK)</h3>
+<p>すべての荷重ケースの解析結果を返します。</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">    &quot;loadCase1&quot;: {</div>
+<div class="line">        &quot;disg&quot;: { ... },</div>
+<div class="line">        &quot;reac&quot;: { ... },</div>
+<div class="line">        &quot;fsec&quot;: { ... },</div>
+<div class="line">        &quot;shell_fsec&quot;: { ... },</div>
+<div class="line">        &quot;shell_results&quot;: { ... },</div>
+<div class="line">        &quot;size&quot;: 100</div>
+<div class="line">    },</div>
+<div class="line">    &quot;loadCase2&quot;: { ... }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md42"></a>
+レスポンス圧縮</h3>
+<p>大きなレスポンスは以下の場合に自動的にgzipで圧縮され、base64エンコードされます：</p>
+<ul>
+<li>レスポンスサイズが内部閾値を超える場合</li>
+<li>クライアントが圧縮をサポートする場合</li>
+</ul>
+<p>圧縮レスポンスには以下が含まれます：</p>
+<ul>
+<li><code>Content-Encoding: gzip</code> ヘッダー</li>
+<li>Base64エンコードされたgzip圧縮JSONデータ</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md43"></a>
+エラーレスポンス</h2>
+<h3><a class="anchor" id="autotoc_md44"></a>
+400 Bad Request</h3>
+<p>無効な入力データ形式または必須フィールドの欠如。</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">    &quot;error&quot;: &quot;入力データエラー&quot;,</div>
+<div class="line">    &quot;message&quot;: &quot;節点データが不足しています&quot;,</div>
+<div class="line">    &quot;details&quot;: {</div>
+<div class="line">        &quot;node&quot;: 5,</div>
+<div class="line">        &quot;member&quot;: 3</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md45"></a>
+500 Internal Server Error</h3>
+<p>解析計算エラーまたはシステム障害。</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">    &quot;error&quot;: &quot;計算エラー&quot;,</div>
+<div class="line">    &quot;message&quot;: &quot;剛性行列の特異性により解析が収束しませんでした&quot;,</div>
+<div class="line">    &quot;details&quot;: {</div>
+<div class="line">        &quot;loadCase&quot;: &quot;case1&quot;,</div>
+<div class="line">        &quot;caseComb&quot;: {</div>
+<div class="line">            &quot;nMaterialCase&quot;: 1,</div>
+<div class="line">            &quot;nSupportCase&quot;: 1,</div>
+<div class="line">            &quot;nSpringCase&quot;: 1,</div>
+<div class="line">            &quot;nJointCase&quot;: 1</div>
+<div class="line">        }</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md46"></a>
+GET / - ヘルスチェック</h1>
+<p>基本的なサービス情報とヘルス状態を返します。</p>
+<h2><a class="anchor" id="autotoc_md47"></a>
+リクエスト</h2>
+<p>リクエストボディは不要です。</p>
+<h2><a class="anchor" id="autotoc_md48"></a>
+レスポンス</h2>
+<div class="fragment"><div class="line">{</div>
+<div class="line">    &quot;service&quot;: &quot;FrameWeb3&quot;,</div>
+<div class="line">    &quot;status&quot;: &quot;running&quot;,</div>
+<div class="line">    &quot;version&quot;: &quot;3.0&quot;,</div>
+<div class="line">    &quot;timestamp&quot;: &quot;2025-05-31T12:35:04Z&quot;</div>
+<div class="line">}</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md49"></a>
+リクエスト/レスポンス例</h1>
+<h2><a class="anchor" id="autotoc_md50"></a>
+シンプルな2Dフレーム解析</h2>
+<p><b>リクエスト:</b> </p><div class="fragment"><div class="line">curl -X POST http://localhost:5000/ \</div>
+<div class="line">-H &quot;Content-Type: application/json&quot; \</div>
+<div class="line">-d &#39;{</div>
+<div class="line">    &quot;node&quot;: {</div>
+<div class="line">        &quot;1&quot;: {&quot;x&quot;: 0, &quot;y&quot;: 0},</div>
+<div class="line">        &quot;2&quot;: {&quot;x&quot;: 5, &quot;y&quot;: 0},</div>
+<div class="line">        &quot;3&quot;: {&quot;x&quot;: 5, &quot;y&quot;: 3}</div>
+<div class="line">    },</div>
+<div class="line">    &quot;member&quot;: {</div>
+<div class="line">        &quot;1&quot;: {&quot;ni&quot;: 1, &quot;nj&quot;: 2, &quot;e&quot;: 1},</div>
+<div class="line">        &quot;2&quot;: {&quot;ni&quot;: 2, &quot;nj&quot;: 3, &quot;e&quot;: 1}</div>
+<div class="line">    },</div>
+<div class="line">    &quot;element&quot;: {</div>
+<div class="line">        &quot;1&quot;: {</div>
+<div class="line">            &quot;E&quot;: 205000000,</div>
+<div class="line">            &quot;G&quot;: 79000000,</div>
+<div class="line">            &quot;Iy&quot;: 0.0001,</div>
+<div class="line">            &quot;Iz&quot;: 0.0001,</div>
+<div class="line">            &quot;J&quot;: 0.0001,</div>
+<div class="line">            &quot;A&quot;: 0.01</div>
+<div class="line">        }</div>
+<div class="line">    },</div>
+<div class="line">    &quot;fix_node&quot;: {</div>
+<div class="line">        &quot;1&quot;: {&quot;1&quot;: {&quot;x&quot;: 1, &quot;y&quot;: 1, &quot;rx&quot;: 1, &quot;ry&quot;: 1, &quot;rz&quot;: 1}}</div>
+<div class="line">    },</div>
+<div class="line">    &quot;load&quot;: {</div>
+<div class="line">        &quot;DL&quot;: {</div>
+<div class="line">            &quot;load_node&quot;: [{&quot;n&quot;: 3, &quot;ty&quot;: -50}]</div>
+<div class="line">        }</div>
+<div class="line">    }</div>
+<div class="line">}&#39;</div>
+</div><!-- fragment --><p><b>レスポンス:</b> </p><div class="fragment"><div class="line">{</div>
+<div class="line">    &quot;DL&quot;: {</div>
+<div class="line">        &quot;disg&quot;: {</div>
+<div class="line">            &quot;1&quot;: {&quot;dx&quot;: 0, &quot;dy&quot;: 0, &quot;dz&quot;: 0, &quot;rx&quot;: 0, &quot;ry&quot;: 0, &quot;rz&quot;: 0},</div>
+<div class="line">            &quot;2&quot;: {&quot;dx&quot;: 0.0012, &quot;dy&quot;: -0.0008, &quot;dz&quot;: 0, &quot;rx&quot;: 0, &quot;ry&quot;: 0, &quot;rz&quot;: -0.0003},</div>
+<div class="line">            &quot;3&quot;: {&quot;dx&quot;: 0.0024, &quot;dy&quot;: -0.0015, &quot;dz&quot;: 0, &quot;rx&quot;: 0, &quot;ry&quot;: 0, &quot;rz&quot;: -0.0005}</div>
+<div class="line">        },</div>
+<div class="line">        &quot;reac&quot;: {</div>
+<div class="line">            &quot;1&quot;: {&quot;tx&quot;: -25, &quot;ty&quot;: 50, &quot;tz&quot;: 0, &quot;mx&quot;: 0, &quot;my&quot;: 0, &quot;mz&quot;: 75}</div>
+<div class="line">        },</div>
+<div class="line">        &quot;fsec&quot;: {</div>
+<div class="line">            &quot;1&quot;: {</div>
+<div class="line">                &quot;1&quot;: {</div>
+<div class="line">                    &quot;fxi&quot;: 25,</div>
+<div class="line">                    &quot;fyi&quot;: 0,</div>
+<div class="line">                    &quot;fzi&quot;: 0,</div>
+<div class="line">                    &quot;mxi&quot;: 0,</div>
+<div class="line">                    &quot;myi&quot;: 0,</div>
+<div class="line">                    &quot;mzi&quot;: 0,</div>
+<div class="line">                    &quot;fxj&quot;: -25,</div>
+<div class="line">                    &quot;fyj&quot;: 0,</div>
+<div class="line">                    &quot;fzj&quot;: 0,</div>
+<div class="line">                    &quot;mxj&quot;: 0,</div>
+<div class="line">                    &quot;myj&quot;: 0,</div>
+<div class="line">                    &quot;mzj&quot;: 0,</div>
+<div class="line">                    &quot;L&quot;: 5</div>
+<div class="line">                }</div>
+<div class="line">            },</div>
+<div class="line">            &quot;2&quot;: {</div>
+<div class="line">                &quot;1&quot;: {</div>
+<div class="line">                    &quot;fxi&quot;: 0,</div>
+<div class="line">                    &quot;fyi&quot;: 50,</div>
+<div class="line">                    &quot;fzi&quot;: 0,</div>
+<div class="line">                    &quot;mxi&quot;: 0,</div>
+<div class="line">                    &quot;myi&quot;: 0,</div>
+<div class="line">                    &quot;mzi&quot;: 0,</div>
+<div class="line">                    &quot;fxj&quot;: 0,</div>
+<div class="line">                    &quot;fyj&quot;: -50,</div>
+<div class="line">                    &quot;fzj&quot;: 0,</div>
+<div class="line">                    &quot;mxj&quot;: 0,</div>
+<div class="line">                    &quot;myj&quot;: 0,</div>
+<div class="line">                    &quot;mzj&quot;: 150,</div>
+<div class="line">                    &quot;L&quot;: 3</div>
+<div class="line">                }</div>
+<div class="line">            }</div>
+<div class="line">        },</div>
+<div class="line">        &quot;shell_fsec&quot;: {},</div>
+<div class="line">        &quot;shell_results&quot;: {},</div>
+<div class="line">        &quot;size&quot;: 3</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md51"></a>
+シェル要素を含む3Dフレーム</h2>
+<p><b>リクエスト:</b> </p><div class="fragment"><div class="line">curl -X POST http://localhost:5000/ \</div>
+<div class="line">-H &quot;Content-Type: application/json&quot; \</div>
+<div class="line">-d &#39;{</div>
+<div class="line">    &quot;node&quot;: {</div>
+<div class="line">        &quot;1&quot;: {&quot;x&quot;: 0, &quot;y&quot;: 0, &quot;z&quot;: 0},</div>
+<div class="line">        &quot;2&quot;: {&quot;x&quot;: 4, &quot;y&quot;: 0, &quot;z&quot;: 0},</div>
+<div class="line">        &quot;3&quot;: {&quot;x&quot;: 4, &quot;y&quot;: 4, &quot;z&quot;: 0},</div>
+<div class="line">        &quot;4&quot;: {&quot;x&quot;: 0, &quot;y&quot;: 4, &quot;z&quot;: 0}</div>
+<div class="line">    },</div>
+<div class="line">    &quot;shell&quot;: {</div>
+<div class="line">        &quot;1&quot;: {&quot;ni&quot;: 1, &quot;nj&quot;: 2, &quot;nk&quot;: 3, &quot;nl&quot;: 4, &quot;e&quot;: 1}</div>
+<div class="line">    },</div>
+<div class="line">    &quot;element&quot;: {</div>
+<div class="line">        &quot;1&quot;: {&quot;E&quot;: 30000000, &quot;G&quot;: 12000000, &quot;poi&quot;: 0.2}</div>
+<div class="line">    },</div>
+<div class="line">    &quot;thickness&quot;: {</div>
+<div class="line">        &quot;1&quot;: {&quot;t&quot;: 0.2}</div>
+<div class="line">    },</div>
+<div class="line">    &quot;fix_node&quot;: {</div>
+<div class="line">        &quot;1&quot;: {&quot;1&quot;: {&quot;x&quot;: 1, &quot;y&quot;: 1, &quot;z&quot;: 1, &quot;rx&quot;: 1, &quot;ry&quot;: 1, &quot;rz&quot;: 1}}</div>
+<div class="line">    },</div>
+<div class="line">    &quot;load&quot;: {</div>
+<div class="line">        &quot;LL&quot;: {</div>
+<div class="line">            &quot;load_node&quot;: [{&quot;n&quot;: 3, &quot;tz&quot;: -100}]</div>
+<div class="line">        }</div>
+<div class="line">    }</div>
+<div class="line">}&#39;</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md52"></a>
+レート制限</h1>
+<p>現在、レート制限は実装されていません。ただし、本番環境での展開では、インフラストラクチャ要件に基づいて適切なレート制限の実装を検討してください。</p>
+<h1><a class="anchor" id="autotoc_md53"></a>
+認証</h1>
+<p>現在のAPIは認証を必要としません。本番環境での展開では、APIキーやOAuthトークンなどの適切な認証メカニズムを実装してください。 </p>
+</div></div><!-- contents -->
+</div><!-- PageDoc -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

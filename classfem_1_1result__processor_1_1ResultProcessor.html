@@ -1,0 +1,455 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FrameWeb: fem.result_processor.ResultProcessor クラス</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FrameWeb
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classfem_1_1result__processor_1_1ResultProcessor.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">公開メンバ関数</a> &#124;
+<a href="#pub-attribs">公開変数類</a> &#124;
+<a href="classfem_1_1result__processor_1_1ResultProcessor-members.html">全メンバ一覧</a>  </div>
+  <div class="headertitle"><div class="title">fem.result_processor.ResultProcessor クラス</div></div>
+</div><!--header-->
+<div class="contents">
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+公開メンバ関数</h2></td></tr>
+<tr class="memitem:aa604e65b9bef825ccf4019f5f32e18a9" id="r_aa604e65b9bef825ccf4019f5f32e18a9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1result__processor_1_1ResultProcessor.html#aa604e65b9bef825ccf4019f5f32e18a9">__init__</a> (self, Optional[List[Any]] nodes=None, Optional[List[Any]] shells=None, Optional[List[Any]] materials=None, Optional[List[Any]] thicknesses=None, Optional[Dict[int, Dict[str, float]]] displacements=None)</td></tr>
+<tr class="separator:aa604e65b9bef825ccf4019f5f32e18a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5fd0920c7a21e8b6c1fc8a2a08a2844a" id="r_a5fd0920c7a21e8b6c1fc8a2a08a2844a"><td class="memItemLeft" align="right" valign="top">Dict[int, Dict[str, float]]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1result__processor_1_1ResultProcessor.html#a5fd0920c7a21e8b6c1fc8a2a08a2844a">process_displacement</a> (self, np.ndarray displacement, Any mesh)</td></tr>
+<tr class="separator:a5fd0920c7a21e8b6c1fc8a2a08a2844a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a640b59de34c0726c1d8df41ba59240ba" id="r_a640b59de34c0726c1d8df41ba59240ba"><td class="memItemLeft" align="right" valign="top">Dict[int, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1result__processor_1_1ResultProcessor.html#a640b59de34c0726c1d8df41ba59240ba">process_stress</a> (self, Dict[int, Any] elements, np.ndarray displacement)</td></tr>
+<tr class="separator:a640b59de34c0726c1d8df41ba59240ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2932ba06ca74a75068468e69f3e760b7" id="r_a2932ba06ca74a75068468e69f3e760b7"><td class="memItemLeft" align="right" valign="top">Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1result__processor_1_1ResultProcessor.html#a2932ba06ca74a75068468e69f3e760b7">format_eigenvalues</a> (self, np.ndarray eigenvalues, np.ndarray eigenvectors)</td></tr>
+<tr class="separator:a2932ba06ca74a75068468e69f3e760b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa4666796b5ecfd6da9220fcc0dcb0073" id="r_aa4666796b5ecfd6da9220fcc0dcb0073"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1result__processor_1_1ResultProcessor.html#aa4666796b5ecfd6da9220fcc0dcb0073">process_shell_results</a> (self)</td></tr>
+<tr class="separator:aa4666796b5ecfd6da9220fcc0dcb0073"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88239bd36357cd6886468c8da5fb2922" id="r_a88239bd36357cd6886468c8da5fb2922"><td class="memItemLeft" align="right" valign="top">Dict[int, Dict[str, Any]]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1result__processor_1_1ResultProcessor.html#a88239bd36357cd6886468c8da5fb2922">process_solid_results</a> (self, List[Any] solids)</td></tr>
+<tr class="separator:a88239bd36357cd6886468c8da5fb2922"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec257e5882caad7b4c62c1ff654fdee5" id="r_aec257e5882caad7b4c62c1ff654fdee5"><td class="memItemLeft" align="right" valign="top">Optional[Dict[str, Any]]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1result__processor_1_1ResultProcessor.html#aec257e5882caad7b4c62c1ff654fdee5">get_shell_result</a> (self, int shell_index)</td></tr>
+<tr class="separator:aec257e5882caad7b4c62c1ff654fdee5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aada9d798ed038449a9fbc388b7b23f37" id="r_aada9d798ed038449a9fbc388b7b23f37"><td class="memItemLeft" align="right" valign="top">Dict[int, Dict[str, Any]]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1result__processor_1_1ResultProcessor.html#aada9d798ed038449a9fbc388b7b23f37">get_all_shell_results</a> (self)</td></tr>
+<tr class="separator:aada9d798ed038449a9fbc388b7b23f37"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+公開変数類</h2></td></tr>
+<tr class="memitem:a351af1248d02a5e1e3f47e25abfa24df" id="r_a351af1248d02a5e1e3f47e25abfa24df"><td class="memItemLeft" align="right" valign="top"><a id="a351af1248d02a5e1e3f47e25abfa24df" name="a351af1248d02a5e1e3f47e25abfa24df"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>nodes</b></td></tr>
+<tr class="separator:a351af1248d02a5e1e3f47e25abfa24df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9a26599401065c558c3742abc142ec2" id="r_aa9a26599401065c558c3742abc142ec2"><td class="memItemLeft" align="right" valign="top"><a id="aa9a26599401065c558c3742abc142ec2" name="aa9a26599401065c558c3742abc142ec2"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>shells</b></td></tr>
+<tr class="separator:aa9a26599401065c558c3742abc142ec2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02b03a5e8540203559645f14154868f1" id="r_a02b03a5e8540203559645f14154868f1"><td class="memItemLeft" align="right" valign="top"><a id="a02b03a5e8540203559645f14154868f1" name="a02b03a5e8540203559645f14154868f1"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>materials</b></td></tr>
+<tr class="separator:a02b03a5e8540203559645f14154868f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab578b5913f5d53356f2c9ca8c8dfa113" id="r_ab578b5913f5d53356f2c9ca8c8dfa113"><td class="memItemLeft" align="right" valign="top"><a id="ab578b5913f5d53356f2c9ca8c8dfa113" name="ab578b5913f5d53356f2c9ca8c8dfa113"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>thicknesses</b></td></tr>
+<tr class="separator:ab578b5913f5d53356f2c9ca8c8dfa113"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25a3cc12298700ceba4d03a4f2c4487b" id="r_a25a3cc12298700ceba4d03a4f2c4487b"><td class="memItemLeft" align="right" valign="top"><a id="a25a3cc12298700ceba4d03a4f2c4487b" name="a25a3cc12298700ceba4d03a4f2c4487b"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>displacements</b></td></tr>
+<tr class="separator:a25a3cc12298700ceba4d03a4f2c4487b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">詳解</h2>
+<div class="textblock"><pre class="fragment">計算結果処理クラス - JavaScript版のFemResultクラスに相当</pre> </div><h2 class="groupheader">構築子と解体子</h2>
+<a id="aa604e65b9bef825ccf4019f5f32e18a9" name="aa604e65b9bef825ccf4019f5f32e18a9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa604e65b9bef825ccf4019f5f32e18a9">&#9670;&#160;</a></span>__init__()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">fem.result_processor.ResultProcessor.__init__ </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[List[Any]] &#160;</td>
+          <td class="paramname"><em>nodes</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[List[Any]] &#160;</td>
+          <td class="paramname"><em>shells</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[List[Any]] &#160;</td>
+          <td class="paramname"><em>materials</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[List[Any]] &#160;</td>
+          <td class="paramname"><em>thicknesses</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[Dict[int, Dict[str, float]]] &#160;</td>
+          <td class="paramname"><em>displacements</em> = <code>None</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">初期化
+
+Args:
+    nodes: 節点リスト
+    shells: シェル要素リスト
+    materials: 材料リスト
+    thicknesses: 厚さリスト
+    displacements: 節点変位辞書 {節点ID: {"dx": dx, "dy": dy, ...}}
+</pre> 
+</div>
+</div>
+<h2 class="groupheader">関数詳解</h2>
+<a id="a2932ba06ca74a75068468e69f3e760b7" name="a2932ba06ca74a75068468e69f3e760b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2932ba06ca74a75068468e69f3e760b7">&#9670;&#160;</a></span>format_eigenvalues()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[str, Any] fem.result_processor.ResultProcessor.format_eigenvalues </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>eigenvalues</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>eigenvectors</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">固有値解析結果を整形
+
+Args:
+    eigenvalues: 固有値配列
+    eigenvectors: 固有ベクトル行列
+    
+Returns:
+    整形された固有値解析結果
+</pre> 
+</div>
+</div>
+<a id="aada9d798ed038449a9fbc388b7b23f37" name="aada9d798ed038449a9fbc388b7b23f37"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aada9d798ed038449a9fbc388b7b23f37">&#9670;&#160;</a></span>get_all_shell_results()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[int, Dict[str, Any]] fem.result_processor.ResultProcessor.get_all_shell_results </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">全シェル要素の計算結果を取得する
+
+Returns:
+    全計算結果辞書 {シェル要素インデックス: 計算結果辞書}
+</pre> 
+</div>
+</div>
+<a id="aec257e5882caad7b4c62c1ff654fdee5" name="aec257e5882caad7b4c62c1ff654fdee5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec257e5882caad7b4c62c1ff654fdee5">&#9670;&#160;</a></span>get_shell_result()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Optional[Dict[str, Any]] fem.result_processor.ResultProcessor.get_shell_result </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>shell_index</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">シェル要素の計算結果を取得する
+
+Args:
+    shell_index: シェル要素インデックス
+    
+Returns:
+    計算結果辞書
+</pre> 
+</div>
+</div>
+<a id="a5fd0920c7a21e8b6c1fc8a2a08a2844a" name="a5fd0920c7a21e8b6c1fc8a2a08a2844a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5fd0920c7a21e8b6c1fc8a2a08a2844a">&#9670;&#160;</a></span>process_displacement()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[int, Dict[str, float]] fem.result_processor.ResultProcessor.process_displacement </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>displacement</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Any&#160;</td>
+          <td class="paramname"><em>mesh</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">変位結果を処理して節点ごとの変位辞書を作成
+
+Args:
+    displacement: 変位ベクトル
+    mesh: メッシュデータ
+    
+Returns:
+    節点ID -&gt; 変位成分の辞書
+</pre> 
+</div>
+</div>
+<a id="aa4666796b5ecfd6da9220fcc0dcb0073" name="aa4666796b5ecfd6da9220fcc0dcb0073"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa4666796b5ecfd6da9220fcc0dcb0073">&#9670;&#160;</a></span>process_shell_results()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.result_processor.ResultProcessor.process_shell_results </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">シェル要素の計算結果を処理する</pre> 
+</div>
+</div>
+<a id="a88239bd36357cd6886468c8da5fb2922" name="a88239bd36357cd6886468c8da5fb2922"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a88239bd36357cd6886468c8da5fb2922">&#9670;&#160;</a></span>process_solid_results()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[int, Dict[str, Any]] fem.result_processor.ResultProcessor.process_solid_results </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">List[Any]&#160;</td>
+          <td class="paramname"><em>solids</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">ソリッド要素の計算結果を処理する
+
+Args:
+    solids: ソリッド要素リスト
+    
+Returns:
+    ソリッド要素インデックス -&gt; 計算結果の辞書
+</pre> 
+</div>
+</div>
+<a id="a640b59de34c0726c1d8df41ba59240ba" name="a640b59de34c0726c1d8df41ba59240ba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a640b59de34c0726c1d8df41ba59240ba">&#9670;&#160;</a></span>process_stress()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[int, Any] fem.result_processor.ResultProcessor.process_stress </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[int, Any]&#160;</td>
+          <td class="paramname"><em>elements</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>displacement</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">要素応力を計算
+
+Args:
+    elements: 要素オブジェクトの辞書
+    displacement: 変位ベクトル
+    
+Returns:
+    要素ID -&gt; 応力結果の辞書
+</pre> 
+</div>
+</div>
+<hr/>このクラス詳解は次のファイルから抽出されました:<ul>
+<li>src/fem/<b>result_processor.py</b></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacefem.html">fem</a></li><li class="navelem"><a class="el" href="namespacefem_1_1result__processor.html">result_processor</a></li><li class="navelem"><a class="el" href="classfem_1_1result__processor_1_1ResultProcessor.html">ResultProcessor</a></li>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FrameWeb: fem.stiffness_matrix.StiffnessMatrix クラス</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FrameWeb
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classfem_1_1stiffness__matrix_1_1StiffnessMatrix.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">公開メンバ関数</a> &#124;
+<a href="#pub-attribs">公開変数類</a> &#124;
+<a href="classfem_1_1stiffness__matrix_1_1StiffnessMatrix-members.html">全メンバ一覧</a>  </div>
+  <div class="headertitle"><div class="title">fem.stiffness_matrix.StiffnessMatrix クラス</div></div>
+</div><!--header-->
+<div class="contents">
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+公開メンバ関数</h2></td></tr>
+<tr class="memitem:a945acb732e07dfd64ca16dbf1cd22cfe" id="r_a945acb732e07dfd64ca16dbf1cd22cfe"><td class="memItemLeft" align="right" valign="top"><a id="a945acb732e07dfd64ca16dbf1cd22cfe" name="a945acb732e07dfd64ca16dbf1cd22cfe"></a>
+None&#160;</td><td class="memItemRight" valign="bottom"><b>__init__</b> (self, list[<a class="el" href="classfem_1_1models_1_1fa__node_1_1FA__Node.html">FA_Node</a>] nodes, list[<a class="el" href="classfem_1_1models_1_1fa__beam_1_1FA__Beam.html">FA_Beam</a>] beams, list[<a class="el" href="classfem_1_1models_1_1fa__shell_1_1FA__Shell.html">FA_Shell</a>] shells, list[<a class="el" href="classfem_1_1models_1_1fa__material_1_1FA__Material.html">FA_Material</a>] materials, list[<a class="el" href="classfem_1_1models_1_1fa__section_1_1FA__Section.html">FA_Section</a>] sections, list[<a class="el" href="classfem_1_1models_1_1fa__thickness_1_1FA__Thickness.html">FA_Thickness</a>] thicknesses, list[<a class="el" href="classfem_1_1models_1_1fa__support_1_1FA__Support.html">FA_Support</a>] supports, list[<a class="el" href="classfem_1_1models_1_1fa__spring_1_1FA__Spring.html">FA_Spring</a>] springs, list[<a class="el" href="classfem_1_1models_1_1fa__joint_1_1FA__Joint.html">FA_Joint</a>] joints, list[<a class="el" href="classfem_1_1models_1_1fa__solid_1_1FA__Solid.html">FA_Solid</a>] solids=None)</td></tr>
+<tr class="separator:a945acb732e07dfd64ca16dbf1cd22cfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+公開変数類</h2></td></tr>
+<tr class="memitem:af2f0a9551ae546c27d475d4e1d7c49ff" id="r_af2f0a9551ae546c27d475d4e1d7c49ff"><td class="memItemLeft" align="right" valign="top"><a id="af2f0a9551ae546c27d475d4e1d7c49ff" name="af2f0a9551ae546c27d475d4e1d7c49ff"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>nodes</b></td></tr>
+<tr class="separator:af2f0a9551ae546c27d475d4e1d7c49ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e2d2c9016a96ca84e294bc9517015d3" id="r_a7e2d2c9016a96ca84e294bc9517015d3"><td class="memItemLeft" align="right" valign="top"><a id="a7e2d2c9016a96ca84e294bc9517015d3" name="a7e2d2c9016a96ca84e294bc9517015d3"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>beams</b></td></tr>
+<tr class="separator:a7e2d2c9016a96ca84e294bc9517015d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b12a8bbd0dc65e7011270d329e0e44c" id="r_a1b12a8bbd0dc65e7011270d329e0e44c"><td class="memItemLeft" align="right" valign="top"><a id="a1b12a8bbd0dc65e7011270d329e0e44c" name="a1b12a8bbd0dc65e7011270d329e0e44c"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>shells</b></td></tr>
+<tr class="separator:a1b12a8bbd0dc65e7011270d329e0e44c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a022602c5b04adee249fc00fc23867240" id="r_a022602c5b04adee249fc00fc23867240"><td class="memItemLeft" align="right" valign="top"><a id="a022602c5b04adee249fc00fc23867240" name="a022602c5b04adee249fc00fc23867240"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>solids</b></td></tr>
+<tr class="separator:a022602c5b04adee249fc00fc23867240"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5601bba1271b8b713f4732da80be2755" id="r_a5601bba1271b8b713f4732da80be2755"><td class="memItemLeft" align="right" valign="top"><a id="a5601bba1271b8b713f4732da80be2755" name="a5601bba1271b8b713f4732da80be2755"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>materials</b></td></tr>
+<tr class="separator:a5601bba1271b8b713f4732da80be2755"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a44f0fc6cfa6d2070033cdcc49d053041" id="r_a44f0fc6cfa6d2070033cdcc49d053041"><td class="memItemLeft" align="right" valign="top"><a id="a44f0fc6cfa6d2070033cdcc49d053041" name="a44f0fc6cfa6d2070033cdcc49d053041"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>sections</b></td></tr>
+<tr class="separator:a44f0fc6cfa6d2070033cdcc49d053041"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c7b8a713a10cdb5c07c181cbac4bf2e" id="r_a5c7b8a713a10cdb5c07c181cbac4bf2e"><td class="memItemLeft" align="right" valign="top"><a id="a5c7b8a713a10cdb5c07c181cbac4bf2e" name="a5c7b8a713a10cdb5c07c181cbac4bf2e"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>thicknesses</b></td></tr>
+<tr class="separator:a5c7b8a713a10cdb5c07c181cbac4bf2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a41526a627c161c19999d53d04808f0a0" id="r_a41526a627c161c19999d53d04808f0a0"><td class="memItemLeft" align="right" valign="top"><a id="a41526a627c161c19999d53d04808f0a0" name="a41526a627c161c19999d53d04808f0a0"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>supports</b></td></tr>
+<tr class="separator:a41526a627c161c19999d53d04808f0a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a97cf99cf2f7d8ae97b85acc4f2e37bb9" id="r_a97cf99cf2f7d8ae97b85acc4f2e37bb9"><td class="memItemLeft" align="right" valign="top"><a id="a97cf99cf2f7d8ae97b85acc4f2e37bb9" name="a97cf99cf2f7d8ae97b85acc4f2e37bb9"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>springs</b></td></tr>
+<tr class="separator:a97cf99cf2f7d8ae97b85acc4f2e37bb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1fcb24262d7cb7b47ec58a0ae2d0506e" id="r_a1fcb24262d7cb7b47ec58a0ae2d0506e"><td class="memItemLeft" align="right" valign="top"><a id="a1fcb24262d7cb7b47ec58a0ae2d0506e" name="a1fcb24262d7cb7b47ec58a0ae2d0506e"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>joints</b></td></tr>
+<tr class="separator:a1fcb24262d7cb7b47ec58a0ae2d0506e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7fd6d140668d625dca2c400ef8bbd1a6" id="r_a7fd6d140668d625dca2c400ef8bbd1a6"><td class="memItemLeft" align="right" valign="top"><a id="a7fd6d140668d625dca2c400ef8bbd1a6" name="a7fd6d140668d625dca2c400ef8bbd1a6"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>gkCsr</b></td></tr>
+<tr class="separator:a7fd6d140668d625dca2c400ef8bbd1a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">詳解</h2>
+<div class="textblock"><pre class="fragment">剛性行列クラス
+
+Properties:
+    gkCsr (csr_matrix):csr形式のスパース全体剛性行列（全体座標系）
+    nFree (int):自由度数
+    freeInd (list[Freedom]):自由度インデックスリスト
+    beamMatrices (list[np.ndarray[12, 12]]):梁要素剛性行列リスト
+    shellMatrices (list[np.ndarray[24, 24]]):シェル要素剛性行列リスト
+    nodes (list[FA_Node]):節点リスト
+    beams (list[FA_Beam]):梁要素リスト
+    shells (list[FA_Shell]):シェル要素リスト
+    materials (list[FA_Material]):材料リスト
+    sections (list[FA_Section]):断面リスト
+    thicknesses (list[FA_Thickness]):厚さリスト
+    supports (list[FA_Support]):支点リスト
+    springs (list[FA_Spring]):分布バネリスト
+    joints (list[FA_Joint]):材端条件リスト
+
+freeInd:
+    freeInd[i]は節点インデックスiの節点に対応する自由度インデックス辞書
+</pre> </div><hr/>このクラス詳解は次のファイルから抽出されました:<ul>
+<li>src/fem/<b>stiffness_matrix.py</b></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacefem.html">fem</a></li><li class="navelem"><b>stiffness_matrix</b></li><li class="navelem"><a class="el" href="classfem_1_1stiffness__matrix_1_1StiffnessMatrix.html">StiffnessMatrix</a></li>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

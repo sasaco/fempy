@@ -1,0 +1,704 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FrameWeb: fem.solver.Solver クラス</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FrameWeb
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classfem_1_1solver_1_1Solver.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">公開メンバ関数</a> &#124;
+<a href="#pub-attribs">公開変数類</a> &#124;
+<a href="#pro-methods">限定公開メンバ関数</a> &#124;
+<a href="classfem_1_1solver_1_1Solver-members.html">全メンバ一覧</a>  </div>
+  <div class="headertitle"><div class="title">fem.solver.Solver クラス</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="dynheader">
+fem.solver.Solver の継承関係図</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="classfem_1_1solver_1_1Solver.png" usemap="#fem.solver.Solver_map" alt=""/>
+  <map id="fem.solver.Solver_map" name="fem.solver.Solver_map">
+<area href="classfem_1_1nonlinear_1_1nonlinear__solver_1_1NonlinearSolver.html" alt="fem.nonlinear.nonlinear_solver.NonlinearSolver" shape="rect" coords="0,56,284,80"/>
+  </map>
+</div></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+公開メンバ関数</h2></td></tr>
+<tr class="memitem:a6eebba60d0ba50f15024ba6757dca9b8" id="r_a6eebba60d0ba50f15024ba6757dca9b8"><td class="memItemLeft" align="right" valign="top"><a id="a6eebba60d0ba50f15024ba6757dca9b8" name="a6eebba60d0ba50f15024ba6757dca9b8"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>__init__</b> (self)</td></tr>
+<tr class="separator:a6eebba60d0ba50f15024ba6757dca9b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a16bb7b344c954f89f4ef9b8e32729700" id="r_a16bb7b344c954f89f4ef9b8e32729700"><td class="memItemLeft" align="right" valign="top">csr_matrix&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#a16bb7b344c954f89f4ef9b8e32729700">create_stiffness_matrix</a> (self, <a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a> mesh, <a class="el" href="classfem_1_1material_1_1Material.html">Material</a> material, Dict[int, Any] elements)</td></tr>
+<tr class="separator:a16bb7b344c954f89f4ef9b8e32729700"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5125db232c48d80ab3e5f4ffd031223" id="r_aa5125db232c48d80ab3e5f4ffd031223"><td class="memItemLeft" align="right" valign="top">csr_matrix&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#aa5125db232c48d80ab3e5f4ffd031223">create_mass_matrix</a> (self, <a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a> mesh, <a class="el" href="classfem_1_1material_1_1Material.html">Material</a> material, Dict[int, Any] elements)</td></tr>
+<tr class="separator:aa5125db232c48d80ab3e5f4ffd031223"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a021bd48904db9ab33a19d6c88dba5e1f" id="r_a021bd48904db9ab33a19d6c88dba5e1f"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#a021bd48904db9ab33a19d6c88dba5e1f">assemble_load_vector</a> (self, <a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a> mesh, <a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a> boundary, Dict[int, Any] elements)</td></tr>
+<tr class="separator:a021bd48904db9ab33a19d6c88dba5e1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0dd22271366b05d30f0c78331ead977e" id="r_a0dd22271366b05d30f0c78331ead977e"><td class="memItemLeft" align="right" valign="top">Tuple[csr_matrix, np.ndarray]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#a0dd22271366b05d30f0c78331ead977e">apply_boundary_conditions</a> (self, csr_matrix K, np.ndarray F, <a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a> boundary)</td></tr>
+<tr class="separator:a0dd22271366b05d30f0c78331ead977e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d441db718cc2b3cacec3ee337aa3f4f" id="r_a2d441db718cc2b3cacec3ee337aa3f4f"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#a2d441db718cc2b3cacec3ee337aa3f4f">solve_linear_system</a> (self, csr_matrix K, np.ndarray F)</td></tr>
+<tr class="separator:a2d441db718cc2b3cacec3ee337aa3f4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7950abf116cfe4cf8319bcb1daf330f" id="r_ad7950abf116cfe4cf8319bcb1daf330f"><td class="memItemLeft" align="right" valign="top">Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#ad7950abf116cfe4cf8319bcb1daf330f">solve</a> (self, <a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a> mesh, <a class="el" href="classfem_1_1material_1_1Material.html">Material</a> material, <a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a> boundary, Dict[int, Any] elements)</td></tr>
+<tr class="separator:ad7950abf116cfe4cf8319bcb1daf330f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad0181bb95698ef4590b88956fa2887c5" id="r_ad0181bb95698ef4590b88956fa2887c5"><td class="memItemLeft" align="right" valign="top">Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#ad0181bb95698ef4590b88956fa2887c5">eigenvalue_analysis</a> (self, <a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a> mesh, <a class="el" href="classfem_1_1material_1_1Material.html">Material</a> material, <a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a> boundary, Dict[int, Any] elements, int n_modes=10)</td></tr>
+<tr class="separator:ad0181bb95698ef4590b88956fa2887c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+公開変数類</h2></td></tr>
+<tr class="memitem:ac91fdf746787c8a2af09e6a061cbd437" id="r_ac91fdf746787c8a2af09e6a061cbd437"><td class="memItemLeft" align="right" valign="top"><a id="ac91fdf746787c8a2af09e6a061cbd437" name="ac91fdf746787c8a2af09e6a061cbd437"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>assembled_stiffness</b></td></tr>
+<tr class="separator:ac91fdf746787c8a2af09e6a061cbd437"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc06b989431eb1969cd446c0917ef31d" id="r_adc06b989431eb1969cd446c0917ef31d"><td class="memItemLeft" align="right" valign="top"><a id="adc06b989431eb1969cd446c0917ef31d" name="adc06b989431eb1969cd446c0917ef31d"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>assembled_mass</b></td></tr>
+<tr class="separator:adc06b989431eb1969cd446c0917ef31d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36224ad7daf10ea024d9a8e7680c3b40" id="r_a36224ad7daf10ea024d9a8e7680c3b40"><td class="memItemLeft" align="right" valign="top"><a id="a36224ad7daf10ea024d9a8e7680c3b40" name="a36224ad7daf10ea024d9a8e7680c3b40"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>load_vector</b></td></tr>
+<tr class="separator:a36224ad7daf10ea024d9a8e7680c3b40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4291dd0c5118f0cf22988762d183c2dd" id="r_a4291dd0c5118f0cf22988762d183c2dd"><td class="memItemLeft" align="right" valign="top"><a id="a4291dd0c5118f0cf22988762d183c2dd" name="a4291dd0c5118f0cf22988762d183c2dd"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>displacement</b></td></tr>
+<tr class="separator:a4291dd0c5118f0cf22988762d183c2dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9aaa5b033af5fba954be41b364f90683" id="r_a9aaa5b033af5fba954be41b364f90683"><td class="memItemLeft" align="right" valign="top"><a id="a9aaa5b033af5fba954be41b364f90683" name="a9aaa5b033af5fba954be41b364f90683"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>eigenvalues</b></td></tr>
+<tr class="separator:a9aaa5b033af5fba954be41b364f90683"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f4f32499f2ac60a6106d79874775de1" id="r_a7f4f32499f2ac60a6106d79874775de1"><td class="memItemLeft" align="right" valign="top"><a id="a7f4f32499f2ac60a6106d79874775de1" name="a7f4f32499f2ac60a6106d79874775de1"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>eigenvectors</b></td></tr>
+<tr class="separator:a7f4f32499f2ac60a6106d79874775de1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+限定公開メンバ関数</h2></td></tr>
+<tr class="memitem:adc0b40334d694bccf8772b63903c0a5e" id="r_adc0b40334d694bccf8772b63903c0a5e"><td class="memItemLeft" align="right" valign="top">Dict[int, Dict[str, float]]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#adc0b40334d694bccf8772b63903c0a5e">_format_node_displacements</a> (self, np.ndarray u, <a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a> mesh)</td></tr>
+<tr class="separator:adc0b40334d694bccf8772b63903c0a5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2a3e6eef3f2a75840ce14d8f4d71be2" id="r_ac2a3e6eef3f2a75840ce14d8f4d71be2"><td class="memItemLeft" align="right" valign="top">Dict[int, Dict[str, float]]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#ac2a3e6eef3f2a75840ce14d8f4d71be2">_calculate_reaction_forces</a> (self, csr_matrix K, np.ndarray u, np.ndarray F, <a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a> boundary)</td></tr>
+<tr class="separator:ac2a3e6eef3f2a75840ce14d8f4d71be2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9b58a4ef17c71b7a8c64f4527379e6e" id="r_ae9b58a4ef17c71b7a8c64f4527379e6e"><td class="memItemLeft" align="right" valign="top">List[Dict[int, Dict[str, float]]]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#ae9b58a4ef17c71b7a8c64f4527379e6e">_format_eigenmodes</a> (self, np.ndarray eigenvectors, <a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a> mesh)</td></tr>
+<tr class="separator:ae9b58a4ef17c71b7a8c64f4527379e6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">詳解</h2>
+<div class="textblock"><pre class="fragment">FEM解析のソルバークラス</pre> </div><h2 class="groupheader">関数詳解</h2>
+<a id="ac2a3e6eef3f2a75840ce14d8f4d71be2" name="ac2a3e6eef3f2a75840ce14d8f4d71be2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac2a3e6eef3f2a75840ce14d8f4d71be2">&#9670;&#160;</a></span>_calculate_reaction_forces()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[int, Dict[str, float]] fem.solver.Solver._calculate_reaction_forces </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">csr_matrix&#160;</td>
+          <td class="paramname"><em>K</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>u</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>F</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a>&#160;</td>
+          <td class="paramname"><em>boundary</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">支点反力を計算
+
+Args:
+    K: 剛性行列
+    u: 変位ベクトル
+    F: 荷重ベクトル
+    boundary: 境界条件
+    
+Returns:
+    支点反力の辞書
+</pre> 
+</div>
+</div>
+<a id="ae9b58a4ef17c71b7a8c64f4527379e6e" name="ae9b58a4ef17c71b7a8c64f4527379e6e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae9b58a4ef17c71b7a8c64f4527379e6e">&#9670;&#160;</a></span>_format_eigenmodes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> List[Dict[int, Dict[str, float]]] fem.solver.Solver._format_eigenmodes </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>eigenvectors</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a>&#160;</td>
+          <td class="paramname"><em>mesh</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">固有モードを整形
+
+Args:
+    eigenvectors: 固有ベクトル行列
+    mesh: メッシュデータ
+    
+Returns:
+    各モードの節点変位の辞書のリスト
+</pre> 
+</div>
+</div>
+<a id="adc0b40334d694bccf8772b63903c0a5e" name="adc0b40334d694bccf8772b63903c0a5e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc0b40334d694bccf8772b63903c0a5e">&#9670;&#160;</a></span>_format_node_displacements()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[int, Dict[str, float]] fem.solver.Solver._format_node_displacements </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>u</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a>&#160;</td>
+          <td class="paramname"><em>mesh</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">節点変位を整形
+
+Args:
+    u: 変位ベクトル
+    mesh: メッシュデータ
+    
+Returns:
+    節点変位の辞書
+</pre> 
+<p><a class="el" href="classfem_1_1nonlinear_1_1nonlinear__solver_1_1NonlinearSolver.html#ae8d6e79102cb173fd352ff57a90647b3">fem.nonlinear.nonlinear_solver.NonlinearSolver</a>で再実装されています。</p>
+
+</div>
+</div>
+<a id="a0dd22271366b05d30f0c78331ead977e" name="a0dd22271366b05d30f0c78331ead977e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0dd22271366b05d30f0c78331ead977e">&#9670;&#160;</a></span>apply_boundary_conditions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Tuple[csr_matrix, np.ndarray] fem.solver.Solver.apply_boundary_conditions </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">csr_matrix&#160;</td>
+          <td class="paramname"><em>K</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>F</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a>&#160;</td>
+          <td class="paramname"><em>boundary</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">境界条件を適用
+
+Args:
+    K: 剛性行列
+    F: 荷重ベクトル
+    boundary: 境界条件
+    
+Returns:
+    修正後の剛性行列と荷重ベクトル
+</pre> 
+</div>
+</div>
+<a id="a021bd48904db9ab33a19d6c88dba5e1f" name="a021bd48904db9ab33a19d6c88dba5e1f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a021bd48904db9ab33a19d6c88dba5e1f">&#9670;&#160;</a></span>assemble_load_vector()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> np.ndarray fem.solver.Solver.assemble_load_vector </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a>&#160;</td>
+          <td class="paramname"><em>mesh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a>&#160;</td>
+          <td class="paramname"><em>boundary</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[int, Any]&#160;</td>
+          <td class="paramname"><em>elements</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">荷重ベクトルを組み立て
+
+Args:
+    mesh: メッシュデータ
+    boundary: 境界条件
+    elements: 要素オブジェクトの辞書
+    
+Returns:
+    荷重ベクトル
+</pre> 
+</div>
+</div>
+<a id="aa5125db232c48d80ab3e5f4ffd031223" name="aa5125db232c48d80ab3e5f4ffd031223"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5125db232c48d80ab3e5f4ffd031223">&#9670;&#160;</a></span>create_mass_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> csr_matrix fem.solver.Solver.create_mass_matrix </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a>&#160;</td>
+          <td class="paramname"><em>mesh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1material_1_1Material.html">Material</a>&#160;</td>
+          <td class="paramname"><em>material</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[int, Any]&#160;</td>
+          <td class="paramname"><em>elements</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">全体質量行列を作成
+
+Args:
+    mesh: メッシュデータ
+    material: 材料データ
+    elements: 要素オブジェクトの辞書
+    
+Returns:
+    全体質量行列（CSR形式）
+</pre> 
+</div>
+</div>
+<a id="a16bb7b344c954f89f4ef9b8e32729700" name="a16bb7b344c954f89f4ef9b8e32729700"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a16bb7b344c954f89f4ef9b8e32729700">&#9670;&#160;</a></span>create_stiffness_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> csr_matrix fem.solver.Solver.create_stiffness_matrix </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a>&#160;</td>
+          <td class="paramname"><em>mesh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1material_1_1Material.html">Material</a>&#160;</td>
+          <td class="paramname"><em>material</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[int, Any]&#160;</td>
+          <td class="paramname"><em>elements</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">全体剛性行列を作成
+
+Args:
+    mesh: メッシュデータ
+    material: 材料データ
+    elements: 要素オブジェクトの辞書
+    
+Returns:
+    全体剛性行列（CSR形式）
+</pre> 
+</div>
+</div>
+<a id="ad0181bb95698ef4590b88956fa2887c5" name="ad0181bb95698ef4590b88956fa2887c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad0181bb95698ef4590b88956fa2887c5">&#9670;&#160;</a></span>eigenvalue_analysis()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[str, Any] fem.solver.Solver.eigenvalue_analysis </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a>&#160;</td>
+          <td class="paramname"><em>mesh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1material_1_1Material.html">Material</a>&#160;</td>
+          <td class="paramname"><em>material</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a>&#160;</td>
+          <td class="paramname"><em>boundary</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[int, Any]&#160;</td>
+          <td class="paramname"><em>elements</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &#160;</td>
+          <td class="paramname"><em>n_modes</em> = <code>10</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">固有値解析を実行
+
+Args:
+    mesh: メッシュデータ
+    material: 材料データ
+    boundary: 境界条件
+    elements: 要素オブジェクトの辞書
+    n_modes: 求める固有モード数
+    
+Returns:
+    固有値解析結果の辞書
+</pre> 
+</div>
+</div>
+<a id="ad7950abf116cfe4cf8319bcb1daf330f" name="ad7950abf116cfe4cf8319bcb1daf330f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7950abf116cfe4cf8319bcb1daf330f">&#9670;&#160;</a></span>solve()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[str, Any] fem.solver.Solver.solve </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a>&#160;</td>
+          <td class="paramname"><em>mesh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1material_1_1Material.html">Material</a>&#160;</td>
+          <td class="paramname"><em>material</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a>&#160;</td>
+          <td class="paramname"><em>boundary</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[int, Any]&#160;</td>
+          <td class="paramname"><em>elements</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">静的解析を実行
+
+Args:
+    mesh: メッシュデータ
+    material: 材料データ
+    boundary: 境界条件
+    elements: 要素オブジェクトの辞書
+    
+Returns:
+    解析結果の辞書
+</pre> 
+</div>
+</div>
+<a id="a2d441db718cc2b3cacec3ee337aa3f4f" name="a2d441db718cc2b3cacec3ee337aa3f4f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2d441db718cc2b3cacec3ee337aa3f4f">&#9670;&#160;</a></span>solve_linear_system()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> np.ndarray fem.solver.Solver.solve_linear_system </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">csr_matrix&#160;</td>
+          <td class="paramname"><em>K</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>F</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">線形方程式系を解く（V1レベル数値安定化技術適用）
+
+Args:
+    K: 剛性行列
+    F: 荷重ベクトル
+    
+Returns:
+    変位ベクトル
+</pre> 
+</div>
+</div>
+<hr/>このクラス詳解は次のファイルから抽出されました:<ul>
+<li>src/fem/<b>solver.py</b></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacefem.html">fem</a></li><li class="navelem"><a class="el" href="namespacefem_1_1solver.html">solver</a></li><li class="navelem"><a class="el" href="classfem_1_1solver_1_1Solver.html">Solver</a></li>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

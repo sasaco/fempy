@@ -1,0 +1,755 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FrameWeb: fem.elements.base_element.BaseElement クラス</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FrameWeb
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classfem_1_1elements_1_1base__element_1_1BaseElement.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">公開メンバ関数</a> &#124;
+<a href="#pub-static-methods">静的公開メンバ関数</a> &#124;
+<a href="#pub-attribs">公開変数類</a> &#124;
+<a href="classfem_1_1elements_1_1base__element_1_1BaseElement-members.html">全メンバ一覧</a>  </div>
+  <div class="headertitle"><div class="title">fem.elements.base_element.BaseElement クラス</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="dynheader">
+fem.elements.base_element.BaseElement の継承関係図</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="classfem_1_1elements_1_1base__element_1_1BaseElement.png" usemap="#fem.elements.base_5Felement.BaseElement_map" alt=""/>
+  <map id="fem.elements.base_5Felement.BaseElement_map" name="fem.elements.base_5Felement.BaseElement_map">
+<area href="classfem_1_1elements_1_1advanced__element_1_1Hexa20Element.html" alt="fem.elements.advanced_element.Hexa20Element" shape="rect" coords="0,56,341,80"/>
+<area href="classfem_1_1elements_1_1advanced__element_1_1PyramidElement.html" alt="fem.elements.advanced_element.PyramidElement" shape="rect" coords="351,56,692,80"/>
+<area href="classfem_1_1elements_1_1advanced__element_1_1WedgeElement.html" alt="fem.elements.advanced_element.WedgeElement" shape="rect" coords="702,56,1043,80"/>
+<area href="classfem_1_1elements_1_1bar__element_1_1BarElement.html" alt="fem.elements.bar_element.BarElement" shape="rect" coords="1053,56,1394,80"/>
+<area href="classfem_1_1elements_1_1shell__element_1_1ShellElement.html" alt="fem.elements.shell_element.ShellElement" shape="rect" coords="1404,56,1745,80"/>
+<area href="classfem_1_1elements_1_1solid__element_1_1SolidElementBase.html" alt="fem.elements.solid_element.SolidElementBase" shape="rect" coords="1930,56,2271,80"/>
+<area href="classfem_1_1elements_1_1bar__element_1_1BEBarElement.html" alt="fem.elements.bar_element.BEBarElement" shape="rect" coords="877,112,1218,136"/>
+<area href="classfem_1_1elements_1_1bar__element_1_1TBarElement.html" alt="fem.elements.bar_element.TBarElement" shape="rect" coords="1228,112,1569,136"/>
+<area href="classfem_1_1elements_1_1solid__element_1_1HexaElement.html" alt="fem.elements.solid_element.HexaElement" shape="rect" coords="1579,112,1920,136"/>
+<area href="classfem_1_1elements_1_1solid__element_1_1TetraElement.html" alt="fem.elements.solid_element.TetraElement" shape="rect" coords="1930,112,2271,136"/>
+<area href="classfem_1_1elements_1_1solid__element_1_1WedgeElement.html" alt="fem.elements.solid_element.WedgeElement" shape="rect" coords="2281,112,2622,136"/>
+<area href="classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html" alt="fem.elements.nonlinear_bar_element.NonlinearBarElement" shape="rect" coords="1228,168,1569,192"/>
+  </map>
+</div></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+公開メンバ関数</h2></td></tr>
+<tr class="memitem:afe85fd3f13d702411730f393a910b25d" id="r_afe85fd3f13d702411730f393a910b25d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#afe85fd3f13d702411730f393a910b25d">__init__</a> (self, int element_id, List[int] node_ids, int material_id)</td></tr>
+<tr class="separator:afe85fd3f13d702411730f393a910b25d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c93f3d65afbc4e5c2cfbbcdfc4dca6a" id="r_a2c93f3d65afbc4e5c2cfbbcdfc4dca6a"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a2c93f3d65afbc4e5c2cfbbcdfc4dca6a">get_stiffness_matrix</a> (self)</td></tr>
+<tr class="separator:a2c93f3d65afbc4e5c2cfbbcdfc4dca6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ace941aed816ba5e9510034814ba218" id="r_a2ace941aed816ba5e9510034814ba218"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a2ace941aed816ba5e9510034814ba218">get_mass_matrix</a> (self)</td></tr>
+<tr class="separator:a2ace941aed816ba5e9510034814ba218"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0dfa17b399f5b5a688c0a2a15e647d27" id="r_a0dfa17b399f5b5a688c0a2a15e647d27"><td class="memItemLeft" align="right" valign="top">str&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a0dfa17b399f5b5a688c0a2a15e647d27">get_name</a> (self)</td></tr>
+<tr class="separator:a0dfa17b399f5b5a688c0a2a15e647d27"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac690cb6bbe5711b7593de104ea5f9661" id="r_ac690cb6bbe5711b7593de104ea5f9661"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#ac690cb6bbe5711b7593de104ea5f9661">get_dof_per_node</a> (self)</td></tr>
+<tr class="separator:ac690cb6bbe5711b7593de104ea5f9661"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adff74f5107c5040a1f57533206968fec" id="r_adff74f5107c5040a1f57533206968fec"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#adff74f5107c5040a1f57533206968fec">set_node_coordinates</a> (self, Dict[int, np.ndarray] coordinates)</td></tr>
+<tr class="separator:adff74f5107c5040a1f57533206968fec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af06d445b2853230533036f65243b40d3" id="r_af06d445b2853230533036f65243b40d3"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#af06d445b2853230533036f65243b40d3">get_element_coordinates</a> (self)</td></tr>
+<tr class="separator:af06d445b2853230533036f65243b40d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a140650cbfaa56be8383f0667293de4ee" id="r_a140650cbfaa56be8383f0667293de4ee"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a140650cbfaa56be8383f0667293de4ee">get_element_length</a> (self)</td></tr>
+<tr class="separator:a140650cbfaa56be8383f0667293de4ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d13ff758eac185188b7ae7ad86a4d24" id="r_a2d13ff758eac185188b7ae7ad86a4d24"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a2d13ff758eac185188b7ae7ad86a4d24">get_element_volume</a> (self)</td></tr>
+<tr class="separator:a2d13ff758eac185188b7ae7ad86a4d24"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a8d1e58968738addc90b5d47b70a6d8" id="r_a2a8d1e58968738addc90b5d47b70a6d8"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a2a8d1e58968738addc90b5d47b70a6d8">get_shape_functions</a> (self, np.ndarray xi)</td></tr>
+<tr class="separator:a2a8d1e58968738addc90b5d47b70a6d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4466b4d53389905d70aa8fb848dc6174" id="r_a4466b4d53389905d70aa8fb848dc6174"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a4466b4d53389905d70aa8fb848dc6174">get_shape_derivatives</a> (self, np.ndarray xi)</td></tr>
+<tr class="separator:a4466b4d53389905d70aa8fb848dc6174"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e31bf212d99c8505a0dfebdd07c4240" id="r_a0e31bf212d99c8505a0dfebdd07c4240"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a0e31bf212d99c8505a0dfebdd07c4240">get_jacobian</a> (self, np.ndarray xi)</td></tr>
+<tr class="separator:a0e31bf212d99c8505a0dfebdd07c4240"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c951c9b97a4f1260346d26e29804c0c" id="r_a9c951c9b97a4f1260346d26e29804c0c"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a9c951c9b97a4f1260346d26e29804c0c">get_strain_displacement_matrix</a> (self, np.ndarray xi)</td></tr>
+<tr class="separator:a9c951c9b97a4f1260346d26e29804c0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ef6875359c18302b913706def218367" id="r_a2ef6875359c18302b913706def218367"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a2ef6875359c18302b913706def218367">get_stress_strain_matrix</a> (self)</td></tr>
+<tr class="separator:a2ef6875359c18302b913706def218367"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4b029b3b4718fe736f260d02cc63110" id="r_ae4b029b3b4718fe736f260d02cc63110"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#ae4b029b3b4718fe736f260d02cc63110">get_equivalent_nodal_loads</a> (self, str load_type, List[float] values, Optional[int] face=None)</td></tr>
+<tr class="separator:ae4b029b3b4718fe736f260d02cc63110"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a186142c3c526662c417d86a11fd0cf58" id="r_a186142c3c526662c417d86a11fd0cf58"><td class="memItemLeft" align="right" valign="top">Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a186142c3c526662c417d86a11fd0cf58">calculate_stress_strain</a> (self, np.ndarray displacement)</td></tr>
+<tr class="separator:a186142c3c526662c417d86a11fd0cf58"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3be6131890e8bc920133bd3b5d9da1f5" id="r_a3be6131890e8bc920133bd3b5d9da1f5"><td class="memItemLeft" align="right" valign="top">Tuple[np.ndarray, np.ndarray]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a3be6131890e8bc920133bd3b5d9da1f5">get_gauss_points</a> (self)</td></tr>
+<tr class="separator:a3be6131890e8bc920133bd3b5d9da1f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+静的公開メンバ関数</h2></td></tr>
+<tr class="memitem:ad591f2fc97e28c5e63c32fb991a23059" id="r_ad591f2fc97e28c5e63c32fb991a23059"><td class="memItemLeft" align="right" valign="top">Tuple[np.ndarray, np.ndarray]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#ad591f2fc97e28c5e63c32fb991a23059">get_gauss_points_1d</a> (int n_points)</td></tr>
+<tr class="separator:ad591f2fc97e28c5e63c32fb991a23059"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+公開変数類</h2></td></tr>
+<tr class="memitem:a97edb95a5eb21a6d4fa06fa5ad55469f" id="r_a97edb95a5eb21a6d4fa06fa5ad55469f"><td class="memItemLeft" align="right" valign="top"><a id="a97edb95a5eb21a6d4fa06fa5ad55469f" name="a97edb95a5eb21a6d4fa06fa5ad55469f"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>element_id</b></td></tr>
+<tr class="separator:a97edb95a5eb21a6d4fa06fa5ad55469f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c87f7441a616e7c67a90f4fe40debe3" id="r_a5c87f7441a616e7c67a90f4fe40debe3"><td class="memItemLeft" align="right" valign="top"><a id="a5c87f7441a616e7c67a90f4fe40debe3" name="a5c87f7441a616e7c67a90f4fe40debe3"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>node_ids</b></td></tr>
+<tr class="separator:a5c87f7441a616e7c67a90f4fe40debe3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5cb6312ab54815462badc2d950c0a03" id="r_ab5cb6312ab54815462badc2d950c0a03"><td class="memItemLeft" align="right" valign="top"><a id="ab5cb6312ab54815462badc2d950c0a03" name="ab5cb6312ab54815462badc2d950c0a03"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>material_id</b></td></tr>
+<tr class="separator:ab5cb6312ab54815462badc2d950c0a03"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2bcb0785c82b73c13fa763ba069a5346" id="r_a2bcb0785c82b73c13fa763ba069a5346"><td class="memItemLeft" align="right" valign="top"><a id="a2bcb0785c82b73c13fa763ba069a5346" name="a2bcb0785c82b73c13fa763ba069a5346"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>nodes_coordinates</b></td></tr>
+<tr class="separator:a2bcb0785c82b73c13fa763ba069a5346"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">詳解</h2>
+<div class="textblock"><pre class="fragment">すべての要素クラスの基底クラス</pre> </div><h2 class="groupheader">構築子と解体子</h2>
+<a id="afe85fd3f13d702411730f393a910b25d" name="afe85fd3f13d702411730f393a910b25d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afe85fd3f13d702411730f393a910b25d">&#9670;&#160;</a></span>__init__()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">fem.elements.base_element.BaseElement.__init__ </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>element_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">List[int]&#160;</td>
+          <td class="paramname"><em>node_ids</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>material_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Args:
+    element_id: 要素ID
+    node_ids: 構成節点IDのリスト
+    material_id: 材料ID
+</pre> 
+<p><a class="el" href="classfem_1_1elements_1_1solid__element_1_1WedgeElement.html#a57b821ef7f1d59944326550cc91fb740">fem.elements.solid_element.WedgeElement</a>, <a class="el" href="classfem_1_1elements_1_1advanced__element_1_1WedgeElement.html#ae0c75f53d1b095efd2ac0059cde6d6cc">fem.elements.advanced_element.WedgeElement</a>, <a class="el" href="classfem_1_1elements_1_1advanced__element_1_1PyramidElement.html#a006d75faa2f590bfd967624551eecf50">fem.elements.advanced_element.PyramidElement</a>, <a class="el" href="classfem_1_1elements_1_1advanced__element_1_1Hexa20Element.html#a6245e17640cb0ab0ab9fe93e42d3ca67">fem.elements.advanced_element.Hexa20Element</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1TetraElement.html#ae545fc6344267d9b4527f359fb847a18">fem.elements.solid_element.TetraElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1HexaElement.html#a400529de1f362c251210ae5aba9b6973">fem.elements.solid_element.HexaElement</a>, <a class="el" href="classfem_1_1elements_1_1shell__element_1_1ShellElement.html#a26848ec704872e6032a9d86791360cf7">fem.elements.shell_element.ShellElement</a>, <a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html#aae02259a804fa9388a1201b86019b24d">fem.elements.bar_element.BarElement</a>, <a class="el" href="classfem_1_1elements_1_1bar__element_1_1BEBarElement.html#a7893f173d7cbec7310c09d5ba4656aa0">fem.elements.bar_element.BEBarElement</a>, <a class="el" href="classfem_1_1elements_1_1bar__element_1_1TBarElement.html#ab3fdfe30bf42c6286723ec8a62ef9312">fem.elements.bar_element.TBarElement</a>, <a class="el" href="classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#a7b2d926f0ce8b6d3439b22b4bc422d3f">fem.elements.nonlinear_bar_element.NonlinearBarElement</a>で再実装されています。</p>
+
+</div>
+</div>
+<h2 class="groupheader">関数詳解</h2>
+<a id="a186142c3c526662c417d86a11fd0cf58" name="a186142c3c526662c417d86a11fd0cf58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a186142c3c526662c417d86a11fd0cf58">&#9670;&#160;</a></span>calculate_stress_strain()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[str, Any] fem.elements.base_element.BaseElement.calculate_stress_strain </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>displacement</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">応力とひずみを計算
+
+Args:
+    displacement: 節点変位ベクトル
+    
+Returns:
+    応力・ひずみの辞書
+</pre> 
+<p><a class="el" href="classfem_1_1elements_1_1shell__element_1_1ShellElement.html#a85ec9d27588b62204209aa4d73750b7d">fem.elements.shell_element.ShellElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1HexaElement.html#a1b11c8e464e3d4a001f5b47067a59ff4">fem.elements.solid_element.HexaElement</a>で再実装されています。</p>
+
+</div>
+</div>
+<a id="ac690cb6bbe5711b7593de104ea5f9661" name="ac690cb6bbe5711b7593de104ea5f9661"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac690cb6bbe5711b7593de104ea5f9661">&#9670;&#160;</a></span>get_dof_per_node()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> int fem.elements.base_element.BaseElement.get_dof_per_node </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">節点あたりの自由度数を取得
+
+Returns:
+    節点あたりの自由度数
+</pre> 
+<p><a class="el" href="classfem_1_1elements_1_1advanced__element_1_1WedgeElement.html#a0d8d320ec6c5c94c333203ceaee988b4">fem.elements.advanced_element.WedgeElement</a>, <a class="el" href="classfem_1_1elements_1_1advanced__element_1_1PyramidElement.html#add4883087c6cf5aa6b0f7a01549ad39d">fem.elements.advanced_element.PyramidElement</a>, <a class="el" href="classfem_1_1elements_1_1advanced__element_1_1Hexa20Element.html#a9d1558d5e4c10ac91b59cb146f5d6cb2">fem.elements.advanced_element.Hexa20Element</a>, <a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html#abc5736508e5568fef7b1045eb130a933">fem.elements.bar_element.BarElement</a>, <a class="el" href="classfem_1_1elements_1_1shell__element_1_1ShellElement.html#a0fb03aa7e19197eeae147b587235a8e4">fem.elements.shell_element.ShellElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1SolidElementBase.html#a7f776678672bae21eb8a8af32ef2bb65">fem.elements.solid_element.SolidElementBase</a>で再実装されています。</p>
+
+</div>
+</div>
+<a id="af06d445b2853230533036f65243b40d3" name="af06d445b2853230533036f65243b40d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af06d445b2853230533036f65243b40d3">&#9670;&#160;</a></span>get_element_coordinates()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> np.ndarray fem.elements.base_element.BaseElement.get_element_coordinates </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">要素の節点座標を取得
+
+Returns:
+    節点座標の配列 (n_nodes x 3)
+</pre> 
+</div>
+</div>
+<a id="a140650cbfaa56be8383f0667293de4ee" name="a140650cbfaa56be8383f0667293de4ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a140650cbfaa56be8383f0667293de4ee">&#9670;&#160;</a></span>get_element_length()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> float fem.elements.base_element.BaseElement.get_element_length </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">要素の長さを取得（梁要素用）
+
+Returns:
+    要素長さ
+</pre> 
+</div>
+</div>
+<a id="a2d13ff758eac185188b7ae7ad86a4d24" name="a2d13ff758eac185188b7ae7ad86a4d24"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2d13ff758eac185188b7ae7ad86a4d24">&#9670;&#160;</a></span>get_element_volume()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> float fem.elements.base_element.BaseElement.get_element_volume </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">要素の体積を取得
+
+Returns:
+    要素体積
+</pre> 
+</div>
+</div>
+<a id="ae4b029b3b4718fe736f260d02cc63110" name="ae4b029b3b4718fe736f260d02cc63110"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae4b029b3b4718fe736f260d02cc63110">&#9670;&#160;</a></span>get_equivalent_nodal_loads()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> np.ndarray fem.elements.base_element.BaseElement.get_equivalent_nodal_loads </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str&#160;</td>
+          <td class="paramname"><em>load_type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">List[float]&#160;</td>
+          <td class="paramname"><em>values</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[int] &#160;</td>
+          <td class="paramname"><em>face</em> = <code>None</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">分布荷重の等価節点荷重を計算
+
+Args:
+    load_type: 荷重タイプ
+    values: 荷重値
+    face: 面番号（シェル/ソリッド要素の場合）
+    
+Returns:
+    等価節点荷重ベクトル
+</pre> 
+<p><a class="el" href="classfem_1_1elements_1_1shell__element_1_1ShellElement.html#aafcc26847be49e6c592974a34ceeb139">fem.elements.shell_element.ShellElement</a>で再実装されています。</p>
+
+</div>
+</div>
+<a id="a3be6131890e8bc920133bd3b5d9da1f5" name="a3be6131890e8bc920133bd3b5d9da1f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3be6131890e8bc920133bd3b5d9da1f5">&#9670;&#160;</a></span>get_gauss_points()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Tuple[np.ndarray, np.ndarray] fem.elements.base_element.BaseElement.get_gauss_points </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">ガウス積分点と重みを取得
+
+Returns:
+    (積分点座標, 重み)
+</pre> 
+<p><a class="el" href="classfem_1_1elements_1_1advanced__element_1_1WedgeElement.html#ae02152ae662bd2cd8f5fce936cd50468">fem.elements.advanced_element.WedgeElement</a>, <a class="el" href="classfem_1_1elements_1_1shell__element_1_1ShellElement.html#abb9c441dc9818f10249102fec9d1ba72">fem.elements.shell_element.ShellElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1HexaElement.html#a5ddcf4e79e65db2259cc58a36232a927">fem.elements.solid_element.HexaElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1WedgeElement.html#adc98175df9c3efc0c1c4781cc5df34a5">fem.elements.solid_element.WedgeElement</a>で再実装されています。</p>
+
+</div>
+</div>
+<a id="ad591f2fc97e28c5e63c32fb991a23059" name="ad591f2fc97e28c5e63c32fb991a23059"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad591f2fc97e28c5e63c32fb991a23059">&#9670;&#160;</a></span>get_gauss_points_1d()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Tuple[np.ndarray, np.ndarray] fem.elements.base_element.BaseElement.get_gauss_points_1d </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_points</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">1次元ガウス積分点と重みを取得
+
+Args:
+    n_points: 積分点数
+    
+Returns:
+    (積分点座標, 重み)
+</pre> 
+</div>
+</div>
+<a id="a0e31bf212d99c8505a0dfebdd07c4240" name="a0e31bf212d99c8505a0dfebdd07c4240"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0e31bf212d99c8505a0dfebdd07c4240">&#9670;&#160;</a></span>get_jacobian()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> float fem.elements.base_element.BaseElement.get_jacobian </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>xi</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">ヤコビアン行列の行列式を取得
+
+Args:
+    xi: 自然座標
+    
+Returns:
+    ヤコビアン行列の行列式
+</pre> 
+</div>
+</div>
+<a id="a2ace941aed816ba5e9510034814ba218" name="a2ace941aed816ba5e9510034814ba218"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2ace941aed816ba5e9510034814ba218">&#9670;&#160;</a></span>get_mass_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> np.ndarray fem.elements.base_element.BaseElement.get_mass_matrix </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">要素質量行列を取得
+
+Returns:
+    要素質量行列
+</pre> 
+<p><a class="el" href="classfem_1_1elements_1_1advanced__element_1_1WedgeElement.html#a250a5f7d87a81d3e33d94f2c3d8221c4">fem.elements.advanced_element.WedgeElement</a>, <a class="el" href="classfem_1_1elements_1_1advanced__element_1_1PyramidElement.html#a947872d8207cd14bfaaede3d96278231">fem.elements.advanced_element.PyramidElement</a>, <a class="el" href="classfem_1_1elements_1_1advanced__element_1_1Hexa20Element.html#ada0bfa58bbbd53373c5eacd56f2d8bd3">fem.elements.advanced_element.Hexa20Element</a>, <a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html#a5bcd7f9da6b959cab9db64c5ab37d438">fem.elements.bar_element.BarElement</a>, <a class="el" href="classfem_1_1elements_1_1bar__element_1_1BEBarElement.html#ab5d22936af0fb5054eafa1ec362f58cb">fem.elements.bar_element.BEBarElement</a>, <a class="el" href="classfem_1_1elements_1_1bar__element_1_1TBarElement.html#afede2f787f126f5fac75bb22685eaafb">fem.elements.bar_element.TBarElement</a>, <a class="el" href="classfem_1_1elements_1_1shell__element_1_1ShellElement.html#ac745170ea3f45428ed5e50fcda84186f">fem.elements.shell_element.ShellElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1TetraElement.html#a9d26a6e47a369da0b84f7be14e1eb71a">fem.elements.solid_element.TetraElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1HexaElement.html#a40947873ceec9f5dc891fa95e98139d7">fem.elements.solid_element.HexaElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1WedgeElement.html#ace905f8a8e8433064fae199a9eb9235f">fem.elements.solid_element.WedgeElement</a>で再実装されています。</p>
+
+</div>
+</div>
+<a id="a0dfa17b399f5b5a688c0a2a15e647d27" name="a0dfa17b399f5b5a688c0a2a15e647d27"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0dfa17b399f5b5a688c0a2a15e647d27">&#9670;&#160;</a></span>get_name()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> str fem.elements.base_element.BaseElement.get_name </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">要素タイプ名を取得
+
+Returns:
+    要素タイプ名
+</pre> 
+<p><a class="el" href="classfem_1_1elements_1_1advanced__element_1_1WedgeElement.html#a7b581b2c83d69c18cc950aabec85cc29">fem.elements.advanced_element.WedgeElement</a>, <a class="el" href="classfem_1_1elements_1_1advanced__element_1_1PyramidElement.html#a6c0dfc50092944b2c8690f898bcc8c40">fem.elements.advanced_element.PyramidElement</a>, <a class="el" href="classfem_1_1elements_1_1advanced__element_1_1Hexa20Element.html#a296724b1c6d610c2cd7606ac80ad418e">fem.elements.advanced_element.Hexa20Element</a>, <a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html#ae0045bc562cf955c754cb15b3cd1a81f">fem.elements.bar_element.BarElement</a>, <a class="el" href="classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#ad20c74757915106df2cb9bd01ce2fe23">fem.elements.nonlinear_bar_element.NonlinearBarElement</a>, <a class="el" href="classfem_1_1elements_1_1shell__element_1_1ShellElement.html#abbfd4d0a102047c3ea1480091b2953aa">fem.elements.shell_element.ShellElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1TetraElement.html#a5bc7d8b2fa983d90b0bc380176a2ebd9">fem.elements.solid_element.TetraElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1HexaElement.html#a14a61c47b2681e1239ba88b0a57bd7b5">fem.elements.solid_element.HexaElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1WedgeElement.html#ad90f5a39a0bcee231d39a2500b169893">fem.elements.solid_element.WedgeElement</a>で再実装されています。</p>
+
+</div>
+</div>
+<a id="a4466b4d53389905d70aa8fb848dc6174" name="a4466b4d53389905d70aa8fb848dc6174"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4466b4d53389905d70aa8fb848dc6174">&#9670;&#160;</a></span>get_shape_derivatives()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> np.ndarray fem.elements.base_element.BaseElement.get_shape_derivatives </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>xi</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">形状関数の微分を取得
+
+Args:
+    xi: 自然座標
+    
+Returns:
+    形状関数の微分値
+</pre> 
+<p><a class="el" href="classfem_1_1elements_1_1advanced__element_1_1WedgeElement.html#a26e812eb8d4f45191bfdf588248c9183">fem.elements.advanced_element.WedgeElement</a>, <a class="el" href="classfem_1_1elements_1_1advanced__element_1_1PyramidElement.html#ae3a6735e39de457dad8ea9dacdfeb9df">fem.elements.advanced_element.PyramidElement</a>, <a class="el" href="classfem_1_1elements_1_1advanced__element_1_1Hexa20Element.html#aac5e851d9452eb78209739e7ef74aba9">fem.elements.advanced_element.Hexa20Element</a>, <a class="el" href="classfem_1_1elements_1_1shell__element_1_1ShellElement.html#ac9ba86c355e9a5e3e53889c1089208f4">fem.elements.shell_element.ShellElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1TetraElement.html#a3e87c2184c54a87f2816fb464cb5acd2">fem.elements.solid_element.TetraElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1HexaElement.html#a344d6f615303252d1d3d59b7aa70fb50">fem.elements.solid_element.HexaElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1WedgeElement.html#a8e7c23acfd42478161e2d5c8da488d0c">fem.elements.solid_element.WedgeElement</a>で再実装されています。</p>
+
+</div>
+</div>
+<a id="a2a8d1e58968738addc90b5d47b70a6d8" name="a2a8d1e58968738addc90b5d47b70a6d8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a8d1e58968738addc90b5d47b70a6d8">&#9670;&#160;</a></span>get_shape_functions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> np.ndarray fem.elements.base_element.BaseElement.get_shape_functions </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>xi</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">形状関数を取得
+
+Args:
+    xi: 自然座標 (要素に応じて1D, 2D, or 3D)
+    
+Returns:
+    形状関数の値
+</pre> 
+<p><a class="el" href="classfem_1_1elements_1_1advanced__element_1_1WedgeElement.html#a55a12bedf3fb562469feb5a4e342e959">fem.elements.advanced_element.WedgeElement</a>, <a class="el" href="classfem_1_1elements_1_1advanced__element_1_1PyramidElement.html#ab9a06a9cbbd24a9b123783992b2aedc9">fem.elements.advanced_element.PyramidElement</a>, <a class="el" href="classfem_1_1elements_1_1advanced__element_1_1Hexa20Element.html#a2280fdd73fc28b0efa768e415fa67197">fem.elements.advanced_element.Hexa20Element</a>, <a class="el" href="classfem_1_1elements_1_1shell__element_1_1ShellElement.html#abb58a8705cdeb55edd056076205d05bf">fem.elements.shell_element.ShellElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1TetraElement.html#a471e4e16a0570e1d8f96a5a6e29b31ae">fem.elements.solid_element.TetraElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1HexaElement.html#aa671d32120b9b0ca516b72ae3b76567c">fem.elements.solid_element.HexaElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1WedgeElement.html#a70600c0762394d94e4c0eb97502d596c">fem.elements.solid_element.WedgeElement</a>で再実装されています。</p>
+
+</div>
+</div>
+<a id="a2c93f3d65afbc4e5c2cfbbcdfc4dca6a" name="a2c93f3d65afbc4e5c2cfbbcdfc4dca6a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2c93f3d65afbc4e5c2cfbbcdfc4dca6a">&#9670;&#160;</a></span>get_stiffness_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> np.ndarray fem.elements.base_element.BaseElement.get_stiffness_matrix </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">要素剛性行列を取得
+
+Returns:
+    要素剛性行列
+</pre> 
+<p><a class="el" href="classfem_1_1elements_1_1advanced__element_1_1WedgeElement.html#a99d2edff6d4e52e5c15e4efb99ec67a7">fem.elements.advanced_element.WedgeElement</a>, <a class="el" href="classfem_1_1elements_1_1advanced__element_1_1PyramidElement.html#a1042ec1496a9c3870acfa797b448b0f5">fem.elements.advanced_element.PyramidElement</a>, <a class="el" href="classfem_1_1elements_1_1advanced__element_1_1Hexa20Element.html#aa96c106675d9e58c16f7bfd37ce5d644">fem.elements.advanced_element.Hexa20Element</a>, <a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html#a9f804201bd996254ea14f8d94f636f69">fem.elements.bar_element.BarElement</a>, <a class="el" href="classfem_1_1elements_1_1bar__element_1_1BEBarElement.html#a3adcf10e39ccc10a346650d63413c10b">fem.elements.bar_element.BEBarElement</a>, <a class="el" href="classfem_1_1elements_1_1bar__element_1_1TBarElement.html#aeb05c35397ce90f21dbea4e4f418541e">fem.elements.bar_element.TBarElement</a>, <a class="el" href="classfem_1_1elements_1_1shell__element_1_1ShellElement.html#a74b96e35a4d5d594e304d1ada3c6986e">fem.elements.shell_element.ShellElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1TetraElement.html#ab0117402eede27de26a1f4f687cac02d">fem.elements.solid_element.TetraElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1HexaElement.html#aeb95cf5f1a36acd87daef37ffa8899ac">fem.elements.solid_element.HexaElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1WedgeElement.html#a16762082b45fc66f02cad4e0b9605558">fem.elements.solid_element.WedgeElement</a>で再実装されています。</p>
+
+</div>
+</div>
+<a id="a9c951c9b97a4f1260346d26e29804c0c" name="a9c951c9b97a4f1260346d26e29804c0c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c951c9b97a4f1260346d26e29804c0c">&#9670;&#160;</a></span>get_strain_displacement_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> np.ndarray fem.elements.base_element.BaseElement.get_strain_displacement_matrix </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>xi</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">ひずみ-変位マトリックス（Bマトリックス）を取得
+
+Args:
+    xi: 自然座標
+    
+Returns:
+    Bマトリックス
+</pre> 
+</div>
+</div>
+<a id="a2ef6875359c18302b913706def218367" name="a2ef6875359c18302b913706def218367"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2ef6875359c18302b913706def218367">&#9670;&#160;</a></span>get_stress_strain_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> np.ndarray fem.elements.base_element.BaseElement.get_stress_strain_matrix </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">応力-ひずみマトリックス（Dマトリックス）を取得
+
+Returns:
+    Dマトリックス
+</pre> 
+<p><a class="el" href="classfem_1_1elements_1_1shell__element_1_1ShellElement.html#a31873856de4cc3e7b27db5c86f8014d1">fem.elements.shell_element.ShellElement</a>, <a class="el" href="classfem_1_1elements_1_1solid__element_1_1SolidElementBase.html#ad7682f0171fe8b4d685c62717098b608">fem.elements.solid_element.SolidElementBase</a>で再実装されています。</p>
+
+</div>
+</div>
+<a id="adff74f5107c5040a1f57533206968fec" name="adff74f5107c5040a1f57533206968fec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adff74f5107c5040a1f57533206968fec">&#9670;&#160;</a></span>set_node_coordinates()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.elements.base_element.BaseElement.set_node_coordinates </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[int, np.ndarray]&#160;</td>
+          <td class="paramname"><em>coordinates</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">節点座標を設定
+
+Args:
+    coordinates: {node_id: [x, y, z]} の辞書
+</pre> 
+<p><a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html#aa3e85e3d473cf027dc4e4c072130abbe">fem.elements.bar_element.BarElement</a>で再実装されています。</p>
+
+</div>
+</div>
+<hr/>このクラス詳解は次のファイルから抽出されました:<ul>
+<li>src/fem/elements/<b>base_element.py</b></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacefem.html">fem</a></li><li class="navelem"><a class="el" href="namespacefem_1_1elements.html">elements</a></li><li class="navelem"><a class="el" href="namespacefem_1_1elements_1_1base__element.html">base_element</a></li><li class="navelem"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html">BaseElement</a></li>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

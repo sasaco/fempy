@@ -1,0 +1,491 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FrameWeb: fem.nonlinear.hysteresis.jr_stiffness_reduction.JRStiffnessReductionModel クラス</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FrameWeb
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">公開メンバ関数</a> &#124;
+<a href="#pub-attribs">公開変数類</a> &#124;
+<a href="#pub-static-attribs">静的公開変数類</a> &#124;
+<a href="classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel-members.html">全メンバ一覧</a>  </div>
+  <div class="headertitle"><div class="title">fem.nonlinear.hysteresis.jr_stiffness_reduction.JRStiffnessReductionModel クラス</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="dynheader">
+fem.nonlinear.hysteresis.jr_stiffness_reduction.JRStiffnessReductionModel の継承関係図</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel.png" usemap="#fem.nonlinear.hysteresis.jr_5Fstiffness_5Freduction.JRStiffnessReductionModel_map" alt=""/>
+  <map id="fem.nonlinear.hysteresis.jr_5Fstiffness_5Freduction.JRStiffnessReductionModel_map" name="fem.nonlinear.hysteresis.jr_5Fstiffness_5Freduction.JRStiffnessReductionModel_map">
+<area href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1BaseHysteresis.html" alt="fem.nonlinear.hysteresis.base_hysteresis.BaseHysteresis" shape="rect" coords="0,56,433,80"/>
+  </map>
+</div></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+公開メンバ関数</h2></td></tr>
+<tr class="memitem:a0461ee836b6fa54892e851867ce542bd" id="r_a0461ee836b6fa54892e851867ce542bd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel.html#a0461ee836b6fa54892e851867ce542bd">__init__</a> (self, <a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionParams.html">JRStiffnessReductionParams</a> params)</td></tr>
+<tr class="separator:a0461ee836b6fa54892e851867ce542bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c68c01d15e1030ce6ac1819e2fd8257" id="r_a6c68c01d15e1030ce6ac1819e2fd8257"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html">HysteresisState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel.html#a6c68c01d15e1030ce6ac1819e2fd8257">create_initial_state</a> (self)</td></tr>
+<tr class="separator:a6c68c01d15e1030ce6ac1819e2fd8257"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af759e405d64782cfd072c0faf490472a" id="r_af759e405d64782cfd072c0faf490472a"><td class="memItemLeft" align="right" valign="top">Tuple[float, float]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel.html#af759e405d64782cfd072c0faf490472a">get_skeleton_force</a> (self, float delta, int direction)</td></tr>
+<tr class="separator:af759e405d64782cfd072c0faf490472a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a66901c7e5987c01747604a64b89a7f" id="r_a4a66901c7e5987c01747604a64b89a7f"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel.html#a4a66901c7e5987c01747604a64b89a7f">get_reduced_stiffness</a> (self, <a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html">HysteresisState</a> state, int direction)</td></tr>
+<tr class="separator:a4a66901c7e5987c01747604a64b89a7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e7f50822dff5a932288faf4d13ae386" id="r_a4e7f50822dff5a932288faf4d13ae386"><td class="memItemLeft" align="right" valign="top">Tuple[float, float]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel.html#a4e7f50822dff5a932288faf4d13ae386">get_target_point</a> (self, float delta, <a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html">HysteresisState</a> state)</td></tr>
+<tr class="separator:a4e7f50822dff5a932288faf4d13ae386"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a336b79dca6a963d7ee3fbf587ccbe0fb" id="r_a336b79dca6a963d7ee3fbf587ccbe0fb"><td class="memItemLeft" align="right" valign="top">Tuple[float, float, Optional[Dict[str, Any]]]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel.html#a336b79dca6a963d7ee3fbf587ccbe0fb">get_force_and_stiffness</a> (self, float delta, <a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html">HysteresisState</a> state)</td></tr>
+<tr class="separator:a336b79dca6a963d7ee3fbf587ccbe0fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad24afb06a6b7432c96c2c6a89c3a966b" id="r_ad24afb06a6b7432c96c2c6a89c3a966b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html">HysteresisState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel.html#ad24afb06a6b7432c96c2c6a89c3a966b">update_state</a> (self, float delta, float P, float K, <a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html">HysteresisState</a> state, Optional[Dict[str, Any]] branch_info)</td></tr>
+<tr class="separator:ad24afb06a6b7432c96c2c6a89c3a966b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+公開変数類</h2></td></tr>
+<tr class="memitem:a4321d7db6d534d540d357c92582c9e23" id="r_a4321d7db6d534d540d357c92582c9e23"><td class="memItemLeft" align="right" valign="top"><a id="a4321d7db6d534d540d357c92582c9e23" name="a4321d7db6d534d540d357c92582c9e23"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>params</b></td></tr>
+<tr class="separator:a4321d7db6d534d540d357c92582c9e23"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ad9568f97816387c86b04f1ea8b51ac" id="r_a5ad9568f97816387c86b04f1ea8b51ac"><td class="memItemLeft" align="right" valign="top"><a id="a5ad9568f97816387c86b04f1ea8b51ac" name="a5ad9568f97816387c86b04f1ea8b51ac"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>EPSILON</b></td></tr>
+<tr class="separator:a5ad9568f97816387c86b04f1ea8b51ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+静的公開変数類</h2></td></tr>
+<tr class="memitem:ac945da62bd1fafd450fb0c0a48497816" id="r_ac945da62bd1fafd450fb0c0a48497816"><td class="memItemLeft" align="right" valign="top"><a id="ac945da62bd1fafd450fb0c0a48497816" name="ac945da62bd1fafd450fb0c0a48497816"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>EPSILON</b> = 1e-12</td></tr>
+<tr class="separator:ac945da62bd1fafd450fb0c0a48497816"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">詳解</h2>
+<div class="textblock"><pre class="fragment">JR総研剛性低減RC型履歴モデル
+
+理論マニュアル7.11節の履歴ルールを実装:
+1. 初期領域: |delta_max| &lt; delta_1 で原点を通る初期剛性の直線上
+2. 載荷: スケルトンカーブに沿う
+3. 除荷: 低減剛性Kdで除荷、P=0を通過後に最大点指向
+4. 最大点指向: 反対側の最大経験点（弾性域なら第1折れ点）へ向かう
+5. 内部ループ: 最大点指向中に反転→内部ループ開始、反転点スタック管理
+6. 骨格曲線逸脱: 除荷中に骨格曲線外に出た場合の補正
+</pre> </div><h2 class="groupheader">構築子と解体子</h2>
+<a id="a0461ee836b6fa54892e851867ce542bd" name="a0461ee836b6fa54892e851867ce542bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0461ee836b6fa54892e851867ce542bd">&#9670;&#160;</a></span>__init__()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">fem.nonlinear.hysteresis.jr_stiffness_reduction.JRStiffnessReductionModel.__init__ </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionParams.html">JRStiffnessReductionParams</a>&#160;</td>
+          <td class="paramname"><em>params</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Args:
+    params: JRモデルパラメータ
+</pre> 
+</div>
+</div>
+<h2 class="groupheader">関数詳解</h2>
+<a id="a6c68c01d15e1030ce6ac1819e2fd8257" name="a6c68c01d15e1030ce6ac1819e2fd8257"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c68c01d15e1030ce6ac1819e2fd8257">&#9670;&#160;</a></span>create_initial_state()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> <a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html">HysteresisState</a> fem.nonlinear.hysteresis.jr_stiffness_reduction.JRStiffnessReductionModel.create_initial_state </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">初期状態を作成
+
+Returns:
+    初期化された履歴状態
+</pre> 
+<p><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1BaseHysteresis.html#aa5cb6dae2f93e2f56c58ee424c9ea3d1">fem.nonlinear.hysteresis.base_hysteresis.BaseHysteresis</a>を再実装しています。</p>
+
+</div>
+</div>
+<a id="a336b79dca6a963d7ee3fbf587ccbe0fb" name="a336b79dca6a963d7ee3fbf587ccbe0fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a336b79dca6a963d7ee3fbf587ccbe0fb">&#9670;&#160;</a></span>get_force_and_stiffness()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Tuple[float, float, Optional[Dict[str, Any]]] fem.nonlinear.hysteresis.jr_stiffness_reduction.JRStiffnessReductionModel.get_force_and_stiffness </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>delta</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html">HysteresisState</a>
+    &#160;</td>
+          <td class="paramname"><em>state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">変位から力と剛性を計算
+
+理論マニュアル7.11節の履歴ルール1〜6を実装
+
+Args:
+    delta: 現在の変位
+    state: 現在の履歴状態（変更しない）
+
+Returns:
+    (P, K, branch_info):
+        - P: 力
+        - K: 接線剛性
+        - branch_info: ブランチ情報（状態更新用）
+</pre> 
+<p><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1BaseHysteresis.html#af55f2787a5b0fef3d4a51a5ae1c2c544">fem.nonlinear.hysteresis.base_hysteresis.BaseHysteresis</a>を再実装しています。</p>
+
+</div>
+</div>
+<a id="a4a66901c7e5987c01747604a64b89a7f" name="a4a66901c7e5987c01747604a64b89a7f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4a66901c7e5987c01747604a64b89a7f">&#9670;&#160;</a></span>get_reduced_stiffness()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> float fem.nonlinear.hysteresis.jr_stiffness_reduction.JRStiffnessReductionModel.get_reduced_stiffness </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html">HysteresisState</a>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int
+    &#160;</td>
+          <td class="paramname"><em>direction</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">低減剛性を計算（式7.11.1〜7.11.3）
+
+理論マニュアル7.11節に基づく領域別の剛性低減式:
+- ひび割れ域(δ1 &lt; δmax &lt; δ2): 式(7.11.1) Kd = K1 * |δmax/δ1|^(-β)
+- 降伏域(δ2 &lt; δmax &lt; δ3): 式(7.11.2) Kd = K2 * |δmax/δ2|^(-β)
+- 終局域(δmax &gt; δ3): 式(7.11.3) Kd = K2 * |δmax/δ2|^(-β)
+
+下限値: (F_max - F_1)/(δmax - δ1)（第2勾配相当）
+
+Args:
+    state: 現在の状態
+    direction: 載荷方向 (+1 or -1)
+
+Returns:
+    低減剛性 Kd
+</pre> 
+</div>
+</div>
+<a id="af759e405d64782cfd072c0faf490472a" name="af759e405d64782cfd072c0faf490472a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af759e405d64782cfd072c0faf490472a">&#9670;&#160;</a></span>get_skeleton_force()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Tuple[float, float] fem.nonlinear.hysteresis.jr_stiffness_reduction.JRStiffnessReductionModel.get_skeleton_force </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>delta</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int
+    &#160;</td>
+          <td class="paramname"><em>direction</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">スケルトンカーブ上の力と剛性を計算
+
+4折線モデル（ひび割れ、降伏、終局）
+
+Args:
+    delta: 変位（符号付き）
+    direction: +1 for 正側, -1 for 負側
+
+Returns:
+    (P, K): 力と接線剛性
+</pre> 
+<p><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1BaseHysteresis.html#a93acc450ff3785bbd32532e79b539d56">fem.nonlinear.hysteresis.base_hysteresis.BaseHysteresis</a>を再実装しています。</p>
+
+</div>
+</div>
+<a id="a4e7f50822dff5a932288faf4d13ae386" name="a4e7f50822dff5a932288faf4d13ae386"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e7f50822dff5a932288faf4d13ae386">&#9670;&#160;</a></span>get_target_point()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Tuple[float, float] fem.nonlinear.hysteresis.jr_stiffness_reduction.JRStiffnessReductionModel.get_target_point </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>delta</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html">HysteresisState</a>
+    &#160;</td>
+          <td class="paramname"><em>state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">最大点指向の目標点を取得
+
+理論マニュアル7.11節に基づく目標点決定:
+(2) δ1 &lt; δmax &lt; δ2 の場合:
+    - 反対側が弾性域なら第1折れ点を目指す
+    - それ以外は最大経験点を目指す
+(3)(4) δmax &gt; δ2 の場合:
+    - 反対側が弾性域またはひび割れ域(δ2以下)なら第2折れ点を目指す
+    - それ以外は最大経験点を目指す
+
+Args:
+    delta: 現在の変位（符号で移動方向を判定）
+    state: 現在の状態
+
+Returns:
+    (target_delta, target_P): 目標点
+</pre> 
+</div>
+</div>
+<a id="ad24afb06a6b7432c96c2c6a89c3a966b" name="ad24afb06a6b7432c96c2c6a89c3a966b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad24afb06a6b7432c96c2c6a89c3a966b">&#9670;&#160;</a></span>update_state()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> <a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html">HysteresisState</a> fem.nonlinear.hysteresis.jr_stiffness_reduction.JRStiffnessReductionModel.update_state </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>delta</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>P</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>K</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html">HysteresisState</a>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[Dict[str, Any]]
+    &#160;</td>
+          <td class="paramname"><em>branch_info</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">状態変数を更新（収束後に呼び出す）
+
+Args:
+    delta: 収束した変位
+    P: 収束した力
+    K: 収束した剛性
+    state: 現在の状態
+    branch_info: get_force_and_stiffnessから返されたブランチ情報
+
+Returns:
+    更新された状態（新しいインスタンス）
+</pre> 
+<p><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1BaseHysteresis.html#a6b7850b1b23f3744c604a98101b2941f">fem.nonlinear.hysteresis.base_hysteresis.BaseHysteresis</a>を再実装しています。</p>
+
+</div>
+</div>
+<hr/>このクラス詳解は次のファイルから抽出されました:<ul>
+<li>src/fem/nonlinear/hysteresis/<b>jr_stiffness_reduction.py</b></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacefem.html">fem</a></li><li class="navelem"><a class="el" href="namespacefem_1_1nonlinear.html">nonlinear</a></li><li class="navelem"><a class="el" href="namespacefem_1_1nonlinear_1_1hysteresis.html">hysteresis</a></li><li class="navelem"><a class="el" href="namespacefem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction.html">jr_stiffness_reduction</a></li><li class="navelem"><a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel.html">JRStiffnessReductionModel</a></li>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

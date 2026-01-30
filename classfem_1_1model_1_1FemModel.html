@@ -1,0 +1,1933 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FrameWeb: fem.model.FemModel クラス</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FrameWeb
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classfem_1_1model_1_1FemModel.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">公開メンバ関数</a> &#124;
+<a href="#pub-attribs">公開変数類</a> &#124;
+<a href="#pro-methods">限定公開メンバ関数</a> &#124;
+<a href="#pro-attribs">限定公開変数類</a> &#124;
+<a href="classfem_1_1model_1_1FemModel-members.html">全メンバ一覧</a>  </div>
+  <div class="headertitle"><div class="title">fem.model.FemModel クラス</div></div>
+</div><!--header-->
+<div class="contents">
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+公開メンバ関数</h2></td></tr>
+<tr class="memitem:a1de987a1c27b67da038feaaa84e58da4" id="r_a1de987a1c27b67da038feaaa84e58da4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a1de987a1c27b67da038feaaa84e58da4">__init__</a> (self)</td></tr>
+<tr class="separator:a1de987a1c27b67da038feaaa84e58da4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f4af68e1f0ae20b75a4999029ced15f" id="r_a3f4af68e1f0ae20b75a4999029ced15f"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a3f4af68e1f0ae20b75a4999029ced15f">load_model</a> (self, str file_path)</td></tr>
+<tr class="separator:a3f4af68e1f0ae20b75a4999029ced15f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a331ac89012995cdb691e2bca1c4f5851" id="r_a331ac89012995cdb691e2bca1c4f5851"><td class="memItemLeft" align="right" valign="top"><a id="a331ac89012995cdb691e2bca1c4f5851" name="a331ac89012995cdb691e2bca1c4f5851"></a>
+None&#160;</td><td class="memItemRight" valign="bottom"><b>read_json_model</b> (self, Dict[str, Any] model_data)</td></tr>
+<tr class="separator:a331ac89012995cdb691e2bca1c4f5851"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a5953091537ceb824bedbd8e5693b01" id="r_a0a5953091537ceb824bedbd8e5693b01"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a0a5953091537ceb824bedbd8e5693b01">save_model</a> (self, str file_path)</td></tr>
+<tr class="separator:a0a5953091537ceb824bedbd8e5693b01"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae96e159998c76358f94f34d5c9695856" id="r_ae96e159998c76358f94f34d5c9695856"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#ae96e159998c76358f94f34d5c9695856">add_node</a> (self, int node_id, float x, float y, float z)</td></tr>
+<tr class="separator:ae96e159998c76358f94f34d5c9695856"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4bca022d2737cc4270b995e648daa6bb" id="r_a4bca022d2737cc4270b995e648daa6bb"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a4bca022d2737cc4270b995e648daa6bb">add_element</a> (self, int elem_id, str elem_type, List[int] node_ids, int material_id, **kwargs)</td></tr>
+<tr class="separator:a4bca022d2737cc4270b995e648daa6bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaee5ea92acd13cacf86599fb671cce1c" id="r_aaee5ea92acd13cacf86599fb671cce1c"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#aaee5ea92acd13cacf86599fb671cce1c">add_material</a> (self, int material_id, str name, float E, float nu, Optional[float] density=None, **kwargs)</td></tr>
+<tr class="separator:aaee5ea92acd13cacf86599fb671cce1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afe56c38fe7e2998f9bcb3ee2a279d62d" id="r_afe56c38fe7e2998f9bcb3ee2a279d62d"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#afe56c38fe7e2998f9bcb3ee2a279d62d">add_restraint</a> (self, int node_id, bool dx=False, bool dy=False, bool dz=False, bool rx=False, bool ry=False, bool rz=False, Optional[List[float]] values=None)</td></tr>
+<tr class="separator:afe56c38fe7e2998f9bcb3ee2a279d62d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0079220346951affd2ed2c83fbb42288" id="r_a0079220346951affd2ed2c83fbb42288"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a0079220346951affd2ed2c83fbb42288">add_load</a> (self, int node_id, float fx=0, float fy=0, float fz=0, float mx=0, float my=0, float mz=0)</td></tr>
+<tr class="separator:a0079220346951affd2ed2c83fbb42288"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91a3f6d7f13a28062f23fbdf4d66d7de" id="r_a91a3f6d7f13a28062f23fbdf4d66d7de"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a91a3f6d7f13a28062f23fbdf4d66d7de">add_spring_support</a> (self, int node_id, str direction, float stiffness)</td></tr>
+<tr class="separator:a91a3f6d7f13a28062f23fbdf4d66d7de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a377ca84e3fc693c418be5832c1dcdd9e" id="r_a377ca84e3fc693c418be5832c1dcdd9e"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a377ca84e3fc693c418be5832c1dcdd9e">add_distributed_load</a> (self, int element_id, str direction, float value_i, float value_j)</td></tr>
+<tr class="separator:a377ca84e3fc693c418be5832c1dcdd9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a332d19672444880482cdf9d72b348824" id="r_a332d19672444880482cdf9d72b348824"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a332d19672444880482cdf9d72b348824">add_temperature_load</a> (self, int element_id, float temperature)</td></tr>
+<tr class="separator:a332d19672444880482cdf9d72b348824"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5bf983eaa4701756dc0b67366fe91da6" id="r_a5bf983eaa4701756dc0b67366fe91da6"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a5bf983eaa4701756dc0b67366fe91da6">add_forced_displacement</a> (self, int node_id, float dx=0, float dy=0, float dz=0, float rx=0, float ry=0, float rz=0)</td></tr>
+<tr class="separator:a5bf983eaa4701756dc0b67366fe91da6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c60138b51d8f88d6601ad1c653bb30c" id="r_a5c60138b51d8f88d6601ad1c653bb30c"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a5c60138b51d8f88d6601ad1c653bb30c">add_distributed_spring</a> (self, int element_id, float dx=0, float dy=0, float dz=0, float rx=0)</td></tr>
+<tr class="separator:a5c60138b51d8f88d6601ad1c653bb30c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6aa467007be279b6ca3a92c901c74003" id="r_a6aa467007be279b6ca3a92c901c74003"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a6aa467007be279b6ca3a92c901c74003">add_joint_condition</a> (self, int element_id, *args, **kwargs)</td></tr>
+<tr class="separator:a6aa467007be279b6ca3a92c901c74003"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a456ab3e0a15734fa9923d1ef58798c4e" id="r_a456ab3e0a15734fa9923d1ef58798c4e"><td class="memItemLeft" align="right" valign="top">Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a456ab3e0a15734fa9923d1ef58798c4e">run</a> (self, str analysis_type='static')</td></tr>
+<tr class="separator:a456ab3e0a15734fa9923d1ef58798c4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a182ad98aae6068a656593f1418e9b8e6" id="r_a182ad98aae6068a656593f1418e9b8e6"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a182ad98aae6068a656593f1418e9b8e6">add_nonlinear_material</a> (self, int material_id, str name, float E, float delta_1, float delta_2, float delta_3, float P_1, float P_2, float P_3, float beta=0.4, Optional[float] K_min=None, bool symmetric=True, Optional[float] delta_1_neg=None, Optional[float] delta_2_neg=None, Optional[float] delta_3_neg=None, Optional[float] P_1_neg=None, Optional[float] P_2_neg=None, Optional[float] P_3_neg=None, float nu=0.2, Optional[float] density=None)</td></tr>
+<tr class="separator:a182ad98aae6068a656593f1418e9b8e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2fa386e77757ea0f8f7af6db3cc6451" id="r_ae2fa386e77757ea0f8f7af6db3cc6451"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#ae2fa386e77757ea0f8f7af6db3cc6451">add_nonlinear_bar_element</a> (self, int elem_id, List[int] node_ids, int material_id, int section_id, List[str] hysteresis_dofs, float angle=0.0, bool shear_correction=True)</td></tr>
+<tr class="separator:ae2fa386e77757ea0f8f7af6db3cc6451"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6684cb9f882275a91c0e68b501174a6e" id="r_a6684cb9f882275a91c0e68b501174a6e"><td class="memItemLeft" align="right" valign="top">Optional[Dict[str, Any]]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a6684cb9f882275a91c0e68b501174a6e">get_results</a> (self)</td></tr>
+<tr class="separator:a6684cb9f882275a91c0e68b501174a6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae838c9f367f277c0ec117734a22d5436" id="r_ae838c9f367f277c0ec117734a22d5436"><td class="memItemLeft" align="right" valign="top">Optional[Dict[str, float]]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#ae838c9f367f277c0ec117734a22d5436">get_node_displacement</a> (self, int node_id)</td></tr>
+<tr class="separator:ae838c9f367f277c0ec117734a22d5436"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a132ab6f1c7995db2f035b0a3ee688439" id="r_a132ab6f1c7995db2f035b0a3ee688439"><td class="memItemLeft" align="right" valign="top">Optional[Dict[str, Any]]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a132ab6f1c7995db2f035b0a3ee688439">get_element_stress</a> (self, int elem_id)</td></tr>
+<tr class="separator:a132ab6f1c7995db2f035b0a3ee688439"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a867b6228bb788faf25cada3861ec29df" id="r_a867b6228bb788faf25cada3861ec29df"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a867b6228bb788faf25cada3861ec29df">save_results</a> (self, str file_path)</td></tr>
+<tr class="separator:a867b6228bb788faf25cada3861ec29df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad940d75afb21b13690ec1b8ddfbf0b0d" id="r_ad940d75afb21b13690ec1b8ddfbf0b0d"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#ad940d75afb21b13690ec1b8ddfbf0b0d">load_results</a> (self, str file_path)</td></tr>
+<tr class="separator:ad940d75afb21b13690ec1b8ddfbf0b0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afdce40f3dd7acf5ec32e98ad5b49560e" id="r_afdce40f3dd7acf5ec32e98ad5b49560e"><td class="memItemLeft" align="right" valign="top">Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#afdce40f3dd7acf5ec32e98ad5b49560e">get_model_info</a> (self)</td></tr>
+<tr class="separator:afdce40f3dd7acf5ec32e98ad5b49560e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92a10097233e0ee689672515dee3225c" id="r_a92a10097233e0ee689672515dee3225c"><td class="memItemLeft" align="right" valign="top">Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a92a10097233e0ee689672515dee3225c">run_static_analysis</a> (self)</td></tr>
+<tr class="separator:a92a10097233e0ee689672515dee3225c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4aa8410a0e1d2176ede420d6bfa71bd" id="r_ac4aa8410a0e1d2176ede420d6bfa71bd"><td class="memItemLeft" align="right" valign="top">Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#ac4aa8410a0e1d2176ede420d6bfa71bd">run_modal_analysis</a> (self, int n_modes=10)</td></tr>
+<tr class="separator:ac4aa8410a0e1d2176ede420d6bfa71bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f84b66fb8c69f013946d5ccccbe846f" id="r_a0f84b66fb8c69f013946d5ccccbe846f"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a0f84b66fb8c69f013946d5ccccbe846f">add_notice_points</a> (self, List[Dict[str, Any]] notice_points)</td></tr>
+<tr class="separator:a0f84b66fb8c69f013946d5ccccbe846f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+公開変数類</h2></td></tr>
+<tr class="memitem:a62b004e511210ed46e0999776cb3dda0" id="r_a62b004e511210ed46e0999776cb3dda0"><td class="memItemLeft" align="right" valign="top"><a id="a62b004e511210ed46e0999776cb3dda0" name="a62b004e511210ed46e0999776cb3dda0"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>mesh</b></td></tr>
+<tr class="separator:a62b004e511210ed46e0999776cb3dda0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a14aa9dd8a23a42695cf19091b4af3df7" id="r_a14aa9dd8a23a42695cf19091b4af3df7"><td class="memItemLeft" align="right" valign="top"><a id="a14aa9dd8a23a42695cf19091b4af3df7" name="a14aa9dd8a23a42695cf19091b4af3df7"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>boundary</b></td></tr>
+<tr class="separator:a14aa9dd8a23a42695cf19091b4af3df7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af39702dc9e8eb902bf45b2f0e3f44a9c" id="r_af39702dc9e8eb902bf45b2f0e3f44a9c"><td class="memItemLeft" align="right" valign="top"><a id="af39702dc9e8eb902bf45b2f0e3f44a9c" name="af39702dc9e8eb902bf45b2f0e3f44a9c"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>material</b></td></tr>
+<tr class="separator:af39702dc9e8eb902bf45b2f0e3f44a9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a16436684a1023844ba997e7eecc03c26" id="r_a16436684a1023844ba997e7eecc03c26"><td class="memItemLeft" align="right" valign="top"><a id="a16436684a1023844ba997e7eecc03c26" name="a16436684a1023844ba997e7eecc03c26"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>section</b></td></tr>
+<tr class="separator:a16436684a1023844ba997e7eecc03c26"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af6fb482f9340564ff26abaabc39881e5" id="r_af6fb482f9340564ff26abaabc39881e5"><td class="memItemLeft" align="right" valign="top"><a id="af6fb482f9340564ff26abaabc39881e5" name="af6fb482f9340564ff26abaabc39881e5"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>solver</b></td></tr>
+<tr class="separator:af6fb482f9340564ff26abaabc39881e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3529c35738bd4fc1094f3711dbdc553" id="r_aa3529c35738bd4fc1094f3711dbdc553"><td class="memItemLeft" align="right" valign="top"><a id="aa3529c35738bd4fc1094f3711dbdc553" name="aa3529c35738bd4fc1094f3711dbdc553"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>nonlinear_solver</b></td></tr>
+<tr class="separator:aa3529c35738bd4fc1094f3711dbdc553"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae58f45108cc02be4b13af438c8178016" id="r_ae58f45108cc02be4b13af438c8178016"><td class="memItemLeft" align="right" valign="top"><a id="ae58f45108cc02be4b13af438c8178016" name="ae58f45108cc02be4b13af438c8178016"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>analysis_params</b></td></tr>
+<tr class="separator:ae58f45108cc02be4b13af438c8178016"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a035ae094e94fd3a534ebdc6c1abd8fe3" id="r_a035ae094e94fd3a534ebdc6c1abd8fe3"><td class="memItemLeft" align="right" valign="top"><a id="a035ae094e94fd3a534ebdc6c1abd8fe3" name="a035ae094e94fd3a534ebdc6c1abd8fe3"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>distributed_springs</b></td></tr>
+<tr class="separator:a035ae094e94fd3a534ebdc6c1abd8fe3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c8c556eccb434cc42a3c925c4ca44fc" id="r_a0c8c556eccb434cc42a3c925c4ca44fc"><td class="memItemLeft" align="right" valign="top"><a id="a0c8c556eccb434cc42a3c925c4ca44fc" name="a0c8c556eccb434cc42a3c925c4ca44fc"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>joint_conditions</b></td></tr>
+<tr class="separator:a0c8c556eccb434cc42a3c925c4ca44fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3f7ebc055edadeb21e0528485f5f0b2" id="r_ad3f7ebc055edadeb21e0528485f5f0b2"><td class="memItemLeft" align="right" valign="top"><a id="ad3f7ebc055edadeb21e0528485f5f0b2" name="ad3f7ebc055edadeb21e0528485f5f0b2"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>results</b></td></tr>
+<tr class="separator:ad3f7ebc055edadeb21e0528485f5f0b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9353598cad203899a51a7b7749a58893" id="r_a9353598cad203899a51a7b7749a58893"><td class="memItemLeft" align="right" valign="top"><a id="a9353598cad203899a51a7b7749a58893" name="a9353598cad203899a51a7b7749a58893"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>elements</b></td></tr>
+<tr class="separator:a9353598cad203899a51a7b7749a58893"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ae52d91315765d0563b3bdb58fcba49" id="r_a6ae52d91315765d0563b3bdb58fcba49"><td class="memItemLeft" align="right" valign="top"><a id="a6ae52d91315765d0563b3bdb58fcba49" name="a6ae52d91315765d0563b3bdb58fcba49"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>name</b></td></tr>
+<tr class="separator:a6ae52d91315765d0563b3bdb58fcba49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c959b287d753dbbd89cee8c5f5596a7" id="r_a1c959b287d753dbbd89cee8c5f5596a7"><td class="memItemLeft" align="right" valign="top"><a id="a1c959b287d753dbbd89cee8c5f5596a7" name="a1c959b287d753dbbd89cee8c5f5596a7"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>description</b></td></tr>
+<tr class="separator:a1c959b287d753dbbd89cee8c5f5596a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+限定公開メンバ関数</h2></td></tr>
+<tr class="memitem:a31c6ae6a005d19dc49c06e4126cf14b3" id="r_a31c6ae6a005d19dc49c06e4126cf14b3"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a31c6ae6a005d19dc49c06e4126cf14b3">_create_elements</a> (self)</td></tr>
+<tr class="separator:a31c6ae6a005d19dc49c06e4126cf14b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a6d2c770fba77063a4909bd267b8879" id="r_a8a6d2c770fba77063a4909bd267b8879"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a8a6d2c770fba77063a4909bd267b8879">_create_element_instance</a> (self, int elem_id)</td></tr>
+<tr class="separator:a8a6d2c770fba77063a4909bd267b8879"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2412a5bf6e92899d20674b0e09631f15" id="r_a2412a5bf6e92899d20674b0e09631f15"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classfem_1_1material_1_1BarParameter.html">BarParameter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a2412a5bf6e92899d20674b0e09631f15">_get_bar_parameter</a> (self, int section_id, int material_id)</td></tr>
+<tr class="separator:a2412a5bf6e92899d20674b0e09631f15"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad79ece1c1a9b6623a04654dfc9193844" id="r_ad79ece1c1a9b6623a04654dfc9193844"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#ad79ece1c1a9b6623a04654dfc9193844">_set_element_coordinates</a> (self)</td></tr>
+<tr class="separator:ad79ece1c1a9b6623a04654dfc9193844"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa93418462ccc701bcf0fc3b105b77eb9" id="r_aa93418462ccc701bcf0fc3b105b77eb9"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#aa93418462ccc701bcf0fc3b105b77eb9">_post_process_results</a> (self)</td></tr>
+<tr class="separator:aa93418462ccc701bcf0fc3b105b77eb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaadbbcec85f546f72fa422ddcae1fe22" id="r_aaadbbcec85f546f72fa422ddcae1fe22"><td class="memItemLeft" align="right" valign="top">Dict[str, int]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#aaadbbcec85f546f72fa422ddcae1fe22">_get_element_type_summary</a> (self)</td></tr>
+<tr class="separator:aaadbbcec85f546f72fa422ddcae1fe22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a259a80340e53f3adf3e007182892df75" id="r_a259a80340e53f3adf3e007182892df75"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a259a80340e53f3adf3e007182892df75">_divide_element_by_points</a> (self, int elem_id, List[float] points)</td></tr>
+<tr class="separator:a259a80340e53f3adf3e007182892df75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad113d4bccb747a64d0d9e5f3aec80e2e" id="r_ad113d4bccb747a64d0d9e5f3aec80e2e"><td class="memItemLeft" align="right" valign="top">Optional[int]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#ad113d4bccb747a64d0d9e5f3aec80e2e">_find_node_by_coordinates</a> (self, float x, float y, float z, float tolerance=1e-6)</td></tr>
+<tr class="separator:ad113d4bccb747a64d0d9e5f3aec80e2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afdb3fa44ca4c079b99a04032e8988b9d" id="r_afdb3fa44ca4c079b99a04032e8988b9d"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#afdb3fa44ca4c079b99a04032e8988b9d">_divide_element_by_distributed_loads</a> (self, List[Dict[str, Any]] distributed_loads)</td></tr>
+<tr class="separator:afdb3fa44ca4c079b99a04032e8988b9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18117d7e7c5cb76273585e67aac39ead" id="r_a18117d7e7c5cb76273585e67aac39ead"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a18117d7e7c5cb76273585e67aac39ead">_divide_element_by_concentrated_loads</a> (self, List[Dict[str, Any]] concentrated_loads)</td></tr>
+<tr class="separator:a18117d7e7c5cb76273585e67aac39ead"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3752697bbe8db5f0bcf112b88658260b" id="r_a3752697bbe8db5f0bcf112b88658260b"><td class="memItemLeft" align="right" valign="top">Dict[str, List]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a3752697bbe8db5f0bcf112b88658260b">_extract_all_loads</a> (self, Dict[str, Any] load_data)</td></tr>
+<tr class="separator:a3752697bbe8db5f0bcf112b88658260b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
+限定公開変数類</h2></td></tr>
+<tr class="memitem:a8e814a5f917dc0d727ecb949b0979b8e" id="r_a8e814a5f917dc0d727ecb949b0979b8e"><td class="memItemLeft" align="right" valign="top"><a id="a8e814a5f917dc0d727ecb949b0979b8e" name="a8e814a5f917dc0d727ecb949b0979b8e"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>_n_modes</b></td></tr>
+<tr class="separator:a8e814a5f917dc0d727ecb949b0979b8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">詳解</h2>
+<div class="textblock"><pre class="fragment">FEM解析の統合モデルクラス（Facade）</pre> </div><h2 class="groupheader">構築子と解体子</h2>
+<a id="a1de987a1c27b67da038feaaa84e58da4" name="a1de987a1c27b67da038feaaa84e58da4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1de987a1c27b67da038feaaa84e58da4">&#9670;&#160;</a></span>__init__()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">fem.model.FemModel.__init__ </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">FEMモデルを初期化</pre> 
+</div>
+</div>
+<h2 class="groupheader">関数詳解</h2>
+<a id="a8a6d2c770fba77063a4909bd267b8879" name="a8a6d2c770fba77063a4909bd267b8879"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a6d2c770fba77063a4909bd267b8879">&#9670;&#160;</a></span>_create_element_instance()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel._create_element_instance </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>elem_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">単一の要素インスタンスを作成</pre> 
+</div>
+</div>
+<a id="a31c6ae6a005d19dc49c06e4126cf14b3" name="a31c6ae6a005d19dc49c06e4126cf14b3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a31c6ae6a005d19dc49c06e4126cf14b3">&#9670;&#160;</a></span>_create_elements()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel._create_elements </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">メッシュデータから要素インスタンスを作成</pre> 
+</div>
+</div>
+<a id="a18117d7e7c5cb76273585e67aac39ead" name="a18117d7e7c5cb76273585e67aac39ead"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a18117d7e7c5cb76273585e67aac39ead">&#9670;&#160;</a></span>_divide_element_by_concentrated_loads()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel._divide_element_by_concentrated_loads </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">List[Dict[str, Any]]&#160;</td>
+          <td class="paramname"><em>concentrated_loads</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">集中荷重の作用位置で要素を分割する
+
+Args:
+    concentrated_loads: 集中荷重データのリスト
+</pre> 
+</div>
+</div>
+<a id="afdb3fa44ca4c079b99a04032e8988b9d" name="afdb3fa44ca4c079b99a04032e8988b9d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afdb3fa44ca4c079b99a04032e8988b9d">&#9670;&#160;</a></span>_divide_element_by_distributed_loads()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel._divide_element_by_distributed_loads </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">List[Dict[str, Any]]&#160;</td>
+          <td class="paramname"><em>distributed_loads</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">分布荷重の作用位置で要素を分割する
+
+Args:
+    distributed_loads: 分布荷重データのリスト
+</pre> 
+</div>
+</div>
+<a id="a259a80340e53f3adf3e007182892df75" name="a259a80340e53f3adf3e007182892df75"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a259a80340e53f3adf3e007182892df75">&#9670;&#160;</a></span>_divide_element_by_points()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel._divide_element_by_points </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>elem_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">List[float]&#160;</td>
+          <td class="paramname"><em>points</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">指定された点で要素を分割する
+
+Args:
+    elem_id: 要素ID
+    points: 分割点のリスト（要素のi端からの距離）
+</pre> 
+</div>
+</div>
+<a id="a3752697bbe8db5f0bcf112b88658260b" name="a3752697bbe8db5f0bcf112b88658260b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3752697bbe8db5f0bcf112b88658260b">&#9670;&#160;</a></span>_extract_all_loads()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[str, List] fem.model.FemModel._extract_all_loads </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]&#160;</td>
+          <td class="paramname"><em>load_data</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">すべての荷重ケースから荷重データを抽出
+
+Args:
+    load_data: モデルデータのload部分
+    
+Returns:
+    抽出された荷重データの辞書
+</pre> 
+</div>
+</div>
+<a id="ad113d4bccb747a64d0d9e5f3aec80e2e" name="ad113d4bccb747a64d0d9e5f3aec80e2e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad113d4bccb747a64d0d9e5f3aec80e2e">&#9670;&#160;</a></span>_find_node_by_coordinates()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Optional[int] fem.model.FemModel._find_node_by_coordinates </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>x</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>y</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>z</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>tolerance</em> = <code>1e-6</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">座標から既存の節点を検索する（旧実装のfind_nodeIndex相当）
+
+Args:
+    x, y, z: 検索する座標
+    tolerance: 座標の許容誤差（旧実装では完全一致なので使用しない）
+    
+Returns:
+    見つかった節点ID（見つからない場合はNone）
+</pre> 
+</div>
+</div>
+<a id="a2412a5bf6e92899d20674b0e09631f15" name="a2412a5bf6e92899d20674b0e09631f15"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2412a5bf6e92899d20674b0e09631f15">&#9670;&#160;</a></span>_get_bar_parameter()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> <a class="el" href="classfem_1_1material_1_1BarParameter.html">BarParameter</a> fem.model.FemModel._get_bar_parameter </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>section_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>material_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">断面からbar要素パラメータを取得または作成</pre> 
+</div>
+</div>
+<a id="aaadbbcec85f546f72fa422ddcae1fe22" name="aaadbbcec85f546f72fa422ddcae1fe22"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaadbbcec85f546f72fa422ddcae1fe22">&#9670;&#160;</a></span>_get_element_type_summary()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[str, int] fem.model.FemModel._get_element_type_summary </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">要素タイプごとの個数を集計</pre> 
+</div>
+</div>
+<a id="aa93418462ccc701bcf0fc3b105b77eb9" name="aa93418462ccc701bcf0fc3b105b77eb9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa93418462ccc701bcf0fc3b105b77eb9">&#9670;&#160;</a></span>_post_process_results()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel._post_process_results </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">解析結果の後処理</pre> 
+</div>
+</div>
+<a id="ad79ece1c1a9b6623a04654dfc9193844" name="ad79ece1c1a9b6623a04654dfc9193844"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad79ece1c1a9b6623a04654dfc9193844">&#9670;&#160;</a></span>_set_element_coordinates()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel._set_element_coordinates </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">要素に節点座標を設定</pre> 
+</div>
+</div>
+<a id="a377ca84e3fc693c418be5832c1dcdd9e" name="a377ca84e3fc693c418be5832c1dcdd9e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a377ca84e3fc693c418be5832c1dcdd9e">&#9670;&#160;</a></span>add_distributed_load()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.add_distributed_load </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>element_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str&#160;</td>
+          <td class="paramname"><em>direction</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>value_i</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>value_j</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">分布荷重を追加
+
+Args:
+    element_id: 要素ID
+    direction: 荷重方向 ('local_x', 'local_y', 'local_z', 'local_r', 
+                         'global_x', 'global_y', 'global_z')
+    value_i: i端の荷重値
+    value_j: j端の荷重値
+</pre> 
+</div>
+</div>
+<a id="a5c60138b51d8f88d6601ad1c653bb30c" name="a5c60138b51d8f88d6601ad1c653bb30c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5c60138b51d8f88d6601ad1c653bb30c">&#9670;&#160;</a></span>add_distributed_spring()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.add_distributed_spring </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>element_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>dx</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>dy</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>dz</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>rx</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">分布バネを追加
+
+Args:
+    element_id: 要素ID
+    dx, dy, dz: 各方向の分布バネ定数
+    rx: 回転方向の分布バネ定数
+</pre> 
+</div>
+</div>
+<a id="a4bca022d2737cc4270b995e648daa6bb" name="a4bca022d2737cc4270b995e648daa6bb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4bca022d2737cc4270b995e648daa6bb">&#9670;&#160;</a></span>add_element()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.add_element </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>elem_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str&#160;</td>
+          <td class="paramname"><em>elem_type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">List[int]&#160;</td>
+          <td class="paramname"><em>node_ids</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>material_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">**&#160;</td>
+          <td class="paramname"><em>kwargs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">要素を追加
+
+Args:
+    elem_id: 要素ID
+    elem_type: 要素タイプ
+    node_ids: 構成節点ID
+    material_id: 材料ID
+    **kwargs: その他のパラメータ
+</pre> 
+</div>
+</div>
+<a id="a5bf983eaa4701756dc0b67366fe91da6" name="a5bf983eaa4701756dc0b67366fe91da6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5bf983eaa4701756dc0b67366fe91da6">&#9670;&#160;</a></span>add_forced_displacement()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.add_forced_displacement </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>node_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>dx</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>dy</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>dz</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>rx</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>ry</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>rz</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">強制変位を追加
+
+Args:
+    node_id: 節点ID
+    dx, dy, dz: 変位成分
+    rx, ry, rz: 回転成分
+</pre> 
+</div>
+</div>
+<a id="a6aa467007be279b6ca3a92c901c74003" name="a6aa467007be279b6ca3a92c901c74003"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6aa467007be279b6ca3a92c901c74003">&#9670;&#160;</a></span>add_joint_condition()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.add_joint_condition </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>element_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">*&#160;</td>
+          <td class="paramname"><em>args</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">**&#160;</td>
+          <td class="paramname"><em>kwargs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">結合条件を追加
+
+Args:
+    element_id: 要素ID
+    *args, **kwargs: 結合条件のパラメータ
+</pre> 
+</div>
+</div>
+<a id="a0079220346951affd2ed2c83fbb42288" name="a0079220346951affd2ed2c83fbb42288"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0079220346951affd2ed2c83fbb42288">&#9670;&#160;</a></span>add_load()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.add_load </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>node_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>fx</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>fy</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>fz</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>mx</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>my</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>mz</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">節点荷重を追加
+
+Args:
+    node_id: 節点ID
+    fx, fy, fz: 力成分
+    mx, my, mz: モーメント成分
+</pre> 
+</div>
+</div>
+<a id="aaee5ea92acd13cacf86599fb671cce1c" name="aaee5ea92acd13cacf86599fb671cce1c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaee5ea92acd13cacf86599fb671cce1c">&#9670;&#160;</a></span>add_material()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.add_material </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>material_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>E</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>nu</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[float] &#160;</td>
+          <td class="paramname"><em>density</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">**&#160;</td>
+          <td class="paramname"><em>kwargs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">材料を追加
+
+Args:
+    material_id: 材料ID
+    name: 材料名
+    E: ヤング率
+    nu: ポアソン比
+    density: 密度
+    **kwargs: その他のパラメータ
+</pre> 
+</div>
+</div>
+<a id="ae96e159998c76358f94f34d5c9695856" name="ae96e159998c76358f94f34d5c9695856"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae96e159998c76358f94f34d5c9695856">&#9670;&#160;</a></span>add_node()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.add_node </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>node_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>x</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>y</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>z</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">節点を追加
+
+Args:
+    node_id: 節点ID
+    x, y, z: 座標
+</pre> 
+</div>
+</div>
+<a id="ae2fa386e77757ea0f8f7af6db3cc6451" name="ae2fa386e77757ea0f8f7af6db3cc6451"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2fa386e77757ea0f8f7af6db3cc6451">&#9670;&#160;</a></span>add_nonlinear_bar_element()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.add_nonlinear_bar_element </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>elem_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">List[int]&#160;</td>
+          <td class="paramname"><em>node_ids</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>material_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>section_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">List[str]&#160;</td>
+          <td class="paramname"><em>hysteresis_dofs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>angle</em> = <code>0.0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &#160;</td>
+          <td class="paramname"><em>shear_correction</em> = <code>True</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">非線形梁要素を追加
+
+Args:
+    elem_id: 要素ID
+    node_ids: 構成節点ID
+    material_id: 材料ID
+    section_id: 断面ID
+    hysteresis_dofs: 非線形を適用する自由度のリスト
+        例: ['moment_y'], ['axial', 'moment_y', 'moment_z']
+    angle: 要素座標軸の回転角
+    shear_correction: せん断変形を考慮するか
+</pre> 
+</div>
+</div>
+<a id="a182ad98aae6068a656593f1418e9b8e6" name="a182ad98aae6068a656593f1418e9b8e6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a182ad98aae6068a656593f1418e9b8e6">&#9670;&#160;</a></span>add_nonlinear_material()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.add_nonlinear_material </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>material_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>E</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>delta_1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>delta_2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>delta_3</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>P_1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>P_2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>P_3</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>beta</em> = <code>0.4</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[float] &#160;</td>
+          <td class="paramname"><em>K_min</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &#160;</td>
+          <td class="paramname"><em>symmetric</em> = <code>True</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[float] &#160;</td>
+          <td class="paramname"><em>delta_1_neg</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[float] &#160;</td>
+          <td class="paramname"><em>delta_2_neg</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[float] &#160;</td>
+          <td class="paramname"><em>delta_3_neg</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[float] &#160;</td>
+          <td class="paramname"><em>P_1_neg</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[float] &#160;</td>
+          <td class="paramname"><em>P_2_neg</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[float] &#160;</td>
+          <td class="paramname"><em>P_3_neg</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>nu</em> = <code>0.2</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[float] &#160;</td>
+          <td class="paramname"><em>density</em> = <code>None</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">非線形材料を追加
+
+JR総研剛性低減RC型のスケルトンカーブパラメータを定義
+
+Args:
+    material_id: 材料ID
+    name: 材料名
+    E: 初期ヤング率
+    delta_1, delta_2, delta_3: 特性変位（正側）
+    P_1, P_2, P_3: 特性荷重（正側）
+    beta: 剛性低減係数（デフォルト: 0.4）
+    K_min: 戻り剛性下限値（省略時は初期剛性の1%）
+    symmetric: 対称スケルトンカーブを使用するか
+    delta_1_neg, ...: 負側パラメータ（symmetric=Falseの場合に使用）
+    nu: ポアソン比
+    density: 密度
+</pre> 
+</div>
+</div>
+<a id="a0f84b66fb8c69f013946d5ccccbe846f" name="a0f84b66fb8c69f013946d5ccccbe846f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0f84b66fb8c69f013946d5ccccbe846f">&#9670;&#160;</a></span>add_notice_points()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.add_notice_points </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">List[Dict[str, Any]]&#160;</td>
+          <td class="paramname"><em>notice_points</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">着目点で梁要素を分割する
+
+Args:
+    notice_points: 着目点データのリスト
+</pre> 
+</div>
+</div>
+<a id="afe56c38fe7e2998f9bcb3ee2a279d62d" name="afe56c38fe7e2998f9bcb3ee2a279d62d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afe56c38fe7e2998f9bcb3ee2a279d62d">&#9670;&#160;</a></span>add_restraint()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.add_restraint </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>node_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &#160;</td>
+          <td class="paramname"><em>dx</em> = <code>False</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &#160;</td>
+          <td class="paramname"><em>dy</em> = <code>False</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &#160;</td>
+          <td class="paramname"><em>dz</em> = <code>False</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &#160;</td>
+          <td class="paramname"><em>rx</em> = <code>False</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &#160;</td>
+          <td class="paramname"><em>ry</em> = <code>False</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &#160;</td>
+          <td class="paramname"><em>rz</em> = <code>False</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[List[float]] &#160;</td>
+          <td class="paramname"><em>values</em> = <code>None</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">拘束条件を追加
+
+Args:
+    node_id: 節点ID
+    dx, dy, dz: 並進拘束フラグ
+    rx, ry, rz: 回転拘束フラグ
+    values: 強制変位値
+</pre> 
+</div>
+</div>
+<a id="a91a3f6d7f13a28062f23fbdf4d66d7de" name="a91a3f6d7f13a28062f23fbdf4d66d7de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a91a3f6d7f13a28062f23fbdf4d66d7de">&#9670;&#160;</a></span>add_spring_support()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.add_spring_support </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>node_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str&#160;</td>
+          <td class="paramname"><em>direction</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>stiffness</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">バネ支点を追加
+
+Args:
+    node_id: 節点ID
+    direction: 方向 ('x', 'y', 'z', 'rx', 'ry', 'rz')
+    stiffness: バネ定数
+</pre> 
+</div>
+</div>
+<a id="a332d19672444880482cdf9d72b348824" name="a332d19672444880482cdf9d72b348824"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a332d19672444880482cdf9d72b348824">&#9670;&#160;</a></span>add_temperature_load()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.add_temperature_load </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>element_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>temperature</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">温度荷重を追加
+
+Args:
+    element_id: 要素ID
+    temperature: 温度変化
+</pre> 
+</div>
+</div>
+<a id="a132ab6f1c7995db2f035b0a3ee688439" name="a132ab6f1c7995db2f035b0a3ee688439"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a132ab6f1c7995db2f035b0a3ee688439">&#9670;&#160;</a></span>get_element_stress()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Optional[Dict[str, Any]] fem.model.FemModel.get_element_stress </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>elem_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">指定要素の応力を取得
+
+Args:
+    elem_id: 要素ID
+    
+Returns:
+    応力結果
+</pre> 
+</div>
+</div>
+<a id="afdce40f3dd7acf5ec32e98ad5b49560e" name="afdce40f3dd7acf5ec32e98ad5b49560e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afdce40f3dd7acf5ec32e98ad5b49560e">&#9670;&#160;</a></span>get_model_info()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[str, Any] fem.model.FemModel.get_model_info </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">モデル情報を取得
+
+Returns:
+    モデル情報の辞書
+</pre> 
+</div>
+</div>
+<a id="ae838c9f367f277c0ec117734a22d5436" name="ae838c9f367f277c0ec117734a22d5436"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae838c9f367f277c0ec117734a22d5436">&#9670;&#160;</a></span>get_node_displacement()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Optional[Dict[str, float]] fem.model.FemModel.get_node_displacement </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>node_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">指定節点の変位を取得
+
+Args:
+    node_id: 節点ID
+    
+Returns:
+    変位成分の辞書
+</pre> 
+</div>
+</div>
+<a id="a6684cb9f882275a91c0e68b501174a6e" name="a6684cb9f882275a91c0e68b501174a6e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6684cb9f882275a91c0e68b501174a6e">&#9670;&#160;</a></span>get_results()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Optional[Dict[str, Any]] fem.model.FemModel.get_results </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">解析結果を取得
+
+Returns:
+    解析結果（未実行の場合None）
+</pre> 
+</div>
+</div>
+<a id="a3f4af68e1f0ae20b75a4999029ced15f" name="a3f4af68e1f0ae20b75a4999029ced15f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f4af68e1f0ae20b75a4999029ced15f">&#9670;&#160;</a></span>load_model()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.load_model </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str&#160;</td>
+          <td class="paramname"><em>file_path</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">モデルファイルを読み込んでFEMモデルを構築
+
+Args:
+    file_path: モデルファイルのパス
+</pre> 
+</div>
+</div>
+<a id="ad940d75afb21b13690ec1b8ddfbf0b0d" name="ad940d75afb21b13690ec1b8ddfbf0b0d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad940d75afb21b13690ec1b8ddfbf0b0d">&#9670;&#160;</a></span>load_results()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.load_results </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str&#160;</td>
+          <td class="paramname"><em>file_path</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">解析結果を読み込む
+
+Args:
+    file_path: 結果ファイルパス
+</pre> 
+</div>
+</div>
+<a id="a456ab3e0a15734fa9923d1ef58798c4e" name="a456ab3e0a15734fa9923d1ef58798c4e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a456ab3e0a15734fa9923d1ef58798c4e">&#9670;&#160;</a></span>run()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[str, Any] fem.model.FemModel.run </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str &#160;</td>
+          <td class="paramname"><em>analysis_type</em> = <code>'static'</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">解析を実行
+
+Args:
+    analysis_type: 解析タイプ
+        - 'static': 線形静解析
+        - 'modal': モード解析
+        - 'material_nonlinear': 材料非線形解析
+
+Note:
+    解析パラメータはJSONファイルのloadセクションで指定:
+        - n_load_steps: 荷重増分ステップ数（material_nonlinear用）
+        - max_iterations: 最大反復回数（material_nonlinear用）
+        - tolerance: 収束判定許容差（material_nonlinear用）
+        - n_modes: 固有モード数（modal用）
+
+Returns:
+    解析結果
+</pre> 
+</div>
+</div>
+<a id="ac4aa8410a0e1d2176ede420d6bfa71bd" name="ac4aa8410a0e1d2176ede420d6bfa71bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac4aa8410a0e1d2176ede420d6bfa71bd">&#9670;&#160;</a></span>run_modal_analysis()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[str, Any] fem.model.FemModel.run_modal_analysis </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &#160;</td>
+          <td class="paramname"><em>n_modes</em> = <code>10</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">モード解析を実行（run メソッドのエイリアス）
+
+Args:
+    n_modes: 求める固有モード数
+    
+Returns:
+    解析結果
+</pre> 
+</div>
+</div>
+<a id="a92a10097233e0ee689672515dee3225c" name="a92a10097233e0ee689672515dee3225c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92a10097233e0ee689672515dee3225c">&#9670;&#160;</a></span>run_static_analysis()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[str, Any] fem.model.FemModel.run_static_analysis </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">静的解析を実行（run メソッドのエイリアス）
+
+Returns:
+    解析結果
+</pre> 
+</div>
+</div>
+<a id="a0a5953091537ceb824bedbd8e5693b01" name="a0a5953091537ceb824bedbd8e5693b01"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a5953091537ceb824bedbd8e5693b01">&#9670;&#160;</a></span>save_model()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.save_model </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str&#160;</td>
+          <td class="paramname"><em>file_path</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">モデルをファイルに保存
+
+Args:
+    file_path: 保存先ファイルパス
+</pre> 
+</div>
+</div>
+<a id="a867b6228bb788faf25cada3861ec29df" name="a867b6228bb788faf25cada3861ec29df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a867b6228bb788faf25cada3861ec29df">&#9670;&#160;</a></span>save_results()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.save_results </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str&#160;</td>
+          <td class="paramname"><em>file_path</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">解析結果を保存
+
+Args:
+    file_path: 保存先ファイルパス
+</pre> 
+</div>
+</div>
+<hr/>このクラス詳解は次のファイルから抽出されました:<ul>
+<li>src/fem/<b>model.py</b></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacefem.html">fem</a></li><li class="navelem"><a class="el" href="namespacefem_1_1model.html">model</a></li><li class="navelem"><a class="el" href="classfem_1_1model_1_1FemModel.html">FemModel</a></li>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

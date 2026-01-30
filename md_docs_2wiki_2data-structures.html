@@ -1,0 +1,557 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FrameWeb: データ構造</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FrameWeb
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('md_docs_2wiki_2data-structures.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">データ構造</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="autotoc_md0"></a> </p>
+<h1><a class="anchor" id="autotoc_md1"></a>
+データ構造チートシート</h1>
+<h2><a class="anchor" id="autotoc_md2"></a>
+節点定義</h2>
+<div class="fragment"><div class="line">&quot;node&quot;: {</div>
+<div class="line">  &quot;節点ID&quot;: {&quot;x&quot;: X座標, &quot;y&quot;: Y座標, &quot;z&quot;: Z座標}</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3"></a>
+材料・断面特性（element）</h2>
+<p><b>材料データは全ての要素（bar, shell, solid）で参照されますが、各フィールドの意味・用途は要素ごとに異なります。</b></p>
+<div class="fragment"><div class="line">&quot;element&quot;: {</div>
+<div class="line">  &quot;要素特性ケースID&quot;: {</div>
+<div class="line">    &quot;要素ID&quot;: {</div>
+<div class="line">      &quot;E&quot;: ヤング係数, // kN/m²</div>
+<div class="line">      &quot;G&quot;: せん断弾性係数, // kN/m²</div>
+<div class="line">      &quot;nu&quot;: ポアソン比,</div>
+<div class="line">      &quot;Xp&quot;: 線膨張係数, // /℃</div>
+<div class="line">      &quot;A&quot;: 断面積または厚さ, // 要素により意味が異なる</div>
+<div class="line">      &quot;Iy&quot;: Y軸回り断面二次モーメント, // 梁要素のみ</div>
+<div class="line">      &quot;Iz&quot;: Z軸回り断面二次モーメント, // 梁要素のみ</div>
+<div class="line">      &quot;J&quot;: ねじり定数 // 梁要素のみ</div>
+<div class="line">    }</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md4"></a>
+A, Iy, Iz, J の要素ごとの扱い</h3>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">変数   </th><th class="markdownTableHeadCenter">梁要素（bar）   </th><th class="markdownTableHeadCenter">シェル要素（shell）   </th><th class="markdownTableHeadCenter">ソリッド要素（tetra, wedge, hexa）    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><b>A</b>   </td><td class="markdownTableBodyCenter">● 必須<br  />
+断面積（m²）   </td><td class="markdownTableBodyCenter">● 必須<br  />
+厚さt（m）として利用   </td><td class="markdownTableBodyCenter">× 不要    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><b>Iy</b>   </td><td class="markdownTableBodyCenter">● 必須<br  />
+Y軸回り断面二次モーメント   </td><td class="markdownTableBodyCenter">× 不要   </td><td class="markdownTableBodyCenter">× 不要    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><b>Iz</b>   </td><td class="markdownTableBodyCenter">● 必須<br  />
+Z軸回り断面二次モーメント   </td><td class="markdownTableBodyCenter">× 不要   </td><td class="markdownTableBodyCenter">× 不要    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><b>J</b>   </td><td class="markdownTableBodyCenter">● 必須<br  />
+ねじり定数   </td><td class="markdownTableBodyCenter">× 不要   </td><td class="markdownTableBodyCenter">× 不要   </td></tr>
+</table>
+<p><b>注意：シェル要素の厚さはAフィールドで指定します（断面積ではなく厚さとして解釈）</b></p>
+<h2><a class="anchor" id="autotoc_md5"></a>
+非線形材料定義（JR総研剛性低減RC型）</h2>
+<p>材料非線形解析では、要素特性に<code>nonlinear</code>オブジェクトを追加して履歴モデルを定義します。</p>
+<div class="fragment"><div class="line">&quot;element&quot;: {</div>
+<div class="line">  &quot;要素特性ケースID&quot;: {</div>
+<div class="line">    &quot;要素ID&quot;: {</div>
+<div class="line">      &quot;E&quot;: 26500000,</div>
+<div class="line">      &quot;G&quot;: 1,</div>
+<div class="line">      &quot;A&quot;: 1000,</div>
+<div class="line">      &quot;Iy&quot;: 1,</div>
+<div class="line">      &quot;Iz&quot;: 1000,</div>
+<div class="line">      &quot;J&quot;: 1,</div>
+<div class="line">      &quot;n&quot;: &quot;非線形材料&quot;,</div>
+<div class="line">      &quot;nonlinear&quot;: {</div>
+<div class="line">        &quot;type&quot;: &quot;jr_stiffness_reduction&quot;,</div>
+<div class="line">        &quot;delta_1&quot;: 0.00001,    // ひび割れ変位 (m)</div>
+<div class="line">        &quot;delta_2&quot;: 0.0001,     // 降伏変位 (m)</div>
+<div class="line">        &quot;delta_3&quot;: 0.001,      // 終局変位 (m)</div>
+<div class="line">        &quot;P_1&quot;: 1000.0,         // ひび割れ荷重 (N)</div>
+<div class="line">        &quot;P_2&quot;: 3000.0,         // 降伏荷重 (N)</div>
+<div class="line">        &quot;P_3&quot;: 5000.0,         // 終局荷重 (N)</div>
+<div class="line">        &quot;beta&quot;: 0.4,           // 剛性低減係数</div>
+<div class="line">        &quot;symmetric&quot;: true,     // 正負対称スケルトンカーブ</div>
+<div class="line">        &quot;hysteresis_dofs&quot;: [&quot;moment_z&quot;]  // 非線形適用自由度</div>
+<div class="line">      }</div>
+<div class="line">    }</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md6"></a>
+非線形パラメータ</h3>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">パラメータ   </th><th class="markdownTableHeadNone">説明   </th><th class="markdownTableHeadNone">単位    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">type   </td><td class="markdownTableBodyNone">履歴モデルタイプ（"jr_stiffness_reduction"）   </td><td class="markdownTableBodyNone">-    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">delta_1   </td><td class="markdownTableBodyNone">ひび割れ変位   </td><td class="markdownTableBodyNone">m    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">delta_2   </td><td class="markdownTableBodyNone">降伏変位   </td><td class="markdownTableBodyNone">m    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">delta_3   </td><td class="markdownTableBodyNone">終局変位   </td><td class="markdownTableBodyNone">m    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">P_1   </td><td class="markdownTableBodyNone">ひび割れ荷重   </td><td class="markdownTableBodyNone">N    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">P_2   </td><td class="markdownTableBodyNone">降伏荷重   </td><td class="markdownTableBodyNone">N    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">P_3   </td><td class="markdownTableBodyNone">終局荷重   </td><td class="markdownTableBodyNone">N    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">beta   </td><td class="markdownTableBodyNone">剛性低減係数（典型値: 0.4）   </td><td class="markdownTableBodyNone">-    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">symmetric   </td><td class="markdownTableBodyNone">正負対称スケルトンカーブ   </td><td class="markdownTableBodyNone">bool    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">hysteresis_dofs   </td><td class="markdownTableBodyNone">非線形適用自由度   </td><td class="markdownTableBodyNone">配列   </td></tr>
+</table>
+<h3><a class="anchor" id="autotoc_md7"></a>
+hysteresis_dofs の選択肢</h3>
+<ul>
+<li><code>"axial"</code>: 軸力（N）</li>
+<li><code>"moment_y"</code>: Y軸周り曲げモーメント（My）</li>
+<li><code>"moment_z"</code>: Z軸周り曲げモーメント（Mz）</li>
+<li><code>"torsion"</code>: ねじりモーメント（Mx）</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md8"></a>
+非対称スケルトンカーブ</h3>
+<p>正側と負側で異なるパラメータを指定する場合： </p><div class="fragment"><div class="line">&quot;nonlinear&quot;: {</div>
+<div class="line">  &quot;type&quot;: &quot;jr_stiffness_reduction&quot;,</div>
+<div class="line">  &quot;delta_1_pos&quot;: 0.003, &quot;delta_2_pos&quot;: 0.015, &quot;delta_3_pos&quot;: 0.060,</div>
+<div class="line">  &quot;P_1_pos&quot;: 100000, &quot;P_2_pos&quot;: 500000, &quot;P_3_pos&quot;: 550000,</div>
+<div class="line">  &quot;delta_1_neg&quot;: 0.002, &quot;delta_2_neg&quot;: 0.010, &quot;delta_3_neg&quot;: 0.040,</div>
+<div class="line">  &quot;P_1_neg&quot;: 80000, &quot;P_2_neg&quot;: 400000, &quot;P_3_neg&quot;: 420000,</div>
+<div class="line">  &quot;beta&quot;: 0.4,</div>
+<div class="line">  &quot;symmetric&quot;: false,</div>
+<div class="line">  &quot;hysteresis_dofs&quot;: [&quot;moment_z&quot;]</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md9"></a>
+部材定義（梁要素：bar）</h2>
+<div class="fragment"><div class="line">&quot;member&quot;: {</div>
+<div class="line">  &quot;部材ID&quot;: {</div>
+<div class="line">    &quot;ni&quot;: 始点節点ID,</div>
+<div class="line">    &quot;nj&quot;: 終点節点ID,</div>
+<div class="line">    &quot;e&quot;: 要素ID,</div>
+<div class="line">    &quot;code_angle&quot;: コードアングル // x軸回り回転角（度, 3Dのみ）</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md10"></a>
+シェル要素定義（shell）</h2>
+<div class="fragment"><div class="line">&quot;shell&quot;: {</div>
+<div class="line">  &quot;シェルID&quot;: {</div>
+<div class="line">    &quot;nodes&quot;: [節点1, 節点2, 節点3, 節点4], // 3点（三角形）または4点（四角形）</div>
+<div class="line">    &quot;e&quot;: 材料ID,</div>
+<div class="line">    &quot;t&quot;: 厚さ番号 // 通常は材料IDと同じ</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md11"></a>
+ソリッド要素定義（tetra, wedge, hexa）</h2>
+<div class="fragment"><div class="line">&quot;solid&quot;: {</div>
+<div class="line">  &quot;ソリッドID&quot;: {</div>
+<div class="line">    &quot;nodes&quot;: [節点リスト], // 4点（tetra）, 6点（wedge）, 8点（hexa）</div>
+<div class="line">    &quot;e&quot;: 材料ID,</div>
+<div class="line">    &quot;type&quot;: &quot;tetra|wedge|hexa&quot;</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md12"></a>
+支点条件</h2>
+<div class="fragment"><div class="line">&quot;fix_node&quot;: {</div>
+<div class="line">  &quot;支点ケースID&quot;: [</div>
+<div class="line">    {</div>
+<div class="line">      &quot;n&quot;: 節点ID,</div>
+<div class="line">      &quot;tx&quot;: 0, // X方向拘束（0=自由, 1=拘束, 実数=強制変位）</div>
+<div class="line">      &quot;ty&quot;: 1,</div>
+<div class="line">      &quot;tz&quot;: 0,</div>
+<div class="line">      &quot;rx&quot;: 0,</div>
+<div class="line">      &quot;ry&quot;: 1,</div>
+<div class="line">      &quot;rz&quot;: 0</div>
+<div class="line">    }</div>
+<div class="line">  ]</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md13"></a>
+荷重定義</h2>
+<div class="fragment"><div class="line">&quot;load&quot;: {</div>
+<div class="line">  &quot;荷重ケースID&quot;: {</div>
+<div class="line">    &quot;rate&quot;: 1.0,</div>
+<div class="line">    &quot;symbol&quot;: &quot;DL&quot;,</div>
+<div class="line">    &quot;load_node&quot;: [</div>
+<div class="line">      {&quot;n&quot;: 節点ID, &quot;tx&quot;: 0, &quot;ty&quot;: -10, &quot;tz&quot;: 0, &quot;mx&quot;: 0, &quot;my&quot;: 0, &quot;mz&quot;: 0}</div>
+<div class="line">    ],</div>
+<div class="line">    &quot;load_member&quot;: [</div>
+<div class="line">      {&quot;m&quot;: 部材ID, &quot;direction&quot;: &quot;gy&quot;, &quot;p1&quot;: -20, &quot;p2&quot;: -20, &quot;L1&quot;: 0, &quot;L2&quot;: 8}</div>
+<div class="line">    ]</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md14"></a>
+入力データ構造</h1>
+<p>FrameWeb3 APIは構造モデルデータをJSON形式で受け取ります。以下のセクションでは、完全なデータ構造仕様について説明します。</p>
+<h2><a class="anchor" id="autotoc_md15"></a>
+ルートオブジェクト</h2>
+<div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;dimension&quot;: 2|3, // 2次元解析(2)または3次元解析(3)の指定</div>
+<div class="line">  &quot;node&quot;: { ... }, // 必須: 節点定義</div>
+<div class="line">  &quot;member&quot;: { ... }, // オプション: 梁部材定義</div>
+<div class="line">  &quot;shell&quot;: { ... }, // オプション: シェル要素定義</div>
+<div class="line">  &quot;solid&quot;: { ... }, // オプション: ソリッド要素定義</div>
+<div class="line">  &quot;element&quot;: { ... }, // 必須: 材料・断面特性</div>
+<div class="line">  &quot;thickness&quot;: { ... }, // オプション: シェル厚さ定義</div>
+<div class="line">  &quot;fix_node&quot;: { ... }, // オプション: 支点条件</div>
+<div class="line">  &quot;fix_member&quot;: { ... }, // オプション: バネ支点</div>
+<div class="line">  &quot;joint&quot;: { ... }, // オプション: 材端条件</div>
+<div class="line">  &quot;load&quot;: { ... } // 必須: 荷重ケース</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md16"></a>
+節点定義</h2>
+<p>座標を持つ構造節点を定義します。 </p><div class="fragment"><div class="line">&quot;node&quot;: {</div>
+<div class="line">  &quot;1&quot;: {&quot;x&quot;: 0.0, &quot;y&quot;: 0.0, &quot;z&quot;: 0.0},</div>
+<div class="line">  &quot;2&quot;: {&quot;x&quot;: 5.0, &quot;y&quot;: 0.0, &quot;z&quot;: 0.0}</div>
+<div class="line">}</div>
+</div><!-- fragment --><p><b>プロパティ:</b></p><ul>
+<li><code>x</code> (float): X座標（メートル）</li>
+<li><code>y</code> (float): Y座標（メートル）</li>
+<li><code>z</code> (float): Z座標（メートル、3D解析では必須）</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md17"></a>
+部材定義</h2>
+<p>2つの節点を結ぶ梁要素を定義します。 </p><div class="fragment"><div class="line">&quot;member&quot;: {</div>
+<div class="line">  &quot;1&quot;: {</div>
+<div class="line">    &quot;ni&quot;: 1, // 始点節点番号</div>
+<div class="line">    &quot;nj&quot;: 2, // 終点節点番号</div>
+<div class="line">    &quot;e&quot;: 1, // 要素特性番号</div>
+<div class="line">    &quot;cg&quot;: {&quot;x&quot;: 0, &quot;y&quot;: 0, &quot;z&quot;: 1}, // オプション: 局所座標系</div>
+<div class="line">    &quot;angle&quot;: 0 // オプション: 回転角（度）</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><p><b>プロパティ:</b></p><ul>
+<li><code>ni</code> (int): 始点節点番号</li>
+<li><code>nj</code> (int): 終点節点番号</li>
+<li><code>e</code> (int): 要素特性参照</li>
+<li><code>cg</code> (object, オプション): 局所座標系ベクトル</li>
+<li><code>angle</code> (float, オプション): 要素回転角（度）</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md18"></a>
+シェル定義</h2>
+<p>シェル・パネル要素を定義します。 </p><div class="fragment"><div class="line">&quot;shell&quot;: {</div>
+<div class="line">  &quot;1&quot;: {</div>
+<div class="line">    &quot;ni&quot;: 1, // 節点1</div>
+<div class="line">    &quot;nj&quot;: 2, // 節点2</div>
+<div class="line">    &quot;nk&quot;: 3, // 節点3</div>
+<div class="line">    &quot;nl&quot;: 4, // 節点4（三角形要素ではオプション）</div>
+<div class="line">    &quot;e&quot;: 1 // 材料特性番号</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><p><b>プロパティ:</b></p><ul>
+<li><code>ni</code>, <code>nj</code>, <code>nk</code> (int): 必須節点番号</li>
+<li><code>nl</code> (int, オプション): 四角形要素の第4節点</li>
+<li><code>e</code> (int): 材料特性参照</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md19"></a>
+ソリッド定義</h2>
+<p>3Dソリッド要素を定義します。 </p><div class="fragment"><div class="line">&quot;solid&quot;: {</div>
+<div class="line">  &quot;1&quot;: {</div>
+<div class="line">    &quot;type&quot;: &quot;tetra&quot;, // 要素タイプ: &quot;tetra&quot; または &quot;hexa&quot;</div>
+<div class="line">    &quot;nodes&quot;: [1, 2, 3, 4], // 節点番号</div>
+<div class="line">    &quot;e&quot;: 1 // 材料特性番号</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><p><b>プロパティ:</b></p><ul>
+<li><code>type</code> (string): 要素タイプ（"tetra"は4節点、"hexa"は8節点）</li>
+<li><code>nodes</code> (array): 節点番号（tetraは4個、hexaは8個）</li>
+<li><code>e</code> (int): 材料特性参照</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md20"></a>
+要素特性</h2>
+<p>材料・断面特性を定義します。 </p><div class="fragment"><div class="line">&quot;element&quot;: {</div>
+<div class="line">  &quot;1&quot;: {</div>
+<div class="line">    &quot;E&quot;: 205000000, // ヤング係数（kN/m²）</div>
+<div class="line">    &quot;G&quot;: 79000000, // せん断弾性係数（kN/m²）</div>
+<div class="line">    &quot;poi&quot;: 0.3, // ポアソン比</div>
+<div class="line">    &quot;cte&quot;: 1.2e-5, // 線膨張係数（/℃）</div>
+<div class="line">    &quot;A&quot;: 0.01, // 断面積（m²）</div>
+<div class="line">    &quot;Iy&quot;: 0.0001, // y軸回りの断面二次モーメント（m⁴）</div>
+<div class="line">    &quot;Iz&quot;: 0.0001, // z軸回りの断面二次モーメント（m⁴）</div>
+<div class="line">    &quot;J&quot;: 0.0001 // ねじり定数（m⁴）</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><p><b>梁特性:</b></p><ul>
+<li><code>E</code> (float): ヤング係数（kN/m²）</li>
+<li><code>G</code> (float): せん断弾性係数（kN/m²）</li>
+<li><code>poi</code> (float): ポアソン比</li>
+<li><code>cte</code> (float): 線膨張係数（/℃）</li>
+<li><code>A</code> (float): 断面積（m²）</li>
+<li><code>Iy</code> (float): 局所y軸回りの断面二次モーメント（m⁴）</li>
+<li><code>Iz</code> (float): 局所z軸回りの断面二次モーメント（m⁴）</li>
+<li><code>J</code> (float): ねじり定数（m⁴）</li>
+</ul>
+<p><b>シェル・ソリッド特性:</b></p><ul>
+<li><code>E</code> (float): ヤング係数（kN/m²）</li>
+<li><code>G</code> (float): せん断弾性係数（kN/m²）</li>
+<li><code>poi</code> (float): ポアソン比</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md21"></a>
+厚さ定義</h2>
+<p>シェル要素の厚さを定義します。 </p><div class="fragment"><div class="line">&quot;thickness&quot;: {</div>
+<div class="line">  &quot;1&quot;: {&quot;t&quot;: 0.2} // 厚さ（メートル）</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md22"></a>
+支点条件</h2>
+<p>節点での境界条件を定義します。 </p><div class="fragment"><div class="line">&quot;fix_node&quot;: {</div>
+<div class="line">  &quot;1&quot;: { // 支点ケース番号</div>
+<div class="line">    &quot;1&quot;: { // 節点番号</div>
+<div class="line">      &quot;x&quot;: 1, // X方向変位拘束（1=固定、0=自由）</div>
+<div class="line">      &quot;y&quot;: 1, // Y方向変位拘束</div>
+<div class="line">      &quot;z&quot;: 1, // Z方向変位拘束</div>
+<div class="line">      &quot;rx&quot;: 1, // X軸回り回転拘束</div>
+<div class="line">      &quot;ry&quot;: 1, // Y軸回り回転拘束</div>
+<div class="line">      &quot;rz&quot;: 1 // Z軸回り回転拘束</div>
+<div class="line">    }</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md23"></a>
+バネ支点</h2>
+<p>部材上の弾性支点を定義します。 </p><div class="fragment"><div class="line">&quot;fix_member&quot;: {</div>
+<div class="line">  &quot;1&quot;: { // バネケース番号</div>
+<div class="line">    &quot;1&quot;: { // 部材番号</div>
+<div class="line">      &quot;x&quot;: 1000, // X方向バネ剛性（kN/m）</div>
+<div class="line">      &quot;y&quot;: 1000, // Y方向バネ剛性（kN/m）</div>
+<div class="line">      &quot;z&quot;: 1000 // Z方向バネ剛性（kN/m）</div>
+<div class="line">    }</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md24"></a>
+材端条件</h2>
+<p>部材端の解放条件を定義します。 </p><div class="fragment"><div class="line">&quot;joint&quot;: {</div>
+<div class="line">  &quot;1&quot;: { // 材端ケース番号</div>
+<div class="line">    &quot;1&quot;: { // 部材番号</div>
+<div class="line">      &quot;xi&quot;: 0, // i端X方向力解放（1=解放、0=固定）</div>
+<div class="line">      &quot;yi&quot;: 0, // i端Y方向力解放</div>
+<div class="line">      &quot;zi&quot;: 0, // i端Z方向力解放</div>
+<div class="line">      &quot;rxi&quot;: 0, // i端X軸回りモーメント解放</div>
+<div class="line">      &quot;ryi&quot;: 0, // i端Y軸回りモーメント解放</div>
+<div class="line">      &quot;rzi&quot;: 0, // i端Z軸回りモーメント解放</div>
+<div class="line">      &quot;xj&quot;: 0, // j端解放条件...</div>
+<div class="line">      &quot;yj&quot;: 0,</div>
+<div class="line">      &quot;zj&quot;: 0,</div>
+<div class="line">      &quot;rxj&quot;: 0,</div>
+<div class="line">      &quot;ryj&quot;: 0,</div>
+<div class="line">      &quot;rzj&quot;: 0</div>
+<div class="line">    }</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md25"></a>
+荷重ケース</h2>
+<p>荷重条件を定義します。 </p><div class="fragment"><div class="line">&quot;load&quot;: {</div>
+<div class="line">  &quot;1&quot;: { // 荷重ケースID</div>
+<div class="line">    &quot;rate&quot;: 1.0, // 荷重係数</div>
+<div class="line">    &quot;symbol&quot;: &quot;DL&quot;, // 荷重記号</div>
+<div class="line">    &quot;fix_node&quot;: 1, // 支点ケース参照</div>
+<div class="line">    &quot;fix_member&quot;: 1, // バネケース参照</div>
+<div class="line">    &quot;element&quot;: 1, // 材料ケース参照</div>
+<div class="line">    &quot;joint&quot;: 1, // 材端ケース参照</div>
+<div class="line">    &quot;n_load_steps&quot;: 10, // 荷重増分ステップ数（材料非線形用）</div>
+<div class="line">    &quot;max_iterations&quot;: 50, // 最大反復回数（材料非線形用）</div>
+<div class="line">    &quot;tolerance&quot;: 1e-6, // 収束判定許容差（材料非線形用）</div>
+<div class="line">    &quot;n_modes&quot;: 10, // 固有モード数（モード解析用）</div>
+<div class="line">    &quot;load_node&quot;: [...], // 節点荷重</div>
+<div class="line">    &quot;load_member&quot;: [...], // 部材荷重</div>
+<div class="line">    &quot;load_heat&quot;: [...] // 温度荷重</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md26"></a>
+解析パラメータ</h3>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">パラメータ   </th><th class="markdownTableHeadNone">説明   </th><th class="markdownTableHeadNone">デフォルト値   </th><th class="markdownTableHeadNone">対象解析    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">n_load_steps   </td><td class="markdownTableBodyNone">荷重増分ステップ数   </td><td class="markdownTableBodyNone">10   </td><td class="markdownTableBodyNone">material_nonlinear    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">max_iterations   </td><td class="markdownTableBodyNone">Newton-Raphson最大反復回数   </td><td class="markdownTableBodyNone">50   </td><td class="markdownTableBodyNone">material_nonlinear    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">tolerance   </td><td class="markdownTableBodyNone">収束判定許容差   </td><td class="markdownTableBodyNone">1e-6   </td><td class="markdownTableBodyNone">material_nonlinear    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">n_modes   </td><td class="markdownTableBodyNone">固有モード数   </td><td class="markdownTableBodyNone">10   </td><td class="markdownTableBodyNone">modal   </td></tr>
+</table>
+<h3><a class="anchor" id="autotoc_md27"></a>
+節点荷重</h3>
+<div class="fragment"><div class="line">&quot;load_node&quot;: [</div>
+<div class="line">  {</div>
+<div class="line">    &quot;n&quot;: 2, // 節点番号</div>
+<div class="line">    &quot;tx&quot;: 0, // X方向力（kN）</div>
+<div class="line">    &quot;ty&quot;: -50, // Y方向力（kN）</div>
+<div class="line">    &quot;tz&quot;: 0, // Z方向力（kN）</div>
+<div class="line">    &quot;rx&quot;: 0, // X軸回りモーメント（kNm）</div>
+<div class="line">    &quot;ry&quot;: 0, // Y軸回りモーメント（kNm）</div>
+<div class="line">    &quot;rz&quot;: 0, // Z軸回りモーメント（kNm）</div>
+<div class="line">    &quot;dx&quot;: 0, // X方向強制変位（m）</div>
+<div class="line">    &quot;dy&quot;: 0, // Y方向強制変位（m）</div>
+<div class="line">    &quot;dz&quot;: 0 // Z方向強制変位（m）</div>
+<div class="line">  }</div>
+<div class="line">]</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md28"></a>
+出力データ構造</h1>
+<h2><a class="anchor" id="autotoc_md29"></a>
+節点変位</h2>
+<div class="fragment"><div class="line">&quot;disg&quot;: {</div>
+<div class="line">  &quot;節点ID&quot;: {</div>
+<div class="line">    &quot;dx&quot;: X方向変位, // mm</div>
+<div class="line">    &quot;dy&quot;: Y方向変位, // mm</div>
+<div class="line">    &quot;dz&quot;: Z方向変位, // mm (3Dのみ)</div>
+<div class="line">    &quot;rx&quot;: X軸回り回転角, // ‰rad (3D)</div>
+<div class="line">    &quot;ry&quot;: Y軸回り回転角, // ‰rad (3D)</div>
+<div class="line">    &quot;rz&quot;: Z軸回り回転角 // ‰rad</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md30"></a>
+支点反力</h2>
+<div class="fragment"><div class="line">&quot;reac&quot;: {</div>
+<div class="line">  &quot;節点ID&quot;: {</div>
+<div class="line">    &quot;tx&quot;: X方向反力, // kN</div>
+<div class="line">    &quot;ty&quot;: Y方向反力, // kN</div>
+<div class="line">    &quot;tz&quot;: Z方向反力, // kN (3Dのみ)</div>
+<div class="line">    &quot;mx&quot;: X軸回り反力モーメント, // kNm (3D)</div>
+<div class="line">    &quot;my&quot;: Y軸回り反力モーメント, // kNm (3D)</div>
+<div class="line">    &quot;mz&quot;: Z軸回り反力モーメント // kNm</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md31"></a>
+部材断面力（梁要素）</h2>
+<div class="fragment"><div class="line">&quot;fsec&quot;: {</div>
+<div class="line">  &quot;部材ID&quot;: {</div>
+<div class="line">    &quot;断面ID&quot;: {</div>
+<div class="line">      &quot;fxi&quot;: 軸方向力, // kN</div>
+<div class="line">      &quot;fyi&quot;: Y軸方向せん断力, // kN</div>
+<div class="line">      &quot;fzi&quot;: Z軸方向せん断力, // kN (3D)</div>
+<div class="line">      &quot;mxi&quot;: ねじりモーメント, // kNm (3D)</div>
+<div class="line">      &quot;myi&quot;: Y軸回り曲げモーメント, // kNm (3D)</div>
+<div class="line">      &quot;mzi&quot;: Z軸回り曲げモーメント // kNm</div>
+<div class="line">    }</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md32"></a>
+シェル要素応力・ひずみ</h2>
+<div class="fragment"><div class="line">&quot;shell_stress&quot;: {</div>
+<div class="line">  &quot;シェルID&quot;: {</div>
+<div class="line">    &quot;節点ID&quot;: {</div>
+<div class="line">      &quot;sx&quot;: σx応力, // kN/m²</div>
+<div class="line">      &quot;sy&quot;: σy応力, // kN/m²</div>
+<div class="line">      &quot;txy&quot;: τxy応力 // kN/m²</div>
+<div class="line">    }</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md33"></a>
+ソリッド要素応力・ひずみ</h2>
+<div class="fragment"><div class="line">&quot;solid_stress&quot;: {</div>
+<div class="line">  &quot;ソリッドID&quot;: {</div>
+<div class="line">    &quot;節点ID&quot;: {</div>
+<div class="line">      &quot;sx&quot;: σx応力, // kN/m²</div>
+<div class="line">      &quot;sy&quot;: σy応力, // kN/m²</div>
+<div class="line">      &quot;sz&quot;: σz応力, // kN/m²</div>
+<div class="line">      &quot;txy&quot;: τxy応力, // kN/m²</div>
+<div class="line">      &quot;tyz&quot;: τyz応力, // kN/m²</div>
+<div class="line">      &quot;tzx&quot;: τzx応力 // kN/m²</div>
+<div class="line">    }</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --> </div></div><!-- contents -->
+</div><!-- PageDoc -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FrameWeb: FrameWeb3 API ドキュメント</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FrameWeb
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('index.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">FrameWeb3 API ドキュメント </div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="md_docs_2wiki_2index"></a> </p>
+<h1><a class="anchor" id="autotoc_md132"></a>
+🎉 概要</h1>
+<p>**FrameWeb3は、技術的に大成功を収めた次世代FEM解析モジュール**です。2025年6月に完了したクラス構成再編プロジェクトにより、旧実装を上回る高精度解析システムとして完成しています。</p>
+<h2><a class="anchor" id="autotoc_md133"></a>
+🏆 技術的優位性</h2>
+<ul>
+<li><b>高精度メッシュ</b>: 66節点（旧60節点から6節点増加）</li>
+<li><b>包括的荷重処理</b>: 24荷重ケース、分布荷重31個、集中荷重88個の詳細処理</li>
+<li><b>自動要素分割</b>: 着目点・分布荷重・集中荷重による高精度メッシュ生成</li>
+<li><b>モジュール化設計</b>: 保守性・拡張性に優れたアーキテクチャ</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md134"></a>
+ドキュメント構成</h1>
+<h2><a class="anchor" id="autotoc_md135"></a>
+基本ガイド</h2>
+<ul>
+<li><b><a class="el" href="md_docs_2wiki_2getting-started.html">はじめに</a></b><ul>
+<li>新実装（FemModel）の概要とクイックスタート</li>
+</ul>
+</li>
+<li><b><a class="el" href="md_docs_2wiki_2endpoints.html">APIエンドポイント</a></b><ul>
+<li>利用可能なエンドポイントの詳細</li>
+</ul>
+</li>
+<li><b><a class="el" href="md_docs_2wiki_2data-structures.html">データ構造</a></b><ul>
+<li>要素分割対応の入力・出力データ形式</li>
+</ul>
+</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md136"></a>
+実用ガイド</h2>
+<ul>
+<li><b><a class="el" href="md_docs_2wiki_2examples.html">使用例</a></b><ul>
+<li>高精度解析のコード例とサンプル</li>
+</ul>
+</li>
+<li><b><a class="el" href="md_docs_2wiki_2error-handling.html">エラーハンドリング</a></b><ul>
+<li>エラーの種類と対処法</li>
+</ul>
+</li>
+<li><b><a class="el" href="md_docs_2wiki_2workflow.html">解析ワークフロー</a></b><ul>
+<li>要素分割を含む内部処理の流れ</li>
+</ul>
+</li>
+<li><b><a class="el" href="md_docs_2wiki_2quick-reference.html">クイックリファレンス</a></b><ul>
+<li>よく使用するパターン集</li>
+</ul>
+</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md137"></a>
+🚀 主要機能</h1>
+<h2><a class="anchor" id="autotoc_md138"></a>
+🔧 要素分割機能（完全実装）</h2>
+<ul>
+<li><b>着目点分割</b>: 構造の重要箇所で自動的に要素を分割</li>
+<li><b>分布荷重分割</b>: 荷重作用位置で精密なメッシュを生成</li>
+<li><b>集中荷重分割</b>: 集中荷重位置での高精度解析</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md139"></a>
+📊 荷重データ処理（完全実装）</h2>
+<ul>
+<li><b>多重荷重ケース</b>: 最大24ケースの同時処理</li>
+<li><b>分布荷重</b>: 31個の分布荷重の詳細処理</li>
+<li><b>集中荷重</b>: 88個の集中荷重の正確な処理</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md140"></a>
+🧮 解析エンジン</h2>
+<ul>
+<li><b>FemModel</b>: 統合解析インターフェース</li>
+<li><b>高精度ソルバー</b>: NumPy基盤の高速計算</li>
+<li><b>結果処理</b>: 詳細な変位・応力解析</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md141"></a>
+🖼️ 可視化出力</h2>
+<ul>
+<li><b>VTK形式出力</b>: Paraview等での可視化に対応したASCII VTKファイルを生成</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md142"></a>
+材料非線形解析（2026年1月追加）</h2>
+<ul>
+<li><b>JR総研剛性低減RC型</b>: 鉄筋コンクリート部材の非線形挙動をシミュレート</li>
+<li><b>4折線スケルトンカーブ</b>: ひび割れ・降伏・終局の3点で定義</li>
+<li><b>履歴ループ</b>: 除荷・再載荷時の剛性低減を考慮</li>
+<li><b>Newton-Raphson法</b>: 増分荷重による非線形収束計算</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md143"></a>
+従来機能</h2>
+<ul>
+<li><b>2D・3Dフレーム解析</b>: 平面および空間構造の解析</li>
+<li><b>複数要素タイプ</b>: 梁、シェル、ソリッド要素に対応</li>
+<li><b>境界条件</b>: 固定支点、バネ支点、材端条件</li>
+<li><b>RESTful API</b>: 標準的なHTTPメソッドとステータスコード</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md144"></a>
+🎯 プロジェクト成果</h1>
+<h2><a class="anchor" id="autotoc_md145"></a>
+📈 改善実績</h2>
+<ul>
+<li><b>節点数差</b>: 312節点差 → -6節点差（318節点の劇的改善）</li>
+<li><b>精度向上</b>: 新実装が旧実装を上回る高精度メッシュ</li>
+<li><b>安定性</b>: 統合テストによる品質保証</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md146"></a>
+クイックスタート</h1>
+<h2><a class="anchor" id="autotoc_md147"></a>
+新実装（FemModel）使用方法</h2>
+<div class="fragment"><div class="line"><span class="keyword">from</span> src.fem.model <span class="keyword">import</span> FemModel</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># 高精度FEM解析の実行（自動要素分割付き）</span></div>
+<div class="line">model = FemModel()</div>
+<div class="line">model.load_model(<span class="stringliteral">&quot;path/to/model.json&quot;</span>)</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># 自動要素分割実行</span></div>
+<div class="line">results = model.run(analysis_type=<span class="stringliteral">&quot;static&quot;</span>)</div>
+<div class="line">displacement = model.get_results()[<span class="stringliteral">&quot;displacement&quot;</span>]</div>
+<div class="line">print(f<span class="stringliteral">&quot;節点数: {len(displacement)}節点（高精度メッシュ）&quot;</span>)</div>
+<div class="line">print(f<span class="stringliteral">&quot;節点変位: {displacement}&quot;</span>)</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md148"></a>
+材料非線形解析の実行</h2>
+<div class="fragment"><div class="line"><span class="keyword">from</span> src.fem <span class="keyword">import</span> FemModel</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># 材料非線形解析の実行</span></div>
+<div class="line">model = FemModel()</div>
+<div class="line">model.load_model(<span class="stringliteral">&quot;tests/data/snap/beam001.json&quot;</span>)</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># Newton-Raphson法による非線形解析</span></div>
+<div class="line">results = model.run(analysis_type=<span class="stringliteral">&quot;material_nonlinear&quot;</span>)</div>
+<div class="line">displacement = model.get_results()[<span class="stringliteral">&quot;displacement&quot;</span>]</div>
+<div class="line">print(f<span class="stringliteral">&quot;非線形解析完了: 変位={displacement}&quot;</span>)</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md149"></a>
+RESTful API使用方法</h2>
+<div class="fragment"><div class="line"><span class="keyword">import</span> requests</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># 基本的な2Dフレーム解析（RESTful API経由）</span></div>
+<div class="line">model_data = {</div>
+<div class="line">    <span class="stringliteral">&quot;dimension&quot;</span>: 2,</div>
+<div class="line">    <span class="stringliteral">&quot;node&quot;</span>: {</div>
+<div class="line">        <span class="stringliteral">&quot;1&quot;</span>: {<span class="stringliteral">&quot;x&quot;</span>: 0, <span class="stringliteral">&quot;y&quot;</span>: 0},</div>
+<div class="line">        <span class="stringliteral">&quot;2&quot;</span>: {<span class="stringliteral">&quot;x&quot;</span>: 5, <span class="stringliteral">&quot;y&quot;</span>: 0}</div>
+<div class="line">    },</div>
+<div class="line">    <span class="stringliteral">&quot;member&quot;</span>: {</div>
+<div class="line">        <span class="stringliteral">&quot;1&quot;</span>: {<span class="stringliteral">&quot;ni&quot;</span>: 1, <span class="stringliteral">&quot;nj&quot;</span>: 2, <span class="stringliteral">&quot;e&quot;</span>: 1}</div>
+<div class="line">    },</div>
+<div class="line">    <span class="stringliteral">&quot;element&quot;</span>: {</div>
+<div class="line">        <span class="stringliteral">&quot;1&quot;</span>: {</div>
+<div class="line">            <span class="stringliteral">&quot;1&quot;</span>: {</div>
+<div class="line">                <span class="stringliteral">&quot;E&quot;</span>: 205000000,</div>
+<div class="line">                <span class="stringliteral">&quot;G&quot;</span>: 79000000,</div>
+<div class="line">                <span class="stringliteral">&quot;nu&quot;</span>: 0.3,</div>
+<div class="line">                <span class="stringliteral">&quot;Xp&quot;</span>: 1.2e-5,</div>
+<div class="line">                <span class="stringliteral">&quot;A&quot;</span>: 0.01,</div>
+<div class="line">                <span class="stringliteral">&quot;Iy&quot;</span>: 0.0001,</div>
+<div class="line">                <span class="stringliteral">&quot;Iz&quot;</span>: 0.0001,</div>
+<div class="line">                <span class="stringliteral">&quot;J&quot;</span>: 0.0001</div>
+<div class="line">            }</div>
+<div class="line">        }</div>
+<div class="line">    },</div>
+<div class="line">    <span class="stringliteral">&quot;fix_node&quot;</span>: {</div>
+<div class="line">        <span class="stringliteral">&quot;1&quot;</span>: [</div>
+<div class="line">            {<span class="stringliteral">&quot;n&quot;</span>: <span class="stringliteral">&quot;1&quot;</span>, <span class="stringliteral">&quot;tx&quot;</span>: 1, <span class="stringliteral">&quot;ty&quot;</span>: 1, <span class="stringliteral">&quot;tz&quot;</span>: 0, <span class="stringliteral">&quot;rx&quot;</span>: 1, <span class="stringliteral">&quot;ry&quot;</span>: 1, <span class="stringliteral">&quot;rz&quot;</span>: 1}</div>
+<div class="line">        ]</div>
+<div class="line">    },</div>
+<div class="line">    <span class="stringliteral">&quot;load&quot;</span>: {</div>
+<div class="line">        <span class="stringliteral">&quot;case1&quot;</span>: {</div>
+<div class="line">            <span class="stringliteral">&quot;rate&quot;</span>: 1.0,</div>
+<div class="line">            <span class="stringliteral">&quot;symbol&quot;</span>: <span class="stringliteral">&quot;case1&quot;</span>,</div>
+<div class="line">            <span class="stringliteral">&quot;load_node&quot;</span>: [{<span class="stringliteral">&quot;n&quot;</span>: 2, <span class="stringliteral">&quot;ty&quot;</span>: -10}]</div>
+<div class="line">        }</div>
+<div class="line">    },</div>
+<div class="line">    <span class="comment"># 着目点による要素分割（新機能）</span></div>
+<div class="line">    <span class="stringliteral">&quot;notice_points&quot;</span>: [</div>
+<div class="line">        {<span class="stringliteral">&quot;m&quot;</span>: 1, <span class="stringliteral">&quot;Points&quot;</span>: [1.35]}</div>
+<div class="line">    ]</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line">response = requests.post(<span class="stringliteral">&#39;http://localhost:5000/&#39;</span>, json=model_data)</div>
+<div class="line">results = response.json()</div>
+<div class="line">print(f<span class="stringliteral">&quot;節点変位: {results[&#39;case1&#39;][&#39;disg&#39;]}&quot;</span>)</div>
+<div class="line">print(f<span class="stringliteral">&quot;支点反力: {results[&#39;case1&#39;][&#39;reac&#39;]}&quot;</span>)</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md150"></a>
+🔍 品質保証</h1>
+<h2><a class="anchor" id="autotoc_md151"></a>
+📋 統合テスト</h2>
+<div class="fragment"><div class="line">python check_integration_test.py</div>
+</div><!-- fragment --><p>統合テストにより新旧実装の比較と品質確認を実行できます。</p>
+<h1><a class="anchor" id="autotoc_md152"></a>
+🎊 プロジェクト完了</h1>
+<p><b>2025年6月1日: Python FEM解析モジュール クラス構成再編プロジェクトが技術的成功を収めて完了。次世代高精度FEM解析システムとして本格運用開始。</b></p>
+<h1><a class="anchor" id="autotoc_md153"></a>
+サポート</h1>
+<p>詳細な使用方法については、各セクションのドキュメントを参照してください。問題が発生した場合は、<a class="el" href="md_docs_2wiki_2error-handling.html">エラーハンドリング</a>セクションを確認してください。 </p>
+</div></div><!-- PageDoc -->
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

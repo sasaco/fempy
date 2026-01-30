@@ -1,0 +1,415 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FrameWeb: fem.elements.bar_element.TBarElement クラス</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FrameWeb
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classfem_1_1elements_1_1bar__element_1_1TBarElement.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">公開メンバ関数</a> &#124;
+<a href="#pub-attribs">公開変数類</a> &#124;
+<a href="classfem_1_1elements_1_1bar__element_1_1TBarElement-members.html">全メンバ一覧</a>  </div>
+  <div class="headertitle"><div class="title">fem.elements.bar_element.TBarElement クラス</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="dynheader">
+fem.elements.bar_element.TBarElement の継承関係図</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="classfem_1_1elements_1_1bar__element_1_1TBarElement.png" usemap="#fem.elements.bar_5Felement.TBarElement_map" alt=""/>
+  <map id="fem.elements.bar_5Felement.TBarElement_map" name="fem.elements.bar_5Felement.TBarElement_map">
+<area href="classfem_1_1elements_1_1bar__element_1_1BarElement.html" alt="fem.elements.bar_element.BarElement" shape="rect" coords="0,56,341,80"/>
+<area href="classfem_1_1elements_1_1base__element_1_1BaseElement.html" alt="fem.elements.base_element.BaseElement" shape="rect" coords="0,0,341,24"/>
+<area href="classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html" alt="fem.elements.nonlinear_bar_element.NonlinearBarElement" shape="rect" coords="0,168,341,192"/>
+  </map>
+</div></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+公開メンバ関数</h2></td></tr>
+<tr class="memitem:ab3fdfe30bf42c6286723ec8a62ef9312" id="r_ab3fdfe30bf42c6286723ec8a62ef9312"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1bar__element_1_1TBarElement.html#ab3fdfe30bf42c6286723ec8a62ef9312">__init__</a> (self, int element_id, List[int] node_ids, int material_id, int section_id, float angle=0.0, bool shear_correction=True)</td></tr>
+<tr class="separator:ab3fdfe30bf42c6286723ec8a62ef9312"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aee34f5f29fcaf681c4339c315815a738" id="r_aee34f5f29fcaf681c4339c315815a738"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1bar__element_1_1TBarElement.html#aee34f5f29fcaf681c4339c315815a738">set_material_properties</a> (self, <a class="el" href="classfem_1_1material_1_1Material.html">Material</a> material, <a class="el" href="classfem_1_1material_1_1BarParameter.html">BarParameter</a> bar_param)</td></tr>
+<tr class="separator:aee34f5f29fcaf681c4339c315815a738"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb05c35397ce90f21dbea4e4f418541e" id="r_aeb05c35397ce90f21dbea4e4f418541e"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1bar__element_1_1TBarElement.html#aeb05c35397ce90f21dbea4e4f418541e">get_stiffness_matrix</a> (self)</td></tr>
+<tr class="separator:aeb05c35397ce90f21dbea4e4f418541e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afede2f787f126f5fac75bb22685eaafb" id="r_afede2f787f126f5fac75bb22685eaafb"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1bar__element_1_1TBarElement.html#afede2f787f126f5fac75bb22685eaafb">get_mass_matrix</a> (self)</td></tr>
+<tr class="separator:afede2f787f126f5fac75bb22685eaafb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a32af86ccc2b2656114902628e0ba16b3" id="r_a32af86ccc2b2656114902628e0ba16b3"><td class="memItemLeft" align="right" valign="top">Dict[str, np.ndarray]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1bar__element_1_1TBarElement.html#a32af86ccc2b2656114902628e0ba16b3">calculate_forces</a> (self, np.ndarray displacement)</td></tr>
+<tr class="separator:a32af86ccc2b2656114902628e0ba16b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_classfem_1_1elements_1_1bar__element_1_1BarElement"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classfem_1_1elements_1_1bar__element_1_1BarElement')"><img src="closed.png" alt="-"/>&#160;基底クラス <a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html">fem.elements.bar_element.BarElement</a> に属する継承公開メンバ関数</td></tr>
+<tr class="memitem:ae0045bc562cf955c754cb15b3cd1a81f inherit pub_methods_classfem_1_1elements_1_1bar__element_1_1BarElement" id="r_ae0045bc562cf955c754cb15b3cd1a81f"><td class="memItemLeft" align="right" valign="top">str&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html#ae0045bc562cf955c754cb15b3cd1a81f">get_name</a> (self)</td></tr>
+<tr class="separator:ae0045bc562cf955c754cb15b3cd1a81f inherit pub_methods_classfem_1_1elements_1_1bar__element_1_1BarElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc5736508e5568fef7b1045eb130a933 inherit pub_methods_classfem_1_1elements_1_1bar__element_1_1BarElement" id="r_abc5736508e5568fef7b1045eb130a933"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html#abc5736508e5568fef7b1045eb130a933">get_dof_per_node</a> (self)</td></tr>
+<tr class="separator:abc5736508e5568fef7b1045eb130a933 inherit pub_methods_classfem_1_1elements_1_1bar__element_1_1BarElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3e85e3d473cf027dc4e4c072130abbe inherit pub_methods_classfem_1_1elements_1_1bar__element_1_1BarElement" id="r_aa3e85e3d473cf027dc4e4c072130abbe"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html#aa3e85e3d473cf027dc4e4c072130abbe">set_node_coordinates</a> (self, Dict[int, np.ndarray] coordinates)</td></tr>
+<tr class="separator:aa3e85e3d473cf027dc4e4c072130abbe inherit pub_methods_classfem_1_1elements_1_1bar__element_1_1BarElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55967f97a7a4a82be14d59e012df7c49 inherit pub_methods_classfem_1_1elements_1_1bar__element_1_1BarElement" id="r_a55967f97a7a4a82be14d59e012df7c49"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html#a55967f97a7a4a82be14d59e012df7c49">get_transformation_matrix</a> (self, int size=12)</td></tr>
+<tr class="separator:a55967f97a7a4a82be14d59e012df7c49 inherit pub_methods_classfem_1_1elements_1_1bar__element_1_1BarElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement')"><img src="closed.png" alt="-"/>&#160;基底クラス <a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html">fem.elements.base_element.BaseElement</a> に属する継承公開メンバ関数</td></tr>
+<tr class="memitem:af06d445b2853230533036f65243b40d3 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement" id="r_af06d445b2853230533036f65243b40d3"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#af06d445b2853230533036f65243b40d3">get_element_coordinates</a> (self)</td></tr>
+<tr class="separator:af06d445b2853230533036f65243b40d3 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a140650cbfaa56be8383f0667293de4ee inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement" id="r_a140650cbfaa56be8383f0667293de4ee"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a140650cbfaa56be8383f0667293de4ee">get_element_length</a> (self)</td></tr>
+<tr class="separator:a140650cbfaa56be8383f0667293de4ee inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d13ff758eac185188b7ae7ad86a4d24 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement" id="r_a2d13ff758eac185188b7ae7ad86a4d24"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a2d13ff758eac185188b7ae7ad86a4d24">get_element_volume</a> (self)</td></tr>
+<tr class="separator:a2d13ff758eac185188b7ae7ad86a4d24 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a8d1e58968738addc90b5d47b70a6d8 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement" id="r_a2a8d1e58968738addc90b5d47b70a6d8"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a2a8d1e58968738addc90b5d47b70a6d8">get_shape_functions</a> (self, np.ndarray xi)</td></tr>
+<tr class="separator:a2a8d1e58968738addc90b5d47b70a6d8 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4466b4d53389905d70aa8fb848dc6174 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement" id="r_a4466b4d53389905d70aa8fb848dc6174"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a4466b4d53389905d70aa8fb848dc6174">get_shape_derivatives</a> (self, np.ndarray xi)</td></tr>
+<tr class="separator:a4466b4d53389905d70aa8fb848dc6174 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e31bf212d99c8505a0dfebdd07c4240 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement" id="r_a0e31bf212d99c8505a0dfebdd07c4240"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a0e31bf212d99c8505a0dfebdd07c4240">get_jacobian</a> (self, np.ndarray xi)</td></tr>
+<tr class="separator:a0e31bf212d99c8505a0dfebdd07c4240 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c951c9b97a4f1260346d26e29804c0c inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement" id="r_a9c951c9b97a4f1260346d26e29804c0c"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a9c951c9b97a4f1260346d26e29804c0c">get_strain_displacement_matrix</a> (self, np.ndarray xi)</td></tr>
+<tr class="separator:a9c951c9b97a4f1260346d26e29804c0c inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ef6875359c18302b913706def218367 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement" id="r_a2ef6875359c18302b913706def218367"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a2ef6875359c18302b913706def218367">get_stress_strain_matrix</a> (self)</td></tr>
+<tr class="separator:a2ef6875359c18302b913706def218367 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4b029b3b4718fe736f260d02cc63110 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement" id="r_ae4b029b3b4718fe736f260d02cc63110"><td class="memItemLeft" align="right" valign="top">np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#ae4b029b3b4718fe736f260d02cc63110">get_equivalent_nodal_loads</a> (self, str load_type, List[float] values, Optional[int] face=None)</td></tr>
+<tr class="separator:ae4b029b3b4718fe736f260d02cc63110 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a186142c3c526662c417d86a11fd0cf58 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement" id="r_a186142c3c526662c417d86a11fd0cf58"><td class="memItemLeft" align="right" valign="top">Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a186142c3c526662c417d86a11fd0cf58">calculate_stress_strain</a> (self, np.ndarray displacement)</td></tr>
+<tr class="separator:a186142c3c526662c417d86a11fd0cf58 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3be6131890e8bc920133bd3b5d9da1f5 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement" id="r_a3be6131890e8bc920133bd3b5d9da1f5"><td class="memItemLeft" align="right" valign="top">Tuple[np.ndarray, np.ndarray]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#a3be6131890e8bc920133bd3b5d9da1f5">get_gauss_points</a> (self)</td></tr>
+<tr class="separator:a3be6131890e8bc920133bd3b5d9da1f5 inherit pub_methods_classfem_1_1elements_1_1base__element_1_1BaseElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+公開変数類</h2></td></tr>
+<tr class="memitem:a2c077a73b6c07552d55c9447c959a5a0" id="r_a2c077a73b6c07552d55c9447c959a5a0"><td class="memItemLeft" align="right" valign="top"><a id="a2c077a73b6c07552d55c9447c959a5a0" name="a2c077a73b6c07552d55c9447c959a5a0"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>shear_correction</b></td></tr>
+<tr class="separator:a2c077a73b6c07552d55c9447c959a5a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a314a4d1d32730428720ea358b64aceaa" id="r_a314a4d1d32730428720ea358b64aceaa"><td class="memItemLeft" align="right" valign="top"><a id="a314a4d1d32730428720ea358b64aceaa" name="a314a4d1d32730428720ea358b64aceaa"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>material</b></td></tr>
+<tr class="separator:a314a4d1d32730428720ea358b64aceaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad8d45a04096a7f118ec1647e0bb73f3e" id="r_ad8d45a04096a7f118ec1647e0bb73f3e"><td class="memItemLeft" align="right" valign="top"><a id="ad8d45a04096a7f118ec1647e0bb73f3e" name="ad8d45a04096a7f118ec1647e0bb73f3e"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>bar_param</b></td></tr>
+<tr class="separator:ad8d45a04096a7f118ec1647e0bb73f3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a835535fdb5a384e734932777a904d754" id="r_a835535fdb5a384e734932777a904d754"><td class="memItemLeft" align="right" valign="top"><a id="a835535fdb5a384e734932777a904d754" name="a835535fdb5a384e734932777a904d754"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>node_ids</b></td></tr>
+<tr class="separator:a835535fdb5a384e734932777a904d754"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91762db9c0d1b0a2e18acb9c48f2f4c3" id="r_a91762db9c0d1b0a2e18acb9c48f2f4c3"><td class="memItemLeft" align="right" valign="top"><a id="a91762db9c0d1b0a2e18acb9c48f2f4c3" name="a91762db9c0d1b0a2e18acb9c48f2f4c3"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>material_id</b></td></tr>
+<tr class="separator:a91762db9c0d1b0a2e18acb9c48f2f4c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abdc25392fb3fba8d3bf006668fb8c484" id="r_abdc25392fb3fba8d3bf006668fb8c484"><td class="memItemLeft" align="right" valign="top"><a id="abdc25392fb3fba8d3bf006668fb8c484" name="abdc25392fb3fba8d3bf006668fb8c484"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>section_id</b></td></tr>
+<tr class="separator:abdc25392fb3fba8d3bf006668fb8c484"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d78a3e01acada195d1bd7738e55279d" id="r_a6d78a3e01acada195d1bd7738e55279d"><td class="memItemLeft" align="right" valign="top"><a id="a6d78a3e01acada195d1bd7738e55279d" name="a6d78a3e01acada195d1bd7738e55279d"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>angle</b></td></tr>
+<tr class="separator:a6d78a3e01acada195d1bd7738e55279d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_attribs_classfem_1_1elements_1_1bar__element_1_1BarElement"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_classfem_1_1elements_1_1bar__element_1_1BarElement')"><img src="closed.png" alt="-"/>&#160;基底クラス <a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html">fem.elements.bar_element.BarElement</a> に属する継承公開変数類</td></tr>
+<tr class="memitem:a6cad68814c6746626ba1922dd0215ed8 inherit pub_attribs_classfem_1_1elements_1_1bar__element_1_1BarElement" id="r_a6cad68814c6746626ba1922dd0215ed8"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>section_id</b></td></tr>
+<tr class="separator:a6cad68814c6746626ba1922dd0215ed8 inherit pub_attribs_classfem_1_1elements_1_1bar__element_1_1BarElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed7965037118d29b70cf2c7bbb9adcdc inherit pub_attribs_classfem_1_1elements_1_1bar__element_1_1BarElement" id="r_aed7965037118d29b70cf2c7bbb9adcdc"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>angle</b></td></tr>
+<tr class="separator:aed7965037118d29b70cf2c7bbb9adcdc inherit pub_attribs_classfem_1_1elements_1_1bar__element_1_1BarElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acaac1ec88a199c500b0c3b98b16cb5e0 inherit pub_attribs_classfem_1_1elements_1_1bar__element_1_1BarElement" id="r_acaac1ec88a199c500b0c3b98b16cb5e0"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>length</b></td></tr>
+<tr class="separator:acaac1ec88a199c500b0c3b98b16cb5e0 inherit pub_attribs_classfem_1_1elements_1_1bar__element_1_1BarElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af07785f2067c1740dbe4df6c9f05fd34 inherit pub_attribs_classfem_1_1elements_1_1bar__element_1_1BarElement" id="r_af07785f2067c1740dbe4df6c9f05fd34"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>transformation_matrix</b></td></tr>
+<tr class="separator:af07785f2067c1740dbe4df6c9f05fd34 inherit pub_attribs_classfem_1_1elements_1_1bar__element_1_1BarElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_attribs_classfem_1_1elements_1_1base__element_1_1BaseElement"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_classfem_1_1elements_1_1base__element_1_1BaseElement')"><img src="closed.png" alt="-"/>&#160;基底クラス <a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html">fem.elements.base_element.BaseElement</a> に属する継承公開変数類</td></tr>
+<tr class="memitem:a97edb95a5eb21a6d4fa06fa5ad55469f inherit pub_attribs_classfem_1_1elements_1_1base__element_1_1BaseElement" id="r_a97edb95a5eb21a6d4fa06fa5ad55469f"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>element_id</b></td></tr>
+<tr class="separator:a97edb95a5eb21a6d4fa06fa5ad55469f inherit pub_attribs_classfem_1_1elements_1_1base__element_1_1BaseElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c87f7441a616e7c67a90f4fe40debe3 inherit pub_attribs_classfem_1_1elements_1_1base__element_1_1BaseElement" id="r_a5c87f7441a616e7c67a90f4fe40debe3"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>node_ids</b></td></tr>
+<tr class="separator:a5c87f7441a616e7c67a90f4fe40debe3 inherit pub_attribs_classfem_1_1elements_1_1base__element_1_1BaseElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5cb6312ab54815462badc2d950c0a03 inherit pub_attribs_classfem_1_1elements_1_1base__element_1_1BaseElement" id="r_ab5cb6312ab54815462badc2d950c0a03"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>material_id</b></td></tr>
+<tr class="separator:ab5cb6312ab54815462badc2d950c0a03 inherit pub_attribs_classfem_1_1elements_1_1base__element_1_1BaseElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2bcb0785c82b73c13fa763ba069a5346 inherit pub_attribs_classfem_1_1elements_1_1base__element_1_1BaseElement" id="r_a2bcb0785c82b73c13fa763ba069a5346"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>nodes_coordinates</b></td></tr>
+<tr class="separator:a2bcb0785c82b73c13fa763ba069a5346 inherit pub_attribs_classfem_1_1elements_1_1base__element_1_1BaseElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
+その他の継承メンバ</h2></td></tr>
+<tr class="inherit_header pub_static_methods_classfem_1_1elements_1_1base__element_1_1BaseElement"><td colspan="2" onclick="javascript:toggleInherit('pub_static_methods_classfem_1_1elements_1_1base__element_1_1BaseElement')"><img src="closed.png" alt="-"/>&#160;基底クラス <a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html">fem.elements.base_element.BaseElement</a> に属する継承静的公開メンバ関数</td></tr>
+<tr class="memitem:ad591f2fc97e28c5e63c32fb991a23059 inherit pub_static_methods_classfem_1_1elements_1_1base__element_1_1BaseElement" id="r_ad591f2fc97e28c5e63c32fb991a23059"><td class="memItemLeft" align="right" valign="top">Tuple[np.ndarray, np.ndarray]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1base__element_1_1BaseElement.html#ad591f2fc97e28c5e63c32fb991a23059">get_gauss_points_1d</a> (int n_points)</td></tr>
+<tr class="separator:ad591f2fc97e28c5e63c32fb991a23059 inherit pub_static_methods_classfem_1_1elements_1_1base__element_1_1BaseElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pro_methods_classfem_1_1elements_1_1bar__element_1_1BarElement"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_classfem_1_1elements_1_1bar__element_1_1BarElement')"><img src="closed.png" alt="-"/>&#160;基底クラス <a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html">fem.elements.bar_element.BarElement</a> に属する継承限定公開メンバ関数</td></tr>
+<tr class="memitem:a28721007090418cbd7f24f251902a211 inherit pro_methods_classfem_1_1elements_1_1bar__element_1_1BarElement" id="r_a28721007090418cbd7f24f251902a211"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html#a28721007090418cbd7f24f251902a211">_calculate_transformation_matrix</a> (self)</td></tr>
+<tr class="separator:a28721007090418cbd7f24f251902a211 inherit pro_methods_classfem_1_1elements_1_1bar__element_1_1BarElement"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">詳解</h2>
+<div class="textblock"><pre class="fragment">Timoshenko梁要素クラス（既存のFA_Beam機能を移植）</pre> </div><h2 class="groupheader">構築子と解体子</h2>
+<a id="ab3fdfe30bf42c6286723ec8a62ef9312" name="ab3fdfe30bf42c6286723ec8a62ef9312"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab3fdfe30bf42c6286723ec8a62ef9312">&#9670;&#160;</a></span>__init__()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">fem.elements.bar_element.TBarElement.__init__ </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>element_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">List[int]&#160;</td>
+          <td class="paramname"><em>node_ids</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>material_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>section_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>angle</em> = <code>0.0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &#160;</td>
+          <td class="paramname"><em>shear_correction</em> = <code>True</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Args:
+    element_id: 要素ID
+    node_ids: 構成節点ID（2節点）
+    material_id: 材料ID
+    section_id: 断面ID
+    angle: 要素座標軸の回転角（度）
+    shear_correction: せん断変形を考慮するか
+</pre> 
+<p><a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html#aae02259a804fa9388a1201b86019b24d">fem.elements.bar_element.BarElement</a>を再実装しています。</p>
+
+<p><a class="el" href="classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#a7b2d926f0ce8b6d3439b22b4bc422d3f">fem.elements.nonlinear_bar_element.NonlinearBarElement</a>で再実装されています。</p>
+
+</div>
+</div>
+<h2 class="groupheader">関数詳解</h2>
+<a id="a32af86ccc2b2656114902628e0ba16b3" name="a32af86ccc2b2656114902628e0ba16b3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a32af86ccc2b2656114902628e0ba16b3">&#9670;&#160;</a></span>calculate_forces()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[str, np.ndarray] fem.elements.bar_element.TBarElement.calculate_forces </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>displacement</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">要素力を計算
+
+Args:
+    displacement: 要素節点変位ベクトル（12要素）
+    
+Returns:
+    断面力の辞書 {'i_end': [...], 'j_end': [...]}
+</pre> 
+</div>
+</div>
+<a id="afede2f787f126f5fac75bb22685eaafb" name="afede2f787f126f5fac75bb22685eaafb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afede2f787f126f5fac75bb22685eaafb">&#9670;&#160;</a></span>get_mass_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> np.ndarray fem.elements.bar_element.TBarElement.get_mass_matrix </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Timoshenko梁の要素質量行列を取得</pre> 
+<p><a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html#a5bcd7f9da6b959cab9db64c5ab37d438">fem.elements.bar_element.BarElement</a>を再実装しています。</p>
+
+</div>
+</div>
+<a id="aeb05c35397ce90f21dbea4e4f418541e" name="aeb05c35397ce90f21dbea4e4f418541e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb05c35397ce90f21dbea4e4f418541e">&#9670;&#160;</a></span>get_stiffness_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> np.ndarray fem.elements.bar_element.TBarElement.get_stiffness_matrix </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Timoshenko梁の要素剛性行列を取得（せん断変形を考慮）</pre> 
+<p><a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html#a9f804201bd996254ea14f8d94f636f69">fem.elements.bar_element.BarElement</a>を再実装しています。</p>
+
+</div>
+</div>
+<a id="aee34f5f29fcaf681c4339c315815a738" name="aee34f5f29fcaf681c4339c315815a738"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee34f5f29fcaf681c4339c315815a738">&#9670;&#160;</a></span>set_material_properties()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.elements.bar_element.TBarElement.set_material_properties </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1material_1_1Material.html">Material</a>&#160;</td>
+          <td class="paramname"><em>material</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1material_1_1BarParameter.html">BarParameter</a>&#160;</td>
+          <td class="paramname"><em>bar_param</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">材料特性を設定</pre> 
+</div>
+</div>
+<hr/>このクラス詳解は次のファイルから抽出されました:<ul>
+<li>src/fem/elements/<b>bar_element.py</b></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacefem.html">fem</a></li><li class="navelem"><a class="el" href="namespacefem_1_1elements.html">elements</a></li><li class="navelem"><a class="el" href="namespacefem_1_1elements_1_1bar__element.html">bar_element</a></li><li class="navelem"><a class="el" href="classfem_1_1elements_1_1bar__element_1_1TBarElement.html">TBarElement</a></li>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

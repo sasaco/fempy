@@ -1,0 +1,417 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FrameWeb: fem.mesh.MeshModel クラス</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FrameWeb
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classfem_1_1mesh_1_1MeshModel.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">公開メンバ関数</a> &#124;
+<a href="#pub-attribs">公開変数類</a> &#124;
+<a href="classfem_1_1mesh_1_1MeshModel-members.html">全メンバ一覧</a>  </div>
+  <div class="headertitle"><div class="title">fem.mesh.MeshModel クラス</div></div>
+</div><!--header-->
+<div class="contents">
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+公開メンバ関数</h2></td></tr>
+<tr class="memitem:aca3c5e39dc9509477bce523f91f0449e" id="r_aca3c5e39dc9509477bce523f91f0449e"><td class="memItemLeft" align="right" valign="top"><a id="aca3c5e39dc9509477bce523f91f0449e" name="aca3c5e39dc9509477bce523f91f0449e"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>__init__</b> (self)</td></tr>
+<tr class="separator:aca3c5e39dc9509477bce523f91f0449e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a013fcbd69a6f4c96e9588eab1ecbe10d" id="r_a013fcbd69a6f4c96e9588eab1ecbe10d"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html#a013fcbd69a6f4c96e9588eab1ecbe10d">add_node</a> (self, int node_id, List[float] coordinates)</td></tr>
+<tr class="separator:a013fcbd69a6f4c96e9588eab1ecbe10d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4afb36f9c9de48326dd98ced56d36eee" id="r_a4afb36f9c9de48326dd98ced56d36eee"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html#a4afb36f9c9de48326dd98ced56d36eee">add_element</a> (self, int elem_id, str elem_type, List[int] node_ids, int material_id, **kwargs)</td></tr>
+<tr class="separator:a4afb36f9c9de48326dd98ced56d36eee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf5605ba83cb9343e56951538afd6162" id="r_acf5605ba83cb9343e56951538afd6162"><td class="memItemLeft" align="right" valign="top">Optional[np.ndarray]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html#acf5605ba83cb9343e56951538afd6162">get_node</a> (self, int node_id)</td></tr>
+<tr class="separator:acf5605ba83cb9343e56951538afd6162"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33004fe8b636fb546f2c1e71d3b8ceef" id="r_a33004fe8b636fb546f2c1e71d3b8ceef"><td class="memItemLeft" align="right" valign="top">Optional[Dict]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html#a33004fe8b636fb546f2c1e71d3b8ceef">get_element</a> (self, int elem_id)</td></tr>
+<tr class="separator:a33004fe8b636fb546f2c1e71d3b8ceef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c78e336f19cb9e435fa9f1a6d2b90c3" id="r_a8c78e336f19cb9e435fa9f1a6d2b90c3"><td class="memItemLeft" align="right" valign="top">List[int]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html#a8c78e336f19cb9e435fa9f1a6d2b90c3">get_free_nodes</a> (self)</td></tr>
+<tr class="separator:a8c78e336f19cb9e435fa9f1a6d2b90c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acbfa9b641440952c37063cbf14edf578" id="r_acbfa9b641440952c37063cbf14edf578"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html#acbfa9b641440952c37063cbf14edf578">check_chirality</a> (self, int elem_id)</td></tr>
+<tr class="separator:acbfa9b641440952c37063cbf14edf578"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a63417481109f4aed5b4feac92cc8436b" id="r_a63417481109f4aed5b4feac92cc8436b"><td class="memItemLeft" align="right" valign="top">List[Tuple[int, int]]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html#a63417481109f4aed5b4feac92cc8436b">get_face_edges</a> (self, List[int] face_nodes)</td></tr>
+<tr class="separator:a63417481109f4aed5b4feac92cc8436b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a50b34086976ccd9987d39a77d67554" id="r_a2a50b34086976ccd9987d39a77d67554"><td class="memItemLeft" align="right" valign="top">Tuple[np.ndarray, np.ndarray]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html#a2a50b34086976ccd9987d39a77d67554">get_bounding_box</a> (self)</td></tr>
+<tr class="separator:a2a50b34086976ccd9987d39a77d67554"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+公開変数類</h2></td></tr>
+<tr class="memitem:ad1e4866f88b01c98a1b1d1195f39e294" id="r_ad1e4866f88b01c98a1b1d1195f39e294"><td class="memItemLeft" align="right" valign="top"><a id="ad1e4866f88b01c98a1b1d1195f39e294" name="ad1e4866f88b01c98a1b1d1195f39e294"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>node_count</b></td></tr>
+<tr class="separator:ad1e4866f88b01c98a1b1d1195f39e294"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82fb4b182a1724d38b648bfc12325b55" id="r_a82fb4b182a1724d38b648bfc12325b55"><td class="memItemLeft" align="right" valign="top"><a id="a82fb4b182a1724d38b648bfc12325b55" name="a82fb4b182a1724d38b648bfc12325b55"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>element_count</b></td></tr>
+<tr class="separator:a82fb4b182a1724d38b648bfc12325b55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">詳解</h2>
+<div class="textblock"><pre class="fragment">メッシュデータを管理するクラス</pre> </div><h2 class="groupheader">関数詳解</h2>
+<a id="a4afb36f9c9de48326dd98ced56d36eee" name="a4afb36f9c9de48326dd98ced56d36eee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4afb36f9c9de48326dd98ced56d36eee">&#9670;&#160;</a></span>add_element()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.mesh.MeshModel.add_element </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>elem_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str&#160;</td>
+          <td class="paramname"><em>elem_type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">List[int]&#160;</td>
+          <td class="paramname"><em>node_ids</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>material_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">**&#160;</td>
+          <td class="paramname"><em>kwargs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">要素を追加
+
+Args:
+    elem_id: 要素ID
+    elem_type: 要素タイプ ('bar', 'shell', 'solid')
+    node_ids: 構成ノードIDリスト
+    material_id: 材料ID
+    **kwargs: その他の要素パラメータ
+</pre> 
+</div>
+</div>
+<a id="a013fcbd69a6f4c96e9588eab1ecbe10d" name="a013fcbd69a6f4c96e9588eab1ecbe10d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a013fcbd69a6f4c96e9588eab1ecbe10d">&#9670;&#160;</a></span>add_node()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.mesh.MeshModel.add_node </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>node_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">List[float]&#160;</td>
+          <td class="paramname"><em>coordinates</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">ノードを追加
+
+Args:
+    node_id: ノードID
+    coordinates: 座標 [x, y, z]
+</pre> 
+</div>
+</div>
+<a id="acbfa9b641440952c37063cbf14edf578" name="acbfa9b641440952c37063cbf14edf578"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acbfa9b641440952c37063cbf14edf578">&#9670;&#160;</a></span>check_chirality()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> bool fem.mesh.MeshModel.check_chirality </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>elem_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">要素の向き（カイラリティ）をチェック
+
+Args:
+    elem_id: 要素ID
+    
+Returns:
+    正しい向きの場合True
+</pre> 
+</div>
+</div>
+<a id="a2a50b34086976ccd9987d39a77d67554" name="a2a50b34086976ccd9987d39a77d67554"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a50b34086976ccd9987d39a77d67554">&#9670;&#160;</a></span>get_bounding_box()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Tuple[np.ndarray, np.ndarray] fem.mesh.MeshModel.get_bounding_box </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">メッシュの境界ボックスを取得
+
+Returns:
+    (最小座標, 最大座標)
+</pre> 
+</div>
+</div>
+<a id="a33004fe8b636fb546f2c1e71d3b8ceef" name="a33004fe8b636fb546f2c1e71d3b8ceef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a33004fe8b636fb546f2c1e71d3b8ceef">&#9670;&#160;</a></span>get_element()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Optional[Dict] fem.mesh.MeshModel.get_element </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>elem_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">要素情報を取得</pre> 
+</div>
+</div>
+<a id="a63417481109f4aed5b4feac92cc8436b" name="a63417481109f4aed5b4feac92cc8436b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a63417481109f4aed5b4feac92cc8436b">&#9670;&#160;</a></span>get_face_edges()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> List[Tuple[int, int]] fem.mesh.MeshModel.get_face_edges </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">List[int]&#160;</td>
+          <td class="paramname"><em>face_nodes</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">面を構成するエッジのリストを取得
+
+Args:
+    face_nodes: 面を構成するノードIDリスト
+    
+Returns:
+    エッジのリスト [(node1, node2), ...]
+</pre> 
+</div>
+</div>
+<a id="a8c78e336f19cb9e435fa9f1a6d2b90c3" name="a8c78e336f19cb9e435fa9f1a6d2b90c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c78e336f19cb9e435fa9f1a6d2b90c3">&#9670;&#160;</a></span>get_free_nodes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> List[int] fem.mesh.MeshModel.get_free_nodes </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">自由ノード（要素に属さないノード）のリストを取得</pre> 
+</div>
+</div>
+<a id="acf5605ba83cb9343e56951538afd6162" name="acf5605ba83cb9343e56951538afd6162"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acf5605ba83cb9343e56951538afd6162">&#9670;&#160;</a></span>get_node()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Optional[np.ndarray] fem.mesh.MeshModel.get_node </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>node_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">ノード座標を取得</pre> 
+</div>
+</div>
+<hr/>このクラス詳解は次のファイルから抽出されました:<ul>
+<li>src/fem/<b>mesh.py</b></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacefem.html">fem</a></li><li class="navelem"><a class="el" href="namespacefem_1_1mesh.html">mesh</a></li><li class="navelem"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a></li>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>
