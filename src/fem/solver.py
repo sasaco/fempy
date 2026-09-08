@@ -22,6 +22,20 @@ class Solver:
         self.displacement: Optional[np.ndarray] = None
         self.eigenvalues: Optional[np.ndarray] = None
         self.eigenvectors: Optional[np.ndarray] = None
+        self._node_dof_offsets: Optional[Dict[int, int]] = None
+
+    def _set_dof_layout(self, mesh: MeshModel) -> None:
+        """外部節点IDを昇順の連続DOFへ写像する（飛び番、入力順に依存しない）。"""
+        stride = self._get_max_dof_per_node(mesh)
+        self._node_dof_offsets = {node_id: i * stride for i, node_id in enumerate(sorted(mesh.nodes))}
+
+    def _node_dof_start(self, node_id: int, stride: int) -> int:
+        if self._node_dof_offsets is None:
+            # 行列だけを直接渡す既存APIでは、1始まりの連続節点を仮定する。
+            return (node_id - 1) * stride
+        if node_id not in self._node_dof_offsets:
+            raise ValueError(f'Unknown node {node_id}')
+        return self._node_dof_offsets[node_id]
         
     def create_stiffness_matrix(self, mesh: MeshModel, material: Material, 
                               elements: Dict[int, Any]) -> csr_matrix:
@@ -51,6 +65,7 @@ class Solver:
             max_dof_per_node = 3
         
         # 自由度数の計算
+        self._set_dof_layout(mesh)
         n_dof = len(mesh.nodes) * max_dof_per_node
         
         # LIL形式で初期化（要素剛性行列の組み立てに適している）
@@ -75,7 +90,7 @@ class Solver:
             # 全体座標系での自由度番号を計算
             dof_indices = []
             for node_id in node_ids:
-                base_dof = (node_id - 1) * max_dof_per_node
+                base_dof = self._node_dof_start(node_id, max_dof_per_node)
                 for i in range(elem_dof_per_node):
                     dof_indices.append(base_dof + i)
                     
@@ -117,6 +132,7 @@ class Solver:
             max_dof_per_node = 3
         
         # 自由度数の計算
+        self._set_dof_layout(mesh)
         n_dof = len(mesh.nodes) * max_dof_per_node
         
         # LIL形式で初期化
@@ -141,7 +157,7 @@ class Solver:
             # 全体座標系での自由度番号を計算
             dof_indices = []
             for node_id in node_ids:
-                base_dof = (node_id - 1) * max_dof_per_node
+                base_dof = self._node_dof_start(node_id, max_dof_per_node)
                 for i in range(elem_dof_per_node):
                     dof_indices.append(base_dof + i)
                     
@@ -182,12 +198,13 @@ class Solver:
         if has_solid_only:
             max_dof_per_node = 3
         
+        self._set_dof_layout(mesh)
         n_dof = len(mesh.nodes) * max_dof_per_node
         F = np.zeros(n_dof)
         
         # 節点荷重の適用
         for node_id, load in boundary.loads.items():
-            base_dof = (node_id - 1) * max_dof_per_node
+            base_dof = self._node_dof_start(node_id, max_dof_per_node)
             for i in range(min(max_dof_per_node, len(load.forces))):
                 if base_dof + i < n_dof:  # 範囲チェック追加
                     F[base_dof + i] += load.forces[i]
@@ -212,7 +229,7 @@ class Solver:
             # 全体荷重ベクトルに加算
             node_ids = elem_data['nodes']
             for i, node_id in enumerate(node_ids):
-                base_dof = (node_id - 1) * max_dof_per_node
+                base_dof = self._node_dof_start(node_id, max_dof_per_node)
                 for j in range(elem_dof_per_node):
                     if i * elem_dof_per_node + j < len(equiv_loads) and base_dof + j < n_dof:
                         F[base_dof + j] += equiv_loads[i * elem_dof_per_node + j]
@@ -237,7 +254,7 @@ class Solver:
             # 全体荷重ベクトルに加算
             node_ids = elem_data['nodes']
             for i, node_id in enumerate(node_ids):
-                base_dof = (node_id - 1) * max_dof_per_node
+                base_dof = self._node_dof_start(node_id, max_dof_per_node)
                 for j in range(elem_dof_per_node):
                     if i * elem_dof_per_node + j < len(equiv_loads) and base_dof + j < n_dof:
                         F[base_dof + j] += equiv_loads[i * elem_dof_per_node + j]
@@ -245,53 +262,66 @@ class Solver:
         self.load_vector = F
         return F
         
-    def apply_boundary_conditions(self, K: csr_matrix, F: np.ndarray,
-                                boundary: BoundaryCondition) -> Tuple[csr_matrix, np.ndarray]:
-        """境界条件を適用
-        
-        Args:
-            K: 剛性行列
-            F: 荷重ベクトル
-            boundary: 境界条件
-            
-        Returns:
-            修正後の剛性行列と荷重ベクトル
-        """
-        K_mod = lil_matrix(K, copy=True)
-        F_mod = F.copy()
-        
-        # 自由度/節点を判定（行列サイズから推定）
-        n_nodes = len(set(node_id for node_id in boundary.restraints.keys() 
-                         if hasattr(boundary, 'restraints'))) or len(F) // 6
-        max_dof_per_node = len(F) // max(1, n_nodes) if n_nodes > 0 else 6
-        
-        # 拘束条件の適用
+    @staticmethod
+    def _get_max_dof_per_node(mesh: MeshModel) -> int:
+        return 3 if all(e.get('type', 'bar') in ('tetra', 'hexa', 'wedge')
+                        for e in mesh.elements.values()) else 6
+
+    def _get_boundary_dofs(self, boundary: BoundaryCondition, n_dof: int,
+                           max_dof_per_node: int) -> Tuple[Dict[int, float], Dict[int, float]]:
+        """固定/強制変位と支持ばねを区別する。値>1000の旧入力仕様を保持。"""
+        prescribed, springs = {}, {}
+        if max_dof_per_node not in (3, 6):
+            raise ValueError('max_dof_per_node must be 3 or 6')
         for node_id, restraint in boundary.restraints.items():
-            base_dof = (node_id - 1) * max_dof_per_node
-            
-            for i, is_restrained in enumerate(restraint.dof_restraints):
-                if is_restrained and i < max_dof_per_node and base_dof + i < len(F):
-                    dof = base_dof + i
-                    
-                    # 特殊な大きな値（>1000）はバネ定数を意味する
-                    value = restraint.values[i] if restraint.values else 0
+            base = self._node_dof_start(node_id, max_dof_per_node)
+            if base < 0 or base + max_dof_per_node > n_dof:
+                raise ValueError(f'Restraint node {node_id} is outside the DOF vector')
+            for i, fixed in enumerate(restraint.dof_restraints[:max_dof_per_node]):
+                if fixed:
+                    value = restraint.get_value(i)
+                    if not np.isfinite(value):
+                        raise ValueError(f'Non-finite restraint value at node {node_id}')
                     if abs(value) > 1000:
-                        # バネ要素として処理
-                        spring_k = abs(value)  # バネ定数
-                        K_mod[dof, dof] += spring_k
+                        springs[base + i] = abs(value)
                     else:
-                        # 通常の拘束条件として処理
-                        # 対角成分を大きな値で置き換え
-                        penalty = 1e15 * abs(K.diagonal().max())
-                        K_mod[dof, dof] = penalty
-                        
-                        # 強制変位の場合は右辺ベクトルに適用
-                        if value != 0:
-                            F_mod[dof] = penalty * value
-                        else:
-                            F_mod[dof] = 0
-        
-        return csr_matrix(K_mod), F_mod
+                        prescribed[base + i] = value
+        return prescribed, springs
+
+    def apply_boundary_conditions(self, K: csr_matrix, F: np.ndarray,
+                                  boundary: BoundaryCondition, max_dof_per_node: int = 6,
+                                  current_displacement: Optional[np.ndarray] = None,
+                                  load_factor: float = 1.0,
+                                  penalty: bool = False) -> Tuple[csr_matrix, np.ndarray]:
+        """固定DOFを対称消去する。Newtonでは目標変位との差を拘束する。
+
+        Fは構造要素の外力−内力（静解析では外力）。支持ばねの内力はここで引く。
+        penalty=Trueは既存の固有値解析専用（質量行列を縮約しない経路）。
+        """
+        prescribed, springs = self._get_boundary_dofs(boundary, len(F), max_dof_per_node)
+        K_mod = lil_matrix(K, copy=True)
+        F_mod = np.array(F, dtype=float, copy=True)
+        u = np.zeros(len(F)) if current_displacement is None else current_displacement
+        for dof, stiffness in springs.items():
+            K_mod[dof, dof] += stiffness
+            F_mod[dof] -= stiffness * u[dof]
+        if prescribed:
+            indices = list(prescribed)
+            increments = np.array([load_factor * prescribed[d] - u[d] for d in indices])
+            if penalty:
+                scale = max(float(np.max(np.abs(K.diagonal()))), 1.0) * 1e15
+                for dof, value in zip(indices, increments):
+                    K_mod[dof, dof] = scale
+                    F_mod[dof] = scale * value
+            else:
+                # 全固定列の寄与を、列を消去する前に一度だけ移す。
+                F_mod -= K_mod.tocsr()[:, indices] @ increments
+                K_mod[:, indices] = 0
+                K_mod[indices, :] = 0
+                for dof, value in zip(indices, increments):
+                    K_mod[dof, dof] = 1.0
+                    F_mod[dof] = value
+        return K_mod.tocsr(), F_mod
         
     def solve_linear_system(self, K: csr_matrix, F: np.ndarray) -> np.ndarray:
         """線形方程式系を解く（V1レベル数値安定化技術適用）
@@ -503,7 +533,8 @@ class Solver:
         F = self.assemble_load_vector(mesh, boundary, elements)
         
         # 境界条件の適用
-        K_mod, F_mod = self.apply_boundary_conditions(K, F, boundary)
+        stride = self._get_max_dof_per_node(mesh)
+        K_mod, F_mod = self.apply_boundary_conditions(K, F, boundary, stride)
         
         # 線形方程式を解く
         u = self.solve_linear_system(K_mod, F_mod)
@@ -512,7 +543,7 @@ class Solver:
         results = {
             'displacement': u,
             'node_displacements': self._format_node_displacements(u, mesh),
-            'reaction_forces': self._calculate_reaction_forces(K, u, F, boundary)
+            'reaction_forces': self._calculate_reaction_forces(K, u, F, boundary, stride)
         }
         
         return results
@@ -537,7 +568,8 @@ class Solver:
         M = self.create_mass_matrix(mesh, material, elements)
         
         # 境界条件の適用（質量行列には適用しない）
-        K_mod, _ = self.apply_boundary_conditions(K, np.zeros(K.shape[0]), boundary)
+        K_mod, _ = self.apply_boundary_conditions(
+            K, np.zeros(K.shape[0]), boundary, self._get_max_dof_per_node(mesh), penalty=True)
         
         # モード数の調整（行列サイズの1/3以下に制限）
         max_modes = min(n_modes, K.shape[0] // 3)
@@ -644,7 +676,7 @@ class Solver:
         max_dof_per_node = len(u) // n_nodes if n_nodes > 0 else 6
         
         for node_id in mesh.nodes.keys():
-            base_dof = (node_id - 1) * max_dof_per_node
+            base_dof = self._node_dof_start(node_id, max_dof_per_node)
             
             # solid要素（3自由度）の場合
             if max_dof_per_node == 3:
@@ -670,7 +702,8 @@ class Solver:
         return displacements
         
     def _calculate_reaction_forces(self, K: csr_matrix, u: np.ndarray, F: np.ndarray,
-                                 boundary: BoundaryCondition) -> Dict[int, Dict[str, float]]:
+                                 boundary: BoundaryCondition,
+                                 max_dof_per_node: int = 6) -> Dict[int, Dict[str, float]]:
         """支点反力を計算
         
         Args:
@@ -685,15 +718,11 @@ class Solver:
         # 全体の力ベクトルを計算
         F_total = K @ u
         
-        # 自由度/節点を判定（変位ベクトルサイズから推定）
-        n_nodes = len(set(node_id for node_id in boundary.restraints.keys()))
-        max_dof_per_node = len(u) // n_nodes if n_nodes > 0 else 6
-        
         # 反力 = 全体の力 - 外力
         reactions = {}
         
         for node_id, restraint in boundary.restraints.items():
-            base_dof = (node_id - 1) * max_dof_per_node
+            base_dof = self._node_dof_start(node_id, max_dof_per_node)
             reaction = {}
             
             for i, is_restrained in enumerate(restraint.dof_restraints):
@@ -735,4 +764,4 @@ class Solver:
             mode_displacements = self._format_node_displacements(mode_vector, mesh)
             modes.append(mode_displacements)
             
-        return modes 
+        return modes

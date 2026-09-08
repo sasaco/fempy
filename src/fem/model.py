@@ -34,6 +34,10 @@ class FemModel:
         self.nonlinear_solver = NonlinearSolver()  # 非線形ソルバー
         self.elements: Dict[int, Any] = {}
         self.results: Optional[Dict[str, Any]] = None
+        self.analysis_params = {
+            'n_load_steps': 10, 'max_iterations': 50,
+            'tolerance': 1e-6, 'n_modes': 10,
+        }
         self.name: str = "Untitled Model"
         self.description: str = ""
         
@@ -359,6 +363,8 @@ class FemModel:
         Returns:
             解析結果
         """
+        # 再解析が失敗した際に、前回の結果を今回の結果として残さない。
+        self.results = None
         # 要素の作成（要素分割後に再実行が必要なため毎回実行）
         self._create_elements()
 
@@ -714,6 +720,8 @@ class FemModel:
         if 'displacement' in self.results:
             element_stresses = {}
             displacement = self.results['displacement']
+            stride = self.solver._get_max_dof_per_node(self.mesh)
+            node_offsets = {node_id: i * stride for i, node_id in enumerate(sorted(self.mesh.nodes))}
             
             for elem_id, element in self.elements.items():
                 # 要素の変位を抽出
@@ -721,7 +729,7 @@ class FemModel:
                 elem_disp = []
                 
                 for node_id in node_ids:
-                    base_dof = (node_id - 1) * 6
+                    base_dof = node_offsets[node_id]
                     dof_per_node = element.get_dof_per_node()
                     
                     for i in range(dof_per_node):
@@ -1298,4 +1306,4 @@ class FemModel:
         return {
             'distributed': distributed_loads,
             'concentrated': concentrated_loads
-        } 
+        }

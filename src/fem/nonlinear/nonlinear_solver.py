@@ -2,17 +2,29 @@
 Newton-Raphson非線形ソルバー
 
 材料非線形解析のための反復ソルバー
-既存のSolverクラスを継承し、V1レベル数値安定化技術を活用
+既存のSolverクラスを継承し、拘束消去と非正則化のNewton方程式解法を使用
 """
 from typing import Dict, Any, List, Optional, Callable
 import numpy as np
-from scipy.sparse import lil_matrix, csr_matrix
-from scipy.sparse.linalg import spsolve
+import warnings
+from scipy.sparse import lil_matrix, csr_matrix, diags
+from scipy.sparse.linalg import spsolve, MatrixRankWarning
 
 from ..solver import Solver
 from ..mesh import MeshModel
 from ..material import Material
 from ..boundary_condition import BoundaryCondition
+
+
+class NonlinearConvergenceError(RuntimeError):
+    """荷重ステップ失敗。displacementは最後に収束した変位のコピー。"""
+
+    def __init__(self, step: int, load_factor: float, displacement: np.ndarray):
+        super().__init__(f'Nonlinear analysis did not converge at step {step} '
+                         f'(load factor {load_factor:g})')
+        self.step = step
+        self.load_factor = load_factor
+        self.displacement = displacement.copy()
 
 
 class NonlinearSolver(Solver):
@@ -28,11 +40,11 @@ class NonlinearSolver(Solver):
     DEFAULT_N_STEPS = 10
     DEFAULT_MAX_ITER = 50
     DEFAULT_TOL = 1e-6
-    DEFAULT_MIN_STEP_SIZE = 0.01
 
     def __init__(self):
         super().__init__()
         self.convergence_history: List[Dict[str, Any]] = []
+        self._last_internal_force: Optional[np.ndarray] = None
 
     def solve_nonlinear(
         self,
@@ -61,7 +73,16 @@ class NonlinearSolver(Solver):
 
         Returns:
             解析結果の辞書
+
+        Raises:
+            NonlinearConvergenceError: 荷重ステップが収束せず、最後の確定状態へ戻した場合。
+            ValueError: 反復パラメータや境界条件が無効な場合。
         """
+        for name, value in [('n_steps', n_steps), ('max_iter', max_iter)]:
+            if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)) or value <= 0:
+                raise ValueError(f'{name} must be a positive integer')
+        if not np.isfinite(tol) or tol <= 0:
+            raise ValueError('tol must be finite and positive')
         print("=== 材料非線形解析開始 ===")
         print(f"  - 荷重ステップ数: {n_steps}")
         print(f"  - 最大反復数: {max_iter}")
@@ -76,6 +97,8 @@ class NonlinearSolver(Solver):
 
         # 初期変位
         u = np.zeros(n_dof)
+        self.displacement = u.copy()
+        self._last_internal_force = None
 
         # 結果格納用
         step_results: List[Dict[str, Any]] = []
@@ -89,22 +112,30 @@ class NonlinearSolver(Solver):
             print(f"\n--- Step {step + 1}/{n_steps} (lambda = {lambda_factor:.3f}) ---")
 
             # Newton-Raphson反復
-            converged, u, n_iter = self._newton_raphson_iteration(
-                mesh, material, boundary, elements,
-                u, F_ext, max_iter, tol, max_dof_per_node
-            )
-
-            if not converged:
-                print(f"  [警告] Step {step + 1}で収束しませんでした")
-                # 状態をロールバック
-                for elem_id, element in elements.items():
+            committed_u = u.copy()
+            history_start = len(self.convergence_history)
+            try:
+                converged, u, n_iter = self._newton_raphson_iteration(
+                    mesh, material, boundary, elements,
+                    u, F_ext, max_iter, tol, max_dof_per_node, lambda_factor
+                )
+                if not converged:
+                    raise NonlinearConvergenceError(step + 1, lambda_factor, committed_u)
+            except Exception:
+                self.displacement = committed_u.copy()
+                for element in elements.values():
                     if hasattr(element, 'rollback_state'):
                         element.rollback_state()
-            else:
-                # 状態変数をコミット
-                for elem_id, element in elements.items():
-                    if hasattr(element, 'commit_state'):
-                        element.commit_state()
+                raise
+            finally:
+                for record in self.convergence_history[history_start:]:
+                    record['step'] = step + 1
+                    record['lambda'] = lambda_factor
+
+            for element in elements.values():
+                if hasattr(element, 'commit_state'):
+                    element.commit_state()
+            self.displacement = u.copy()
 
             # ステップ結果を保存
             step_result = {
@@ -126,6 +157,9 @@ class NonlinearSolver(Solver):
             'node_displacements': self._format_node_displacements(u, mesh),
             'step_results': step_results,
             'convergence_history': self.convergence_history,
+            'reaction_forces': self._format_reactions(
+                self._last_internal_force - F_total, boundary, max_dof_per_node),
+            'converged': True,
             'analysis_type': 'material_nonlinear'
         }
 
@@ -143,7 +177,8 @@ class NonlinearSolver(Solver):
         F_ext: np.ndarray,
         max_iter: int,
         tol: float,
-        max_dof_per_node: int
+        max_dof_per_node: int,
+        load_factor: float = 1.0
     ) -> tuple:
         """Newton-Raphson反復を実行
 
@@ -163,6 +198,10 @@ class NonlinearSolver(Solver):
         """
         u = u_init.copy()
         du = np.zeros_like(u)
+        prescribed, springs = self._get_boundary_dofs(boundary, len(u), max_dof_per_node)
+        # このステップの強制変位を先に満たす。反復ごとに加算しない。
+        for dof, value in prescribed.items():
+            u[dof] = load_factor * value
 
         for iteration in range(max_iter):
             # 内力ベクトルの組み立て
@@ -170,13 +209,20 @@ class NonlinearSolver(Solver):
 
             # 残差ベクトル
             R = F_ext - F_int
+            if not np.all(np.isfinite(R)):
+                return False, u, iteration + 1
+            R_with_springs = R.copy()
+            for dof, stiffness in springs.items():
+                R_with_springs[dof] -= stiffness * u[dof]
 
             # 境界条件を考慮した残差
-            R_mod = self._apply_bc_to_residual(R, boundary, max_dof_per_node)
+            R_mod = self._apply_bc_to_residual(R_with_springs, boundary, max_dof_per_node)
 
             # 収束判定
             R_norm = np.linalg.norm(R_mod)
-            F_norm = max(np.linalg.norm(F_ext), 1.0)
+            # 固定DOFへ直接加えた荷重は自由DOFの釣合い精度の尺度に含めない。
+            F_free = self._apply_bc_to_residual(F_ext, boundary, max_dof_per_node)
+            F_norm = max(np.linalg.norm(F_free), 1.0)
             relative_residual = R_norm / F_norm
 
             # 変位増分ノルム（初回以降）
@@ -205,17 +251,20 @@ class NonlinearSolver(Solver):
             if relative_residual < tol:
                 if iteration == 0 or relative_du < tol:
                     print(f"    収束しました (iteration = {iteration + 1})")
+                    self._last_internal_force = F_int.copy()
                     return True, u, iteration + 1
 
             # 接線剛性行列の組み立て
             K_tan = self._assemble_tangent_stiffness(mesh, material, elements, u, max_dof_per_node)
 
             # 境界条件の適用
-            K_mod, R_mod = self.apply_boundary_conditions(K_tan, R, boundary)
+            K_mod, R_mod = self.apply_boundary_conditions(
+                K_tan, R, boundary, max_dof_per_node,
+                current_displacement=u, load_factor=load_factor)
 
             # 変位増分の計算
             try:
-                du = self.solve_linear_system(K_mod, R_mod)
+                du = self._solve_newton_system(K_mod, R_mod)
             except ValueError as e:
                 print(f"    [エラー] 線形ソルバーが失敗: {e}")
                 return False, u, iteration + 1
@@ -226,6 +275,42 @@ class NonlinearSolver(Solver):
         # 最大反復数に到達
         print(f"    最大反復数 ({max_iter}) に到達、収束せず")
         return False, u, max_iter
+
+    @staticmethod
+    def _solve_newton_system(K: csr_matrix, R: np.ndarray) -> np.ndarray:
+        """対称スケーリング後に直接解法で解く。人工剛性による正則化は行わない。"""
+        if not np.all(np.isfinite(K.data)) or not np.all(np.isfinite(R)):
+            raise ValueError('Non-finite Newton equation')
+        row_scale = np.asarray(abs(K).max(axis=1).toarray()).ravel()
+        if np.any(row_scale == 0):
+            raise ValueError('Singular Newton stiffness: zero row')
+        scaling = 1.0 / np.sqrt(row_scale)
+        D = diags(scaling)
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter('error', MatrixRankWarning)
+                scaled_solution = spsolve((D @ K @ D).tocsc(), scaling * R)
+        except (MatrixRankWarning, RuntimeError) as error:
+            raise ValueError('Singular Newton stiffness') from error
+        du = scaling * scaled_solution
+        if not np.all(np.isfinite(du)):
+            raise ValueError('Non-finite Newton increment')
+        error = np.linalg.norm(K @ du - R, ord=np.inf)
+        if error > 1e-8 * max(np.linalg.norm(R, ord=np.inf), 1.0):
+            raise ValueError('Newton equation residual exceeds tolerance')
+        return du
+
+    def _format_reactions(self, reaction: np.ndarray, boundary: BoundaryCondition,
+                          stride: int) -> Dict[int, Dict[str, float]]:
+        """構造要素内力−外力。ばね支持では -k*u と等しい。"""
+        names = ('fx', 'fy', 'fz', 'mx', 'my', 'mz')
+        result = {}
+        for node_id, restraint in boundary.restraints.items():
+            values = {names[i]: float(reaction[self._node_dof_start(node_id, stride) + i])
+                      for i, fixed in enumerate(restraint.dof_restraints[:stride]) if fixed}
+            if values:
+                result[node_id] = values
+        return result
 
     def _assemble_internal_forces(
         self,
@@ -259,7 +344,7 @@ class NonlinearSolver(Solver):
             dof_indices = []
             elem_dof_per_node = element.get_dof_per_node()
             for node_id in node_ids:
-                base_dof = (node_id - 1) * max_dof_per_node
+                base_dof = self._node_dof_start(node_id, max_dof_per_node)
                 for i in range(elem_dof_per_node):
                     dof_indices.append(base_dof + i)
 
@@ -315,7 +400,7 @@ class NonlinearSolver(Solver):
             dof_indices = []
             elem_dof_per_node = element.get_dof_per_node()
             for node_id in node_ids:
-                base_dof = (node_id - 1) * max_dof_per_node
+                base_dof = self._node_dof_start(node_id, max_dof_per_node)
                 for i in range(elem_dof_per_node):
                     dof_indices.append(base_dof + i)
 
@@ -356,34 +441,10 @@ class NonlinearSolver(Solver):
         """
         R_mod = R.copy()
 
-        for node_id, restraint in boundary.restraints.items():
-            base_dof = (node_id - 1) * max_dof_per_node
-
-            for i, is_restrained in enumerate(restraint.dof_restraints):
-                if is_restrained and i < max_dof_per_node:
-                    dof = base_dof + i
-                    if dof < len(R_mod):
-                        R_mod[dof] = 0.0
+        prescribed, _ = self._get_boundary_dofs(boundary, len(R), max_dof_per_node)
+        R_mod[list(prescribed)] = 0.0
 
         return R_mod
-
-    def _get_max_dof_per_node(self, mesh: MeshModel) -> int:
-        """最大自由度/節点を決定
-
-        Args:
-            mesh: メッシュデータ
-
-        Returns:
-            節点あたりの最大自由度数
-        """
-        has_solid_only = True
-        for elem_data in mesh.elements.values():
-            elem_type = elem_data.get('type', 'bar')
-            if elem_type not in ['tetra', 'hexa', 'wedge']:
-                has_solid_only = False
-                break
-
-        return 3 if has_solid_only else 6
 
     def _format_node_displacements(
         self,
@@ -403,7 +464,7 @@ class NonlinearSolver(Solver):
         node_displacements: Dict[int, Dict[str, float]] = {}
 
         for node_id in mesh.nodes.keys():
-            base_dof = (node_id - 1) * max_dof_per_node
+            base_dof = self._node_dof_start(node_id, max_dof_per_node)
 
             if max_dof_per_node == 6:
                 node_displacements[node_id] = {
