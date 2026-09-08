@@ -32,3 +32,4 @@ tests/data/**/*.PEL
 tests/data/**/*.PIC
 tests/data/**/*.PMP
 tests/data/**/*.R10
+tests/data/**/*.zip
