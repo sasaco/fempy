@@ -1,10 +1,10 @@
 {
   "reference": "tests/reference_solutions.py: equilibrium, inverse skeleton and scalar flexibility",
   "input_path": "tests/data/snap/beam001.json",
-  "input_sha256": "2d53c1f603555445526d1c038c755cf14167f493442e671a6a07ced3acf8ff01",
+  "input_sha256": "1c7269fd1b5e0d856de31f23c5df0c09af19f0cafa062af9021ad7c1dc91261b",
   "tip_force": 1000,
   "central_moment": -4850.0,
-  "central_curvature": -0.0009325000000000002,
+  "central_curvature": -0.0009420275,
   "shear_correction_by_member": {
     "1": false,
     "2": false,
@@ -12,25 +12,33 @@
   },
   "shear_strain": 0.0,
   "tip": {
-    "dx": 0.0004537460628933262,
+    "dx": 0.00045836690039308207,
     "dy": 0.0,
     "dz": 0.0,
     "rx": 0.0,
     "ry": 0.0,
-    "rz": 9.370339622646552e-05
+    "rz": 9.465614622641516e-05
   },
   "maximum_absolute_error_final": {
-    "node_displacements": 2.443791696782327e-16,
-    "element_stresses": 1.7227284843102098e-07,
-    "reaction_forces": 1.1114025255665183e-09
+    "node_displacements": 3.2526065174565133e-19,
+    "element_stresses": 3.8646817301923875e-08,
+    "reaction_forces": 3.5925040720030665e-11
   },
   "maximum_absolute_error_all_steps": {
-    "node_displacements": 2.443791696782327e-16,
-    "element_stresses": 2.480179546182626e-07,
-    "reaction_forces": 1.1114025255665183e-09
+    "node_displacements": 7.589415207398531e-19,
+    "element_stresses": 2.1209189071669243e-07,
+    "reaction_forces": 2.099653784171096e-10
   },
   "step_count": 100,
-  "maximum_final_step_relative_residual": 3.7356857187464803e-10,
+  "maximum_final_step_relative_residual": 3.0956575597525707e-10,
+  "free_end_moment_error_all_steps": 0.0,
+  "constitutive_free_end_moment_error_all_steps": 3.7774083326043243e-10,
+  "force_recovery": {
+    "method": "free_branch_equilibrium",
+    "elements": [
+      1
+    ]
+  },
   "limitation": "Mathematical small-displacement central-section validation only. Omitted G disables shear deformation; external JR agreement is not established.",
   "external_sources": {
     "OUT": {

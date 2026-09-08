@@ -19,7 +19,7 @@ class ShellElement(BaseElement):
     """
     
     def __init__(self, element_id: int, node_ids: List[int], material_id: int,
-                 thickness: float):
+                 thickness: float, formulation: str = 'mindlin'):
         """
         Args:
             element_id: 要素ID
@@ -38,6 +38,9 @@ class ShellElement(BaseElement):
             raise ValueError("Shell element must have exactly 3 or 4 nodes")
             
         super().__init__(element_id, node_ids, material_id)
+        if formulation not in ('mindlin', 'dkt') or (formulation == 'dkt' and self.n_nodes != 3):
+            raise ValueError('Shell formulation must be mindlin, or dkt for a triangle')
+        self.formulation = formulation
         self.thickness = thickness
         self.material: Optional[Material] = None
         self.shell_param: Optional[ShellParameter] = None
@@ -211,6 +214,10 @@ class ShellElement(BaseElement):
             bending[2, j+3:j+5] = [-dx, dy]
             shear[0, j+2], shear[0, j+4] = dx, shape[i]
             shear[1, j+2], shear[1, j+3] = dy, -shape[i]
+        if self.formulation == 'dkt':
+            from .dkt import curvature_matrix
+            bending = curvature_matrix(xi, coords)
+            shear = np.zeros_like(shear)
         return membrane, bending, shear, determinant
 
     def _assumed_quad_shear(self, xi, coords):
@@ -232,11 +239,12 @@ class ShellElement(BaseElement):
         return np.linalg.solve(jacobian, covariant)
 
     def get_stiffness_matrix(self) -> np.ndarray:
-        """Planar Mindlin shell in physical global displacement/rotation DOFs.
+        """Planar shell in physical global displacement/rotation DOFs.
 
         Membrane and bending use full integration. Quad transverse shear uses
-        MITC4 tying; triangles use three-point integration (thin-plate locking
-        remains a limitation). The legacy drilling *difference* regularizer
+        MITC4 tying. Mindlin triangles use three-point shear integration;
+        DKT triangles use discrete Kirchhoff bending without shear energy.
+        The legacy drilling *difference* regularizer
         has a constant null mode. No diagonal shift or fallback is permitted.
         """
         coords, basis = self._local_frame()
@@ -307,6 +315,10 @@ class ShellElement(BaseElement):
                         
         return Me
         
+    def calculate_shell_results(self, displacement: np.ndarray) -> Dict[str, Any]:
+        from .shell_postprocess import shell_results
+        return shell_results(self, displacement)
+
     def calculate_stress_strain(self, displacement: np.ndarray) -> Dict[str, Any]:
         """応力とひずみを計算（動的サイズ対応）
         

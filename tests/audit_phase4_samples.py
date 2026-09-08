@@ -26,6 +26,26 @@ def audit_case(path, case_id):
                      signs='src/app/result.py section-cut convention',
                      positions='node labels; notice-point segment i/j ends'))
     actual = None
+    support_repair = None
+    support_manifest = Path('docs/report/material-nonlinear-phase4-support-repairs.json')
+    if support_manifest.exists():
+        support_repair = next((item for item in json.loads(support_manifest.read_text(encoding='utf8'))
+            if item['sample'] == path.as_posix() and item['after_sha256'] == entry['input_sha256']), None)
+    repairs = Path('docs/report/material-nonlinear-phase4-source-repairs.json')
+    if repairs.exists():
+        for repair in json.loads(repairs.read_text(encoding='utf-8')):
+            if (repair['sample'] == path.as_posix() and
+                    repair.get('after_sha256') in (entry['input_sha256'],
+                        support_repair['before_sha256'] if support_repair else None)):
+                entry['reference']['field_sources'] = dict(disg=dict(
+                    source=repair['source'], sha256=repair['source_sha256'],
+                    units='Native source displacement units; no 1000x rescaling',
+                    input_equivalence='nodes, E/nu, nodal loads, restraints checked by restore_phase4_sources.py'))
+    if support_repair:
+        entry['reference'].setdefault('field_sources', {})['reac'] = dict(
+            method=support_repair['source_reference']['method'],
+            hashes=support_repair['source_reference']['hashes'],
+            maximum_free_force_residual=support_repair['source_reference']['maximum_free_force_residual'])
     try:
         data = select_case(data, case_id)
         entry['input_findings'] = input_findings(data)

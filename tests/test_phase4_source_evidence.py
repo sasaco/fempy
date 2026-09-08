@@ -9,8 +9,8 @@ from phase4_source_evidence import ROOT, input_findings, read_v0, source_evidenc
 from src.fem.legacy_beam import select_case
 
 
-@pytest.mark.parametrize('name', ['sampleBendHexa1', 'sampleBendWedge1'])
-def test_complete_external_solid_input_and_thousandfold_embedded_displacement(name):
+@pytest.mark.parametrize('name', ['sampleBendHexa1', 'sampleBendWedge1', 'sampleBendHexa2', 'sampleBendWedge2', 'sampleBendTetra2'])
+def test_complete_external_solid_input_and_repaired_displacement(name):
     path = ROOT/'tests/data/bend'/f'{name}.json'
     original = path.read_bytes()
     data = select_case(json.loads(original))
@@ -19,8 +19,14 @@ def test_complete_external_solid_input_and_thousandfold_embedded_displacement(na
     assert all(v['mismatches'] == 0 for v in out['input_comparison'].values())
     assert out['reference_coverage']['missing_source_nodes'] == []
     scales = out['embedded_displacement_divided_by']
-    assert scales['1']['mismatches'] > 1000
-    assert scales['1000']['mismatches'] == 0
+    assert scales['1']['mismatches'] == 0
+    assert scales['1000']['mismatches'] > 1000
+    # Reintroducing the old transfer defect must still be diagnosed.
+    for values in data['result']['1']['disg'].values():
+        for key in values: values[key] *= 1000
+    changed = source_evidence(path, data)[1]['embedded_displacement_divided_by']
+    assert changed['1']['mismatches'] > 1000
+    assert changed['1000']['mismatches'] == 0
     assert path.read_bytes() == original
 
 
@@ -28,6 +34,9 @@ def test_complete_external_solid_input_and_thousandfold_embedded_displacement(na
 def test_missing_json_connectivity_is_proved_against_original_fem(name):
     path = ROOT/'tests/data/bend'/f'{name}.json'
     data = select_case(json.loads(path.read_text(encoding='utf-8')))
+    if name != 'sampleBendTri1':
+        assert data['solid']  # Restored topology is now present in the fixture.
+        data.pop('solid')  # Recreate the historical migration defect.
     assert any(v['code'] == 'missing_element_topology' for v in input_findings(data))
     source = read_v0(ROOT/'docs/v0/testdata/bend'/f'{name}.fem')
     assert source['elements']

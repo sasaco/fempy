@@ -16,6 +16,7 @@ DOFS = ('dx', 'dy', 'dz', 'rx', 'ry', 'rz')
 
 
 def read_v0(path):
+    path = Path(path).resolve()
     records = {key: {} for key in ('nodes', 'elements', 'materials', 'restraints', 'loads', 'displacements')}
     records['sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
     records['path'] = path.relative_to(ROOT).as_posix()
@@ -33,10 +34,13 @@ def read_v0(path):
             records['elements'][fields[1]] = dict(type=fields[0], material=fields[2],
                 nodes=fields[4:] if is_shell else fields[3:], line=number)
         elif kind == 'restraint':
-            records['restraints'][fields[1]] = list(map(float, fields[2:]))
+            values = list(map(float, fields[2:]))
+            records['restraints'][fields[1]] = values+[0.]*(12-len(values))
         elif kind == 'load':
             previous = records['loads'].setdefault(fields[1], [0.]*6)
-            records['loads'][fields[1]] = [a+float(b) for a, b in zip(previous, fields[2:8])]
+            values = list(map(float, fields[2:8]))
+            values += [0.]*(6-len(values))
+            records['loads'][fields[1]] = [a+b for a, b in zip(previous, values)]
         elif kind == 'displacement':
             if len(fields) != 8:
                 raise ValueError(f'Invalid displacement at {path}:{number}')
@@ -169,5 +173,9 @@ def source_evidence(path, data, actual_displacement=None):
             if actual_displacement is not None:
                 errors = comparison_errors(actual_displacement, displacements)
                 evidence['solver_vs_source_displacement'] = dict(mismatches=len(errors), examples=[s[:500] for s in errors[:5]])
+                if actual_displacement.keys() == displacements.keys():
+                    evidence['solver_vs_source_displacement']['max_absolute_difference'] = max(
+                        abs(actual_displacement[n][d]-value)
+                        for n, row in displacements.items() for d, value in row.items())
         result.append(evidence)
     return result

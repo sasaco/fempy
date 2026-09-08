@@ -102,11 +102,12 @@ Node 2 1.0 0.0 0.0
 Node 3 1.0 1.0 0.0
 Node 4 0.0 1.0 0.0
 
-Material 1 Steel 2.05e11 0.3 7850.0
+Material 1 2.05e11 0.3 78846153846.15384 7850.0 45.0 1.0
+ShellParameter 1 0.01
 
 QuadElement1 1 1 1 1 2 3 4
 
-Restraint 1 1 1 1 0 0 0
+Restraint 1 1 0 1 0 1 0 0 0 0 0 0 0
 
 Pressure 1 F1 1000.0
 """

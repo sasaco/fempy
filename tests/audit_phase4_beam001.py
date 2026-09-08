@@ -46,6 +46,12 @@ def measure():
                    maximum_final_step_relative_residual=max(
                        [c for c in result['convergence_history'] if c['step']==step['step']][-1]['relative_residual']
                        for step in result['step_results']),
+                   free_end_moment_error_all_steps=max(abs(step['element_stresses']['1']['i_end'][5])
+                                                       for step in result['step_results']),
+                   constitutive_free_end_moment_error_all_steps=max(
+                       abs(step.get('constitutive_element_stresses', step['element_stresses'])['1']['i_end'][5])
+                       for step in result['step_results']),
+                   force_recovery=result.get('force_recovery'),
                    limitation='Mathematical small-displacement central-section validation only. '
                               'Omitted G disables shear deformation; external JR agreement is not established.')
     external = {}

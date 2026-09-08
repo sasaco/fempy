@@ -1,0 +1,82 @@
+[
+  {
+    "sample": "tests/data/bend/sampleBendHexa1.json",
+    "source": "docs/v0/testdata/bend/sampleBendHexa1.out",
+    "source_sha256": "9679967490cba4933442b5e1b58a1f61df233e9c8e543b4f2270b73d48a4761f",
+    "before_sha256": "c88c868cc95741eeb35a2c21e165a5aec7741da61057ae2f07679680f8b8e864",
+    "restored_elements": 0,
+    "source_displacement_nodes": 620,
+    "missing_reference_fields": [
+      "fsec",
+      "reac",
+      "shell_fsec",
+      "shell_results",
+      "size"
+    ],
+    "after_sha256": "fc0cee154423a4ee4717ede09a89fb26b2fdc23f5a6200cd5a2e2926e5dbd880"
+  },
+  {
+    "sample": "tests/data/bend/sampleBendWedge1.json",
+    "source": "docs/v0/testdata/bend/sampleBendWedge1.out",
+    "source_sha256": "238b8f282b8ccc6b6a47671036830d1071962043fe2068b5eb68dda30f8ddbf4",
+    "before_sha256": "65b642bd1f08d8394e0094e1a262b5e5af6067c82c799954be9ddac2d9fe708f",
+    "restored_elements": 0,
+    "source_displacement_nodes": 620,
+    "missing_reference_fields": [
+      "fsec",
+      "reac",
+      "shell_fsec",
+      "shell_results",
+      "size"
+    ],
+    "after_sha256": "c492fa532ddf3b76bdc48a0113897301eefe91021082278d572421693d3f4c61"
+  },
+  {
+    "sample": "tests/data/bend/sampleBendHexa2.json",
+    "source": "docs/v0/testdata/bend/sampleBendHexa2.out",
+    "source_sha256": "27f05878b755d0db6dca8d0911b1d29aaef94b994b713f176f3ad8ab7e28f1f4",
+    "before_sha256": "6f9ff632c9945b85a6b080b1a25defe0c33c78d03ad33b3397fe863d99cef97e",
+    "restored_elements": 360,
+    "source_displacement_nodes": 2181,
+    "missing_reference_fields": [
+      "fsec",
+      "reac",
+      "shell_fsec",
+      "shell_results",
+      "size"
+    ],
+    "after_sha256": "c4a14c904197e68e771d94f8e762c219bc722e7a28f4914442dd4a46756e3a95"
+  },
+  {
+    "sample": "tests/data/bend/sampleBendWedge2.json",
+    "source": "docs/v0/testdata/bend/sampleBendWedge2.out",
+    "source_sha256": "3e7be4f9d6a82bc9a56b60ddf880818c4a1844a258db7e305b3f32c21a6ea68b",
+    "before_sha256": "60834b699e37ac91d0e7aa636ecee80a737aaf7a7f9c279ca8c4ba985f697e14",
+    "restored_elements": 720,
+    "source_displacement_nodes": 2661,
+    "missing_reference_fields": [
+      "fsec",
+      "reac",
+      "shell_fsec",
+      "shell_results",
+      "size"
+    ],
+    "after_sha256": "dcaab9e4912a6e0c92ec12dcb65f9066497738c8a6540a34436c19b81c77d4e9"
+  },
+  {
+    "sample": "tests/data/bend/sampleBendTetra2.json",
+    "source": "docs/v0/testdata/bend/sampleBendTetra2.out",
+    "source_sha256": "3ff17b03882dd19f0cc7e0121e479dbfcf5b8867f69911185ec2d4a88fa97874",
+    "before_sha256": "ce252fae6305aca640f4bb3fc89df46612a93afd43400794a969ee1f08966ebe",
+    "restored_elements": 2160,
+    "source_displacement_nodes": 3843,
+    "missing_reference_fields": [
+      "fsec",
+      "reac",
+      "shell_fsec",
+      "shell_results",
+      "size"
+    ],
+    "after_sha256": "58143295d19b4d86169ed71364e6079bb2962653fb3b4582d61f5fd6cee39167"
+  }
+]

@@ -9,6 +9,7 @@ from scipy.sparse.linalg import eigsh
 from .mesh import MeshModel
 from .boundary_condition import BoundaryCondition
 from .material import Material
+from .precision import sparse_product, add_correction
 
 
 class Solver:
@@ -55,7 +56,7 @@ class Solver:
         has_solid_only = True
         for elem_id, elem_data in mesh.elements.items():
             elem_type = elem_data.get('type', 'bar')
-            if elem_type not in ['tetra', 'hexa', 'wedge']:
+            if elem_type not in ['tetra', 'hexa', 'wedge', 'tetra2', 'hexa2', 'wedge2', 'TetraElement1', 'HexaElement1', 'WedgeElement1', 'TetraElement2', 'HexaElement2', 'WedgeElement2']:
                 has_solid_only = False
                 break
         
@@ -122,7 +123,7 @@ class Solver:
         has_solid_only = True
         for elem_id, elem_data in mesh.elements.items():
             elem_type = elem_data.get('type', 'bar')
-            if elem_type not in ['tetra', 'hexa', 'wedge']:
+            if elem_type not in ['tetra', 'hexa', 'wedge', 'tetra2', 'hexa2', 'wedge2', 'TetraElement1', 'HexaElement1', 'WedgeElement1', 'TetraElement2', 'HexaElement2', 'WedgeElement2']:
                 has_solid_only = False
                 break
         
@@ -189,7 +190,7 @@ class Solver:
         has_solid_only = True
         for elem_id, elem_data in mesh.elements.items():
             elem_type = elem_data.get('type', 'bar')
-            if elem_type not in ['tetra', 'hexa', 'wedge']:
+            if elem_type not in ['tetra', 'hexa', 'wedge', 'tetra2', 'hexa2', 'wedge2', 'TetraElement1', 'HexaElement1', 'WedgeElement1', 'TetraElement2', 'HexaElement2', 'WedgeElement2']:
                 has_solid_only = False
                 break
         
@@ -269,7 +270,7 @@ class Solver:
         
     @staticmethod
     def _get_max_dof_per_node(mesh: MeshModel) -> int:
-        return 3 if all(e.get('type', 'bar') in ('tetra', 'hexa', 'wedge')
+        return 3 if all(e.get('type', 'bar') in ('tetra', 'hexa', 'wedge', 'tetra2', 'hexa2', 'wedge2', 'TetraElement1', 'HexaElement1', 'WedgeElement1', 'TetraElement2', 'HexaElement2', 'WedgeElement2')
                         for e in mesh.elements.values()) else 6
 
     def _get_boundary_dofs(self, boundary: BoundaryCondition, n_dof: int,
@@ -360,14 +361,18 @@ class Solver:
         if np.min(pivots) <= np.finfo(float).eps * K.shape[0] * max(1., np.max(pivots)):
             raise ValueError('Singular stiffness matrix: numerical rank deficiency')
         u = scale*lu.solve(scale*F)
-        # Refine against the original system, without modifying its stiffness.
-        for _ in range(2):
-            u += scale*lu.solve(scale*(F-K@u))
-        residual = K@u-F
+        # Keep the displacement's low part and product rounding errors during
+        # refinement. Ordinary K*u cannot resolve small support reactions.
+        low = np.zeros_like(u)
+        for _ in range(4):
+            residual = F-sparse_product(K, u, low)
+            u, low = add_correction(u, low, scale*lu.solve(scale*residual))
+        residual = sparse_product(K, u, low)-F
         bound = np.linalg.norm(np.abs(equilibrated)@np.abs(u/scale)+np.abs(scale*F), ord=np.inf)
         if not np.all(np.isfinite(u)) or np.linalg.norm(scale*residual, ord=np.inf) > 1e-10*max(bound, np.finfo(float).tiny):
             raise ValueError('Linear system failed equilibrium check')
         self.displacement = u
+        self.displacement_correction = low
         return u
 
     def solve(self, mesh: MeshModel, material: Material, boundary: BoundaryCondition,
@@ -403,9 +408,13 @@ class Solver:
         if np.any(absent):
             u = np.zeros(len(F_mod))
             u[active] = self.solve_linear_system(K_mod[active][:, active], F_mod[active])
+            low = np.zeros_like(u); low[active] = self.displacement_correction
+            self.displacement_correction = low
             self.displacement = u
         else:
             u = self.solve_linear_system(K_mod, F_mod)
+
+        correction, internal = self._refine_beam_equilibrium(mesh, boundary, elements, K_mod, F, u, absent)
         
         # 結果を整形
         results = {
@@ -413,8 +422,64 @@ class Solver:
             'node_displacements': self._format_node_displacements(u, mesh),
             'reaction_forces': self._calculate_reaction_forces(K, u, F, boundary, stride)
         }
+        if correction is not None:
+            results['displacement_correction'] = correction
+            # Use the same constitutive evaluation for both support reactions
+            # and member end forces; assembled K*u has cancellation again.
+            prescribed, springs = self._get_boundary_dofs(boundary, len(u), stride)
+            names = ('fx', 'fy', 'fz', 'mx', 'my', 'mz')
+            for node, reaction in results['reaction_forces'].items():
+                start = self._node_dof_start(node, stride)
+                for j, name in enumerate(names[:stride]):
+                    dof = start+j
+                    if name in reaction:
+                        reaction[name] = (float(internal[dof]-F[dof]) if dof in prescribed else
+                                          float(-springs[dof]*(u[dof]+correction[dof])) if dof in springs else 0.)
         
         return results
+
+    def _refine_beam_equilibrium(self, mesh, boundary, elements, constrained_k, loads, u, absent):
+        """Refine linear frames with element forces and two-part displacements.
+
+        The assembled matrix is only the correction operator. Its large
+        diagonal terms can lose the short member's small deformation, so the
+        residual is evaluated from the constitutive element kinematics.
+        """
+        from math import fsum
+        from scipy.sparse.linalg import splu
+        from .elements.loaded_bar_element import LoadedBarElement
+        if not elements or not all(isinstance(e, LoadedBarElement) for e in elements.values()):
+            low = self.displacement_correction.copy()
+            return low, sparse_product(self.assembled_stiffness, u, low)
+        prescribed, springs = self._get_boundary_dofs(boundary, len(u), 6)
+        free = np.array([i for i in range(len(u)) if i not in prescribed and not absent[i]], dtype=int)
+        low = self.displacement_correction.copy()
+        indices = {key: [self._node_dof_start(n, 6)+i for n in e.node_ids for i in range(6)]
+                   for key, e in elements.items()}
+        lu = None
+        for iteration in range(16):
+            terms = [[] for _ in u]
+            force_scale = max(1., np.max(np.abs(loads)))
+            for key, element in elements.items():
+                ix = indices[key]
+                values = element.get_internal_force(u[ix], displacement_correction=low[ix])
+                force_scale = max(force_scale, np.max(np.abs(values)))
+                for dof, value in zip(ix, values):
+                    terms[dof].append(value)
+            internal = np.array([fsum(row) for row in terms])
+            residual = loads-internal
+            for dof, stiffness in springs.items():
+                residual[dof] = fsum([residual[dof], -stiffness*u[dof], -stiffness*low[dof]])
+            if not len(free) or np.max(np.abs(residual[free])) <= 1e-11*force_scale:
+                return low, internal
+            if lu is None:
+                k = constrained_k[free][:, free]
+                scale = 1/np.sqrt(np.abs(k.diagonal()))
+                lu = splu((diags(scale)@k@diags(scale)).tocsc())
+            delta = scale*lu.solve(scale*residual[free])
+            # Error-free TwoSum retains the part rounded off by u += delta.
+            u[free], low[free] = add_correction(u[free], low[free], delta)
+        raise ValueError('Linear frame failed constitutive equilibrium refinement')
         
     def eigenvalue_analysis(self, mesh: MeshModel, material: Material,
                           boundary: BoundaryCondition, elements: Dict[int, Any],

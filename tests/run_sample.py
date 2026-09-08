@@ -110,7 +110,8 @@ def legacy_result_view(result, model, data):
             reaction = result['reaction_forces'].get(str(generated[-1]), {})
             reactions['0'] = dict(tx=0., ty=0., tz=0., mx=0., my=0., mz=reaction.get('mz', 0.))
     return dict(disg=displacement, reac=reactions, fsec=sections, size=len(model.mesh.nodes),
-                shell_fsec=result.get('shell_fsec', {}), shell_results=result.get('shell_results', {}))
+                shell_fsec=result.get('shell_fsec', {}),
+                shell_results=result.get('legacy_shell_results', result.get('shell_results', {})))
 
 
 def comparison_errors(actual, expected, path=''):

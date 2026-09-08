@@ -207,13 +207,17 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 material_id = int(material_id)
             
             # 材料情報からthicknessを取得
-            thickness = 0.01  # デフォルト厚さ
+            thickness = None
             if 'element' in data:
                 for _, elem_defs in data['element'].items():
                     for mat_id_str, elem_def in elem_defs.items():
                         if int(mat_id_str) == material_id:
-                            thickness = elem_def.get('thickness', 0.01)
+                            # Legacy section_material.Thickness uses A. An
+                            # explicit migrated thickness field takes precedence.
+                            thickness = elem_def.get('thickness', elem_def.get('A'))
                             break
+            if thickness is None or not np.isfinite(thickness) or thickness <= 0:
+                raise ValueError(f'Shell {shell_id} requires finite positive thickness (thickness or A)')
             
             element_id = int(shell_id)
             if element_id in model_data['mesh'].elements:
@@ -224,6 +228,7 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 nodes,
                 material_id,
                 thickness=thickness,
+                formulation=shell_data.get('formulation', 'dkt' if len(nodes) == 3 else 'mindlin'),
                 shell_id=int(shell_id)  # shell IDを保存
             )
     
@@ -531,149 +536,9 @@ def _read_fw3_model(lines: list[str]) -> Dict[str, Any]:
 
 
 def _read_fem_model(lines: list[str]) -> Dict[str, Any]:
-    """V0の.femファイル形式を読み込む
-    
-    V0テストデータ互換性:
-    - TriElement1 要素_ID 材料_ID パラメータ_ID 節点1 節点2 節点3
-    - QuadElement1 要素_ID 材料_ID パラメータ_ID 節点1 節点2 節点3 節点4
-    - BarElement 要素_ID 材料_ID パラメータ_ID 節点1 節点2
-    """
-    model_data = {
-        'mesh': MeshModel(),
-        'boundary': BoundaryCondition(),
-        'material': Material(),
-        'section': Section()
-    }
-    
-    # デフォルト材料を追加
-    default_material = MaterialProperty(
-        name="Default Steel",
-        E=2.05e11,  # Pa
-        nu=0.3,
-        density=7850.0  # kg/m³
-    )
-    model_data['material'].add_material(1, default_material)
-           
-    for line_num, line in enumerate(lines, 1):
-        line = line.strip()
-        if not line or line.startswith('#') or line.startswith('//'):
-            continue
-            
-        parts = line.split()
-        if len(parts) < 2:
-            continue
-            
-        try:
-            # ✅ V0技術資産: TriElement1の読み込み
-            if parts[0].lower() == 'trielement1':
-                # TriElement1 要素_ID 材料_ID パラメータ_ID 節点1 節点2 節点3
-                if len(parts) >= 7:
-                    elem_id = int(parts[1])
-                    material_id = int(parts[2])
-                    param_id = int(parts[3])  # シェルパラメータID
-                    node_ids = [int(parts[4]), int(parts[5]), int(parts[6])]
-                    
-                    # 3節点三角形Shell要素として追加
-                    model_data['mesh'].add_element(
-                        elem_id, 'TriElement1', node_ids, material_id, 
-                        thickness=0.01, param_id=param_id
-                    )
-                    print(f"✅ V0互換: TriElement1読み込み完了 (ID: {elem_id}, 節点: {node_ids})")
-                    
-            # ✅ V0技術資産: QuadElement1の読み込み
-            elif parts[0].lower() == 'quadelement1':
-                # QuadElement1 要素_ID 材料_ID パラメータ_ID 節点1 節点2 節点3 節点4
-                if len(parts) >= 8:
-                    elem_id = int(parts[1])
-                    material_id = int(parts[2])
-                    param_id = int(parts[3])
-                    node_ids = [int(parts[4]), int(parts[5]), int(parts[6]), int(parts[7])]
-                    
-                    # 4節点四角形Shell要素として追加
-                    model_data['mesh'].add_element(
-                        elem_id, 'QuadElement1', node_ids, material_id,
-                        thickness=0.01, param_id=param_id
-                    )
-                    print(f"✅ V0互換: QuadElement1読み込み完了 (ID: {elem_id}, 節点: {node_ids})")
-                    
-            # ✅ V0技術資産: BarElementの読み込み
-            elif parts[0].lower() == 'barelement':
-                # BarElement 要素_ID 材料_ID パラメータ_ID 節点1 節点2
-                if len(parts) >= 6:
-                    elem_id = int(parts[1])
-                    material_id = int(parts[2])
-                    param_id = int(parts[3])
-                    node_ids = [int(parts[4]), int(parts[5])]
-                    
-                    model_data['mesh'].add_element(
-                        elem_id, 'BarElement', node_ids, material_id,
-                        param_id=param_id
-                    )
-                    
-            # 節点の読み込み（Node 節点_ID x y z 形式）
-            elif parts[0].lower() == 'node':
-                if len(parts) >= 5:
-                    node_id = int(parts[1])
-                    coords = [float(parts[2]), float(parts[3]), float(parts[4])]
-                    model_data['mesh'].add_node(node_id, coords)
-                    
-            # 材料の読み込み（Material 材料_ID 名前 E nu density）
-            elif parts[0].lower() == 'material':
-                if len(parts) >= 6:
-                    material_id = int(parts[1])
-                    name = parts[2]
-                    E = float(parts[3])
-                    nu = float(parts[4])
-                    density = float(parts[5])
-                    
-                    material = MaterialProperty(
-                        name=name,
-                        E=E,
-                        nu=nu,
-                        density=density
-                    )
-                    model_data['material'].add_material(material_id, material)
-                    
-            # 拘束の読み込み（Restraint 節点_ID dx dy dz rx ry rz）
-            elif parts[0].lower() == 'restraint':
-                if len(parts) >= 8:
-                    node_id = int(parts[1])
-                    dof_restraints = [bool(int(parts[i])) for i in range(2, 8)]
-                    model_data['boundary'].add_restraint(node_id, dof_restraints)
-                    
-            # 荷重の読み込み（Load 節点_ID fx fy fz mx my mz）
-            elif parts[0].lower() == 'load':
-                if len(parts) >= 8:
-                    node_id = int(parts[1])
-                    forces = [float(parts[i]) for i in range(2, 8)]
-                    model_data['boundary'].add_load(node_id, forces)
-                    
-            # 面圧の読み込み（Pressure 要素_ID 面番号 圧力値）
-            elif parts[0].lower() == 'pressure':
-                if len(parts) >= 4:
-                    element_id = int(parts[1])
-                    face = parts[2]  # "F1", "F2"など
-                    pressure = float(parts[3])
-                    model_data['boundary'].add_pressure(element_id, face, pressure)
-                    print(f"✅ 面圧条件読み込み完了: 要素{element_id}, 面{face}, 圧力{pressure}")
-                    
-        except (ValueError, IndexError) as e:
-            print(f"警告: .femファイル {line_num}行目の読み込みでエラー: {e}")
-            print(f"問題のある行: {line}")
-            continue
-            
-    # 読み込み結果のサマリー
-    n_nodes = len(model_data['mesh'].nodes)
-    n_elements = len(model_data['mesh'].elements)
-    n_tri_elements = sum(1 for elem in model_data['mesh'].elements.values() 
-                        if elem['type'] == 'TriElement1')
-    n_quad_elements = sum(1 for elem in model_data['mesh'].elements.values() 
-                         if elem['type'] == 'QuadElement1')
-    
-    print(f"📊 .fem読み込み完了: 節点{n_nodes}個, 要素{n_elements}個 "
-          f"(TriElement1: {n_tri_elements}, QuadElement1: {n_quad_elements})")
-    
-    return model_data
+    """Read the structural V0 format without silently discarding records."""
+    from .v0_io import read_v0_model
+    return read_v0_model(lines)
 
 
 def write_model(model_data: Dict[str, Any], file_path: str) -> None:

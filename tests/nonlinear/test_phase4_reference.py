@@ -265,12 +265,12 @@ def test_beam001_independent_flexibility_reference(route):
 
 @pytest.mark.parametrize('moment,curvature', [
     (0., 0.), (1000., -1e-5), (2000., -5.5e-5),
-    (3000., -.0001), (4850., -.0009325),
+    (3000., -.0001), (4850., -.0009420275),
 ])
 def test_beam001_reference_inverse_at_hand_calculated_ordinates(moment, curvature):
     from reference_solutions import beam001_reference
     d = json.loads((Path(__file__).parents[1]/'data/snap/beam001.json').read_text(encoding='utf-8'))
-    # Mmid=-4.85*F; third-branch kappa=-(.0001+(4850-3000)*.0009/2000).
+    # Current delta3=.0010103: kappa=-(.0001+(4850-3000)*.0009103/2000).
     factor = moment/(4.85*d['load']['1']['load_node'][0]['tx'])
     nodes = beam001_reference(d, factor)['node_displacements']
     assert (nodes['3']['rz']-nodes['2']['rz'])/.1 == pytest.approx(curvature, abs=1e-14)

@@ -604,6 +604,8 @@ class FemModel:
         }
         
         v0_solid_elements = {
+            'TetraElement1': 'tetra', 'WedgeElement1': 'wedge', 'HexaElement1': 'hexa',
+            'TetraElement2': 'tetra2', 'WedgeElement2': 'wedge2', 'HexaElement2': 'hexa2',
             'TetraElement': 'tetra',    # 四面体要素
             'HexaElement': 'hexa',      # 六面体要素
             'WedgeElement': 'wedge'     # くさび要素
@@ -667,12 +669,21 @@ class FemModel:
                 element = ShellElement(elem_id, node_ids, material_id, thickness)
                 
             # 材料とパラメータを設定
+            formulation = elem_data.get('formulation', 'dkt' if original_type == 'TriElement1' else 'mindlin')
+            if formulation not in ('mindlin', 'dkt') or (formulation == 'dkt' and len(node_ids) != 3):
+                raise ValueError('Shell formulation must be mindlin, or dkt for a triangle')
+            element.formulation = formulation
             shell_param = ShellParameter(thickness=thickness, material_id=material_id)
             element.set_material_properties(self.material, shell_param)
             
         elif elem_type in ['tetra', 'tet', 'hexa', 'hex']:
             element = SolidElement.create_element(elem_type, elem_id, 
                                                 node_ids, material_id)
+            element.set_material_properties(self.material)
+
+        elif elem_type in ('tetra2', 'wedge2', 'hexa2'):
+            from .elements.quadratic_solid import QuadraticSolidElement
+            element = QuadraticSolidElement(elem_id, node_ids, material_id, elem_type)
             element.set_material_properties(self.material)
             
         elif AdvancedElement.is_advanced_element(elem_type):
@@ -756,12 +767,14 @@ class FemModel:
             
     def _post_process_results(self) -> None:
         """解析結果の後処理"""
+        from .elements.loaded_bar_element import LoadedBarElement
         if self.results is None:
             return
             
         # 要素応力の計算
         if 'displacement' in self.results:
             element_stresses = {}
+            shell_results = {}
             displacement = self.results['displacement']
             stride = self.solver._get_max_dof_per_node(self.mesh)
             node_offsets = {node_id: i * stride for i, node_id in enumerate(sorted(self.mesh.nodes))}
@@ -789,11 +802,81 @@ class FemModel:
                         # stiffness; its output must use the same linear law.
                         element_stresses[elem_id] = TBarElement.calculate_forces(element, np.array(elem_disp))
                     else:
-                        element_stresses[elem_id] = element.calculate_forces(np.array(elem_disp))
+                        if 'displacement_correction' in self.results and isinstance(element, LoadedBarElement):
+                            indices = [node_offsets[n]+i for n in node_ids for i in range(6)]
+                            element_stresses[elem_id] = element.calculate_forces(
+                                np.array(elem_disp), displacement_correction=self.results['displacement_correction'][indices])
+                        else:
+                            element_stresses[elem_id] = element.calculate_forces(np.array(elem_disp))
                     continue
                 element_stresses[elem_id] = element.calculate_stress_strain(np.array(elem_disp))
+                if isinstance(element, ShellElement):
+                    shell_results[elem_id] = element.calculate_shell_results(np.array(elem_disp))
                     
             self.results['element_stresses'] = element_stresses
+            if shell_results:
+                self.results['shell_results'] = shell_results
+                from .elements.shell_postprocess import legacy_shell_view
+                self.results['legacy_shell_results'] = {}
+                for index, elem_id in enumerate(shell_results):
+                    element = self.elements[elem_id]
+                    indices = [node_offsets[n]+i for n in element.node_ids for i in range(6)]
+                    self.results['legacy_shell_results'][index] = legacy_shell_view(
+                        element, np.asarray(displacement)[indices])
+                for step in self.results.get('step_results', []):
+                    step_shells = {}
+                    step_legacy = {}
+                    for index, elem_id in enumerate(shell_results):
+                        element = self.elements[elem_id]
+                        indices = [node_offsets[n]+i for n in element.node_ids for i in range(6)]
+                        step_shells[elem_id] = element.calculate_shell_results(
+                            np.asarray(step['displacement'])[indices])
+                        step_legacy[index] = legacy_shell_view(element, np.asarray(step['displacement'])[indices])
+                    step['shell_results'] = step_shells
+                    step['legacy_shell_results'] = step_legacy
+            if self.results.get('analysis_type') in ('static', 'material_nonlinear'):
+                self._recover_beam_end_forces(stride, node_offsets)
+
+    def _recover_beam_end_forces(self, stride, node_offsets):
+        """Keep constitutive snapshots and expose equilibrium-recovered branches."""
+        from .beam_equilibrium import recover_free_branches
+        if stride != 6:
+            return
+        solver = self.nonlinear_solver if self.results['analysis_type'] == 'material_nonlinear' else self.solver
+        total = solver.assemble_load_vector(self.mesh, self.boundary, self.elements)
+        prescribed, springs = solver._get_boundary_dofs(self.boundary, len(total), stride)
+        blocked_dofs = prescribed.keys() | springs.keys()
+        blocked = {n: {i for i in range(stride) if start+i in blocked_dofs}
+                   for n, start in node_offsets.items()}
+        tolerance = self.analysis_params.get('tolerance', 1e-6) if self.results['analysis_type'] == 'material_nonlinear' else 1e-8
+        snapshots = self.results.get('step_results', [self.results])
+        for snapshot in snapshots:
+            factor = snapshot.get('lambda', 1.)
+            loads = {n: factor*total[start:start+stride] for n, start in node_offsets.items()}
+            raw = snapshot['element_stresses']
+            forces, ids = recover_free_branches(self.mesh.nodes, self.elements, raw,
+                                                loads, blocked, factor, tolerance)
+            if not ids:
+                continue
+            snapshot['constitutive_element_stresses'] = raw
+            snapshot['element_stresses'] = forces
+            snapshot['force_recovery'] = dict(method='free_branch_equilibrium', elements=ids)
+            # Apply exactly the same correction to supported-node reactions.
+            reactions = snapshot['reaction_forces']
+            for key in ids:
+                element = self.elements[key]
+                change = np.r_[forces[key]['i_end']-raw[key]['i_end'],
+                               forces[key]['j_end']-raw[key]['j_end']]
+                change = element.get_transformation_matrix(12).T@change
+                for end, node in enumerate(element.node_ids):
+                    for i, name in enumerate(('fx', 'fy', 'fz', 'mx', 'my', 'mz')):
+                        if name in reactions.get(node, {}):
+                            reactions[node][name] += change[6*end+i]
+        if 'step_results' in self.results:
+            last = snapshots[-1]
+            for name in ('element_stresses', 'constitutive_element_stresses', 'force_recovery', 'reaction_forces'):
+                if name in last:
+                    self.results[name] = last[name]
             
     def get_model_info(self) -> Dict[str, Any]:
         """モデル情報を取得

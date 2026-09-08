@@ -4,9 +4,26 @@ The state transition integrates equilibrium and compatibility exactly on each
 constant-property segment. No penalty stiffness is used for hinges/foundations.
 """
 import numpy as np
+import math
 from scipy.linalg import expm
 
 from .bar_element import BEBarElement
+from ..precision import product_error as _product_error
+
+
+def _transform_parts(matrix, high, low):
+    result, correction = np.zeros(len(high)), np.zeros(len(high))
+    for i, row in enumerate(matrix):
+        terms, errors = [], []
+        for a, b, c in zip(row, high, low):
+            if a == 0:
+                continue
+            product = a*b
+            terms.append(product)
+            errors.extend([_product_error(a, b, product), a*c])
+        result[i] = math.fsum(terms)
+        correction[i] = math.fsum([*terms, -result[i], *errors])
+    return result, correction
 
 
 def boundary_map(length, rigidity, foundation=0., bending=False, q=(0., 0.), shear_rigidity=None):
@@ -17,6 +34,38 @@ def boundary_map(length, rigidity, foundation=0., bending=False, q=(0., 0.), she
     M'=V, V'=q-k*v. End actions are (V_i,-M_i,-V_j,M_j).
     Two extra states represent q(x)=q_i+(q_j-q_i)*x/L.
     """
+    if foundation > 0:
+        growth = length*(foundation/rigidity)**(.25 if bending else .5)
+        if bending and shear_rigidity is not None:
+            growth += length*np.sqrt(foundation/shear_rigidity)
+        if growth > 4:
+            # Exponentials contain growing and decaying modes. Form the exact
+            # map on a short interval, then double via static condensation;
+            # never form exp(growth) on a long supported member.
+            levels = math.ceil(math.log2(growth/4))
+            short = length/(2**levels)
+            k, f0 = boundary_map(short, rigidity, foundation, bending, (1.,0.), shear_rigidity)
+            _, f1 = boundary_map(short, rigidity, foundation, bending, (0.,1.), shear_rigidity)
+            width = 2 if bending else 1
+            for _ in range(levels):
+                joined = np.zeros((3*width, 3*width))
+                joined[:2*width,:2*width] += k
+                joined[width:,width:] += k
+                # Two basis loads for q(0), q(L). At the shared midpoint the
+                # pressure is their arithmetic mean, including signed loads.
+                loads = np.zeros((3*width, 2))
+                loads[:2*width,0] += f0+.5*f1
+                loads[width:,0] += .5*f0
+                loads[:2*width,1] += .5*f1
+                loads[width:,1] += .5*f0+f1
+                outer = list(range(width))+list(range(2*width,3*width))
+                inner = list(range(width,2*width))
+                coupling = joined[np.ix_(outer,inner)]
+                block = joined[np.ix_(inner,inner)]
+                k = joined[np.ix_(outer,outer)]-coupling@np.linalg.solve(block,coupling.T)
+                reduced = loads[outer]-coupling@np.linalg.solve(block,loads[inner])
+                f0, f1 = reduced.T
+            return (k+k.T)/2, q[0]*f0+q[1]*f1
     if foundation == 0 and (not bending or shear_rigidity is None):
         # Polynomial solution avoids an ill-scaled matrix exponential for
         # short, very stiff segments. These are exact consistent loads.
@@ -135,8 +184,27 @@ class LoadedBarElement(BEBarElement):
     def get_member_load_vector(self):
         return self.get_transformation_matrix(12).T@self._local_system()[1]
 
-    def _elastic_local_force(self, displacement):
+    def _elastic_local_force(self, displacement, displacement_correction=None):
         k, _ = self._local_system()
+        if displacement_correction is not None:
+            # Keep the low part separate through cancellation. Adding it to
+            # the public nodal displacement first would discard it again.
+            t = self.get_transformation_matrix(12)
+            high, low = _transform_parts(t, displacement, displacement_correction)
+            if not np.any(self.foundation):
+                for j in range(6):
+                    terms = [high[j+6], -high[j], low[j+6], -low[j]]
+                    if j == 1:
+                        product = self.length*high[5]
+                        terms += [-product, -_product_error(self.length, high[5], product), -self.length*low[5]]
+                    elif j == 2:
+                        product = self.length*high[4]
+                        terms += [product, _product_error(self.length, high[4], product), self.length*low[4]]
+                    low[j+6] = math.fsum(terms)
+                low[:6] = 0.
+                return k@low
+            force, remainder = _transform_parts(k, high, low)
+            return force+remainder
         deformation = self.get_transformation_matrix(12)@displacement
         if not np.any(self.foundation):
             # Subtract a rigid motion before multiplying large stiffnesses.
@@ -147,11 +215,11 @@ class LoadedBarElement(BEBarElement):
             deformation[:6] = 0.
         return k@deformation
 
-    def get_internal_force(self, displacement):
+    def get_internal_force(self, displacement, displacement_correction=None):
         # Consistent loads are already included in the solver's external load.
-        return self.get_transformation_matrix(12).T@self._elastic_local_force(displacement)
+        return self.get_transformation_matrix(12).T@self._elastic_local_force(displacement, displacement_correction)
 
-    def calculate_forces(self, displacement):
+    def calculate_forces(self, displacement, displacement_correction=None):
         _, f = self._local_system()
-        local = self._elastic_local_force(displacement)-self.load_factor*f
+        local = self._elastic_local_force(displacement, displacement_correction)-self.load_factor*f
         return dict(i_end=local[:6].copy(), j_end=local[6:].copy())
