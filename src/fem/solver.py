@@ -49,6 +49,9 @@ class Solver:
         Returns:
             全体剛性行列（CSR形式）
         """
+        self.assembled_stiffness_correction = None
+        if any(hasattr(e, 'get_stiffness_matrix_parts') for e in elements.values()):
+            return self._assemble_stiffness_parts(mesh, elements)
         # 要素タイプごとの自由度を確認し、全体の自由度数を決定
         max_dof_per_node = 6  # デフォルト（bar, shell要素）
         
@@ -102,6 +105,37 @@ class Solver:
                     
         # CSR形式に変換（計算に適している）
         self.assembled_stiffness = K_global.tocsr()
+        return self.assembled_stiffness
+
+    def _assemble_stiffness_parts(self, mesh, elements):
+        """Preserve both element-integration and assembly rounding tails."""
+        from math import fsum
+        self._set_dof_layout(mesh)
+        stride = self._get_max_dof_per_node(mesh)
+        rows = [{} for _ in range(stride*len(mesh.nodes))]
+        for element in elements.values():
+            if hasattr(element, 'get_stiffness_matrix_parts'):
+                high, low = element.get_stiffness_matrix_parts()
+            else:
+                high = element.get_stiffness_matrix(); low = np.zeros_like(high)
+            indices = [self._node_dof_start(n, stride)+i for n in element.node_ids
+                       for i in range(element.get_dof_per_node())]
+            for i, dof_i in enumerate(indices):
+                row = rows[dof_i]
+                for j, dof_j in enumerate(indices):
+                    a, b = float(high[i,j]), float(low[i,j])
+                    if not a and not b: continue
+                    old, tail = row.get(dof_j, (0., 0.))
+                    total = fsum([old, tail, a, b])
+                    row[dof_j] = (total, fsum([old, tail, a, b, -total]))
+        indices, highs, lows, offsets = [], [], [], [0]
+        for row in rows:
+            for j, (high, low) in sorted(row.items()):
+                indices.append(j); highs.append(high); lows.append(low)
+            offsets.append(len(indices))
+        shape = (len(rows), len(rows))
+        self.assembled_stiffness = csr_matrix((highs, indices, offsets), shape=shape)
+        self.assembled_stiffness_correction = csr_matrix((lows, indices, offsets), shape=shape)
         return self.assembled_stiffness
         
     def create_mass_matrix(self, mesh: MeshModel, material: Material,
@@ -449,6 +483,8 @@ class Solver:
         from scipy.sparse.linalg import splu
         from .elements.loaded_bar_element import LoadedBarElement
         if not elements or not all(isinstance(e, LoadedBarElement) for e in elements.values()):
+            if getattr(self, 'assembled_stiffness_correction', None) is not None:
+                return self._refine_stiffness_parts(mesh, boundary, constrained_k, loads, u, absent)
             low = self.displacement_correction.copy()
             return low, sparse_product(self.assembled_stiffness, u, low)
         prescribed, springs = self._get_boundary_dofs(boundary, len(u), 6)
@@ -480,6 +516,31 @@ class Solver:
             # Error-free TwoSum retains the part rounded off by u += delta.
             u[free], low[free] = add_correction(u[free], low[free], delta)
         raise ValueError('Linear frame failed constitutive equilibrium refinement')
+
+    def _refine_stiffness_parts(self, mesh, boundary, constrained_k, loads, u, absent):
+        from scipy.sparse.linalg import splu
+        from math import fsum
+        prescribed, springs = self._get_boundary_dofs(boundary, len(u), self._get_max_dof_per_node(mesh))
+        free = np.array([i for i in range(len(u)) if i not in prescribed and not absent[i]], dtype=int)
+        low = self.displacement_correction.copy()
+        lu = None
+        for _ in range(16):
+            internal = sparse_product(self.assembled_stiffness, u, low)
+            internal += sparse_product(self.assembled_stiffness_correction, u, low)
+            residual = loads-internal
+            for dof, stiffness in springs.items():
+                residual[dof] = fsum([residual[dof], -stiffness*u[dof], -stiffness*low[dof]])
+            # Loads or reactions on prescribed DOFs must not hide an error on
+            # an independently loaded free DOF.
+            scale_force = max(1., max(np.abs(loads[free]), default=0.))
+            if not len(free) or np.max(np.abs(residual[free])) <= 1e-11*scale_force:
+                return low, internal
+            if lu is None:
+                k = constrained_k[free][:, free]
+                scale = 1/np.sqrt(np.abs(k.diagonal()))
+                lu = splu((diags(scale)@k@diags(scale)).tocsc())
+            u[free], low[free] = add_correction(u[free], low[free], scale*lu.solve(scale*residual[free]))
+        raise ValueError('Quadratic solid failed compensated stiffness equilibrium refinement')
         
     def eigenvalue_analysis(self, mesh: MeshModel, material: Material,
                           boundary: BoundaryCondition, elements: Dict[int, Any],

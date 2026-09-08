@@ -1,5 +1,126 @@
 # 第4段階: 既存サンプルの計算・入力・参照の切り分け
 
+## 2次ソリッドの剛性精度と反力参照の解決（2026-09-09、最新）
+
+**全回帰1093成功・37失敗・警告1件（159.74秒）。第4段階全体は未完了。**
+全323ケース監査は13一致・238不一致・72エラー。
+今回の継続全体で新規30件が成功し、Tetra1・Hexa2・Wedge2・Tetra2の旧失敗4件を解消した。
+beam001の全101段階厳密比較を維持。以下の1074成功・40失敗等は今回途中／以前の記録。
+
+### 剛性の丸め成分を保持する静解析
+
+倍精度の組立加算順序を変えるだけでは2次ソリッド3件の反力差が残った。
+`solid_precision.py`では既存の多項式形状補間によるB・D・Jacobian・積分を50桁のDecimalで評価し、
+剛性を倍精度の主成分と丸め成分へ分離する。同形状・同材料の平行移動要素は最大128組をキャッシュ。
+積分則・形状関数空間・材料条件・Jacobianの不正形状検査は維持した。
+
+全体組立でも要素の丸め成分と加算の誤差を保持し、静解析の自由DOF残差と反力を
+二成分の剛性・変位で計算する。拘束DOFの荷重を自由DOFの収束許容値の尺度に含めない。
+公開`get_stiffness_matrix()`は従来どおり倍精度行列。高精度の残差補正は静解析の経路が対象で、
+非線形ソリッド、有限回転、曲面／強歪み要素の精度保証を追加するものではない。
+端力・反力のゼロ丸めや比較許容値の緩和は行っていない。
+
+### 実装と独立した参照
+
+`v0_decimal_reference.py`は元の`SolidElement.js`の形状関数式を直接読み、
+配列・定数・四則演算のみのAST評価で50桁計算する。製品側の多項式補間やFEMコードは使わない。
+元式の勾配とLamé定数による剛性、余因子による逆行列、Decimalでの全体組立から独立系を作る。
+原入力からの解を二成分剛性による補償残差で解き、原.outの変位誤差を初期値へ持ち込まない。
+
+| 原入力 | 全支点反力の厳密不一致 | 最大反力絶対差 | 独立解の自由DOF残差 |
+|---|---:|---:|---:|
+| Hexa2 | 0 | 7.1054e-15 | 1.2635e-20 |
+| Wedge2 | 0 | 2.9536e-9 | 7.4408e-21 |
+| Tetra2 | 0 | 7.1054e-15 | 6.1378e-21 |
+
+比較は相対1e-8／絶対1e-10を各成分へ適用。Wedge2の最大差もその成分の相対条件内である。
+残差は離散化・二成分表現した剛性系に対する値で、連続体・実験誤差ではない。
+既存の全節点変位参照は保持し、原.outとの全成分比較も成功した。
+`restore_phase4_supports.py --write`で3件の反力・size・空の梁／シェル出力を補完し、
+[出典記録](material-nonlinear-phase4-support-repairs.json)と[反力監査](material-nonlinear-phase4-support-reference-audit.json)を更新。
+通常の補完コマンド・試験はread-only。
+
+新しい9件は剛体変位・回転と微小ひずみを重ねた反力を検証。
+旧の丸めた要素剛性を戻した診断では6失敗・3成功、新経路は9成功。
+強制変位512は線形代数上の精度検査であり、大回転の物理適用を主張しない。
+追加7件は原形状式の剛体不変性、独立した一様ひずみ仕事、斜めJacobianの逆行列、
+3サンプルの全必須出力を検証。Tetra1の14件と合わせて今回新規30件。
+参照補完・精度関連の集約実行は50成功、全回帰でも新規失敗はない。
+
+### 残る完了条件
+
+残り37件は梁22・シェル14・Tri1。入力意図（ゼロ断面・mark=0・1mm丸め・面圧試験の支点）、
+Tri1の板厚/Gの採用条件、旧shell_fsecの12成分定義／計算本体、外部JR較正資料への回答待ち。
+既存梁・シェルの数値不一致も残るため、これらを除外して第4段階を完了扱いにしない。
+回答が届くまで、入力条件・旧シェルの出力意味を推定して書き換えない。
+
+```powershell
+.venv/Scripts/python.exe -m pytest tests/elements/test_phase4_solid_precision.py tests/test_phase4_quadratic_reference.py tests/test_phase4_v0_input_reference.py tests/test_phase4_support_repairs.py tests/test_phase4_source_repairs.py -q
+.venv/Scripts/python.exe tests/restore_phase4_supports.py
+.venv/Scripts/python.exe tests/audit_phase4_support_references.py
+.venv/Scripts/python.exe tests/audit_phase4_samples.py
+.venv/Scripts/python.exe -m pytest tests -q --tb=short --show-capture=no
+```
+
+実測ログは`phase4-completion-focused.log`、`phase4-completion-support-audit.log`、
+`phase4-completion-audit.log`、`phase4-completion-regression.log`。
+4サンプルのresult以外の入力部分は作業開始時のバイト列を保持（Gitのcheckout改行変換を適用して照合）。
+2次ソリッド3件の既存変位参照値も保持。`git diff --check`成功。コミット・pushはしていない。
+
+## Tetra1の完全入力からの独立参照補完（2026-09-09）
+
+**全回帰1074成功・40失敗・警告1件（133.00秒）。第4段階全体は未完了。**
+全323ケース監査は10一致・241不一致・72エラー。Tetra1の参照不足を解消した。
+beam001の全101段階の厳密比較は成功を維持。
+以下の「Tetra1の610節点参照が未解決」は今回以前の記録。
+
+`sampleBendTetra1.fem`には全620節点・2160要素・荷重・支点・材料が存在し、
+JSON入力と完全一致する。入力エコーのない古い`.out`の出典を推測する代わりに、
+この完全入力をV0のJS要素剛性で独立に解いた。現行`src/fem`を参照計算からimportしない。
+全620節点×6変位成分・全20支点×6反力成分・size・梁／シェルの空出力を、
+既存の相対1e-8／絶対1e-10で現行実装と照合し、全必須項目で一致した。
+
+- `v0_support_reference.cjs --input-only`は完全なソリッド入力だけを受け付ける。
+  未知のレコード・重複定義・不明節点・不正な拘束フラグを拒否し、初期変位はゼロ。
+- `v0_refined_reference.py`はこの入力から変位と反力を解く。整数のゼロ初期値も
+  必ず浮動小数点配列として保持する。元.outを使う既存の評価経路は維持。
+- `restore_phase4_tetra1.py`は通常read-only、明示`--write`時だけresultを置換する。
+  元サンプルと原入力の固定SHA256、入力同一性、参照網羅性、残差を検査する。
+  元の入力部分はバイト単位で保持。既知でないサンプル改変は拒否する。
+- [補完記録](material-nonlinear-phase4-tetra1-repair.json)に旧resultのハッシュ、
+  サンプルの前後ハッシュ、原資料と計算コードのハッシュ、全独立参照を保存。
+  全ケース監査もこの出典を追跡する。
+
+独立解の最大自由節点残差は7.2234e-22。これは倍精度の元剛性に対する値である。
+元剛性の丸め誤差は残り、全体合力の最大残差は3.5625e-9、合モーメントは3.0140e-7。
+連続体解や実験との精度が同じ桁で保証されるという意味ではない。
+
+新規14件を含む参照関連42件が成功。Tetra1の既存サンプル試験も成功。
+全回帰ログは`phase4-input-reference-regression.log`、監査ログは`phase4-input-reference-audit.log`。
+2次ソリッド3件は加算順序だけを変えた診断も実施したが、厳密不一致は残った。
+この診断変更は製品コードへ採用していない。
+
+### 完了に必要な残件
+
+梁22・シェル14・bend4が残る。ゼロ断面、mark=0、生成点の1mm丸め、
+shellPressureTest1の支点意図は質問中で、入力条件を変更していない。
+旧shell_fsecの12成分計算本体／定義資料、外部JR較正に使う原典・実装・実験データも未提供。
+Tri1の条件差、2次ソリッド反力差、その他の旧数値不一致は未解消。
+
+旧参照には釣合いと両立しない値も存在する。例えば2D_Sample03ケース1の部材10のj端
+（節点11）は面内自由端で節点荷重がなく、端せん断力と端モーメントはゼロであるべきだが、
+旧参照はfyj=-2.6702881e-7、mzj=8.4241233e-8で、絶対許容値1e-10を超える。
+この例を理由に他の不一致まで参照側と断定せず、各モデルの独立検証が必要。
+
+```powershell
+.venv/Scripts/python.exe tests/restore_phase4_tetra1.py
+.venv/Scripts/python.exe -m pytest tests/test_phase4_v0_input_reference.py tests/test_phase4_v0_support_reference.py tests/test_phase4_source_repairs.py tests/test_phase4_support_repairs.py -q
+.venv/Scripts/python.exe tests/audit_phase4_samples.py
+.venv/Scripts/python.exe -m pytest tests -q --tb=short --show-capture=no
+```
+
+補完書込済み。コミット・pushはしていない。
+
 ## 数値精度・独立反力参照の継続実装（2026-09-09）
 
 **全回帰1059成功・41失敗・警告1件（122.54秒）。第4段階全体は未完了。**

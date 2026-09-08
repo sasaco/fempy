@@ -82,16 +82,20 @@ class QuadraticSolidElement(SolidElementBase):
         return np.linalg.solve(jacobian, derivatives), det
 
     def get_stiffness_matrix(self):
-        d = self.get_stress_strain_matrix()
-        k = np.zeros((len(self.node_ids)*3,)*2)
-        for point, weight in zip(*self.get_gauss_points()):
-            gradient, det = self._gradient(point)
-            b = np.zeros((6, len(self.node_ids)*3))
-            for i, (dx,dy,dz) in enumerate(gradient.T):
-                b[:,3*i:3*i+3] = [[dx,0,0],[0,dy,0],[0,0,dz],
-                                  [dy,dx,0],[0,dz,dy],[dz,0,dx]]
-            k += det*weight*(b.T@d@b)
-        return (k+k.T)/2
+        return self.get_stiffness_matrix_parts()[0].copy()
+
+    def get_stiffness_matrix_parts(self):
+        from decimal import Decimal, localcontext
+        from .solid_precision import stiffness_parts
+        coords=self.get_element_coordinates()
+        # Preserve the existing scaled Jacobian validity check.
+        for point in self.get_gauss_points()[0]: self._gradient(point)
+        with localcontext() as context:
+            context.prec=50
+            origin=[Decimal.from_float(float(v)) for v in coords[0]]
+            relative=tuple(tuple(Decimal.from_float(float(v))-o for v,o in zip(row,origin)) for row in coords)
+        material=self.material.materials[self.material_id]
+        return stiffness_parts(self.kind,relative,material.E,material.nu)
 
     def get_mass_matrix(self):
         density = self.material.materials[self.material_id].density

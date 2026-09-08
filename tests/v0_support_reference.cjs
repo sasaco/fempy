@@ -1,5 +1,6 @@
-// Independent support reactions: original V0 JS stiffness times original .out
-// displacements. No src/fem imports, target solver runs, or fixture writes.
+// Independent V0 stiffness and source model export. Default uses complete .out
+// echoes; --input-only strictly reads .fem and starts from zero displacement.
+// No src/fem imports, target solver runs, or fixture writes.
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
@@ -19,10 +20,21 @@ for (const file of ['lib/three.min.js', 'lib/numeric-1.2.6.min.js',
 }
 const source = path.relative(root, path.resolve(process.argv[2])).replaceAll('\\', '/');
 const nodes = {}, materials = {}, elements = [], rests = {}, loads = {}, u = {};
+const inputOnly = process.argv.includes('--input-only');
+const seen = new Set();
 const counts = {TetraElement1:4, WedgeElement1:6, HexaElement1:8,
   TetraElement2:10, WedgeElement2:15, HexaElement2:20};
 for (const line of read(source).split(/\r?\n/)) {
   const [kind, id, ...fields] = line.trim().split(/\s+/);
+  if (inputOnly) {
+    if (!kind || kind.startsWith('#')) continue;
+    const lengths = {Node:3, Material:6, Restraint:6, Load:3};
+    if (!(kind in lengths) && !(kind in counts)) throw Error('Unsupported input record '+kind);
+    if (!id || fields.length !== (lengths[kind] ?? counts[kind]+1) ||
+        fields.some(v => !Number.isFinite(Number(v)))) throw Error('Malformed input record '+kind);
+    if (kind !== 'Load' && seen.has(kind+'/'+id)) throw Error('Duplicate input record '+kind+'/'+id);
+    seen.add(kind+'/'+id);
+  }
   if (kind === 'Node') nodes[id] = fields.map(Number);
   if (kind === 'Material') materials[id] = fields.map(Number);
   if (kind === 'Restraint') rests[id] = fields.map(Number);
@@ -34,6 +46,15 @@ for (const line of read(source).split(/\r?\n/)) {
   if (kind?.includes('Element')) {
     if (!(kind in counts) || fields.length !== counts[kind]+1) throw Error('Unsupported source element '+kind);
     elements.push({kind, id, material:fields[0], nodes:fields.slice(1)});
+  }
+}
+if (inputOnly) {
+  for (const id of Object.keys(nodes)) u[id] = [0,0,0];
+  for (const id of [...Object.keys(loads), ...Object.keys(rests)]) {
+    if (!(id in nodes)) throw Error('Unknown input node '+id);
+  }
+  for (const values of Object.values(rests)) {
+    if ([0,2,4].some(i => ![0,1].includes(values[i]))) throw Error('Invalid restraint flag');
   }
 }
 if (!elements.length || !Object.keys(rests).length ||
@@ -81,6 +102,7 @@ for (const [id, reaction] of Object.entries(reactions)) {
 }
 const output = {source, hashes, method:'V0 JS K times original output displacement minus source nodal load',
   maximum_free_force_residual:maximumFreeResidual, reac};
+if (inputOnly) output.input_only = true;
 if (exportSystem) Object.assign(output, {node_ids:nodeIds,
   stiffness_rows:rows.map(row => [...row].filter(([column, value]) => value !== 0)),
   loads:nodeIds.flatMap(id => loads[id] || [0,0,0]),

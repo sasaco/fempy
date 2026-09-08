@@ -46,6 +46,14 @@ def audit_case(path, case_id):
             method=support_repair['source_reference']['method'],
             hashes=support_repair['source_reference']['hashes'],
             maximum_free_force_residual=support_repair['source_reference']['maximum_free_force_residual'])
+    tetra_manifest = Path('docs/report/material-nonlinear-phase4-tetra1-repair.json')
+    if tetra_manifest.exists():
+        repair = json.loads(tetra_manifest.read_text(encoding='utf8'))
+        if repair['sample'] == path.as_posix() and repair['after_sha256'] == entry['input_sha256']:
+            ref = repair['source_reference']
+            entry['reference']['provenance'] = repair['reason']
+            entry['reference']['field_sources'] = {field:dict(method=ref['method'], hashes=ref['hashes'],
+                maximum_free_force_residual=ref['maximum_free_force_residual']) for field in ('disg','reac')}
     try:
         data = select_case(data, case_id)
         entry['input_findings'] = input_findings(data)

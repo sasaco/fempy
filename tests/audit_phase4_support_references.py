@@ -19,7 +19,7 @@ def main():
         raw = path.read_bytes()
         data = json.loads(raw)
         repaired_data(data, read_v0(source))  # Exact source/input equivalence guard.
-        reference = solve_source(source)
+        reference = solve_source(source, decimal_stiffness=stem.endswith('2'))
         with contextlib.redirect_stdout(io.StringIO()):
             model = FemModel(); model.load_model(str(path)); result = model.run()
         actual = legacy_result_view(result, model, data)['reac']

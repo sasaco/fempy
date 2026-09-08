@@ -14,10 +14,10 @@ ROOT = Path(__file__).resolve().parents[1]
 STEMS = ('sampleBendHexa1', 'sampleBendWedge1', 'sampleBendHexa2',
          'sampleBendWedge2', 'sampleBendTetra2')
 TYPES = {'TetraElement2': 'tetra2', 'WedgeElement2': 'wedge2', 'HexaElement2': 'hexa2',
-         'HexaElement1': 'hexa', 'WedgeElement1': 'wedge'}
+         'HexaElement1': 'hexa', 'WedgeElement1': 'wedge', 'TetraElement1': 'tetra'}
 
 
-def repaired_data(data, source):
+def assert_source_input(data, source):
     """Input equivalence is an assertion, never a best-effort name match."""
     assert data.get('dimension',3) == 3
     assert len(data['load']) == len(data['element']) == len(data['fix_node']) == 1
@@ -40,7 +40,6 @@ def repaired_data(data, source):
              for row in next(iter(data['fix_node'].values()))}
     assert rests == {k:v[::2]+[0.]*(6-len(v)//2) for k,v in source['restraints'].items()}
     assert all(all(x == 0 for x in v[1::2]) for v in source['restraints'].values())
-    assert set(source['displacements']) == set(data['node'])
     topology = {k:dict(nodes=list(map(int,v['nodes'])), e=int(v['material']), type=TYPES[v['type']])
                 for k,v in source['elements'].items()}
     if data.get('solid'):
@@ -48,6 +47,12 @@ def repaired_data(data, source):
         assert actual == {k:{f:v[f] for f in ('nodes','e')} for k,v in topology.items()}
         assert all(v.get('type',topology[k]['type']) in
                    (topology[k]['type'], source['elements'][k]['type']) for k,v in data['solid'].items())
+    return topology
+
+
+def repaired_data(data, source):
+    topology = assert_source_input(data, source)
+    assert set(source['displacements']) == set(data['node'])
     assert set(data['result']) == {'1'}
     old = data['result']['1']['disg']
     assert old.keys() == source['displacements'].keys()

@@ -43397,8 +43397,8 @@
             "docs/v0/src/ElementBorder.js": "ccc96f2dde8f28ae69f6344e512b044340c73f8e08aa9e2e571b1cd6dabe6a29",
             "docs/v0/src/SolidElement.js": "c47c4c984d4f7e9b28c5503e519b0eec6226100742287d9b581bd3567d23f1dc",
             "docs/v0/testdata/bend/sampleBendHexa1.out": "9679967490cba4933442b5e1b58a1f61df233e9c8e543b4f2270b73d48a4761f",
-            "tests/v0_support_reference.cjs": "66867c7f2a16d491cf5fb187a91af4a464b652a5445d7abc81928e60f15065fd",
-            "tests/v0_refined_reference.py": "27197d1b27e3b1493d39dc8c8447213823cdd0f566f2a9cffcef6793b291863a"
+            "tests/v0_support_reference.cjs": "1db17926dcdb6bd27784072b77e4bb95adb87a739991f87be3eb6f0d87b938b7",
+            "tests/v0_refined_reference.py": "38f7fdbf1e518756f4a2a8923c2a9dd0eb48e1a9e9c6b4517bdb877cb873bfec"
           },
           "maximum_free_force_residual": 8.08375789287691e-22
         }
@@ -43539,7 +43539,7 @@
     "sample": "tests/data/bend/sampleBendHexa2.json",
     "case": "1",
     "scope": "all load and reference cases",
-    "input_sha256": "c4a14c904197e68e771d94f8e762c219bc722e7a28f4914442dd4a46756e3a95",
+    "input_sha256": "41fd3a6074b1dc1a55d601147bea58a71bf7a824f6830474a2aa2f790642ff23",
     "reference": {
       "location": "tests/data/bend/sampleBendHexa2.json#/result/1",
       "provenance": "Embedded result; original generating program/version not recorded",
@@ -43552,6 +43552,17 @@
           "sha256": "27f05878b755d0db6dca8d0911b1d29aaef94b994b713f176f3ad8ab7e28f1f4",
           "units": "Native source displacement units; no 1000x rescaling",
           "input_equivalence": "nodes, E/nu, nodal loads, restraints checked by restore_phase4_sources.py"
+        },
+        "reac": {
+          "method": "Original V0 shape expressions evaluated at 50 decimal digits; two-part stiffness assembly and compensated equilibrium solve",
+          "hashes": {
+            "docs/v0/testdata/bend/sampleBendHexa2.out": "27f05878b755d0db6dca8d0911b1d29aaef94b994b713f176f3ad8ab7e28f1f4",
+            "docs/v0/src/SolidElement.js": "c47c4c984d4f7e9b28c5503e519b0eec6226100742287d9b581bd3567d23f1dc",
+            "tests/v0_decimal_reference.py": "a07590b191275c9ddcc43540817ee071ac9acedab7feb6e420453bfd699cb1e4",
+            "tests/v0_support_reference.cjs": "1db17926dcdb6bd27784072b77e4bb95adb87a739991f87be3eb6f0d87b938b7",
+            "tests/v0_refined_reference.py": "38f7fdbf1e518756f4a2a8923c2a9dd0eb48e1a9e9c6b4517bdb877cb873bfec"
+          },
+          "maximum_free_force_residual": 1.2634498847802727e-20
         }
       }
     },
@@ -43562,22 +43573,27 @@
         "examples": []
       },
       "reac": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       },
       "fsec": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       },
       "size": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       },
       "shell_fsec": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       },
       "shell_results": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       }
     },
-    "status": "mismatch",
+    "status": "match",
     "source_evidence": [
       {
         "path": "docs/v0/testdata/bend/sampleBendHexa2.fem",
@@ -43676,7 +43692,7 @@
         "solver_vs_source_displacement": {
           "mismatches": 0,
           "examples": [],
-          "max_absolute_difference": 1.173483532568298e-10
+          "max_absolute_difference": 5.882764934905804e-11
         }
       }
     ]
@@ -43685,43 +43701,78 @@
     "sample": "tests/data/bend/sampleBendTetra1.json",
     "case": "1",
     "scope": "all load and reference cases",
-    "input_sha256": "e208edfae118c637fb858593495791bc1596c840e26b884e32d5d7bfc1348e16",
+    "input_sha256": "6df9add54c6ae9f99cb69a2c70e91f0f5dd28c048a8463cf85c19375470bab3d",
     "reference": {
       "location": "tests/data/bend/sampleBendTetra1.json#/result/1",
-      "provenance": "Embedded result; original generating program/version not recorded",
+      "provenance": "Complete identical .fem input solved independently with V0; incomplete .out not used as a gold source",
       "units": "Legacy contract: kN, m, rad; fixture origin unverified",
       "signs": "src/app/result.py section-cut convention",
-      "positions": "node labels; notice-point segment i/j ends"
+      "positions": "node labels; notice-point segment i/j ends",
+      "field_sources": {
+        "disg": {
+          "method": "Independent equilibrated solve of original V0 JS stiffness; compensated residual refinement",
+          "hashes": {
+            "docs/v0/lib/three.min.js": "5e6f662b2af38b2729e69ea3412f888daa7232346a2a22bc2752febb1d3c90a5",
+            "docs/v0/lib/numeric-1.2.6.min.js": "44a5a73caaf91e43449fc1b8609e9284bfec12087644f68d229ffe530d4c15da",
+            "docs/v0/src/FemMain.js": "3bb9a700a98e21362c98594bc2ea9c728a40068100ffe6b491e82b5b1e2fbaed",
+            "docs/v0/src/FemDataModel.js": "79187fe3753b08686145dbd35dfabde6fa840049096b4db602cd4da7a133adea",
+            "docs/v0/src/Element.js": "88aed6303a8a0faaf0bfc3e0beeddf1c5530d8e21af4d09e86e0d0a0c1402965",
+            "docs/v0/src/Material.js": "533a7aadeab0c160d82637cd7023564d52f9637876aea23a88a1983b3faf9743",
+            "docs/v0/src/ElementBorder.js": "ccc96f2dde8f28ae69f6344e512b044340c73f8e08aa9e2e571b1cd6dabe6a29",
+            "docs/v0/src/SolidElement.js": "c47c4c984d4f7e9b28c5503e519b0eec6226100742287d9b581bd3567d23f1dc",
+            "docs/v0/testdata/bend/sampleBendTetra1.fem": "c27e8c496dfb09cb50ab261869bd212c325086ad67f668c82f57e835bd1608a6",
+            "tests/v0_support_reference.cjs": "1db17926dcdb6bd27784072b77e4bb95adb87a739991f87be3eb6f0d87b938b7",
+            "tests/v0_refined_reference.py": "38f7fdbf1e518756f4a2a8923c2a9dd0eb48e1a9e9c6b4517bdb877cb873bfec"
+          },
+          "maximum_free_force_residual": 7.22339058487182e-22
+        },
+        "reac": {
+          "method": "Independent equilibrated solve of original V0 JS stiffness; compensated residual refinement",
+          "hashes": {
+            "docs/v0/lib/three.min.js": "5e6f662b2af38b2729e69ea3412f888daa7232346a2a22bc2752febb1d3c90a5",
+            "docs/v0/lib/numeric-1.2.6.min.js": "44a5a73caaf91e43449fc1b8609e9284bfec12087644f68d229ffe530d4c15da",
+            "docs/v0/src/FemMain.js": "3bb9a700a98e21362c98594bc2ea9c728a40068100ffe6b491e82b5b1e2fbaed",
+            "docs/v0/src/FemDataModel.js": "79187fe3753b08686145dbd35dfabde6fa840049096b4db602cd4da7a133adea",
+            "docs/v0/src/Element.js": "88aed6303a8a0faaf0bfc3e0beeddf1c5530d8e21af4d09e86e0d0a0c1402965",
+            "docs/v0/src/Material.js": "533a7aadeab0c160d82637cd7023564d52f9637876aea23a88a1983b3faf9743",
+            "docs/v0/src/ElementBorder.js": "ccc96f2dde8f28ae69f6344e512b044340c73f8e08aa9e2e571b1cd6dabe6a29",
+            "docs/v0/src/SolidElement.js": "c47c4c984d4f7e9b28c5503e519b0eec6226100742287d9b581bd3567d23f1dc",
+            "docs/v0/testdata/bend/sampleBendTetra1.fem": "c27e8c496dfb09cb50ab261869bd212c325086ad67f668c82f57e835bd1608a6",
+            "tests/v0_support_reference.cjs": "1db17926dcdb6bd27784072b77e4bb95adb87a739991f87be3eb6f0d87b938b7",
+            "tests/v0_refined_reference.py": "38f7fdbf1e518756f4a2a8923c2a9dd0eb48e1a9e9c6b4517bdb877cb873bfec"
+          },
+          "maximum_free_force_residual": 7.22339058487182e-22
+        }
+      }
     },
     "input_findings": [],
     "fields": {
       "disg": {
-        "mismatches": 28,
-        "examples": [
-          "disg: missing=[], extra=['100', '101', '102', '103', '104', '105', '106', '107', '108', '109', '11', '110', '111', '112', '113', '114', '115', '116', '117', '118', '119', '12', '120', '121', '122', '123', '124', '125', '126', '127', '128', '129', '13', '130', '131', '132', '133', '134', '135', '136', '137', '138', '139', '14', '140', '141', '142', '143', '144', '145', '146', '147', '148', '149', '15', '150', '151', '152', '153', '154', '155', '156', '157', '158', '159', '16', '160', '161', '162', '163', '164', '165', '166', '167', '168', '169', '17', '170', '171', '172', '173', '174', '175', '176', '177', '178', '179', '18', '180', '181', '182', '183', '184', '185', '186', '187', '188', '189', '19', '190', '191', '192', '193', '194', '195', '196', '197', '198', '199', '20', '200', '201', '202', '203', '204', '205', '206', '207', '208', '209', '21', '210', '211', '212', '213', '214', '215', '216', '217', '218', '219', '22', '220', '221', '222', '223', '224', '225', '226', '227', '228', '229', '23', '230', '231', '232', '233', '234', '235', '236', '237', '238', '239', '24', '240', '241', '242', '243', '244', '245', '246', '247', '248', '249', '25', '250', '251', '252', '253', '254', '255', '256', '257', '258', '259', '26', '260', '261', '262', '263', '264', '265', '266', '267', '268', '269', '27', '270', '271', '272', '273', '274', '275', '276', '277', '278', '279', '28', '280', '281', '282', '283', '284', '285', '286', '287', '288', '289', '29', '290', '291', '292', '293', '294', '295', '296', '297', '298', '299', '30', '300', '301', '302', '303', '304', '305', '306', '307', '308', '309', '31', '310', '311', '312', '313', '314', '315', '316', '317', '318', '319', '32', '320', '321', '322', '323', '324', '325', '326', '327', '328', '329', '33', '330', '331', '332', '333', '334', '335', '336', '337', '338', '339', '34', '340', '341', '342', '343', '344', '345', '346', '347', '348', '349', '35', '350', '351', '352', '353', '354', '355', '356', '357', '358', '359', '36', '360', '361', '362', '363', '364', '365', '366', '367', '368', '369', '37', '370', '371', '372', '373', '374', '375', '376', '377', '378', '379', '38', '380', '381', '382', '383', '384', '385', '386', '387', '388', '389', '39', '390', '391', '392', '393', '394', '395', '396', '397', '398', '399', '40', '400', '401', '402', '403', '404', '405', '406', '407', '408', '409', '41', '410', '411', '412', '413', '414', '415', '416', '417', '418', '419', '42', '420', '421', '422', '423', '424', '425', '426', '427', '428', '429', '43', '430', '431', '432', '433', '434', '435', '436', '437', '438', '439', '44', '440', '441', '442', '443', '444', '445', '446', '447', '448', '449', '45', '450', '451', '452', '453', '454', '455', '456', '457', '458', '459', '46', '460', '461', '462', '463', '464', '465', '466', '467', '468', '469', '47', '470', '471', '472', '473', '474', '475', '476', '477', '478', '479', '48', '480', '481', '482', '483', '484', '485', '486', '487', '488', '489', '49', '490', '491', '492', '493', '494', '495', '496', '497', '498', '499', '50', '500', '501', '502', '503', '504', '505', '506', '507', '508', '509', '51', '510', '511', '512', '513', '514', '515', '516', '517', '518', '519', '52', '520', '521', '522', '523', '524', '525', '526', '527', '528', '529', '53', '530', '531', '532', '533', '534', '535', '536', '537', '538', '539', '54', '540', '541', '542', '543', '544', '545', '546', '547', '548', '549', '55', '550', '551', '552', '553', '554', '555', '556', '557', '558', '559', '56', '560', '561', '562', '563', '564', '565', '566', '567', '568', '569', '57', '570', '571', '572', '573', '574', '575', '576', '577', '578', '579', '58', '580', '581', '582', '583', '584', '585', '586', '587', '588', '589', '59', '590', '591', '592', '593', '594', '595', '596', '597', '598', '599', '60', '600', '601', '602', '603', '604', '605', '606', '607', '608', '609', '61', '610', '611', '612', '613', '614', '615', '616', '617', '618', '619', '62', '620', '63', '64', '65', '66', '67', '68', '69', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99']",
-          "Value differs at disg/10/dx: -0.01329752627921489 != 0.0",
-          "Value differs at disg/10/dy: -0.016173266391036424 != -0.0",
-          "Value differs at disg/10/dz: -0.026860384212674938 != -158.9",
-          "Value differs at disg/2/dx: -0.001695998127274816 != 0.0"
-        ]
+        "mismatches": 0,
+        "examples": []
       },
       "reac": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       },
       "fsec": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       },
       "size": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       },
       "shell_fsec": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       },
       "shell_results": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       }
     },
-    "status": "mismatch",
+    "status": "match",
     "source_evidence": [
       {
         "path": "docs/v0/testdata/bend/sampleBendTetra1.fem",
@@ -44393,16 +44444,20 @@
         },
         "embedded_displacement_divided_by": {
           "1": {
-            "mismatches": 7,
+            "mismatches": 28,
             "examples": [
-              "Value differs at /10/dz: -158.9 != -0.1589",
-              "Value differs at /4/dz: -397.3 != -0.3973",
-              "Value differs at /5/dz: -357.59999999999997 != -0.3576"
+              ": missing=[], extra=['100', '101', '102', '103', '104', '105', '106', '107', '108', '109', '11', '110', '111', '112', '113', '114', '115', '116', '117', '118', '119', '12', '120', '121', '122', '123', '124', '125', '126', '127', '128', '129', '13', '130', '131', '132', '133', '134', '135', '136', '137', '138', '139', '14', '140', '141', '142', '143', '144', '145', '146', '147', '148', '149', '15', '150', '151', '152', '153', '154', '155', '156', '157', '158', '159', '16', '160', '161', '162', '1",
+              "Value differs at /10/dx: -0.01329752627921489 != 0.0",
+              "Value differs at /10/dy: -0.016173266391036424 != -0.0"
             ]
           },
           "1000": {
-            "mismatches": 0,
-            "examples": []
+            "mismatches": 28,
+            "examples": [
+              ": missing=[], extra=['100', '101', '102', '103', '104', '105', '106', '107', '108', '109', '11', '110', '111', '112', '113', '114', '115', '116', '117', '118', '119', '12', '120', '121', '122', '123', '124', '125', '126', '127', '128', '129', '13', '130', '131', '132', '133', '134', '135', '136', '137', '138', '139', '14', '140', '141', '142', '143', '144', '145', '146', '147', '148', '149', '15', '150', '151', '152', '153', '154', '155', '156', '157', '158', '159', '16', '160', '161', '162', '1",
+              "Value differs at /10/dx: -1.329752627921489e-05 != 0.0",
+              "Value differs at /10/dy: -1.6173266391036423e-05 != -0.0"
+            ]
           }
         },
         "solver_vs_source_displacement": {
@@ -44422,7 +44477,7 @@
     "sample": "tests/data/bend/sampleBendTetra2.json",
     "case": "1",
     "scope": "all load and reference cases",
-    "input_sha256": "58143295d19b4d86169ed71364e6079bb2962653fb3b4582d61f5fd6cee39167",
+    "input_sha256": "b9b36c67cff6e232bf249137aae0715b917aed1567e52aab0e154cbf08cd902c",
     "reference": {
       "location": "tests/data/bend/sampleBendTetra2.json#/result/1",
       "provenance": "Embedded result; original generating program/version not recorded",
@@ -44435,6 +44490,17 @@
           "sha256": "3ff17b03882dd19f0cc7e0121e479dbfcf5b8867f69911185ec2d4a88fa97874",
           "units": "Native source displacement units; no 1000x rescaling",
           "input_equivalence": "nodes, E/nu, nodal loads, restraints checked by restore_phase4_sources.py"
+        },
+        "reac": {
+          "method": "Original V0 shape expressions evaluated at 50 decimal digits; two-part stiffness assembly and compensated equilibrium solve",
+          "hashes": {
+            "docs/v0/testdata/bend/sampleBendTetra2.out": "3ff17b03882dd19f0cc7e0121e479dbfcf5b8867f69911185ec2d4a88fa97874",
+            "docs/v0/src/SolidElement.js": "c47c4c984d4f7e9b28c5503e519b0eec6226100742287d9b581bd3567d23f1dc",
+            "tests/v0_decimal_reference.py": "a07590b191275c9ddcc43540817ee071ac9acedab7feb6e420453bfd699cb1e4",
+            "tests/v0_support_reference.cjs": "1db17926dcdb6bd27784072b77e4bb95adb87a739991f87be3eb6f0d87b938b7",
+            "tests/v0_refined_reference.py": "38f7fdbf1e518756f4a2a8923c2a9dd0eb48e1a9e9c6b4517bdb877cb873bfec"
+          },
+          "maximum_free_force_residual": 6.137746384215955e-21
         }
       }
     },
@@ -44445,22 +44511,27 @@
         "examples": []
       },
       "reac": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       },
       "fsec": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       },
       "size": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       },
       "shell_fsec": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       },
       "shell_results": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       }
     },
-    "status": "mismatch",
+    "status": "match",
     "source_evidence": [
       {
         "path": "docs/v0/testdata/bend/sampleBendTetra2.fem",
@@ -44559,7 +44630,7 @@
         "solver_vs_source_displacement": {
           "mismatches": 0,
           "examples": [],
-          "max_absolute_difference": 5.63722402091571e-11
+          "max_absolute_difference": 6.71328548307315e-11
         }
       }
     ]
@@ -44734,8 +44805,8 @@
             "docs/v0/src/ElementBorder.js": "ccc96f2dde8f28ae69f6344e512b044340c73f8e08aa9e2e571b1cd6dabe6a29",
             "docs/v0/src/SolidElement.js": "c47c4c984d4f7e9b28c5503e519b0eec6226100742287d9b581bd3567d23f1dc",
             "docs/v0/testdata/bend/sampleBendWedge1.out": "238b8f282b8ccc6b6a47671036830d1071962043fe2068b5eb68dda30f8ddbf4",
-            "tests/v0_support_reference.cjs": "66867c7f2a16d491cf5fb187a91af4a464b652a5445d7abc81928e60f15065fd",
-            "tests/v0_refined_reference.py": "27197d1b27e3b1493d39dc8c8447213823cdd0f566f2a9cffcef6793b291863a"
+            "tests/v0_support_reference.cjs": "1db17926dcdb6bd27784072b77e4bb95adb87a739991f87be3eb6f0d87b938b7",
+            "tests/v0_refined_reference.py": "38f7fdbf1e518756f4a2a8923c2a9dd0eb48e1a9e9c6b4517bdb877cb873bfec"
           },
           "maximum_free_force_residual": 1.4016569575715756e-21
         }
@@ -44876,7 +44947,7 @@
     "sample": "tests/data/bend/sampleBendWedge2.json",
     "case": "1",
     "scope": "all load and reference cases",
-    "input_sha256": "dcaab9e4912a6e0c92ec12dcb65f9066497738c8a6540a34436c19b81c77d4e9",
+    "input_sha256": "12ec11e58adabecd3635c32a4f53439f7d6d3fc53d3d394acc522f2babe45bea",
     "reference": {
       "location": "tests/data/bend/sampleBendWedge2.json#/result/1",
       "provenance": "Embedded result; original generating program/version not recorded",
@@ -44889,6 +44960,17 @@
           "sha256": "3e7be4f9d6a82bc9a56b60ddf880818c4a1844a258db7e305b3f32c21a6ea68b",
           "units": "Native source displacement units; no 1000x rescaling",
           "input_equivalence": "nodes, E/nu, nodal loads, restraints checked by restore_phase4_sources.py"
+        },
+        "reac": {
+          "method": "Original V0 shape expressions evaluated at 50 decimal digits; two-part stiffness assembly and compensated equilibrium solve",
+          "hashes": {
+            "docs/v0/testdata/bend/sampleBendWedge2.out": "3e7be4f9d6a82bc9a56b60ddf880818c4a1844a258db7e305b3f32c21a6ea68b",
+            "docs/v0/src/SolidElement.js": "c47c4c984d4f7e9b28c5503e519b0eec6226100742287d9b581bd3567d23f1dc",
+            "tests/v0_decimal_reference.py": "a07590b191275c9ddcc43540817ee071ac9acedab7feb6e420453bfd699cb1e4",
+            "tests/v0_support_reference.cjs": "1db17926dcdb6bd27784072b77e4bb95adb87a739991f87be3eb6f0d87b938b7",
+            "tests/v0_refined_reference.py": "38f7fdbf1e518756f4a2a8923c2a9dd0eb48e1a9e9c6b4517bdb877cb873bfec"
+          },
+          "maximum_free_force_residual": 7.44073679474597e-21
         }
       }
     },
@@ -44899,22 +44981,27 @@
         "examples": []
       },
       "reac": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       },
       "fsec": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       },
       "size": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       },
       "shell_fsec": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       },
       "shell_results": {
-        "status": "missing reference"
+        "mismatches": 0,
+        "examples": []
       }
     },
-    "status": "mismatch",
+    "status": "match",
     "source_evidence": [
       {
         "path": "docs/v0/testdata/bend/sampleBendWedge2.fem",
@@ -45013,7 +45100,7 @@
         "solver_vs_source_displacement": {
           "mismatches": 0,
           "examples": [],
-          "max_absolute_difference": 7.485623232383887e-11
+          "max_absolute_difference": 6.031731017430708e-11
         }
       }
     ]

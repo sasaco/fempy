@@ -1,8 +1,8 @@
-"""Source-guarded completion of first-order solid reaction references.
+"""Source-guarded completion of solid reaction references.
 
 No production FEM imports. Ordinary execution is read-only; --write adds the
 independent reactions and the source-model-derived empty beam/shell fields.
-Quadratic solid cross-implementation precision is still unresolved.
+Quadratic solids use original V0 shapes at 50 digits and two-part stiffness.
 """
 import argparse
 import copy
@@ -13,7 +13,8 @@ from restore_phase4_sources import ROOT, read_v0, repaired_data
 from v0_refined_reference import solve_source
 
 
-STEMS = ('sampleBendHexa1', 'sampleBendWedge1')
+STEMS = ('sampleBendHexa1', 'sampleBendWedge1', 'sampleBendHexa2',
+         'sampleBendWedge2', 'sampleBendTetra2')
 
 
 def completed_reference(data, source, independent):
@@ -42,7 +43,7 @@ def main():
     for stem in STEMS:
         source_path = ROOT/'docs/v0/testdata/bend'/(stem+'.out')
         source = read_v0(source_path)
-        independent = solve_source(source_path)
+        independent = solve_source(source_path, decimal_stiffness=stem.endswith('2'))
         path = ROOT/'tests/data/bend'/(stem+'.json'); raw = path.read_bytes()
         fixed = completed_reference(json.loads(raw), source, independent)
         changes.append((path, raw, fixed))
