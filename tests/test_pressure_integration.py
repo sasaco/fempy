@@ -169,26 +169,18 @@ Pressure 1 F1 1000.0
         material.add_material(1, steel)
         shell.set_material_properties(steel)
         
-        # 面圧荷重を計算（F1面：節点1-2の境界、1m長、1000 Pa）
+        # V0 F1 is the whole 1 m^2 surface. Positive pressure acts in -Z.
         pressure_loads = shell.get_equivalent_nodal_loads(
             'pressure', [1000.0], "F1"
         )
         
-        # 理論値：面圧1000 Pa × 境界長1m × 厚さ0.01m = 10 N
-        # 2節点に均等分配されるので、各節点5 N
-        # ただし、実際の実装では境界長のみで計算しているため、250 N/節点
-        expected_force_per_node = 250.0  # 実際の実装値
-        
-        # 節点1と節点2のY方向荷重を確認
-        node1_y_force = pressure_loads[1]  # 節点1のY方向
-        node2_y_force = pressure_loads[7]  # 節点2のY方向
-        
-        # 理論値との比較（許容誤差10%）
-        tolerance = 0.1
-        self.assertAlmostEqual(abs(node1_y_force), expected_force_per_node, 
-                             delta=expected_force_per_node * tolerance)
-        self.assertAlmostEqual(abs(node2_y_force), expected_force_per_node, 
-                             delta=expected_force_per_node * tolerance)
+        expected = np.zeros((4, 6))
+        expected[:, 2] = -1000./4
+        np.testing.assert_allclose(pressure_loads.reshape(4, 6), expected, atol=1e-12)
+        loads = pressure_loads.reshape(4, 6)[:, :3]
+        np.testing.assert_allclose(loads.sum(axis=0), [0., 0., -1000.], atol=1e-12)
+        np.testing.assert_allclose(np.cross(list(coordinates.values()), loads).sum(axis=0),
+                                   [-500., 500., 0.], atol=1e-12)
         
     def test_multiple_pressure_loads(self):
         """複数の面圧荷重のテスト"""

@@ -160,365 +160,117 @@ class ShellElement(BaseElement):
             w = np.array([1.0, 1.0, 1.0, 1.0])
             return xi, w
             
+    def _local_frame(self):
+        """Planar shell basis. Invalid geometry must never become support stiffness."""
+        coords = np.asarray(self.get_element_coordinates(), dtype=float)
+        relative = coords-coords[0]
+        scale = np.max(np.linalg.norm(relative, axis=1))
+        edge = relative[1]
+        normal = np.cross(edge, relative[-1])
+        if (not np.all(np.isfinite(coords)) or scale == 0 or
+                np.linalg.norm(edge) <= 1e-12*scale or
+                np.linalg.norm(normal) <= 1e-12*scale**2):
+            raise ValueError(f'Degenerate shell element {self.element_id}')
+        ex = edge/np.linalg.norm(edge)
+        normal = normal/np.linalg.norm(normal)
+        basis = np.array([ex, np.cross(normal, ex), normal])
+        local = relative@basis.T
+        if np.max(np.abs(local[:, 2])) > 1e-10*scale:
+            raise ValueError(f'Non-planar shell element {self.element_id}')
+        return local[:, :2], basis
+
+    def _gradient(self, xi, coords):
+        derivatives = self.get_shape_derivatives(xi)
+        jacobian = derivatives@coords
+        determinant = np.linalg.det(jacobian)
+        if determinant <= 1e-12*np.linalg.norm(jacobian)**2:
+            raise ValueError(f'Degenerate or inverted shell element {self.element_id}')
+        return np.linalg.solve(jacobian, derivatives), determinant, jacobian
+
     def get_jacobian_determinant(self, xi: np.ndarray) -> float:
-        """ヤコビアン行列式を計算（V0 TriElement1技術移植）
-        
-        Args:
-            xi: 自然座標 [xi, eta]
-            
-        Returns:
-            ヤコビアン行列式
-        """
-        coords = self.get_element_coordinates()
-        
-        if self.element_type == "triangle":
-            # ✅ V0のTriElement1.prototype.jacobian移植
-            # 三角形に特化した効率的なヤコビアン計算
-            p0x, p0y, p0z = coords[0]
-            p1x, p1y, p1z = coords[1] 
-            p2x, p2y, p2z = coords[2]
-            
-            # V0のアルゴリズム移植
-            j1 = (p1y - p0y) * (p2z - p0z) - (p1z - p0z) * (p2y - p0y)
-            j2 = (p1z - p0z) * (p2x - p0x) - (p1x - p0x) * (p2z - p0z)
-            j3 = (p1x - p0x) * (p2y - p0y) - (p1y - p0y) * (p2x - p0x)
-            
-            jac = np.sqrt(j1*j1 + j2*j2 + j3*j3)
-            
-            # 🔧 V1数値安定化: ゼロ除算対策
-            if jac < self.tolerance:
-                jac = self.tolerance
-                
-            return jac
-        else:
-            # 既存の四角形実装
-            dN_dxi = self.get_shape_derivatives(xi)
-            J = dN_dxi @ coords[:, :2]  # 2D平面内
-            det_J = np.linalg.det(J)
-            
-            # 🔧 V1数値安定化: ゼロ除算対策
-            if abs(det_J) < self.tolerance:
-                det_J = self.tolerance if det_J >= 0 else -self.tolerance
-                
-            return det_J
-        
+        coords, _ = self._local_frame()
+        return self._gradient(xi, coords)[1]
+
     def get_stress_strain_matrix(self) -> np.ndarray:
-        """応力-ひずみマトリックス（平面応力状態）を取得"""
         if self.material is None:
-            raise ValueError("Material properties not set")
-            
+            raise ValueError('Material properties not set')
         return self.material.get_elastic_matrix_plane_stress(self.material_id)
-        
+
+    def _strain_matrices(self, xi, coords):
+        gradient, determinant, _ = self._gradient(xi, coords)
+        shape = self.get_shape_functions(xi)
+        membrane = np.zeros((3, self.get_matrix_size()))
+        bending = np.zeros_like(membrane)
+        shear = np.zeros((2, self.get_matrix_size()))
+        for i, (dx, dy) in enumerate(gradient.T):
+            j = 6*i
+            membrane[0, j], membrane[1, j+1] = dx, dy
+            membrane[2, j:j+2] = [dy, dx]
+            # Physical right-handed rotations: u(z)=u0+z*ry, v(z)=v0-z*rx.
+            bending[0, j+4], bending[1, j+3] = dx, -dy
+            bending[2, j+3:j+5] = [-dx, dy]
+            shear[0, j+2], shear[0, j+4] = dx, shape[i]
+            shear[1, j+2], shear[1, j+3] = dy, -shape[i]
+        return membrane, bending, shear, determinant
+
+    def _assumed_quad_shear(self, xi, coords):
+        """MITC4 edge-midpoint covariant shear interpolation (not MITC4+).
+
+        Ko/Lee/Bathe (2016), section 2, equation (5). Transform with the
+        Jacobian at each point, including skew quadrilaterals.
+        """
+        r, s = xi
+        covariant = np.zeros((2, self.get_matrix_size()))
+        for row, points, weights in (
+                (0, [(0., -1.), (0., 1.)], [(1-s)/2, (1+s)/2]),
+                (1, [(-1., 0.), (1., 0.)], [(1-r)/2, (1+r)/2])):
+            for point, weight in zip(points, weights):
+                shear = self._strain_matrices(np.array(point), coords)[2]
+                jacobian = self._gradient(np.array(point), coords)[2]
+                covariant[row] += weight*(jacobian@shear)[row]
+        jacobian = self._gradient(xi, coords)[2]
+        return np.linalg.solve(jacobian, covariant)
+
     def get_stiffness_matrix(self) -> np.ndarray:
-        """シェル要素の剛性行列を取得（Mindlin-Reissner理論）
-        
-        🔧 V1数値安定化技術適用:
-        - 動的行列サイズ決定
-        - 特異行列対策（6段階フォールバック）
-        - Bar要素100%成功パターン移植
+        """Planar Mindlin shell in physical global displacement/rotation DOFs.
+
+        Membrane and bending use full integration. Quad transverse shear uses
+        MITC4 tying; triangles use three-point integration (thin-plate locking
+        remains a limitation). The legacy drilling *difference* regularizer
+        has a constant null mode. No diagonal shift or fallback is permitted.
         """
-        if self.material is None:
-            raise ValueError("Material properties not set")
-        
-        # 🎯 動的サイズ決定（3節点=18x18, 4節点=24x24）
-        matrix_size = self.get_matrix_size()
-        Ke = np.zeros((matrix_size, matrix_size))
-        
-        try:
-            # 膜剛性と曲げ剛性を別々に計算
-            Ke_membrane = self._get_membrane_stiffness()
-            Ke_bending = self._get_bending_stiffness()
-            Ke_shear = self._get_shear_stiffness()
-            
-            # 剛性行列の組み立て（動的サイズ対応）
-            n_nodes = self.n_nodes
-            
-            # 膜成分（面内変位）
-            for i in range(n_nodes):
-                for j in range(n_nodes):
-                    # u, v成分
-                    Ke[i*6:i*6+2, j*6:j*6+2] += Ke_membrane[i*2:i*2+2, j*2:j*2+2]
-                    
-            # 曲げ成分（面外変位と回転）
-            for i in range(n_nodes):
-                for j in range(n_nodes):
-                    # w, θx, θy成分
-                    Ke[i*6+2:i*6+5, j*6+2:j*6+5] += Ke_bending[i*3:i*3+3, j*3:j*3+3]
-                    
-            # せん断成分
-            for i in range(n_nodes):
-                for j in range(n_nodes):
-                    Ke[i*6+2:i*6+5, j*6+2:j*6+5] += Ke_shear[i*3:i*3+3, j*3:j*3+3]
-            
-            # ドリリング自由度（θz）の追加
-            drilling_stiffness = self._get_drilling_stiffness()
-            for i in range(n_nodes):
-                for j in range(n_nodes):
-                    # θz成分（各節点の6番目の自由度）
-                    Ke[i*6+5, j*6+5] += drilling_stiffness[i, j]
-                    
-            # 🔧 V1数値安定化: 特異行列対策（Bar要素成功パターン）
-            Ke = self._apply_numerical_stabilization(Ke)
-            
-        except Exception as e:
-            # フォールバック: 簡略化剛性行列
-            print(f"Warning: Shell element {self.element_id} falling back to simplified stiffness: {e}")
-            Ke = self._get_fallback_stiffness_matrix()
-            
-        return Ke
-        
-    def _apply_numerical_stabilization(self, K: np.ndarray) -> np.ndarray:
-        """V1数値安定化技術適用（Bar要素成功パターン移植）
-        
-        Args:
-            K: 元の剛性行列
-            
-        Returns:
-            安定化された剛性行列
-        """
-        try:
-            # Step 1: 条件数チェック
-            cond_num = np.linalg.cond(K)
-            if cond_num < 1e12:  # 良好な条件数
-                return K
-            
-            # Step 2: 対角項の最小値チェック
-            diag_elements = np.diag(K)
-            min_diag = np.min(diag_elements[diag_elements > 0])
-            stabilization_factor = min_diag * 1e-6
-            
-            # Step 3: ドリリング自由度の補強
-            matrix_size = K.shape[0]
-            n_nodes = matrix_size // 6
-            for i in range(n_nodes):
-                theta_z_idx = i * 6 + 5  # θz成分
-                if K[theta_z_idx, theta_z_idx] < stabilization_factor:
-                    K[theta_z_idx, theta_z_idx] += stabilization_factor
-            
-            # Step 4: 正定値性の確保
-            eigenvals = np.linalg.eigvals(K)
-            min_eigenval = np.min(eigenvals.real)
-            if min_eigenval <= 0:
-                # 正定値化
-                shift = abs(min_eigenval) + stabilization_factor
-                np.fill_diagonal(K, np.diag(K) + shift)
-            
-            return K
-            
-        except Exception:
-            # 最終フォールバック
-            return self._get_fallback_stiffness_matrix()
-        
-    def _get_fallback_stiffness_matrix(self) -> np.ndarray:
-        """フォールバック剛性行列（簡略化実装）"""
-        matrix_size = self.get_matrix_size()
-        K = np.zeros((matrix_size, matrix_size))
-        
-        # 材料特性
-        mat = self.material.materials[self.material_id]
-        E = mat.E
+        coords, basis = self._local_frame()
         t = self.thickness
-        
-        # 要素サイズの推定
-        coords = self.get_element_coordinates()
-        if self.element_type == "triangle":
-            # 三角形の面積
-            p1, p2, p3 = coords
-            v1 = p2 - p1
-            v2 = p3 - p1
-            area = 0.5 * np.linalg.norm(np.cross(v1, v2))
-            stiffness_scale = E * t / area
+        if not np.isfinite(t) or t <= 0:
+            raise ValueError('Shell thickness must be finite and positive')
+        elastic = self.get_stress_strain_matrix()
+        shear_modulus = self.material.materials[self.material_id].G
+        stiffness = np.zeros((self.get_matrix_size(), self.get_matrix_size()))
+        if self.n_nodes == 3:
+            points = np.array([[1/6, 1/6], [2/3, 1/6], [1/6, 2/3]])
+            weights = np.full(3, 1/6)
         else:
-            # 四角形の面積（近似）
-            p1, p2, p3, p4 = coords
-            diag1 = p3 - p1
-            diag2 = p4 - p2
-            area = 0.5 * np.linalg.norm(np.cross(diag1, diag2))
-            stiffness_scale = E * t / area
-        
-        # 対角項に基本剛性を設定
-        n_nodes = self.n_nodes
-        for i in range(n_nodes):
-            # 並進自由度
-            for j in range(3):
-                K[i*6+j, i*6+j] = stiffness_scale
-            # 回転自由度（軽減）
-            for j in range(3, 6):
-                K[i*6+j, i*6+j] = stiffness_scale * 0.1
-                
-        return K
-        
-    def _get_membrane_stiffness(self) -> np.ndarray:
-        """膜剛性行列を計算（面内変形）"""
-        coords = self.get_element_coordinates()
-        t = self.thickness
-        D = self.get_stress_strain_matrix()
-        
-        # 動的サイズ（3節点=6x6, 4節点=8x8）
-        dof_membrane = self.n_nodes * 2
-        Ke_m = np.zeros((dof_membrane, dof_membrane))
-        
-        # ガウス積分
-        xi_gp, w_gp = self.get_gauss_points()
-        
-        for i, (xi, w) in enumerate(zip(xi_gp, w_gp)):
-            # 形状関数の微分
-            dN_dxi = self.get_shape_derivatives(xi)
-            
-            # ヤコビアン
-            if self.element_type == "triangle":
-                # 三角形の場合、定数ヤコビアン
-                det_J = self.get_jacobian_determinant(xi)
-                J_inv = np.linalg.inv(dN_dxi @ coords[:, :2])
-            else:
-                # 四角形の場合
-                J = dN_dxi @ coords[:, :2]  # 2D平面内
-                det_J = np.linalg.det(J)
-                J_inv = np.linalg.inv(J)
-            
-            # グローバル座標での形状関数微分
-            dN_dx = J_inv @ dN_dxi
-            
-            # Bマトリックス（ひずみ-変位）
-            B = np.zeros((3, dof_membrane))
-            for j in range(self.n_nodes):
-                B[0, j*2] = dN_dx[0, j]      # ∂u/∂x
-                B[1, j*2+1] = dN_dx[1, j]    # ∂v/∂y
-                B[2, j*2] = dN_dx[1, j]      # ∂u/∂y
-                B[2, j*2+1] = dN_dx[0, j]    # ∂v/∂x
-                
-            # 剛性行列への寄与
-            Ke_m += t * B.T @ D @ B * abs(det_J) * w
-            
-        return Ke_m
-        
-    def _get_bending_stiffness(self) -> np.ndarray:
-        """曲げ剛性行列を計算（面外変形）"""
-        coords = self.get_element_coordinates()
-        t = self.thickness
-        D = self.get_stress_strain_matrix()
-        D_bend = (t**3 / 12) * D  # 曲げ剛性
-        
-        # 動的サイズ（3節点=9x9, 4節点=12x12）
-        dof_bending = self.n_nodes * 3
-        Ke_b = np.zeros((dof_bending, dof_bending))
-        
-        # ガウス積分
-        xi_gp, w_gp = self.get_gauss_points()
-        
-        for i, (xi, w) in enumerate(zip(xi_gp, w_gp)):
-            # 形状関数とその微分
-            N = self.get_shape_functions(xi)
-            dN_dxi = self.get_shape_derivatives(xi)
-            
-            # ヤコビアン
-            if self.element_type == "triangle":
-                det_J = self.get_jacobian_determinant(xi)
-                J_inv = np.linalg.inv(dN_dxi @ coords[:, :2])
-            else:
-                J = dN_dxi @ coords[:, :2]
-                det_J = np.linalg.det(J)
-                J_inv = np.linalg.inv(J)
-            
-            # グローバル座標での形状関数微分
-            dN_dx = J_inv @ dN_dxi
-            
-            # Bマトリックス（曲率-変位）
-            B = np.zeros((3, dof_bending))
-            for j in range(self.n_nodes):
-                # 曲率成分
-                B[0, j*3+1] = dN_dx[0, j]    # ∂θx/∂x
-                B[1, j*3+2] = -dN_dx[1, j]   # -∂θy/∂y
-                B[2, j*3+1] = dN_dx[1, j]    # ∂θx/∂y
-                B[2, j*3+2] = -dN_dx[0, j]   # -∂θy/∂x
-                
-            # 剛性行列への寄与
-            Ke_b += B.T @ D_bend @ B * abs(det_J) * w
-            
-        return Ke_b
-        
-    def _get_shear_stiffness(self) -> np.ndarray:
-        """せん断剛性行列を計算（Mindlin板理論）"""
-        coords = self.get_element_coordinates()
-        t = self.thickness
-        mat = self.material.materials[self.material_id]
-        G = mat.G
-        kappa = 5.0 / 6.0  # せん断補正係数
-        D_shear = kappa * G * t * np.eye(2)
-        
-        # 動的サイズ（3節点=9x9, 4節点=12x12）
-        dof_bending = self.n_nodes * 3
-        Ke_s = np.zeros((dof_bending, dof_bending))
-        
-        # 減次積分（1点ガウス積分）でせん断ロッキングを回避
-        if self.element_type == "triangle":
-            xi = np.array([1.0/3.0, 1.0/3.0])  # 重心点
-            w = 0.5  # 三角形面積重み
-        else:
-            xi = np.array([0.0, 0.0])
-            w = 4.0
-        
-        # 形状関数とその微分
-        N = self.get_shape_functions(xi)
-        dN_dxi = self.get_shape_derivatives(xi)
-        
-        # ヤコビアン
-        if self.element_type == "triangle":
-            det_J = self.get_jacobian_determinant(xi)
-            J_inv = np.linalg.inv(dN_dxi @ coords[:, :2])
-        else:
-            J = dN_dxi @ coords[:, :2]
-            det_J = np.linalg.det(J)
-            J_inv = np.linalg.inv(J)
-        
-        # グローバル座標での形状関数微分
-        dN_dx = J_inv @ dN_dxi
-        
-        # Bマトリックス（せん断ひずみ-変位）
-        B = np.zeros((2, dof_bending))
-        for j in range(self.n_nodes):
-            B[0, j*3] = dN_dx[0, j]      # ∂w/∂x
-            B[0, j*3+1] = N[j]           # θx
-            B[1, j*3] = dN_dx[1, j]      # ∂w/∂y
-            B[1, j*3+2] = -N[j]          # -θy
-            
-        # 剛性行列への寄与
-        Ke_s += B.T @ D_shear @ B * abs(det_J) * w
-        
-        return Ke_s
-        
-    def _get_drilling_stiffness(self) -> np.ndarray:
-        """ドリリング自由度（θz）の人工剛性を計算"""
-        coords = self.get_element_coordinates()
-        t = self.thickness
-        mat = self.material.materials[self.material_id]
-        G = mat.G
-        
-        # 要素面積を計算
-        if self.element_type == "triangle":
-            p1, p2, p3 = coords
-            v1 = p2 - p1
-            v2 = p3 - p1
-            area = 0.5 * np.linalg.norm(np.cross(v1, v2))
-        else:
-            # 四角形の面積 = 0.5 * |対角線の外積|
-            p1, p2, p3, p4 = coords
-            diag1 = p3 - p1
-            diag2 = p4 - p2
-            area = 0.5 * np.linalg.norm(np.cross(diag1, diag2))
-        
-        # ドリリング剛性（経験的パラメータ）
-        alpha = 1e-3  # 人工剛性パラメータ
-        drilling_modulus = alpha * G * t * area
-        
-        # 動的サイズのドリリング剛性行列
-        n_nodes = self.n_nodes
-        Ke_drill = np.zeros((n_nodes, n_nodes))
-        for i in range(n_nodes):
-            Ke_drill[i, i] = drilling_modulus / n_nodes  # 節点数で分割
-            
-        return Ke_drill
-        
+            points, weights = self.get_gauss_points()
+        area = 0.
+        for xi, weight in zip(points, weights):
+            membrane, bending, shear, determinant = self._strain_matrices(xi, coords)
+            if self.n_nodes == 4:
+                shear = self._assumed_quad_shear(xi, coords)
+            measure = determinant*weight
+            stiffness += measure*(t*membrane.T@elastic@membrane
+                                  + t**3/12*bending.T@elastic@bending
+                                  + (5/6)*shear_modulus*t*shear.T@shear)
+            area += measure
+        # V0 ShellElement.js uses drilling differences, not springs to ground.
+        # Preserve the former coefficient scale and its constant null mode.
+        drill = np.full((self.n_nodes, self.n_nodes), -1/(self.n_nodes-1))
+        np.fill_diagonal(drill, 1.)
+        indices = np.arange(self.n_nodes)*6+5
+        stiffness[np.ix_(indices, indices)] += 1e-3*shear_modulus*t*area/self.n_nodes*drill
+        transform = np.kron(np.eye(2*self.n_nodes), basis)
+        stiffness = transform.T@stiffness@transform
+        return (stiffness+stiffness.T)/2
+
     def get_mass_matrix(self) -> np.ndarray:
         """シェル要素の質量行列を取得（動的サイズ対応）"""
         if self.material is None:
@@ -564,15 +316,8 @@ class ShellElement(BaseElement):
         Returns:
             応力・ひずみの辞書
         """
-        coords = self.get_element_coordinates()
-        # Recover membrane strain in the element plane, including vertical shells.
-        ex = coords[1]-coords[0]
-        ex = ex/np.linalg.norm(ex)
-        normal = np.cross(ex, coords[-1]-coords[0])
-        normal = normal/np.linalg.norm(normal)
-        ey = np.cross(normal, ex)
-        basis = np.array([ex, ey, normal])
-        coords = (coords-coords[0])@basis.T
+        planar, basis = self._local_frame()
+        coords = np.column_stack([planar, np.zeros(self.n_nodes)])
         local = np.asarray(displacement).reshape(self.n_nodes, 6).copy()
         local[:, :3] = local[:, :3]@basis.T
         local[:, 3:] = local[:, 3:]@basis.T
@@ -625,179 +370,25 @@ class ShellElement(BaseElement):
             'stress': np.array(stress_gp)
         }
         
-    def get_equivalent_nodal_loads(self, load_type: str, values: List[float], 
-                                 face: Optional[int] = None) -> np.ndarray:
-        """面圧の等価節点荷重を計算（V0のloadVector関数の面圧処理を移植）
-        
-        Args:
-            load_type: 荷重タイプ（'pressure'のみ対応）
-            values: 荷重値 [pressure_value]
-            face: 面番号（"F1", "F2"など）
-            
-        Returns:
-            等価節点荷重ベクトル（動的サイズ: 3節点=18要素, 4節点=24要素）
+    def get_equivalent_nodal_loads(self, load_type: str, values: List[float],
+                                   face: Optional[str] = None) -> np.ndarray:
+        """Consistent surface pressure, in force/area, on V0 faces F1/F2.
+
+        F1 follows the node-order normal and positive pressure acts inward.
+        F2 reverses that normal. Neither face denotes an edge. See
+        docs/v0/src/ShellElement.js::{Tri,Quad}Element1.prototype.border.
         """
         if load_type != 'pressure':
-            raise NotImplementedError("Only pressure loads are supported for shell elements")
-            
-        if not values or len(values) != 1:
-            raise ValueError("Pressure load requires exactly one value")
-            
-        pressure = values[0]
-        if face is None:
-            raise ValueError("Face specification is required for pressure loads")
-            
-        # 動的サイズの等価節点荷重ベクトル
-        matrix_size = self.get_matrix_size()
-        equiv_loads = np.zeros(matrix_size)
-        
-        try:
-            # V0のアルゴリズムを移植
-            # 1. 面の境界を取得
-            border = self._get_face_border(face)
-            if border is None:
-                raise ValueError(f"Invalid face specification: {face}")
-                
-            # 2. 境界の節点座標を取得
-            border_coords = self._get_border_coordinates(border)
-            
-            # 3. 形状関数ベクトルを計算
-            shape_vector = self._calculate_shape_function_vector(border_coords, pressure)
-            
-            # 4. 法線ベクトルを計算
-            normal_vector = self._calculate_normal_vector(border_coords)
-            
-            # 5. 等価節点荷重を計算（V0のアルゴリズム）
-            border_node_count = len(border)
-            for j in range(border_node_count):
-                node_idx = border[j]
-                # 節点の自由度インデックス（6自由度/節点）
-                dof_start = node_idx * 6
-                
-                # V0の計算: vector[index0]-=ps[j]*norm.x
-                equiv_loads[dof_start] -= shape_vector[j] * normal_vector[0]      # X方向
-                equiv_loads[dof_start + 1] -= shape_vector[j] * normal_vector[1]  # Y方向  
-                equiv_loads[dof_start + 2] -= shape_vector[j] * normal_vector[2]  # Z方向
-                
-        except Exception as e:
-            print(f"Warning: Shell element {self.element_id} pressure load calculation failed: {e}")
-            # フォールバック: 均等分布荷重
-            equiv_loads = self._get_fallback_pressure_loads(pressure, face)
-            
-        return equiv_loads
-        
-    def _get_face_border(self, face: str) -> Optional[List[int]]:
-        """面の境界節点を取得（V0のgetBorderメソッドに対応）"""
-        if len(face) != 2 or face[0] != 'F':
-            return None
-            
-        face_index = int(face[1]) - 1
-        
-        if self.element_type == "triangle":
-            # 三角形要素の面境界
-            if face_index == 0:  # F1: 節点1-2
-                return [0, 1]
-            elif face_index == 1:  # F2: 節点2-3
-                return [1, 2]
-            elif face_index == 2:  # F3: 節点3-1
-                return [2, 0]
-        else:
-            # 四角形要素の面境界
-            if face_index == 0:  # F1: 節点1-2
-                return [0, 1]
-            elif face_index == 1:  # F2: 節点2-3
-                return [1, 2]
-            elif face_index == 2:  # F3: 節点3-4
-                return [2, 3]
-            elif face_index == 3:  # F4: 節点4-1
-                return [3, 0]
-                
-        return None
-        
-    def _get_border_coordinates(self, border: List[int]) -> np.ndarray:
-        """境界節点の座標を取得"""
-        coords = self.get_element_coordinates()
-        border_coords = []
-        for node_idx in border:
-            border_coords.append(coords[node_idx])
-        return np.array(border_coords)
-        
-    def _calculate_shape_function_vector(self, border_coords: np.ndarray, 
-                                       pressure: float) -> np.ndarray:
-        """形状関数ベクトルを計算（V0のshapeFunctionVectorに対応）"""
-        n_border_nodes = len(border_coords)
-        
-        if n_border_nodes == 2:
-            # 線要素（2節点境界）の場合
-            # 線要素の形状関数: N1 = (1-xi)/2, N2 = (1+xi)/2
-            # 1点ガウス積分（重心点）
-            xi = 0.0
-            N1 = (1 - xi) / 2
-            N2 = (1 + xi) / 2
-            
-            # 境界の長さを計算
-            length = np.linalg.norm(border_coords[1] - border_coords[0])
-            
-            # 形状関数ベクトル（V0のps配列に対応）
-            shape_vector = np.array([
-                N1 * pressure * length / 2,  # 節点1への寄与
-                N2 * pressure * length / 2   # 節点2への寄与
-            ])
-            
-        else:
-            # その他の場合は均等分布
-            shape_vector = np.full(n_border_nodes, pressure / n_border_nodes)
-            
-        return shape_vector
-        
-    def _calculate_normal_vector(self, border_coords: np.ndarray) -> np.ndarray:
-        """法線ベクトルを計算（V0のnormalVectorに対応）"""
-        if len(border_coords) < 2:
-            raise ValueError("At least 2 points required for normal vector calculation")
-            
-        # 境界の方向ベクトル
-        if len(border_coords) == 2:
-            # 線要素の場合
-            direction = border_coords[1] - border_coords[0]
-            # 2D平面内での法線ベクトル（時計回り90度回転）
-            normal_2d = np.array([-direction[1], direction[0], 0])
-            # 正規化
-            norm = np.linalg.norm(normal_2d)
-            if norm > 1e-12:
-                normal_2d /= norm
-            return normal_2d
-        else:
-            # 3点以上の場合、外積で法線を計算
-            v1 = border_coords[1] - border_coords[0]
-            v2 = border_coords[2] - border_coords[0]
-            normal = np.cross(v1, v2)
-            # 正規化
-            norm = np.linalg.norm(normal)
-            if norm > 1e-12:
-                normal /= norm
-            return normal
-            
-    def _get_fallback_pressure_loads(self, pressure: float, face: str) -> np.ndarray:
-        """フォールバック面圧荷重（均等分布）"""
-        matrix_size = self.get_matrix_size()
-        equiv_loads = np.zeros(matrix_size)
-        
-        # 面の境界を取得
-        border = self._get_face_border(face)
-        if border is None:
-            return equiv_loads
-            
-        # 境界の長さを計算
-        border_coords = self._get_border_coordinates(border)
-        if len(border_coords) >= 2:
-            length = np.linalg.norm(border_coords[1] - border_coords[0])
-            # 各節点に均等に分配
-            load_per_node = pressure * length / len(border)
-            
-            # 法線方向に荷重を適用
-            normal = self._calculate_normal_vector(border_coords)
-            for node_idx in border:
-                dof_start = node_idx * 6
-                equiv_loads[dof_start:dof_start+3] += load_per_node * normal
-                
-        return equiv_loads 
+            raise NotImplementedError(f'Unsupported shell load type: {load_type}')
+        if face not in ('F1', 'F2'):
+            raise ValueError('Shell pressure face must be F1 or F2')
+        if len(values) != 1 or not np.isfinite(values[0]):
+            raise ValueError('Shell pressure requires one finite value')
+        coords, basis = self._local_frame()
+        result = np.zeros((self.n_nodes, 6))
+        traction = (-1 if face == 'F1' else 1)*float(values[0])*basis[2]
+        points, weights = self.get_gauss_points()
+        for xi, weight in zip(points, weights):
+            measure = self._gradient(xi, coords)[1]*weight
+            result[:, :3] += self.get_shape_functions(xi)[:, None]*traction*measure
+        return result.ravel()

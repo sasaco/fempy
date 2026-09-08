@@ -12,6 +12,7 @@ from pathlib import Path
 
 from run_sample import FemModel, _read_json_model, legacy_result_view, comparison_errors
 from src.fem.legacy_beam import select_case
+from phase4_source_evidence import input_findings, source_evidence
 
 
 def audit_case(path, case_id):
@@ -24,8 +25,10 @@ def audit_case(path, case_id):
                      units='Legacy contract: kN, m, rad; fixture origin unverified',
                      signs='src/app/result.py section-cut convention',
                      positions='node labels; notice-point segment i/j ends'))
+    actual = None
     try:
         data = select_case(data, case_id)
+        entry['input_findings'] = input_findings(data)
         with contextlib.redirect_stdout(io.StringIO()):
             model = FemModel()
             model.read_json_model(_read_json_model(copy.deepcopy(data)))
@@ -46,6 +49,7 @@ def audit_case(path, case_id):
             v.get('mismatches', 0) or 'status' in v for v in entry['fields'].values()) else 'match'
     except Exception as error:
         entry.update(status='error', error_type=type(error).__name__, message=str(error))
+    entry['source_evidence'] = source_evidence(path, data, actual['disg'] if actual else None)
     return entry
 
 

@@ -17,6 +17,21 @@ def boundary_map(length, rigidity, foundation=0., bending=False, q=(0., 0.), she
     M'=V, V'=q-k*v. End actions are (V_i,-M_i,-V_j,M_j).
     Two extra states represent q(x)=q_i+(q_j-q_i)*x/L.
     """
+    if foundation == 0 and (not bending or shear_rigidity is None):
+        # Polynomial solution avoids an ill-scaled matrix exponential for
+        # short, very stiff segments. These are exact consistent loads.
+        l, q0, q1 = length, q[0], q[1]
+        if not bending:
+            return (rigidity/l*np.array([[1., -1.], [-1., 1.]]),
+                    l/6*np.array([2*q0+q1, q0+2*q1]))
+        stiffness = rigidity/l**3*np.array([
+            [12., 6*l, -12., 6*l],
+            [6*l, 4*l*l, -6*l, 2*l*l],
+            [-12., -6*l, 12., -6*l],
+            [6*l, 2*l*l, -6*l, 4*l*l]])
+        load = np.array([l*(7*q0+3*q1)/20, l*l*(3*q0+2*q1)/60,
+                         l*(3*q0+7*q1)/20, -l*l*(2*q0+3*q1)/60])
+        return stiffness, load
     n = 4 if bending else 2
     a = np.zeros((n+2, n+2))
     if bending:
@@ -120,7 +135,23 @@ class LoadedBarElement(BEBarElement):
     def get_member_load_vector(self):
         return self.get_transformation_matrix(12).T@self._local_system()[1]
 
+    def _elastic_local_force(self, displacement):
+        k, _ = self._local_system()
+        deformation = self.get_transformation_matrix(12)@displacement
+        if not np.any(self.foundation):
+            # Subtract a rigid motion before multiplying large stiffnesses.
+            # This is a kinematic identity, not clipping small end forces.
+            translation, rotation = deformation[:3].copy(), deformation[3:6].copy()
+            deformation[6:9] -= translation + np.cross(rotation, [self.length, 0., 0.])
+            deformation[9:12] -= rotation
+            deformation[:6] = 0.
+        return k@deformation
+
+    def get_internal_force(self, displacement):
+        # Consistent loads are already included in the solver's external load.
+        return self.get_transformation_matrix(12).T@self._elastic_local_force(displacement)
+
     def calculate_forces(self, displacement):
-        k, f = self._local_system()
-        local = k@(self.get_transformation_matrix(12)@displacement)-self.load_factor*f
+        _, f = self._local_system()
+        local = self._elastic_local_force(displacement)-self.load_factor*f
         return dict(i_end=local[:6].copy(), j_end=local[6:].copy())

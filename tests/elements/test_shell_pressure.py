@@ -85,7 +85,7 @@ class TestShellPressure(unittest.TestCase):
         shell.set_node_coordinates(coordinates)
         shell.set_material_properties(self.material.materials[1])
         
-        # 面圧の等価節点荷重を計算（F1面：節点1-2の境界）
+        # 面圧の等価節点荷重を計算（F1面：節点順序の法線側の表面）
         equiv_loads = shell.get_equivalent_nodal_loads(
             'pressure', [1000.0], "F1"
         )
@@ -97,14 +97,10 @@ class TestShellPressure(unittest.TestCase):
         total_force = np.sum(np.abs(equiv_loads))
         self.assertGreater(total_force, 0.0, "面圧荷重が適用されていません")
         
-        # 面圧の方向性を確認（F1面はY方向の法線を持つ）
-        # 節点1と節点2に荷重が適用される
-        node1_force = equiv_loads[0:3]  # 節点1の並進自由度
-        node2_force = equiv_loads[6:9]  # 節点2の並進自由度
-        
-        # 法線方向（Y方向）に荷重が適用されることを確認
-        self.assertNotEqual(node1_force[1], 0.0, "節点1のY方向荷重がゼロです")
-        self.assertNotEqual(node2_force[1], 0.0, "節点2のY方向荷重がゼロです")
+        # V0 F1 is the full surface; inward traction is -Z for these nodes.
+        expected = np.zeros((3, 6))
+        expected[:, 2] = -1000*.5/3
+        np.testing.assert_allclose(equiv_loads.reshape(3, 6), expected, atol=1e-12)
         
     def test_quadrilateral_shell_pressure_equivalent_loads(self):
         """四角形シェル要素の面圧等価節点荷重計算テスト"""
@@ -126,7 +122,7 @@ class TestShellPressure(unittest.TestCase):
         shell.set_node_coordinates(coordinates)
         shell.set_material_properties(self.material.materials[1])
         
-        # 面圧の等価節点荷重を計算（F1面：節点1-2の境界）
+        # 面圧の等価節点荷重を計算（F1面：節点順序の法線側の表面）
         equiv_loads = shell.get_equivalent_nodal_loads(
             'pressure', [1000.0], "F1"
         )
@@ -157,23 +153,19 @@ class TestShellPressure(unittest.TestCase):
         shell.set_node_coordinates(coordinates)
         shell.set_material_properties(self.material.materials[1])
         
-        # 異なる面に面圧を適用して方向性を確認
-        # F1面（節点1-2）：Y方向の法線
+        # V0 F1/F2 are opposite sides of the same area, not adjacent edges.
         equiv_loads_f1 = shell.get_equivalent_nodal_loads(
             'pressure', [1000.0], "F1"
         )
         
-        # F2面（節点2-3）：X方向の法線
+        # F2 reverses the F1 normal.
         equiv_loads_f2 = shell.get_equivalent_nodal_loads(
             'pressure', [1000.0], "F2"
         )
         
-        # 方向性の違いを確認
-        f1_y_force = equiv_loads_f1[1] + equiv_loads_f1[7]  # 節点1,2のY方向荷重
-        f2_x_force = equiv_loads_f2[0] + equiv_loads_f2[6]  # 節点1,2のX方向荷重
-        
-        self.assertNotEqual(f1_y_force, 0.0, "F1面のY方向荷重がゼロです")
-        self.assertNotEqual(f2_x_force, 0.0, "F2面のX方向荷重がゼロです")
+        np.testing.assert_allclose(equiv_loads_f1, -equiv_loads_f2, atol=1e-12)
+        self.assertAlmostEqual(equiv_loads_f1.reshape(3, 6)[:, 2].sum(), -500., places=10)
+        self.assertAlmostEqual(equiv_loads_f2.reshape(3, 6)[:, 2].sum(), 500., places=10)
         
     def test_pressure_magnitude_validation(self):
         """面圧の大きさテスト"""
@@ -204,7 +196,7 @@ class TestShellPressure(unittest.TestCase):
             
             # 荷重の大きさが面圧値に比例することを確認
             total_force = np.sum(np.abs(equiv_loads))
-            self.assertGreater(total_force, 0.0, f"面圧{pressure_value}で荷重がゼロです")
+            self.assertAlmostEqual(total_force, .5*pressure_value, places=10)
             
     def test_invalid_pressure_parameters(self):
         """無効な面圧パラメータのテスト"""

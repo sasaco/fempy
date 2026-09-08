@@ -376,6 +376,8 @@ class FemModel:
         """
         # 再解析が失敗した際に、前回の結果を今回の結果として残さない。
         self.results = None
+        if not self.mesh.elements:
+            raise ValueError('Model must contain structural elements (missing topology)')
         if analysis_type is None:
             analysis_type = self.analysis_type
         if analysis_type is None:
