@@ -36,6 +36,29 @@ def test_legacy_bernoulli_section_and_cg():
     assert r['node_displacements'][2]['dy'] == pytest.approx(3*8/(3*1000*3), abs=1e-12)
 
 
+@pytest.mark.parametrize('mark', [0, '0'])
+def test_disabled_member_load_ignores_stale_values_and_does_not_split(mark):
+    d = cantilever()
+    _, expected = run(d)
+    d['load']['1']['load_member'] = [dict(m=1, mark=mark, P1=99, P2=-23,
+                                        L1='unused', L2=-10, direction='unused')]
+    model, actual = run(d)
+    assert len(model.mesh.nodes) == 2
+    assert actual['node_displacements'] == expected['node_displacements']
+    assert actual['reaction_forces'] == expected['reaction_forces']
+
+
+def test_generated_point_coordinates_keep_submillimetre_precision():
+    d = cantilever()
+    x = 0.123456789012345
+    d['notice_points'] = [dict(m=1, Points=[x])]
+    model, result = run(d)
+    generated = next(n for n in model.mesh.nodes if n not in (1, 2))
+    assert model.mesh.nodes[generated][0] == x
+    assert result['node_displacements'][generated]['dy'] == pytest.approx(
+        3*x*x*(6-x)/(6*4000), rel=1e-8, abs=1e-10)
+
+
 @pytest.mark.parametrize('q0,q1', [(3, 3), (0, 6), (6, 0)])
 def test_uniform_and_triangular_load_consistent_forces(q0, q1):
     d = cantilever()

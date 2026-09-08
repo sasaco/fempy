@@ -266,6 +266,8 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
     # 非線形材料データも同時に処理
     nonlinear_materials = {}  # {material_id: {'params': NonlinearMaterialProperty, 'hysteresis_dofs': [...]}}
 
+    beam_material_ids = {int(member.get('e', 1)) for member in data.get('member', {}).values()}
+    beam_material_ids.update(int(zone['e']) for zone in data.get('rigid', []))
     if 'element' in data:
         for _, elem_defs in data['element'].items():
             for mat_id_str, elem_def in elem_defs.items():
@@ -279,14 +281,16 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 )
                 model_data['material'].add_material(material_id, mp)
 
-                # BarParameterオブジェクトも追加（梁要素の断面特性）
-                bp = BarParameter(
-                    area=elem_def.get('A', 1.0),     # 断面積
-                    Iy=elem_def.get('Iy', 1.0),      # 断面二次モーメント(y軸周り)
-                    Iz=elem_def.get('Iz', 1.0),      # 断面二次モーメント(z軸周り)
-                    J=elem_def.get('J', 1.0)         # ねじり定数
-                )
-                model_data['material'].add_bar_parameter(material_id, bp)
+                # Only beams (including rigid segments) use section properties.
+                # Shell A is a legacy thickness alias; solids use their geometry.
+                if material_id in beam_material_ids:
+                    bp = BarParameter(
+                        area=elem_def.get('A', 1.0),
+                        Iy=elem_def.get('Iy', 1.0),
+                        Iz=elem_def.get('Iz', 1.0),
+                        J=elem_def.get('J', 1.0)
+                    )
+                    model_data['material'].add_bar_parameter(material_id, bp)
 
                 # 非線形材料データの読み込み
                 if 'nonlinear' in elem_def:

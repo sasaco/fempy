@@ -976,7 +976,9 @@
       "shell_results"
     ],
     "empty_field_reason": "Source/input identity proves a solid-only model; size is source node count",
-    "after_sha256": "167438a27b52eaf746f91a1128d3e92fb5f3d14b259831627198a19de979eda3"
+    "after_sha256": "858af6aaed49b547b31c8ceb3423c2625d620ffca9418403745ac4f0ca05a999",
+    "before_schema_removal_sha256": "167438a27b52eaf746f91a1128d3e92fb5f3d14b259831627198a19de979eda3",
+    "before_whitespace_cleanup_sha256": "bcf322f907dbb564120907f132966290520e809633cae2032c804a8eb65d22ef"
   },
   {
     "sample": "tests/data/bend/sampleBendWedge1.json",
@@ -1955,7 +1957,9 @@
       "shell_results"
     ],
     "empty_field_reason": "Source/input identity proves a solid-only model; size is source node count",
-    "after_sha256": "71e220ec6eadc337982a87d140369b9c3fa9bed18354a9743dad992f91003ef9"
+    "after_sha256": "f8c597bc7e47b5d8c2607debf8f5a8054a3dfffac54b9067195dc4ea8d0035cc",
+    "before_schema_removal_sha256": "71e220ec6eadc337982a87d140369b9c3fa9bed18354a9743dad992f91003ef9",
+    "before_whitespace_cleanup_sha256": "bb5fdb81647bec98e5431449633d447653fb5bd45871018d2a23882955f5d363"
   },
   {
     "sample": "tests/data/bend/sampleBendHexa2.json",
@@ -22025,7 +22029,9 @@
       "shell_results"
     ],
     "empty_field_reason": "Source/input identity proves a solid-only model; size is source node count",
-    "after_sha256": "41fd3a6074b1dc1a55d601147bea58a71bf7a824f6830474a2aa2f790642ff23"
+    "after_sha256": "edce272e278b63997aeae9a7418e238a5dc321435c149d22b66160175a8264ca",
+    "before_schema_removal_sha256": "41fd3a6074b1dc1a55d601147bea58a71bf7a824f6830474a2aa2f790642ff23",
+    "before_whitespace_cleanup_sha256": "161eba91ccde9da4234098c7826f2349a96bdd70d5a82c15e514c3111159811f"
   },
   {
     "sample": "tests/data/bend/sampleBendWedge2.json",
@@ -46415,7 +46421,9 @@
       "shell_results"
     ],
     "empty_field_reason": "Source/input identity proves a solid-only model; size is source node count",
-    "after_sha256": "12ec11e58adabecd3635c32a4f53439f7d6d3fc53d3d394acc522f2babe45bea"
+    "after_sha256": "d81b6d1a6b69367f2eb9c639d531a6d4e1338598a9e5562e9288aadb04b539ab",
+    "before_schema_removal_sha256": "12ec11e58adabecd3635c32a4f53439f7d6d3fc53d3d394acc522f2babe45bea",
+    "before_whitespace_cleanup_sha256": "5e893d7e1ae5e694d4c503896aa79d0679881082a53c6ceb6525cf021b182e15"
   },
   {
     "sample": "tests/data/bend/sampleBendTetra2.json",
@@ -81539,6 +81547,8 @@
       "shell_results"
     ],
     "empty_field_reason": "Source/input identity proves a solid-only model; size is source node count",
-    "after_sha256": "b9b36c67cff6e232bf249137aae0715b917aed1567e52aab0e154cbf08cd902c"
+    "after_sha256": "9bb154ecf713bd09f93df069543f36ceab2c499aa385c0a3cde1fcb4fc492e1f",
+    "before_schema_removal_sha256": "b9b36c67cff6e232bf249137aae0715b917aed1567e52aab0e154cbf08cd902c",
+    "before_whitespace_cleanup_sha256": "4df1d87bc764bf93b3a655e56b314678edcaeceaa88793dc03dc0ea5ecc6b895"
   }
 ]

@@ -24,7 +24,7 @@ def completed_reference(data, source, independent):
     assert set(independent['node_ids']) == set(source['nodes'])
     assert set(independent['reac']) == set(source['restraints'])
     fields = dict(reac=independent['reac'], size=len(source['nodes']),
-                  fsec={}, shell_fsec={}, shell_results={})
+                  fsec={}, shell_results={})
     fixed = copy.deepcopy(data)
     for key, value in fields.items():
         old = fixed['result']['1']
@@ -49,7 +49,7 @@ def main():
         changes.append((path, raw, fixed))
         records.append(dict(sample=path.relative_to(ROOT).as_posix(),
             before_sha256=hashlib.sha256(raw).hexdigest(), source_reference=independent,
-            fields_added=['reac','size','fsec','shell_fsec','shell_results'],
+            fields_added=['reac','size','fsec','shell_results'],
             empty_field_reason='Source/input identity proves a solid-only model; size is source node count'))
         previous = next((item for item in prior if item['sample'] == records[-1]['sample']
                          and item['after_sha256'] == records[-1]['before_sha256']), None)

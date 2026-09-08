@@ -29,7 +29,7 @@ def completed_data(data, source, reference):
     assert set(reference['disg']) == set(reference['node_ids']) == set(source['nodes'])
     assert set(reference['reac']) == set(source['restraints'])
     result = dict(disg=reference['disg'], reac=reference['reac'], size=len(source['nodes']),
-                  fsec={}, shell_fsec={}, shell_results={})
+                  fsec={}, shell_results={})
     fixed = copy.deepcopy(data)
     fixed['result'] = {'1':result}
     return fixed

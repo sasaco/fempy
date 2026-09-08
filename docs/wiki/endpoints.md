@@ -51,7 +51,6 @@ APIは大きなモデルに対してgzip圧縮をサポートします。圧縮�
         "disg": { ... },
         "reac": { ... },
         "fsec": { ... },
-        "shell_fsec": { ... },
         "shell_results": { ... },
         "size": 100
     },
@@ -214,7 +213,6 @@ curl -X POST http://localhost:5000/ \
                 }
             }
         },
-        "shell_fsec": {},
         "shell_results": {},
         "size": 3
     }

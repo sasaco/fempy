@@ -1,0 +1,11 @@
+{
+  "sample": "tests/data/shell/shellPressureTest1.json",
+  "before_sha256": "0e143a8f0b669c59d44674d603fc033c7c622f517a78e927383ffb9a6661f05b",
+  "after_sha256": "a26e46e6e420d563354dd53192da0d50bf1275f5e1031c2368a4a7f7e3423544",
+  "method": "SymPy exact rational polynomial integration and elimination; no FEM solver imports",
+  "hashes": {
+    "tests/pressure_reference.py": "430287acf674a688072adccdb6a11891e01574de6eb339e66ccada3c92b9cf62",
+    "tests/data/shell/shellPressureTest1.fem": "bc9178805e5f7c7fcfd02c93661f8a56cd25a9d542e35f111a9e5d1bd555b98e"
+  },
+  "conditions": "Unit square, thickness .01, E 205e9, nu .3, F1 pressure 1000, node 1 all six DOFs fixed"
+}

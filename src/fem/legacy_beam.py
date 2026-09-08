@@ -100,8 +100,8 @@ def prepare_members(data, model_data):
                         points.append((p, value, load.get('direction', 'y'), mark))
             elif mark == 9:
                 thermal += float(load.get('P1', 0))
-            elif mark == 0 and not load.get('P1') and not load.get('P2'):
-                continue  # Blank editor row.
+            elif mark == 0:
+                continue  # Disabled editor row, even when stale values remain.
             else:
                 raise ValueError(f'Unsupported member load mark {mark}')
         # The same physical point may arise through different floating-point

@@ -33,7 +33,7 @@ def test_dkt_quadratic_bending_has_exact_thickness_cubed_energy(t, curvature):
     np.testing.assert_allclose(result['resultants']['moment'], t**3/12*elastic@curvature, rtol=1e-10, atol=1e-15)
 
 
-def test_dkt_covariance_and_exactly_seven_null_modes():
+def test_dkt_covariance_and_exactly_six_null_modes():
     rotation = np.array([[1., 2., 2.], [2., 1., -2.], [-2., 2., -1.]])/3
     e, _ = triangle(.2)
     rotated, _ = triangle(.2, rotation)
@@ -41,7 +41,7 @@ def test_dkt_covariance_and_exactly_seven_null_modes():
     np.testing.assert_allclose(rotated.get_stiffness_matrix(), transform@e.get_stiffness_matrix()@transform.T, atol=1e-11)
     eigenvalues = np.linalg.eigvalsh(e.get_stiffness_matrix())
     assert np.min(eigenvalues) > -1e-10
-    assert np.count_nonzero(eigenvalues < 1e-10) == 7
+    assert np.count_nonzero(eigenvalues < 1e-10) == 6
 
 
 def test_dkt_requires_a_triangle():

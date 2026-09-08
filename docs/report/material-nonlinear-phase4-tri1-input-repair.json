@@ -1,0 +1,13 @@
+{
+  "sample": "tests/data/bend/sampleBendTri1.json",
+  "source": "docs/v0/testdata/bend/sampleBendTri1.fem",
+  "source_sha256": "ed3f2fc53d2e8121e0039e5df47f07cbb0c127fe7e786da3c19eec6f2f5f29f2",
+  "before_sha256": "386fc7f6ea070a8d1ab25ca7102c43eb693fa6902cbf8a22e60664e054767712",
+  "after_sha256": "0c049dd7ff10f8598ef1ac83bad91ea8628919b16bd708d900893f150b47cf81",
+  "changes": [
+    "Restore all 240 shell connectivities",
+    "Original .fem E/nu/G and thickness 15",
+    "Restore all six source restraint flags at five nodes"
+  ],
+  "reference_status": "Existing result preserved unchanged; independent full-output completion pending"
+}

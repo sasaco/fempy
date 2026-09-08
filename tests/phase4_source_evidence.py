@@ -17,7 +17,7 @@ DOFS = ('dx', 'dy', 'dz', 'rx', 'ry', 'rz')
 
 def read_v0(path):
     path = Path(path).resolve()
-    records = {key: {} for key in ('nodes', 'elements', 'materials', 'restraints', 'loads', 'displacements')}
+    records = {key: {} for key in ('nodes', 'elements', 'materials', 'restraints', 'loads', 'displacements', 'shell_parameters')}
     records['sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
     records['path'] = path.relative_to(ROOT).as_posix()
     for number, line in enumerate(path.read_text(encoding='utf-8-sig').splitlines(), 1):
@@ -33,6 +33,9 @@ def read_v0(path):
             is_shell = kind.startswith(('tri', 'quad'))
             records['elements'][fields[1]] = dict(type=fields[0], material=fields[2],
                 nodes=fields[4:] if is_shell else fields[3:], line=number)
+            if is_shell: records['elements'][fields[1]]['parameter'] = fields[3]
+        elif kind == 'shellparameter':
+            records['shell_parameters'][fields[1]] = float(fields[2])
         elif kind == 'restraint':
             values = list(map(float, fields[2:]))
             records['restraints'][fields[1]] = values+[0.]*(12-len(values))
@@ -66,7 +69,7 @@ def input_findings(data):
             implication='Identify supported/loaded modes; zero alone does not prove an invalid model. No tiny-stiffness replacement.',
             source='src/app/inputDataUtils.py::get_secMatValues'))
     case = next(iter(data.get('load', {}).values()), {})
-    unsupported = [v for v in case.get('load_member', []) if v.get('mark') not in (1, 2, 9, 11)
+    unsupported = [v for v in case.get('load_member', []) if int(v.get('mark', 0)) not in (0, 1, 2, 9, 11)
                    and (v.get('P1') or v.get('P2'))]
     if unsupported:
         findings.append(dict(category='input', code='unsupported_member_load', rows=unsupported))

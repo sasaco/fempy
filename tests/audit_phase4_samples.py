@@ -54,6 +54,16 @@ def audit_case(path, case_id):
             entry['reference']['provenance'] = repair['reason']
             entry['reference']['field_sources'] = {field:dict(method=ref['method'], hashes=ref['hashes'],
                 maximum_free_force_residual=ref['maximum_free_force_residual']) for field in ('disg','reac')}
+    for name in ('pressure-repair','tri1-reference-repair'):
+        manifest = Path(f'docs/report/material-nonlinear-phase4-{name}.json')
+        if not manifest.exists(): continue
+        repair = json.loads(manifest.read_text(encoding='utf8'))
+        if repair['sample'] != path.as_posix() or repair['after_sha256'] != entry['input_sha256']:
+            continue
+        proof = repair.get('source_reference',repair)
+        entry['reference']['provenance'] = proof['method']
+        entry['reference']['field_sources'] = {field:dict(method=proof['method'], hashes=proof['hashes'])
+            for field in ('disg','reac','shell_results')}
     try:
         data = select_case(data, case_id)
         entry['input_findings'] = input_findings(data)

@@ -78,9 +78,9 @@ def shell_results(element, displacement, *, point_average=False):
         membrane_force += measure*n; moment += measure*m; shear_force += measure*q
         physical_energy += .5*measure*(membrane@n+curvature@m+shear@q)
     # Drilling is explicitly distinguished from physical strain energy.
-    theta = local.reshape(-1, 6)[:, 5]
-    drilling_energy = (.5*1e-3*element.material.materials[element.material_id].G*t*area
-                       /(element.n_nodes-1)*np.sum((theta-theta.mean())**2))
+    drilling_energy = sum(.5*measure*1e-3*element.material.materials[element.material_id].G*t
+                          *float(element._drilling_strain(point, coords)@local)**2
+                          for point, measure in zip(points, measures))
     # Physical cut tractions. Keep each element's shared edge separate; this
     # is not the undocumented legacy virtual-beam stiffness decomposition.
     edges = {}

@@ -2,7 +2,7 @@
   "sample": "tests/data/bend/sampleBendTetra1.json",
   "source": "docs/v0/testdata/bend/sampleBendTetra1.fem",
   "before_sha256": "e208edfae118c637fb858593495791bc1596c840e26b884e32d5d7bfc1348e16",
-  "after_sha256": "6df9add54c6ae9f99cb69a2c70e91f0f5dd28c048a8463cf85c19375470bab3d",
+  "after_sha256": "f066e5fb4630b3fd248e431fb8c5346d2c45ccc2835a5311693fab599533110c",
   "source_reference": {
     "source": "docs/v0/testdata/bend/sampleBendTetra1.fem",
     "hashes": {
@@ -5770,5 +5770,7 @@
     "refinement_iterations": 2
   },
   "previous_result_sha256": "a710e6b2ad29eff9ebea9b2c564c35e095c8fa988bd107208dead00474bc7b29",
-  "reason": "Complete identical .fem input solved independently with V0; incomplete .out not used as a gold source"
+  "reason": "Complete identical .fem input solved independently with V0; incomplete .out not used as a gold source",
+  "before_schema_removal_sha256": "6df9add54c6ae9f99cb69a2c70e91f0f5dd28c048a8463cf85c19375470bab3d",
+  "before_whitespace_cleanup_sha256": "61a5b460ac1c6a85f3afb531ead82bb677958ea46ff0d0789ec9075a6df03b60"
 }

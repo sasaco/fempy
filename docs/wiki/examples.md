@@ -867,10 +867,6 @@ def analyze_shell_plate():
         center_disp = udl_results["disg"]["9"]
         print(f"節点 9: dz={center_disp['dz']:.4f}mm")
         
-        print("\nシェル要素力:")
-        for edge_id, forces in udl_results["shell_fsec"].items():
-            print(f"辺 {edge_id}: Fx_i={forces['fxi']:.2f}kN, Fy_i={forces['fyi']:.2f}kN")
-        
         print("\nシェル応力結果:")
         for shell_id, stress_data in udl_results["shell_results"].items():
             if "stress" in stress_data:

@@ -1,0 +1,25 @@
+{
+  "sample": "tests/data/bend/sampleBendTri1.json",
+  "source": "docs/v0/testdata/bend/sampleBendTri1.fem",
+  "source_reference": {
+    "hashes": {
+      "docs/v0/lib/three.min.js": "5e6f662b2af38b2729e69ea3412f888daa7232346a2a22bc2752febb1d3c90a5",
+      "docs/v0/lib/numeric-1.2.6.min.js": "44a5a73caaf91e43449fc1b8609e9284bfec12087644f68d229ffe530d4c15da",
+      "docs/v0/src/FemMain.js": "3bb9a700a98e21362c98594bc2ea9c728a40068100ffe6b491e82b5b1e2fbaed",
+      "docs/v0/src/FemDataModel.js": "79187fe3753b08686145dbd35dfabde6fa840049096b4db602cd4da7a133adea",
+      "docs/v0/src/Element.js": "88aed6303a8a0faaf0bfc3e0beeddf1c5530d8e21af4d09e86e0d0a0c1402965",
+      "docs/v0/src/Material.js": "533a7aadeab0c160d82637cd7023564d52f9637876aea23a88a1983b3faf9743",
+      "docs/v0/src/ElementBorder.js": "ccc96f2dde8f28ae69f6344e512b044340c73f8e08aa9e2e571b1cd6dabe6a29",
+      "docs/v0/src/ShellElement.js": "578037294de57bed100c2892a071ae11fe976e2f30fecb4a57140b007b04046f",
+      "docs/v0/testdata/bend/sampleBendTri1.fem": "ed3f2fc53d2e8121e0039e5df47f07cbb0c127fe7e786da3c19eec6f2f5f29f2",
+      "tests/v0_triangle_reference.cjs": "393a06aafbb99ba44a50ac2bc2c744cf27b71c27f17b54540077a512ab052bc9",
+      "tests/v0_triangle_reference.py": "530fe3395f1f2b73678d1ccacb4e5bc5f3cffdc2c1e154869dfe11d1f615fd90",
+      "tests/v0_refined_reference.py": "38f7fdbf1e518756f4a2a8923c2a9dd0eb48e1a9e9c6b4517bdb877cb873bfec"
+    },
+    "maximum_free_force_residual": 1.1982191610818529e-19,
+    "method": "Original V0 DKT stiffness/strain operators; independent equilibrated solve and two-surface tensor integration"
+  },
+  "before_sha256": "0c049dd7ff10f8598ef1ac83bad91ea8628919b16bd708d900893f150b47cf81",
+  "after_sha256": "ad66c9cf4e332eaad26b45865d7d7459a7f12757a20ef3f13334684251d91897",
+  "previous_result_sha256": "2ed53536a02ec84d8f413c920779a8c5ead45d10b0d8f58a34ddbb699aebac1b"
+}

@@ -37,4 +37,4 @@ def test_support_reference_completion_preserves_inputs_and_is_idempotent(source_
     assert {k:v for k,v in fixed.items() if k != 'result'} == {k:v for k,v in data.items() if k != 'result'}
     assert fixed['result']['1']['disg'] == data['result']['1']['disg']
     assert completed_reference(fixed, source, reference) == fixed
-    assert set(fixed['result']['1']) == {'disg','reac','size','fsec','shell_fsec','shell_results'}
+    assert set(fixed['result']['1']) == {'disg','reac','size','fsec','shell_results'}

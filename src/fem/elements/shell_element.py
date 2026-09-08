@@ -238,15 +238,31 @@ class ShellElement(BaseElement):
         jacobian = self._gradient(xi, coords)[2]
         return np.linalg.solve(jacobian, covariant)
 
+    def _drilling_strain(self, xi, coords):
+        """Independent rotation minus displacement spin (Hughes/Brezzi).
+
+        https://doi.org/10.1016/0045-7825(89)90124-2
+        Unlike differences of nodal rotations, this preserves exactly the six
+        physical rigid motions and connects a prescribed drill to the membrane.
+        """
+        gradient = self._gradient(xi, coords)[0]
+        row = np.zeros(self.get_matrix_size())
+        row[0::6] = gradient[1]/2
+        row[1::6] = -gradient[0]/2
+        row[5::6] = self.get_shape_functions(xi)
+        return row
+
     def get_stiffness_matrix(self) -> np.ndarray:
         """Planar shell in physical global displacement/rotation DOFs.
 
         Membrane and bending use full integration. Quad transverse shear uses
         MITC4 tying. Mindlin triangles use three-point shear integration;
         DKT triangles use discrete Kirchhoff bending without shear energy.
-        The legacy drilling *difference* regularizer
-        has a constant null mode. No diagonal shift or fallback is permitted.
+        Drilling uses the work-conjugate rotation/spin constraint with a
+        dimensionless penalty of 1e-3. No springs to ground or diagonal shifts.
         """
+        if self.formulation == 'dkt':
+            return self.get_stiffness_matrix_parts()[0].copy()
         coords, basis = self._local_frame()
         t = self.thickness
         if not np.isfinite(t) or t <= 0:
@@ -259,7 +275,6 @@ class ShellElement(BaseElement):
             weights = np.full(3, 1/6)
         else:
             points, weights = self.get_gauss_points()
-        area = 0.
         for xi, weight in zip(points, weights):
             membrane, bending, shear, determinant = self._strain_matrices(xi, coords)
             if self.n_nodes == 4:
@@ -268,16 +283,27 @@ class ShellElement(BaseElement):
             stiffness += measure*(t*membrane.T@elastic@membrane
                                   + t**3/12*bending.T@elastic@bending
                                   + (5/6)*shear_modulus*t*shear.T@shear)
-            area += measure
-        # V0 ShellElement.js uses drilling differences, not springs to ground.
-        # Preserve the former coefficient scale and its constant null mode.
-        drill = np.full((self.n_nodes, self.n_nodes), -1/(self.n_nodes-1))
-        np.fill_diagonal(drill, 1.)
-        indices = np.arange(self.n_nodes)*6+5
-        stiffness[np.ix_(indices, indices)] += 1e-3*shear_modulus*t*area/self.n_nodes*drill
+            drill = self._drilling_strain(xi, coords)
+            stiffness += measure*1e-3*shear_modulus*t*np.outer(drill, drill)
         transform = np.kron(np.eye(2*self.n_nodes), basis)
         stiffness = transform.T@stiffness@transform
         return (stiffness+stiffness.T)/2
+
+    def get_stiffness_matrix_parts(self):
+        if self.formulation != 'dkt':
+            high = self.get_stiffness_matrix()
+            return high, np.zeros_like(high)
+        from decimal import Decimal as D, localcontext
+        from .dkt_precision import stiffness_parts
+        self._local_frame()  # Keep the same planar/degenerate input checks.
+        if not np.isfinite(self.thickness) or self.thickness <= 0:
+            raise ValueError('Shell thickness must be finite and positive')
+        with localcontext() as ctx:
+            ctx.prec = 50
+            xyz = [[D.from_float(float(v)) for v in row] for row in self.get_element_coordinates()]
+            coords = tuple(tuple(v-o for v,o in zip(row,xyz[0])) for row in xyz)
+        mat = self.material.materials[self.material_id]
+        return stiffness_parts(coords,mat.E,mat.nu,mat.G,self.thickness)
 
     def get_mass_matrix(self) -> np.ndarray:
         """シェル要素の質量行列を取得（動的サイズ対応）"""

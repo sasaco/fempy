@@ -5,7 +5,7 @@ from components.node import Node
 from components.member import Member
 from components.shell import Shell
 from components.support import Support
-from fem.calculation import FEMCalculation, Displacement, SectionForce, ReactionForce, ShellForce
+from fem.calculation import FEMCalculation, Displacement, SectionForce, ReactionForce
 
 
 class Output_Disp(TypedDict):
@@ -93,45 +93,6 @@ class Output_BeamForce(TypedDict):
     L: float
 
 
-class Output_ShellForce(TypedDict):
-    """出力用シェル要素断面力クラス
-
-    Keys:
-        fxi (float):仮想梁要素のi端軸力(kN)
-        fyi (float):仮想梁要素のi端要素座標系y軸方向せん断力(kN)
-        fzi (float):仮想梁要素のi端要素座標系z軸方向せん断力(kN)
-        mxi (float):仮想梁要素のi端ねじりモーメント(kNm)
-        myi (float):仮想梁要素のi端要素座標系y軸まわり曲げモーメント(kNm)
-        mzi (flaot):仮想梁要素のi端要素座標系z軸まわり曲げモーメント(kNm)
-        fxj (float):仮想梁要素のj端軸力(kN)
-        fyj (float):仮想梁要素のj端要素座標系y軸方向せん断力(kN)
-        fzj (float):仮想梁要素のj端要素座標系z軸方向せん断力(kN)
-        mxj (float):仮想梁要素のj端ねじりモーメント(kNm)
-        myj (float):仮想梁要素のj端要素座標系y軸まわり曲げモーメント(kNm)
-        mzj (flaot):仮想梁要素のj端要素座標系z軸まわり曲げモーメント(kNm)
-
-    Note:
-        fxは引張が正
-        fyは始端側が要素座標系y軸正の方向に変形するようなせん断力が正
-        fzは始端側が要素座標系z軸正の方向に変形するようなせん断力が正
-        mxは引張の向きに対して右ねじ回りが正
-        myは要素座標系y軸正の方向に凸となる曲げモーメントが正
-        mzは要素座標系z軸正の方向に凸となる曲げモーメントが正
-    """
-    fxi: float
-    fyi: float
-    fzi: float
-    mxi: float
-    myi: float
-    mzi: float
-    fxj: float
-    fyj: float
-    fzj: float
-    mxj: float
-    myj: float
-    mzj: float
-
-
 class Output_Result(TypedDict):
     """出力用結果クラス
 
@@ -139,14 +100,12 @@ class Output_Result(TypedDict):
         disg (dict[str, Output_Disp]):節点変位データ
         reac (dict[str, Output_Reaction]):支点反力データ
         fsec (dict[str, dict[str, Output_BeamForce]]):梁要素断面力データ
-        shell_fsec (dict):シェル要素断面力データ
         shell_results (dict):シェル要素の応力・ひずみ計算結果
         size (int):分割用も含む節点数
     """
     disg: dict[str, Output_Disp]
     reac: dict[str, Output_Reaction]
     fsec: dict[str, dict[str, Output_BeamForce]]
-    shell_fsec: dict
     shell_results: dict
     size: int
 
@@ -170,8 +129,7 @@ def make_result(fc: FEMCalculation, members: list[Member], shells: list[Shell], 
     reac: dict[str, Output_Reaction] = make_reac(fc.reactions, fc.stiffMatrix.nodes, fc.stiffMatrix.supports, rate, mode)
     # 梁要素断面力
     fsec: dict[str, dict[str, Output_BeamForce]] = make_fsec(fc.fiBeams, fc.fjBeams, members, rate)
-    # シェル要素断面力
-    shell_fsec: dict[str, Output_ShellForce] = make_shell_fsec(fc.fShells, shells, rate)
+    # シェル応力・ひずみ
     shell_results = {}
     for shell_idx, result_data in fc.shell_results.items():
         shell_results[str(shell_idx)] = result_data
@@ -181,7 +139,6 @@ def make_result(fc: FEMCalculation, members: list[Member], shells: list[Shell], 
         "disg": disg,
         "reac": reac,
         "fsec": fsec,
-        "shell_fsec": shell_fsec,
         "shell_results": shell_results,
         "size": len(fc.stiffMatrix.nodes)
     }
@@ -372,49 +329,3 @@ def make_fsec(fiBeams: list[SectionForce], fjBeams: list[SectionForce],\
                     flag = 0
         fsec[str(nMem)] = fsecTmp
     return fsec
-
-
-def make_shell_fsec(fShells: list[ShellForce], shells: list[Shell], rate: float) -> dict[str, Output_ShellForce]:
-    """出力用のシェル要素断面力データを作成する
-
-    Args:
-        fShells (list[ShellForce]): シェル要素断面力データリスト
-        shells (list[Shell]): シェル要素リスト
-        rate (float): 割増係数
-
-    Returns:
-        _ (dict[str, Output_ShellForce]): 出力用シェル要素断面力データ
-    """
-    shell_fsec: dict[str, Output_ShellForce] = {}
-    for shell in sorted(shells, key=lambda x: x.num):  # パネル番号の昇順に出力
-        iShell = shells.index(shell)  # シェル要素インデックス
-        fTmp = fShells[iShell]
-        edge_count = len(shell.iNodes)  # 三角形=3辺、四角形=4辺
-        for i in range(edge_count):  # パネルの各辺の仮想梁要素の断面力を順に出力
-            if edge_count == 3:
-                ip = shell.iNodes[2] if i == 0 else shell.iNodes[i - 1]  # 仮想梁要素のi端節点インデックス（三角形）
-            else:
-                ip = shell.iNodes[3] if i == 0 else shell.iNodes[i - 1]  # 仮想梁要素のi端節点インデックス（四角形）
-            jp = shell.iNodes[i]  # 仮想梁要素のj端節点インデックス
-            ni = shell.nodes[ip].nNode  # 仮想梁要素のi端節点番号
-            nj = shell.nodes[jp].nNode  # 仮想梁要素のj端節点番号
-            id = str(ni) + "-" + str(nj)  # {i端節点番号}-{j端節点番号}
-            # 仮想梁要素の断面力の取得（割増係数を乗じる）
-            iForce = fTmp["iForces"][i]
-            jForce = fTmp["jForces"][i]
-            sForce: Output_ShellForce = {
-                "fxi": -iForce["fx"] * rate,
-                "fyi": iForce["fy"] * rate,
-                "fzi": iForce["fz"] * rate,
-                "mxi": -iForce["mx"] * rate,
-                "myi": -iForce["my"] * rate,
-                "mzi": iForce["mz"] * rate,
-                "fxj": jForce["fx"] * rate,
-                "fyj": -jForce["fy"] * rate,
-                "fzj": -jForce["fz"] * rate,
-                "mxj": jForce["mx"] * rate,
-                "myj": jForce["my"] * rate,
-                "mzj": -jForce["mz"] * rate
-            }
-            shell_fsec[id] = sForce
-    return shell_fsec

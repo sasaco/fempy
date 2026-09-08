@@ -52,6 +52,7 @@ def test_shell_affine_membrane_energy(n):
     u = np.zeros((n, 6))
     u[:, 0] = strain[0]*coords[:, 0]+strain[2]*coords[:, 1]
     u[:, 1] = strain[1]*coords[:, 1]
+    u[:, 5] = -strain[2]/2  # Consistent in-plane spin, (dv/dx-du/dy)/2.
     stress = 1000/(1-.25**2)*np.array([.001+.25*.002, .002+.25*.001, .375*.003])
     area = 3. if n == 3 else 6.
     expected = area*.2*np.dot(strain, stress)/2
@@ -68,12 +69,26 @@ def test_degenerate_shell_is_rejected_without_fallback(n):
 
 
 @pytest.mark.parametrize('n', [3, 4])
-def test_shell_has_only_rigid_and_constant_drilling_zero_modes(n):
+def test_shell_has_exactly_six_physical_rigid_zero_modes(n):
     e, _ = shell(n)
     eigenvalues = np.linalg.eigvalsh(e.get_stiffness_matrix())
     assert np.min(eigenvalues) > -1e-10
-    # Six physical rigid motions plus the unobservable constant drill angle.
-    assert np.count_nonzero(eigenvalues < 1e-10) == 7
+    assert np.count_nonzero(eigenvalues < 1e-10) == 6
+
+
+@pytest.mark.parametrize('n', [3, 4])
+def test_drill_spin_constraint_has_independent_constant_field_energy(n):
+    e, coords = shell(n)
+    u = np.zeros((n, 6))
+    spin, rotation = .02, .05
+    u[:, :3] = np.cross([0., 0., spin], coords)
+    u[:, 5] = rotation
+    area = 3. if n == 3 else 6.
+    expected = .5*.001*400*.2*area*(rotation-spin)**2
+    assert .5*u.ravel()@e.get_stiffness_matrix()@u.ravel() == pytest.approx(expected, abs=1e-12)
+    output = e.calculate_shell_results(u.ravel())
+    assert output['strain_energy'] == pytest.approx(0., abs=1e-12)
+    assert output['drilling_energy'] == pytest.approx(expected, abs=1e-12)
 
 
 @pytest.mark.parametrize('axis', [0, 1])

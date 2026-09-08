@@ -83,7 +83,7 @@ def main():
             source_sha256=source['sha256'], before_sha256=hashlib.sha256(raw).hexdigest(),
             restored_elements=0 if data.get('solid') else len(fixed['solid']),
             source_displacement_nodes=len(source['displacements']),
-            missing_reference_fields=sorted({'reac','fsec','size','shell_fsec','shell_results'}-fixed['result']['1'].keys())))
+            missing_reference_fields=sorted({'reac','fsec','size','shell_results'}-fixed['result']['1'].keys())))
     # All checks must pass before any file is touched.
     if args.write:
         assert all(path.read_bytes() == raw for path,_,raw in changes), 'Input changed during repair'

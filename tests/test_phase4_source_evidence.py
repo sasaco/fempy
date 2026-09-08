@@ -34,9 +34,9 @@ def test_complete_external_solid_input_and_repaired_displacement(name):
 def test_missing_json_connectivity_is_proved_against_original_fem(name):
     path = ROOT/'tests/data/bend'/f'{name}.json'
     data = select_case(json.loads(path.read_text(encoding='utf-8')))
-    if name != 'sampleBendTri1':
-        assert data['solid']  # Restored topology is now present in the fixture.
-        data.pop('solid')  # Recreate the historical migration defect.
+    field = 'shell' if name == 'sampleBendTri1' else 'solid'
+    assert data[field]  # Restored topology is now present in the fixture.
+    data.pop(field)  # Recreate the historical migration defect.
     assert any(v['code'] == 'missing_element_topology' for v in input_findings(data))
     source = read_v0(ROOT/'docs/v0/testdata/bend'/f'{name}.fem')
     assert source['elements']
@@ -117,11 +117,12 @@ def test_v0_solid_full_displacements_and_force_moment_equilibrium(name):
     assert path.read_bytes() == original
 
 
-def test_pressure_fixture_has_a_loaded_rigid_rotation_not_a_unique_static_solution():
+def test_releasing_pressure_fixture_rotations_creates_a_loaded_rigid_mode():
     import numpy as np
     from src.fem.file_io import _read_json_model
     from src.fem.model import FemModel
     data = json.loads((ROOT/'tests/data/shell/shellPressureTest1.json').read_text(encoding='utf-8'))
+    data['boundary_conditions']['restraints']['1']['dof'][3:] = [False]*3
     m = FemModel()
     m.read_json_model(_read_json_model(data))
     element = m.elements[1]
