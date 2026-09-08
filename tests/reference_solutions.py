@@ -33,6 +33,7 @@ def beam001_reference(data, factor=1.):
     tipward from the fixed end:
     theta_i=theta_j-L*kappa;
     ux_i=ux_j+L*(theta_i+theta_j)/2 + F*L/(G*k*A)+F*L**3/(12*E*Iz).
+    Omit F*L/(G*k*A) when G is absent or shear_correction is false.
     Last term is the reference elastic moment-gradient flexibility retained
     by the central-section formulation. Only monotonic symmetric branches with
     positive slope are covered; no cyclic history or plateau inversion.
@@ -68,8 +69,10 @@ def beam001_reference(data, factor=1.):
         else:
             curvature = moment/ei
         rotation = disps[nj]['rz']-length*curvature
+        shear = (force*length/(g*(5/6)*mat['A'])
+                 if 'G' in mat and member.get('shear_correction', True) else 0.)
         u = (disps[nj]['dx']+length*(rotation+disps[nj]['rz'])/2
-             +force*length/(g*(5/6)*mat['A'])+force*length**3/(12*ei))
+             +shear+force*length**3/(12*ei))
         disps[ni] = dict(dx=u, dy=0., dz=0., rx=0., ry=0., rz=rotation)
         end_forces[member_id] = {
             'i_end': [0., -force, 0., 0., 0., -length*force/2-moment],

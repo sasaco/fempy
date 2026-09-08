@@ -22,6 +22,8 @@ FORCE = ['fx', 'fy', 'fz', 'mx', 'my', 'mz']
 
 def configuration(mode='axial', n=1, force=12, asymmetric=False):
     d = axial_json(force)
+    # These references include Timoshenko shear; request it with explicit G.
+    d['element']['1']['1']['G'] = 4000
     d['node'] = {str(10+20*i): dict(x=2*i/n, y=0, z=0) for i in range(n+1)}
     d['member'] = {str(7+i): dict(ni=10+20*i, nj=30+20*i, e=1, cg=0) for i in range(n)}
     nl = d['element']['1']['1']['nonlinear']

@@ -201,7 +201,7 @@ results = response.json()
 "element": {
   "要素ID": {
     "E": ヤング係数,
-    "G": せん断弾性係数,
+    "G": せん断弾性係数, // 梁では省略するとshear_correction=false（せん断変形を無視）
     "A": 断面積,
     "Iy": Y軸回り断面二次モーメント,
     "Iz": Z軸回り断面二次モーメント,

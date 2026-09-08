@@ -1,32 +1,37 @@
 {
   "reference": "tests/reference_solutions.py: equilibrium, inverse skeleton and scalar flexibility",
   "input_path": "tests/data/snap/beam001.json",
-  "input_sha256": "912e0ad79594ada37546cfc49406e5aab68e79b4c03509bc14f21b30691e2ea6",
+  "input_sha256": "2d53c1f603555445526d1c038c755cf14167f493442e671a6a07ced3acf8ff01",
   "tip_force": 1000,
   "central_moment": -4850.0,
   "central_curvature": -0.0009325000000000002,
-  "shear_strain": 1.2,
+  "shear_correction_by_member": {
+    "1": false,
+    "2": false,
+    "3": false
+  },
+  "shear_strain": 0.0,
   "tip": {
-    "dx": 6.000453746062893,
+    "dx": 0.0004537460628933262,
     "dy": 0.0,
     "dz": 0.0,
     "rx": 0.0,
     "ry": 0.0,
-    "rz": 9.370339622641888e-05
+    "rz": 9.370339622646552e-05
   },
   "maximum_absolute_error_final": {
-    "node_displacements": 5.551115123125783e-17,
-    "element_stresses": 1.000444171950221e-10,
-    "reaction_forces": 8.36735125631094e-11
+    "node_displacements": 2.443791696782327e-16,
+    "element_stresses": 1.7227284843102098e-07,
+    "reaction_forces": 1.1114025255665183e-09
   },
   "maximum_absolute_error_all_steps": {
-    "node_displacements": 8.881784197001252e-16,
-    "element_stresses": 1.3460521586239338e-10,
-    "reaction_forces": 1.2823875294998288e-10
+    "node_displacements": 2.443791696782327e-16,
+    "element_stresses": 2.480179546182626e-07,
+    "reaction_forces": 1.1114025255665183e-09
   },
   "step_count": 100,
-  "maximum_final_step_relative_residual": 1.0714006263124277e-13,
-  "limitation": "Mathematical small-displacement central-section validation only. G=1 produces shear strain 1.2; physical applicability and external JR agreement are not established.",
+  "maximum_final_step_relative_residual": 3.7356857187464803e-10,
+  "limitation": "Mathematical small-displacement central-section validation only. Omitted G disables shear deformation; external JR agreement is not established.",
   "external_sources": {
     "OUT": {
       "path": "tests/data/snap/beam001.OUT",

@@ -20,7 +20,8 @@ def reference_values(data):
     assert data['node'] == {
         '1': dict(x=0, y=-5, z=0), '2': dict(x=0, y=-.2, z=0),
         '3': dict(x=0, y=-.1, z=0), '4': dict(x=0, y=0, z=0)}
-    assert data['member'] == {
+    assert {k: {field: value for field, value in v.items() if field != 'shear_correction'}
+            for k, v in data['member'].items()} == {
         '1': dict(ni=1, nj=2, e=1, cg=0),
         '2': dict(ni=2, nj=3, e=2, cg=0),
         '3': dict(ni=3, nj=4, e=1, cg=0)}
@@ -64,8 +65,13 @@ def reference_values(data):
                 yi, yj = D(data['node'][ni]['y']), D(data['node'][nj]['y'])
                 length = yj-yi
                 mat = mats[str(member['e'])]
-                ei, ga = D(mat['E'])*D(mat['Iz']), D(mat['G'])*D(mat['A'])*D(5)/D(6)
-                assert ei > 0 and ga > 0
+                ei = D(mat['E'])*D(mat['Iz'])
+                assert ei > 0
+                shear = D(0)
+                if 'G' in mat and member.get('shear_correction', True):
+                    ga = D(mat['G'])*D(mat['A'])*D(5)/D(6)
+                    assert ga > 0
+                    shear = force*length/ga
                 # Positive magnitude; physical Mz and curvature are negative.
                 m = force*((yi+yj)/2+D(5))
                 if member_id == '2':
@@ -76,7 +82,7 @@ def reference_values(data):
                 else:
                     kappa = -m/ei
                 theta_i = theta_j-length*kappa
-                u_i = u_j+length*(theta_i+theta_j)/2+force*length/ga+force*length**3/(12*ei)
+                u_i = u_j+length*(theta_i+theta_j)/2+shear+force*length**3/(12*ei)
                 disps[ni] = dict(zero_disp, dx=float(u_i), rz=float(theta_i))
                 # Local cut-force convention, independently from equilibrium.
                 values = dict.fromkeys((mode+end for mode in ('fx', 'fy', 'fz', 'mx', 'my', 'mz')

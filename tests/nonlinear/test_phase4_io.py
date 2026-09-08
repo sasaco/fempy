@@ -302,6 +302,8 @@ def test_explicit_static_spring_reactions_balance():
 def test_omitted_nu_has_same_nonlinear_default_in_python_json_and_http():
     d = axial_json(0)
     del d['element']['1']['1']['nu']
+    # G omission now selects Bernoulli; this test isolates the nu default.
+    d['element']['1']['1']['G'] = 10000/2.4
     d['load']['1']['load_node'][0]['ty'] = 1
     m = python_axial(0)
     m.add_nonlinear_material(1, 'reference', 10000, .001, .004, .010, 10, 16, 22, beta=0)

@@ -148,6 +148,7 @@ def _read_explicit_boundary(data, boundary):
 
 def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) -> Dict[str, Any]:
     """旧形式のJSONファイルを読み込む"""
+    from .legacy_beam import legacy_shear_correction
     
     # Member, shell and solid identifiers occupy separate legacy namespaces.
     next_element_id = max([int(k) for field in ('member','shell','solid')
@@ -189,8 +190,7 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 [ni, nj],
                 material_id,
                 section_id=material_id, angle=float(member_data.get('cg') or 0),
-                shear_correction=member_data.get('shear_correction', any(
-                    'nonlinear' in v for case in data.get('element', {}).values() for v in case.values())),
+                shear_correction=legacy_shear_correction(data, material_id, member_data),
                 member_id=int(member_id)  # 部材IDを保存
             )
     

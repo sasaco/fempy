@@ -21,6 +21,19 @@ def select_case(data, case_id=None):
     return data
 
 
+def legacy_shear_correction(data, material_id, member):
+    """An omitted element.G disables shear, even with an explicit true flag.
+
+    G-present inputs retain their existing explicit/default choice. Selection
+    runs before this function; rigid segments use their assigned material.
+    """
+    definitions = {int(key): value for case in data.get('element', {}).values()
+                   for key, value in case.items()}
+    if 'G' not in definitions.get(int(material_id), {}):
+        return False
+    return member.get('shear_correction', any('nonlinear' in mat for mat in definitions.values()))
+
+
 def prepare_members(data, model_data):
     mesh, boundary = model_data['mesh'], model_data['boundary']
     members = data.get('member', {})
@@ -149,6 +162,7 @@ def prepare_members(data, model_data):
                 if b <= float(zone.get('Ilength', 0)) or a >= length-float(zone.get('Jlength', 0)):
                     mat_id = int(zone['e'])
             props.update(nodes=[coordinates[a], coordinates[b]], material_id=mat_id, section_id=mat_id,
+                         shear_correction=legacy_shear_correction(data, mat_id, member),
                          original_id=int(mid), member_start=a, member_end=b,
                          releases=[i for i in releases if (i < 6 and a == 0) or (i >= 6 and b == length)],
                          foundation=foundation.tolist(), line_loads=[], temperature=thermal)

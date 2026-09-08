@@ -42,8 +42,9 @@ def test_beam001_hand_calculated_branch_crossings_and_tip_motion():
                              (61, .0000981325), (62, .00010315), (100, .0009325)]:
         nodes = data['result'][str(step)]['disg']
         assert (nodes['2']['rz']-nodes['3']['rz'])/.1 == pytest.approx(curvature, abs=1e-14)
-    assert data['result']['2']['disg']['1']['dx'] == pytest.approx(.12000050012125786, abs=1e-13)
-    assert data['result']['100']['disg']['1']['dx'] == pytest.approx(6.000453746062893, abs=1e-13)
+    assert all('G' not in mat for mat in data['element']['1'].values())
+    assert data['result']['2']['disg']['1']['dx'] == pytest.approx(.0000005001212578616352, abs=1e-15)
+    assert data['result']['100']['disg']['1']['dx'] == pytest.approx(.00045374606289308176, abs=1e-15)
 
 
 @pytest.mark.parametrize('field', ['disg', 'reac', 'fsec'])

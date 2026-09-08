@@ -31,17 +31,23 @@ def measure():
             all_errors[field] = max(all_errors[field], maximum_error(step[field], values))
     mat = data['element']['1']['2']
     force = data['load']['1']['load_node'][0]['tx']
+    shear_enabled = 'G' in mat and data['member']['2'].get('shear_correction', True)
     metrics = dict(reference='tests/reference_solutions.py: equilibrium, inverse skeleton and scalar flexibility',
                    input_path=path.as_posix(), input_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
                    tip_force=force, central_moment=-4.85*force,
                    central_curvature=(reference['node_displacements']['3']['rz']-reference['node_displacements']['2']['rz'])/.1,
-                   shear_strain=force/(mat['G']*5/6*mat['A']), tip=result['node_displacements']['1'],
+                   shear_correction_by_member={key: 'G' in data['element']['1'][str(member['e'])]
+                                               and member.get('shear_correction', True)
+                                               for key, member in data['member'].items()},
+                   shear_strain=force/(mat['G']*5/6*mat['A']) if shear_enabled else 0.,
+                   tip=result['node_displacements']['1'],
                    maximum_absolute_error_final=errors, maximum_absolute_error_all_steps=all_errors,
                    step_count=len(result['step_results']),
                    maximum_final_step_relative_residual=max(
                        [c for c in result['convergence_history'] if c['step']==step['step']][-1]['relative_residual']
                        for step in result['step_results']),
-                   limitation='Mathematical small-displacement central-section validation only. G=1 produces shear strain 1.2; physical applicability and external JR agreement are not established.')
+                   limitation='Mathematical small-displacement central-section validation only. '
+                              'Omitted G disables shear deformation; external JR agreement is not established.')
     external = {}
     for suffix in ('OUT','FMT','PDN','PDS','DSP','ndt'):
         source = path.with_suffix('.'+suffix)
