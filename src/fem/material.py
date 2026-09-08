@@ -133,6 +133,14 @@ class NonlinearMaterialProperty:
 
     def __post_init__(self):
         """負側パラメータが省略された場合は正側と同じ値を設定"""
+        from .nonlinear.hysteresis import JRStiffnessReductionParams
+
+        if not np.isfinite(self.E) or self.E <= 0:
+            raise ValueError('E must be finite and positive')
+        if not np.isfinite(self.nu) or not -1 < self.nu < .5:
+            raise ValueError('nu must be finite and between -1 and 0.5')
+        if self.density is not None and (not np.isfinite(self.density) or self.density < 0):
+            raise ValueError('density must be finite and nonnegative')
         if self.delta_1_neg is None:
             self.delta_1_neg = self.delta_1_pos
         if self.delta_2_neg is None:
@@ -145,9 +153,12 @@ class NonlinearMaterialProperty:
             self.P_2_neg = self.P_2_pos
         if self.P_3_neg is None:
             self.P_3_neg = self.P_3_pos
-        if self.K_min is None:
-            K_1 = self.P_1_pos / self.delta_1_pos
-            self.K_min = K_1 * 0.01
+        # Validate before deriving a default floor (including division by δ1).
+        params = JRStiffnessReductionParams(**{
+            name: getattr(self, name)
+            for name in JRStiffnessReductionParams.__dataclass_fields__
+        })
+        self.K_min = params.K_min
 
     @property
     def G(self) -> float:

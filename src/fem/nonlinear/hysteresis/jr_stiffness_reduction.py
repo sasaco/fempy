@@ -1,614 +1,286 @@
+"""JR stiffness reduction, manual 7.11; phase-3 conventions in the TDD plan.
+
+The scalar deformation is section strain, curvature or twist per length.
+Evaluation traces a monotone trial from the committed point, without mutation.
 """
-JR総研剛性低減RC型 履歴モデル
+from dataclasses import dataclass, fields
+from math import isfinite, isclose
+from typing import Optional
 
-理論マニュアル「7.11 JR総研剛性低減 RC 型」に基づく実装
-
-特徴:
-- 4折線スケルトンカーブ（ひび割れ、降伏、終局）
-- 剛性低減則（式7.11.1）
-- 6つの履歴ルール（内部ループスタック管理含む）
-- 正負非対称スケルトンカーブ対応
-"""
-from dataclasses import dataclass
-from typing import Tuple, Optional, Dict, Any
-
-from .base_hysteresis import HysteresisState, BaseHysteresis
+from .base_hysteresis import BaseHysteresis, HysteresisState, HysteresisSegment
 
 
 @dataclass
 class JRStiffnessReductionParams:
-    """JRモデルのパラメータ
+    """Nonnegative magnitudes on both sides; final (fourth) slope is zero.
 
-    正側・負側で異なるスケルトンカーブを定義可能
-
-    Attributes:
-        delta_1_pos: 正側ひび割れ変位
-        delta_2_pos: 正側降伏変位
-        delta_3_pos: 正側終局変位
-        P_1_pos: 正側ひび割れ荷重
-        P_2_pos: 正側降伏荷重
-        P_3_pos: 正側終局荷重
-        delta_1_neg: 負側ひび割れ変位（絶対値）
-        delta_2_neg: 負側降伏変位（絶対値）
-        delta_3_neg: 負側終局変位（絶対値）
-        P_1_neg: 負側ひび割れ荷重（絶対値）
-        P_2_neg: 負側降伏荷重（絶対値）
-        P_3_neg: 負側終局荷重（絶対値）
-        beta: 剛性低減係数（典型値: 0.4）
-        K_min: 戻り剛性の下限値
+    This RC model accepts decreasing nonnegative skeleton slopes. K_min is a
+    floor on unloading stiffness only, bounded by both initial stiffnesses.
     """
-    # === 正側スケルトンカーブ ===
-    delta_1_pos: float    # ひび割れ変位（正）
-    delta_2_pos: float    # 降伏変位（正）
-    delta_3_pos: float    # 終局変位（正）
-    P_1_pos: float        # ひび割れ荷重（正）
-    P_2_pos: float        # 降伏荷重（正）
-    P_3_pos: float        # 終局荷重（正）
-
-    # === 負側スケルトンカーブ ===
-    delta_1_neg: float    # ひび割れ変位（負、絶対値で指定）
-    delta_2_neg: float    # 降伏変位（負、絶対値）
-    delta_3_neg: float    # 終局変位（負、絶対値）
-    P_1_neg: float        # ひび割れ荷重（負、絶対値）
-    P_2_neg: float        # 降伏荷重（負、絶対値）
-    P_3_neg: float        # 終局荷重（負、絶対値）
-
-    # === 剛性低減パラメータ ===
-    beta: float           # 剛性低減係数（典型値: 0.4）
-    K_min: float          # 戻り剛性の下限値
+    delta_1_pos: float
+    delta_2_pos: float
+    delta_3_pos: float
+    P_1_pos: float
+    P_2_pos: float
+    P_3_pos: float
+    delta_1_neg: float
+    delta_2_neg: float
+    delta_3_neg: float
+    P_1_neg: float
+    P_2_neg: float
+    P_3_neg: float
+    beta: float
+    K_min: Optional[float] = None
 
     def __post_init__(self):
-        """パラメータの検証"""
-        # 正側の検証
-        if not (0 < self.delta_1_pos < self.delta_2_pos < self.delta_3_pos):
-            raise ValueError(
-                f"正側変位は 0 < delta_1 < delta_2 < delta_3 である必要があります: "
-                f"delta_1={self.delta_1_pos}, delta_2={self.delta_2_pos}, delta_3={self.delta_3_pos}"
-            )
-        if not (0 < self.P_1_pos <= self.P_2_pos <= self.P_3_pos):
-            raise ValueError(
-                f"正側荷重は 0 < P_1 <= P_2 <= P_3 である必要があります: "
-                f"P_1={self.P_1_pos}, P_2={self.P_2_pos}, P_3={self.P_3_pos}"
-            )
-
-        # 負側の検証
-        if not (0 < self.delta_1_neg < self.delta_2_neg < self.delta_3_neg):
-            raise ValueError(
-                f"負側変位は 0 < delta_1 < delta_2 < delta_3 である必要があります: "
-                f"delta_1={self.delta_1_neg}, delta_2={self.delta_2_neg}, delta_3={self.delta_3_neg}"
-            )
-        if not (0 < self.P_1_neg <= self.P_2_neg <= self.P_3_neg):
-            raise ValueError(
-                f"負側荷重は 0 < P_1 <= P_2 <= P_3 である必要があります: "
-                f"P_1={self.P_1_neg}, P_2={self.P_2_neg}, P_3={self.P_3_neg}"
-            )
-
-        # 剛性低減パラメータの検証
+        for item in fields(self):
+            value = getattr(self, item.name)
+            if item.name == 'K_min' and value is None:
+                continue
+            if not isinstance(value, (int, float)) or not isfinite(value):
+                raise ValueError(f'{item.name} must be finite')
+        for side in ('pos', 'neg'):
+            d1, d2, d3 = (getattr(self, f'delta_{i}_{side}') for i in (1, 2, 3))
+            p1, p2, p3 = (getattr(self, f'P_{i}_{side}') for i in (1, 2, 3))
+            if not 0 < d1 < d2 < d3:
+                raise ValueError(f'{side}: require 0 < delta_1 < delta_2 < delta_3')
+            if not 0 < p1 <= p2 <= p3:
+                raise ValueError(f'{side}: require 0 < P_1 <= P_2 <= P_3')
+            k1, k2, k3 = p1/d1, (p2-p1)/(d2-d1), (p3-p2)/(d3-d2)
+            if not all(isfinite(k) for k in (k1, k2, k3)) or not 0 <= k3 <= k2 <= k1:
+                raise ValueError(f'{side}: require finite K1 >= K2 >= K3 >= 0')
         if self.beta < 0:
-            raise ValueError(f"beta は非負である必要があります: beta={self.beta}")
-        if self.K_min <= 0:
-            raise ValueError(f"K_min は正である必要があります: K_min={self.K_min}")
+            raise ValueError('beta must be nonnegative')
+        upper = min(self.K_1_pos, self.K_1_neg)
+        if self.K_min is None:
+            self.K_min = upper * .01
+        if not 0 < self.K_min <= upper:
+            raise ValueError('require 0 < K_min <= min(K1_pos, K1_neg)')
 
     @classmethod
-    def symmetric(
-        cls,
-        delta_1: float,
-        delta_2: float,
-        delta_3: float,
-        P_1: float,
-        P_2: float,
-        P_3: float,
-        beta: float,
-        K_min: Optional[float] = None
-    ) -> 'JRStiffnessReductionParams':
-        """対称スケルトンカーブ用のコンビニエンスコンストラクタ
-
-        Args:
-            delta_1, delta_2, delta_3: 特性変位
-            P_1, P_2, P_3: 特性荷重
-            beta: 剛性低減係数
-            K_min: 戻り剛性下限値（省略時は初期剛性の1%）
-
-        Returns:
-            対称パラメータを持つJRStiffnessReductionParams
-        """
-        if K_min is None:
-            K_1 = P_1 / delta_1
-            K_min = K_1 * 0.01
-
-        return cls(
-            delta_1_pos=delta_1, delta_2_pos=delta_2, delta_3_pos=delta_3,
-            P_1_pos=P_1, P_2_pos=P_2, P_3_pos=P_3,
-            delta_1_neg=delta_1, delta_2_neg=delta_2, delta_3_neg=delta_3,
-            P_1_neg=P_1, P_2_neg=P_2, P_3_neg=P_3,
-            beta=beta, K_min=K_min
-        )
+    def symmetric(cls, delta_1, delta_2, delta_3, P_1, P_2, P_3, beta, K_min=None):
+        return cls(delta_1, delta_2, delta_3, P_1, P_2, P_3,
+                   delta_1, delta_2, delta_3, P_1, P_2, P_3, beta, K_min)
 
     @property
-    def K_1_pos(self) -> float:
-        """正側の初期剛性"""
+    def K_1_pos(self):
         return self.P_1_pos / self.delta_1_pos
 
     @property
-    def K_1_neg(self) -> float:
-        """負側の初期剛性"""
+    def K_1_neg(self):
         return self.P_1_neg / self.delta_1_neg
 
     @property
-    def K_2_pos(self) -> float:
-        """正側の第2剛性（ひび割れ後〜降伏）"""
-        return (self.P_2_pos - self.P_1_pos) / (self.delta_2_pos - self.delta_1_pos)
+    def K_2_pos(self):
+        return (self.P_2_pos-self.P_1_pos)/(self.delta_2_pos-self.delta_1_pos)
 
     @property
-    def K_2_neg(self) -> float:
-        """負側の第2剛性"""
-        return (self.P_2_neg - self.P_1_neg) / (self.delta_2_neg - self.delta_1_neg)
+    def K_2_neg(self):
+        return (self.P_2_neg-self.P_1_neg)/(self.delta_2_neg-self.delta_1_neg)
 
     @property
-    def K_3_pos(self) -> float:
-        """正側の第3剛性（降伏後〜終局）"""
-        return (self.P_3_pos - self.P_2_pos) / (self.delta_3_pos - self.delta_2_pos)
+    def K_3_pos(self):
+        return (self.P_3_pos-self.P_2_pos)/(self.delta_3_pos-self.delta_2_pos)
 
     @property
-    def K_3_neg(self) -> float:
-        """負側の第3剛性"""
-        return (self.P_3_neg - self.P_2_neg) / (self.delta_3_neg - self.delta_2_neg)
+    def K_3_neg(self):
+        return (self.P_3_neg-self.P_2_neg)/(self.delta_3_neg-self.delta_2_neg)
 
 
 class JRStiffnessReductionModel(BaseHysteresis):
-    """JR総研剛性低減RC型履歴モデル
+    """Affine branches, exact zero/target events, and suspended return paths.
 
-    理論マニュアル7.11節の履歴ルールを実装:
-    1. 初期領域: |delta_max| < delta_1 で原点を通る初期剛性の直線上
-    2. 載荷: スケルトンカーブに沿う
-    3. 除荷: 低減剛性Kdで除荷、P=0を通過後に最大点指向
-    4. 最大点指向: 反対側の最大経験点（弾性域なら第1折れ点）へ向かう
-    5. 内部ループ: 最大点指向中に反転→内部ループ開始、反転点スタック管理
-    6. 骨格曲線逸脱: 除荷中に骨格曲線外に出た場合の補正
+    previous_* are diagnostic only. None active_segment denotes the skeleton;
+    a segment endpoint restores its continuation and (if set) stack depth.
     """
 
-    # 数値許容誤差
-    EPSILON = 1e-12
-
     def __init__(self, params: JRStiffnessReductionParams):
-        """
-        Args:
-            params: JRモデルパラメータ
-        """
         self.params = params
 
-    def create_initial_state(self) -> HysteresisState:
-        """初期状態を作成
+    @staticmethod
+    def _side(direction):
+        if direction not in (-1, 1):
+            raise ValueError('direction must be +1 or -1')
+        return 'pos' if direction == 1 else 'neg'
 
-        Returns:
-            初期化された履歴状態
-        """
-        state = HysteresisState()
-        state.current_K = self.params.K_1_pos  # 初期剛性
-        state.branch = "initial"
-        return state
+    def _value(self, name, direction):
+        return getattr(self.params, f'{name}_{self._side(direction)}')
 
-    def get_skeleton_force(
-        self,
-        delta: float,
-        direction: int
-    ) -> Tuple[float, float]:
-        """スケルトンカーブ上の力と剛性を計算
+    def create_initial_state(self):
+        return HysteresisState(current_K=self.params.K_1_pos)
 
-        4折線モデル（ひび割れ、降伏、終局）
+    def get_skeleton_force(self, delta, direction):
+        if not isfinite(delta):
+            raise ValueError('delta must be finite')
+        self._side(direction)
+        d = abs(delta)
+        start_d = start_p = 0.
+        for i in (1, 2, 3):
+            end_d = self._value(f'delta_{i}', direction)
+            end_p = self._value(f'P_{i}', direction)
+            if d < end_d:
+                k = (end_p-start_p)/(end_d-start_d)
+                return direction*(start_p+k*(d-start_d)), k
+            start_d, start_p = end_d, end_p
+        return direction*start_p, 0.
 
-        Args:
-            delta: 変位（符号付き）
-            direction: +1 for 正側, -1 for 負側
-
-        Returns:
-            (P, K): 力と接線剛性
-        """
-        p = self.params
-        abs_delta = abs(delta)
-
-        if direction > 0:
-            # 正側スケルトンカーブ
-            if abs_delta <= p.delta_1_pos:
-                # 弾性域
-                K = p.K_1_pos
-                P = K * abs_delta
-            elif abs_delta <= p.delta_2_pos:
-                # ひび割れ後〜降伏
-                K = p.K_2_pos
-                P = p.P_1_pos + K * (abs_delta - p.delta_1_pos)
-            elif abs_delta <= p.delta_3_pos:
-                # 降伏後〜終局
-                K = p.K_3_pos
-                P = p.P_2_pos + K * (abs_delta - p.delta_2_pos)
-            else:
-                # 終局点超過（小さな正剛性で一定荷重に近い挙動）
-                K = max(p.K_3_pos * 0.01, self.EPSILON)
-                P = p.P_3_pos + K * (abs_delta - p.delta_3_pos)
-            return P, K
+    def get_reduced_stiffness(self, state, direction):
+        side = self._side(direction)
+        d = getattr(state, f'delta_max_{side}')
+        d1, d2 = (self._value(f'delta_{i}', direction) for i in (1, 2))
+        k1, k2 = (self._value(f'K_{i}', direction) for i in (1, 2))
+        if d <= d1:
+            return k1
+        if d <= d2:
+            kd = max(k2, k1*(d/d1)**(-self.params.beta))
         else:
-            # 負側スケルトンカーブ
-            if abs_delta <= p.delta_1_neg:
-                K = p.K_1_neg
-                P = K * abs_delta
-            elif abs_delta <= p.delta_2_neg:
-                K = p.K_2_neg
-                P = p.P_1_neg + K * (abs_delta - p.delta_1_neg)
-            elif abs_delta <= p.delta_3_neg:
-                K = p.K_3_neg
-                P = p.P_2_neg + K * (abs_delta - p.delta_2_neg)
-            else:
-                K = max(p.K_3_neg * 0.01, self.EPSILON)
-                P = p.P_3_neg + K * (abs_delta - p.delta_3_neg)
-            # 負側なので符号反転
-            return -P, K
+            # The secant lower bound in 7.11.1 does NOT apply to 7.11.2/3.
+            kd = k2*(d/d2)**(-self.params.beta)
+        return min(k1, max(self.params.K_min, kd))
 
-    def get_reduced_stiffness(
-        self,
-        state: HysteresisState,
-        direction: int
-    ) -> float:
-        """低減剛性を計算（式7.11.1〜7.11.3）
+    def get_target_point(self, direction, state):
+        """Outer target in the explicit travel direction (not sign of delta)."""
+        side = self._side(direction)
+        source = self._side(-direction)
+        source_max = getattr(state, f'delta_max_{source}')
+        threshold = 2 if source_max > self._value('delta_2', -direction) else 1
+        d = max(getattr(state, f'delta_max_{side}'), self._value(f'delta_{threshold}', direction))
+        return direction*d, self.get_skeleton_force(direction*d, direction)[0]
 
-        理論マニュアル7.11節に基づく領域別の剛性低減式:
-        - ひび割れ域(δ1 < δmax < δ2): 式(7.11.1) Kd = K1 * |δmax/δ1|^(-β)
-        - 降伏域(δ2 < δmax < δ3): 式(7.11.2) Kd = K2 * |δmax/δ2|^(-β)
-        - 終局域(δmax > δ3): 式(7.11.3) Kd = K2 * |δmax/δ2|^(-β)
+    @staticmethod
+    def _reached(delta, end, direction):
+        # Only roundoff at an event is snapped, never a finite hold increment.
+        return direction*(delta-end) >= 0 or isclose(delta, end, rel_tol=2e-14, abs_tol=0.)
 
-        下限値: (F_max - F_1)/(δmax - δ1)（第2勾配相当）
+    def _forward_intersection(self, zero, kd, direction):
+        """Extend to the first forward envelope intersection if zero overshoots.
 
-        Args:
-            state: 現在の状態
-            direction: 載荷方向 (+1 or -1)
-
-        Returns:
-            低減剛性 Kd
+        Solve kd*(delta-zero)=a+k*delta on each forward skeleton interval.
+        The constant final capacity and kd>0 guarantee a finite intersection.
         """
-        p = self.params
+        start = start_p = 0.
+        for i in (1, 2, 3, 4):
+            end = self._value(f'delta_{i}', direction) if i < 4 else float('inf')
+            end_p = self._value(f'P_{i}', direction) if i < 4 else start_p
+            k = (end_p-start_p)/(end-start) if i < 4 else 0.
+            intercept = direction*(start_p-k*start)
+            if kd != k:
+                x = (kd*zero+intercept)/(kd-k)
+                if start <= direction*x <= end and direction*(x-zero) > 0:
+                    if not isfinite(x):
+                        raise ValueError('JR target overflow')
+                    return x, direction*(start_p+k*(direction*x-start))
+            start, start_p = end, end_p
+        raise ValueError('No forward JR skeleton intersection')
 
-        if direction > 0:
-            delta_max = state.delta_max_pos
-            delta_1 = p.delta_1_pos
-            delta_2 = p.delta_2_pos
-            K_1 = p.K_1_pos
-            K_2 = p.K_2_pos
-            P_max = state.P_max_pos
-            P_1 = p.P_1_pos
+    def _reverse(self, s, direction):
+        old = s.active_segment
+        x, p = s.current_delta, s.current_P
+        s.reversal_delta, s.reversal_P = x, p
+        s.crossed_zero = False
+        if (old is not None and old.unloading_origin is not None
+                and isclose(x, old.start_delta, rel_tol=2e-14, abs_tol=0.)):
+            origin_x, origin_p, kd = old.unloading_origin
+            s.active_segment = HysteresisSegment(
+                x, p, origin_x, origin_p, kd, 'retracing',
+                next_segment=old.reverse_segment, restore_depth=old.origin_depth,
+                reverse_segment=old, origin_depth=len(s.reversal_stack))
+            return
+        if old is not None and old.branch in ('unloading', 'inner_unloading', 'retracing'):
+            # Before zero: retrace this same line, then restore the old path.
+            s.active_segment = HysteresisSegment(
+                x, p, old.start_delta, old.start_P, old.K, 'retracing',
+                next_segment=old.reverse_segment, restore_depth=old.origin_depth,
+                reverse_segment=old, origin_depth=len(s.reversal_stack))
+            return
+
+        depth = len(s.reversal_stack)
+        if old is not None:
+            s.reversal_stack.append((x, p))
+            s.reversal_paths.append(old)
+
+        source_direction = 1 if p > 0 else -1 if p < 0 else -direction
+        kd = self.get_reduced_stiffness(s, source_direction)
+        zero = x-p/kd
+        if len(s.reversal_stack) >= 2:
+            target_x, target_p = s.reversal_stack[-2]
+            continuation = s.reversal_paths[-2]
+            restore_depth = len(s.reversal_stack)-2
         else:
-            delta_max = state.delta_max_neg
-            delta_1 = p.delta_1_neg
-            delta_2 = p.delta_2_neg
-            K_1 = p.K_1_neg
-            K_2 = p.K_2_neg
-            P_max = state.P_max_neg
-            P_1 = p.P_1_neg
+            target_x, target_p = self.get_target_point(direction, s)
+            continuation, restore_depth = None, 0
+        if direction*(target_x-zero) <= 0:
+            # No forward, positive-slope connection to that target is possible.
+            target_x, target_p = self._forward_intersection(zero, kd, direction)
+            continuation, restore_depth = None, 0
+        reload_k = target_p/(target_x-zero)
+        if not all(isfinite(v) for v in (zero, target_x, reload_k)) or reload_k <= 0:
+            raise ValueError('Invalid JR reloading geometry')
+        inner = old is not None
+        reload = HysteresisSegment(
+            zero, 0., target_x, target_p, reload_k,
+            'inner_reloading' if inner else 'reloading',
+            next_segment=continuation, restore_depth=restore_depth,
+            reverse_segment=old, origin_depth=depth, unloading_origin=(x, p, kd))
+        s.active_segment = HysteresisSegment(
+            x, p, zero, 0., kd, 'inner_unloading' if inner else 'unloading',
+            next_segment=reload, reverse_segment=old, origin_depth=depth)
 
-        # 弾性域（delta_max <= delta_1）では剛性低減なし
-        if delta_max <= delta_1:
-            return K_1
+    def _trace(self, s, delta, direction):
+        while s.active_segment is not None:
+            segment = s.active_segment
+            if not self._reached(delta, segment.end_delta, direction):
+                s.branch = segment.branch
+                s.crossed_zero = segment.branch in ('reloading', 'inner_reloading')
+                return segment.start_P+segment.K*(delta-segment.start_delta), segment.K
+            if segment.restore_depth is not None:
+                del s.reversal_stack[segment.restore_depth:]
+                del s.reversal_paths[segment.restore_depth:]
+            s.active_segment = segment.next_segment
+        s.branch = 'skeleton'
+        s.crossed_zero = False
+        s.reversal_stack.clear()
+        s.reversal_paths.clear()
+        return self.get_skeleton_force(delta, direction if delta == 0 else (1 if delta > 0 else -1))
 
-        # 領域別の剛性低減式
-        if delta_max <= delta_2:
-            # ひび割れ域: 式(7.11.1) Kd = K1 * |δmax/δ1|^(-β)
-            Kd = K_1 * (delta_max / delta_1) ** (-p.beta)
-        else:
-            # 降伏域以降: 式(7.11.2), (7.11.3) Kd = K2 * |δmax/δ2|^(-β)
-            Kd = K_2 * (delta_max / delta_2) ** (-p.beta)
-
-        # 下限値: (F_max - F_1)/(δmax - δ1)（理論マニュアル準拠）
-        if delta_max > delta_1:
-            K_lower = (P_max - P_1) / (delta_max - delta_1)
-        else:
-            K_lower = 0.0
-
-        # 下限・上限のクリップ
-        Kd = max(K_lower, min(Kd, K_1))
-
-        return Kd
-
-    def get_target_point(
-        self,
-        delta: float,
-        state: HysteresisState
-    ) -> Tuple[float, float]:
-        """最大点指向の目標点を取得
-
-        理論マニュアル7.11節に基づく目標点決定:
-        (2) δ1 < δmax < δ2 の場合:
-            - 反対側が弾性域なら第1折れ点を目指す
-            - それ以外は最大経験点を目指す
-        (3)(4) δmax > δ2 の場合:
-            - 反対側が弾性域またはひび割れ域(δ2以下)なら第2折れ点を目指す
-            - それ以外は最大経験点を目指す
-
-        Args:
-            delta: 現在の変位（符号で移動方向を判定）
-            state: 現在の状態
-
-        Returns:
-            (target_delta, target_P): 目標点
-        """
-        p = self.params
-
-        if delta >= 0:
-            # 正方向へ移動中 → 正側の目標を設定
-            if state.delta_max_pos <= p.delta_1_pos:
-                # 正側が弾性域 → 第1折れ点を目指す
-                return p.delta_1_pos, p.P_1_pos
-            elif state.delta_max_pos <= p.delta_2_pos:
-                # 正側がひび割れ域 → 最大経験点を目指す
-                return state.delta_max_pos, state.P_max_pos
-            else:
-                # 正側が降伏域以上 → 反対側（負側）がひび割れ域以下なら第2折れ点
-                if state.delta_max_neg <= p.delta_2_neg:
-                    return p.delta_2_pos, p.P_2_pos
-                else:
-                    return state.delta_max_pos, state.P_max_pos
-        else:
-            # 負方向へ移動中 → 負側の目標を設定
-            if state.delta_max_neg <= p.delta_1_neg:
-                # 負側が弾性域 → 第1折れ点を目指す
-                return -p.delta_1_neg, -p.P_1_neg
-            elif state.delta_max_neg <= p.delta_2_neg:
-                # 負側がひび割れ域 → 最大経験点を目指す
-                return -state.delta_max_neg, -state.P_max_neg
-            else:
-                # 負側が降伏域以上 → 反対側（正側）がひび割れ域以下なら第2折れ点
-                if state.delta_max_pos <= p.delta_2_pos:
-                    return -p.delta_2_neg, -p.P_2_neg
-                else:
-                    return -state.delta_max_neg, -state.P_max_neg
-
-    def get_force_and_stiffness(
-        self,
-        delta: float,
-        state: HysteresisState
-    ) -> Tuple[float, float, Optional[Dict[str, Any]]]:
-        """変位から力と剛性を計算
-
-        理論マニュアル7.11節の履歴ルール1〜6を実装
-
-        Args:
-            delta: 現在の変位
-            state: 現在の履歴状態（変更しない）
-
-        Returns:
-            (P, K, branch_info):
-                - P: 力
-                - K: 接線剛性
-                - branch_info: ブランチ情報（状態更新用）
-        """
-        p = self.params
-
-        # 1. 変位増分の方向を判定
-        d_delta = delta - state.previous_delta
-        if abs(d_delta) < self.EPSILON:
-            # 変位変化なし → 現在の状態を維持
+    def get_force_and_stiffness(self, delta, state):
+        if not isfinite(delta):
+            raise ValueError('delta must be finite')
+        if delta == state.current_delta:
             return state.current_P, state.current_K, None
-
-        current_direction = 1 if d_delta > 0 else -1
-
-        # 2. 反転点の検出（載荷方向が変わった場合）
-        is_reversal = (
-            state.loading_direction != 0 and
-            current_direction != state.loading_direction
-        )
-
-        # ブランチ情報の初期化
-        branch_info: Dict[str, Any] = {
-            'branch': state.branch,
-            'crossed_zero': state.crossed_zero,
-            'reversal_delta': state.reversal_delta,
-            'reversal_P': state.reversal_P,
-            'push_to_stack': False,
-            'pop_from_stack': False,
-            'direction': current_direction
-        }
-
-        # 反転時の処理
-        if is_reversal:
-            branch_info['reversal_delta'] = state.previous_delta
-            branch_info['reversal_P'] = state.previous_P
-
-            # 現在のブランチに応じて次のブランチを決定
-            if state.branch in ('skeleton', 'initial'):
-                branch_info['branch'] = 'unloading'
-            elif state.branch == 'reloading':
-                # 最大点指向中に反転 → 内部ループ開始
-                branch_info['branch'] = 'inner_unloading'
-                branch_info['push_to_stack'] = True
-            elif state.branch == 'inner_reloading':
-                # 内部ループ再載荷中に反転
-                branch_info['branch'] = 'inner_unloading'
-                branch_info['push_to_stack'] = True
-
-        # 3. スケルトンカーブ超過チェック（新たな最大点に達した場合）
-        if delta > state.delta_max_pos + self.EPSILON:
-            # 正方向スケルトン上に新たに載る
-            P, K = self.get_skeleton_force(delta, direction=1)
-            branch_info['branch'] = 'skeleton'
-            branch_info['crossed_zero'] = False
-            return P, K, branch_info
-
-        if delta < -(state.delta_max_neg + self.EPSILON):
-            # 負方向スケルトン上に新たに載る
-            P, K = self.get_skeleton_force(delta, direction=-1)
-            branch_info['branch'] = 'skeleton'
-            branch_info['crossed_zero'] = False
-            return P, K, branch_info
-
-        # 4. ルール1: 初期領域のチェック
-        if state.delta_max_pos <= p.delta_1_pos and state.delta_max_neg <= p.delta_1_neg:
-            # まだ弾性域内
-            if delta >= 0 and delta <= p.delta_1_pos:
-                K = p.K_1_pos
-                P = K * delta
-                branch_info['branch'] = 'initial'
-                return P, K, branch_info
-            elif delta < 0 and abs(delta) <= p.delta_1_neg:
-                K = p.K_1_neg
-                P = -K * abs(delta)
-                branch_info['branch'] = 'initial'
-                return P, K, branch_info
-
-        # 5. P=0通過の検出
-        current_branch = branch_info['branch']
-
-        if current_branch == 'unloading':
-            # 除荷中にP=0を通過したかチェック
-            # 符号が変わった、または0に到達した場合
-            if (state.previous_P > self.EPSILON and delta < 0) or \
-               (state.previous_P < -self.EPSILON and delta > 0):
-                branch_info['crossed_zero'] = True
-                branch_info['branch'] = 'reloading'
-                current_branch = 'reloading'
-
-        elif current_branch == 'inner_unloading':
-            # 内部ループ除荷中にP=0を通過
-            if (state.previous_P > self.EPSILON and delta < 0) or \
-               (state.previous_P < -self.EPSILON and delta > 0):
-                branch_info['crossed_zero'] = True
-                branch_info['branch'] = 'inner_reloading'
-                current_branch = 'inner_reloading'
-
-        # 6. 各ブランチでの力・剛性計算
-        P: float
-        K: float
-
-        if current_branch in ('unloading', 'inner_unloading'):
-            # ルール3: 除荷 - 低減剛性で除荷
-            Kd = self.get_reduced_stiffness(state, state.loading_direction)
-            reversal_delta = branch_info['reversal_delta']
-            reversal_P = branch_info['reversal_P']
-            P = reversal_P + Kd * (delta - reversal_delta)
-            K = Kd
-
-        elif current_branch == 'reloading':
-            # ルール4: 最大点指向 - P=0通過後、反対側の最大経験点へ向かう
-            target_delta, target_P = self.get_target_point(delta, state)
-
-            # 原点から目標点への直線
-            if abs(target_delta) > self.EPSILON:
-                K = target_P / target_delta
-            else:
-                K = p.K_1_pos if delta >= 0 else p.K_1_neg
-            P = K * delta
-
-        elif current_branch == 'inner_reloading':
-            # ルール5: 内部ループ再載荷 - 前の反転点を目指す
-            if len(state.reversal_stack) > 0:
-                target_delta, target_P = state.reversal_stack[-1]
-            else:
-                target_delta, target_P = self.get_target_point(delta, state)
-
-            if abs(target_delta) > self.EPSILON:
-                K = target_P / target_delta
-            else:
-                K = p.K_1_pos if delta >= 0 else p.K_1_neg
-            P = K * delta
-
-            # 目標点到達チェック
-            if delta >= 0:
-                if delta >= target_delta - self.EPSILON:
-                    branch_info['pop_from_stack'] = True
-            else:
-                if delta <= target_delta + self.EPSILON:
-                    branch_info['pop_from_stack'] = True
-
+        s = state.copy()
+        direction = 1 if delta > s.current_delta else -1
+        elastic = s.is_elastic(self.params.delta_1_pos, self.params.delta_1_neg)
+        if elastic and s.active_segment is None:
+            p, k = self.get_skeleton_force(delta, direction if delta == 0 else (1 if delta > 0 else -1))
+            s.branch = 'initial' if abs(delta) < self._value('delta_1', 1 if delta >= 0 else -1) else 'skeleton'
         else:
-            # skeleton または initial（既に上で処理済みのはず）
-            direction = 1 if delta >= 0 else -1
-            P, K = self.get_skeleton_force(delta, direction)
+            if s.loading_direction and direction != s.loading_direction:
+                self._reverse(s, direction)
+            p, k = self._trace(s, delta, direction)
+        if not all(isfinite(v) for v in (p, k)):
+            raise ValueError('Nonfinite JR response')
+        s.previous_delta, s.previous_P = state.current_delta, state.current_P
+        s.current_delta, s.current_P, s.current_K = delta, p, k
+        s.loading_direction = direction
+        # All experienced extrema, including points inside the envelope. Active
+        # branches retain their fixed targets/slopes until the next reversal.
+        if delta > s.delta_max_pos:
+            s.delta_max_pos, s.P_max_pos = delta, abs(p)
+        if -delta > s.delta_max_neg:
+            s.delta_max_neg, s.P_max_neg = -delta, abs(p)
+        s.delta_max_inner = abs(s.reversal_stack[-1][0]) if s.reversal_stack else 0.
+        return p, k, {'branch': s.branch, 'candidate': s}
 
-        # 7. ルール6: 骨格曲線逸脱チェック
-        direction = 1 if delta >= 0 else -1
-        P_skeleton, K_skeleton = self.get_skeleton_force(delta, direction)
-
-        if direction > 0:
-            if P > P_skeleton + self.EPSILON:
-                # 骨格曲線の外側に出た → 骨格曲線上に補正
-                P = P_skeleton
-                K = K_skeleton
-                branch_info['branch'] = 'skeleton'
-        else:
-            if P < P_skeleton - self.EPSILON:
-                P = P_skeleton
-                K = K_skeleton
-                branch_info['branch'] = 'skeleton'
-
-        return P, K, branch_info
-
-    def update_state(
-        self,
-        delta: float,
-        P: float,
-        K: float,
-        state: HysteresisState,
-        branch_info: Optional[Dict[str, Any]]
-    ) -> HysteresisState:
-        """状態変数を更新（収束後に呼び出す）
-
-        Args:
-            delta: 収束した変位
-            P: 収束した力
-            K: 収束した剛性
-            state: 現在の状態
-            branch_info: get_force_and_stiffnessから返されたブランチ情報
-
-        Returns:
-            更新された状態（新しいインスタンス）
-        """
-        # 状態をコピー
-        new_state = state.copy()
-
-        # 前回の状態を保存
-        new_state.previous_delta = state.current_delta
-        new_state.previous_P = state.current_P
-
-        # 現在の状態を更新
-        new_state.current_delta = delta
-        new_state.current_P = P
-        new_state.current_K = K
-
-        # 載荷方向を更新
-        if abs(delta - state.previous_delta) > self.EPSILON:
-            new_state.loading_direction = 1 if delta > state.previous_delta else -1
-
-        # ブランチ情報から状態を更新
-        if branch_info is not None:
-            new_state.branch = branch_info.get('branch', state.branch)
-            new_state.crossed_zero = branch_info.get('crossed_zero', state.crossed_zero)
-            new_state.reversal_delta = branch_info.get('reversal_delta', state.reversal_delta)
-            new_state.reversal_P = branch_info.get('reversal_P', state.reversal_P)
-
-            # 内部ループ用スタック操作
-            if branch_info.get('push_to_stack', False):
-                # 内部ループ開始: 反転点をスタックにプッシュ
-                new_state.reversal_stack.append(
-                    (state.previous_delta, state.previous_P)
-                )
-                new_state.delta_max_inner = abs(state.previous_delta)
-
-            if branch_info.get('pop_from_stack', False):
-                # 目標点に到達: スタックからポップ
-                if len(new_state.reversal_stack) > 0:
-                    new_state.reversal_stack.pop()
-                # スタックが空になったら通常の reloading に戻る
-                if len(new_state.reversal_stack) == 0:
-                    new_state.branch = 'reloading'
-
-        # 最大経験点を更新
-        if delta > new_state.delta_max_pos:
-            new_state.delta_max_pos = delta
-            new_state.P_max_pos = P
-            # 最大点到達でスタッククリア（外部ループに戻る）
-            new_state.reversal_stack.clear()
-            new_state.crossed_zero = False
-
-        if delta < 0 and abs(delta) > new_state.delta_max_neg:
-            new_state.delta_max_neg = abs(delta)
-            new_state.P_max_neg = abs(P)
-            new_state.reversal_stack.clear()
-            new_state.crossed_zero = False
-
-        return new_state
+    def update_state(self, delta, P, K, state, branch_info):
+        """Return the evaluated candidate; only the element's commit accepts it."""
+        if not all(isfinite(v) for v in (delta, P, K)):
+            raise ValueError('JR state values must be finite')
+        if branch_info is None:
+            if (delta, P, K) != (state.current_delta, state.current_P, state.current_K):
+                raise ValueError('Missing JR candidate for changed response')
+            return state.copy()
+        candidate = branch_info['candidate']
+        if (delta, P, K) != (candidate.current_delta, candidate.current_P, candidate.current_K):
+            raise ValueError('JR response does not match evaluated candidate')
+        return candidate.copy()

@@ -10,6 +10,28 @@ import copy
 
 
 @dataclass
+class HysteresisSegment:
+    """Fixed affine branch and its continuation at an exact event point.
+
+    None continuation denotes the skeleton. Suspended segments form an acyclic
+    graph; copies preserve sharing but never alias a committed state.
+    """
+    start_delta: float
+    start_P: float
+    end_delta: float
+    end_P: float
+    K: float
+    branch: str
+    next_segment: Optional['HysteresisSegment'] = None
+    restore_depth: Optional[int] = None
+    reverse_segment: Optional['HysteresisSegment'] = None
+    origin_depth: int = 0
+    # Reloading remembers the incoming unload so reversal exactly at P=0
+    # retraces it. A tuple avoids a cyclic next/reverse segment graph.
+    unloading_origin: Optional[Tuple[float, float, float]] = None
+
+
+@dataclass
 class HysteresisState:
     """履歴モデルの状態変数を管理するデータクラス
 
@@ -18,12 +40,12 @@ class HysteresisState:
     Attributes:
         delta_max_pos: 正方向最大変位（絶対値）
         delta_max_neg: 負方向最大変位（絶対値）
-        P_max_pos: 正方向最大荷重
-        P_max_neg: 負方向最大荷重
-        current_delta: 現在の変位
-        current_P: 現在の荷重
-        previous_delta: 前回の変位
-        previous_P: 前回の荷重
+        P_max_pos: 正方向最大経験変形における力の絶対値
+        P_max_neg: 負方向最大経験変形における力の絶対値
+        current_delta: 評価出発点の直近確定変形（返却候補では試行変形）
+        current_P: current_deltaに対応する力
+        previous_delta: currentの一つ前の確定変形（診断用、反転判定には使わない）
+        previous_P: previous_deltaに対応する力
         crossed_zero: P=0を通過したか（最大点指向開始フラグ）
         reversal_delta: 反転点変位（除荷開始点）
         reversal_P: 反転点荷重
@@ -58,6 +80,7 @@ class HysteresisState:
     # "reloading": 最大点指向（P=0通過後）
     # "inner_unloading": 内部ループ除荷
     # "inner_reloading": 内部ループ再載荷
+    # "retracing": ゼロ前（またはちょうどゼロ）での再反転、同じ直線を戻る
     branch: str = "initial"
 
     # === 現在の剛性 ===
@@ -69,6 +92,10 @@ class HysteresisState:
 
     # === 内部ループ最大変形（理論マニュアル4に対応） ===
     delta_max_inner: float = 0.0
+
+    # JR: current affine path and paths suspended at reversal_stack points.
+    active_segment: Optional[HysteresisSegment] = None
+    reversal_paths: List[Optional[HysteresisSegment]] = field(default_factory=list)
 
     def copy(self) -> 'HysteresisState':
         """状態のディープコピーを作成
@@ -92,22 +119,7 @@ class HysteresisState:
 
     def reset(self) -> None:
         """状態を初期化"""
-        self.delta_max_pos = 0.0
-        self.delta_max_neg = 0.0
-        self.P_max_pos = 0.0
-        self.P_max_neg = 0.0
-        self.current_delta = 0.0
-        self.current_P = 0.0
-        self.previous_delta = 0.0
-        self.previous_P = 0.0
-        self.crossed_zero = False
-        self.reversal_delta = 0.0
-        self.reversal_P = 0.0
-        self.loading_direction = 0
-        self.branch = "initial"
-        self.current_K = 0.0
-        self.reversal_stack.clear()
-        self.delta_max_inner = 0.0
+        self.__dict__.update(type(self)().__dict__)
 
 
 class BaseHysteresis(ABC):
