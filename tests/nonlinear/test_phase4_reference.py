@@ -101,6 +101,7 @@ def assert_uniform(r, mode, n, p, e):
     for s in r['step_results']:
         c = [c for c in r['convergence_history'] if c['step'] == s['step']][-1]
         assert c['relative_residual'] < 1e-8
+    return errors
 
 
 @pytest.mark.parametrize('route', ['python', 'json', 'http'])
@@ -171,6 +172,57 @@ def test_public_spring_api_participates_in_equilibrium(route):
     assert r['reaction_forces']['10']['fx'] == pytest.approx(-12, abs=1e-8)
     assert r['reaction_forces']['30']['fx'] == pytest.approx(-8, abs=1e-8)
     assert r['reaction_forces']['10']['fx'] + r['reaction_forces']['30']['fx'] + 20 == pytest.approx(0, abs=1e-8)
+
+
+@pytest.mark.parametrize('route', ['python', 'json', 'http'])
+@pytest.mark.parametrize('mode', MODES)
+@pytest.mark.parametrize('control', ['load', 'displacement'])
+@pytest.mark.parametrize('beta', [0, 1])
+@pytest.mark.parametrize('sign', [1, -1])
+@pytest.mark.parametrize('subdivisions', [1, 3])
+def test_nested_reversal_and_damage_independent_polygon(route, mode, control, beta, sign, subdivisions):
+    # Hand-derived branch intersections, with every zero/return point included.
+    # beta=1: Kd+=10000*(2)^-1=5000, outer zero=-.4e-3;
+    # A=(-.7,-5), virgin negative Kd=10000, zero=-.2;
+    # B=(.9,6), retained positive Kd=5000, zero=-.3;
+    # reload to A has slope 12500, then resumes outer slope 50000/3.
+    if beta:
+        vertices = [(0,0),(1,10),(2,12),(-.4,0),(-.7,-5),(-.2,0),
+                    (.9,6),(-.3,0),(-.5,-2.5),(-.7,-5),(-1,-10),(-2,-12)]
+    else:
+        vertices = [(0,0),(1,10),(2,12),(.8,0),(-.1,-5),(.4,0),(1.2,6),
+                    (.6,0),(.25,-2.5),(.5,0),(.85,3),(.55,0),(.25,-2.5),
+                    (-.1,-5),(-1,-10),(-2,-12)]
+    base = np.array(vertices)*[sign*.001, sign]
+    # Signed external work includes the initial loading; no closed-cycle claim.
+    expected_work = 2*np.sum(np.diff(base[:,0])*(base[:-1,1]+base[1:,1])/2)
+    path = np.vstack([base[0], *[np.linspace(a,b,subdivisions+1)[1:]
+                               for a,b in zip(base[:-1],base[1:])]])
+    d = configuration(mode, force=1)
+    d['element']['1']['1']['nonlinear']['beta'] = beta
+    if control == 'load':
+        factors = path[:,1].tolist()
+    else:
+        j = MODES[mode][0]
+        flags, values = [False]*6, [0.]*6
+        flags[j], values[j] = True, .002
+        d['boundary_conditions'] = {'restraints': {'30': dict(dof=flags, values=values)}}
+        d['load']['1']['load_node'] = []
+        factors = (path[:,0]/.001).tolist()
+    d['analysis_params'] = dict(load_factors=factors)
+    r = solve(d, route)
+    observed = []
+    max_errors = dict(displacement=0., end_force=0., reaction=0.)
+    for step, (e,p) in zip(r['step_results'], path):
+        errors = assert_uniform(dict(step, convergence_history=r['convergence_history'], step_results=[step]), mode, 1, p, e)
+        max_errors = {key:max(value,errors[key]) for key,value in max_errors.items()}
+        observed.append((step['node_displacements']['30'][MODES[mode][2]]/2,
+                         step['element_stresses']['7']['j_end'][MODES[mode][0]]))
+    observed = np.array(observed)
+    work = 2*np.sum(np.diff(observed[:,0])*(observed[:-1,1]+observed[1:,1])/2)
+    assert work == pytest.approx(expected_work, rel=1e-8, abs=1e-10)
+    print('PHASE4_NESTED_METRIC '+json.dumps(dict(route=route,mode=mode,control=control,beta=beta,sign=sign,
+          subdivisions=subdivisions, work_error=abs(work-expected_work), **max_errors)))
 
 
 @pytest.mark.parametrize('route', ['python', 'json', 'http'])

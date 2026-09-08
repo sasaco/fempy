@@ -11,6 +11,10 @@ from .solid_element import TetraElement, HexaElement
 class WedgeElement(BaseElement):
     """6節点ウェッジ（三角柱）要素クラス"""
     
+    def calculate_stress_strain(self, displacement):
+        from .solid_postprocess import solid_stress_strain
+        return solid_stress_strain(self, displacement)
+
     def __init__(self, element_id: int, node_ids: List[int], material_id: int):
         """
         Args:

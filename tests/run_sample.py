@@ -46,6 +46,7 @@ def legacy_result_view(result, model, data):
     result = result_to_jsonable(result)
     nodes = data.get('node', {k: dict(zip(('x','y','z'), v)) for k,v in data.get('nodes', {}).items()})
     labels = {int(k): k for k in nodes}
+    labels.update(getattr(model, 'node_labels', {}))
     member_points = {str(p['m']): sorted(set(p.get('Points', [])))
                      for p in data.get('notice_points', [])}
     sections = {}
@@ -54,7 +55,13 @@ def legacy_result_view(result, model, data):
         end = np.array([nodes[str(member['nj'])][k] for k in ('x','y','z')])
         length = np.linalg.norm(end-start)
         axis = (end-start)/length
-        points = [0.] + [p for p in member_points.get(member_id, []) if 0 < p < length] + [length]
+        rigid_points = [p for r in data.get('rigid', []) if str(r['m']) == member_id
+                        for p in (float(r.get('Ilength', 0)), length-float(r.get('Jlength', 0)))
+                        if 0 < p < length]
+        points = []
+        for point in sorted([0.,length]+rigid_points+[p for p in member_points.get(member_id, []) if 0 < p < length]):
+            if not points or point-points[-1] > 1e-10*max(1.,length):
+                points.append(point)
         candidates = []
         for node, coord in model.mesh.nodes.items():
             t = np.dot(coord-start, axis)
@@ -90,11 +97,19 @@ def legacy_result_view(result, model, data):
             values['L'] = b-a
             segments[f'P{i}'] = values
         sections[member_id] = segments
-    displacement = {labels.get(int(k), f'unmapped:{k}'): v for k,v in result['node_displacements'].items()}
+    displacement = {labels.get(int(k), f'unmapped:{k}'): v for k,v in result['node_displacements'].items()
+                    if labels.get(int(k), f'unmapped:{k}') is not None}
     reactions = {k: {out: result['reaction_forces'].get(k, {}).get(src, 0.)
                      for out,src in zip(('tx','ty','tz','mx','my','mz'),('fx','fy','fz','mx','my','mz'))}
-                 for k in nodes}
-    return dict(disg=displacement, reac=reactions, fsec=sections,
+                 for k in nodes if int(k) in model.boundary.restraints
+                 and int(k) not in getattr(model.boundary, 'auxiliary_restraint_nodes', set())
+                 or int(k) in getattr(model.boundary, 'spring_supports', {})}
+    if data.get('dimension') == 2:
+        generated = sorted(set(model.mesh.nodes)-{int(k) for k in nodes})
+        if generated:
+            reaction = result['reaction_forces'].get(str(generated[-1]), {})
+            reactions['0'] = dict(tx=0., ty=0., tz=0., mx=0., my=0., mz=reaction.get('mz', 0.))
+    return dict(disg=displacement, reac=reactions, fsec=sections, size=len(model.mesh.nodes),
                 shell_fsec=result.get('shell_fsec', {}), shell_results=result.get('shell_results', {}))
 
 
@@ -105,7 +120,7 @@ def comparison_errors(actual, expected, path=''):
         missing, extra = expected.keys()-actual.keys(), actual.keys()-expected.keys()
         if missing or extra:
             errors.append(f'{path}: missing={sorted(missing)}, extra={sorted(extra)}')
-        for key in actual.keys() & expected.keys():
+        for key in sorted(actual.keys() & expected.keys(), key=str):
             errors.extend(comparison_errors(actual[key], expected[key], f'{path}/{key}'))
     else:
         try:
@@ -118,7 +133,10 @@ def comparison_errors(actual, expected, path=''):
 def compare_legacy_result(result, expected, model, data):
     actual = legacy_result_view(result, model, data)
     errors = []
-    for field in actual:
+    for field in actual.keys() | expected.keys():
+        if field not in actual:
+            errors.append(f'Missing output field: {field}')
+            continue
         if field not in expected:
             errors.append(f'Missing reference field: {field}')
         else:
@@ -128,13 +146,29 @@ def compare_legacy_result(result, expected, model, data):
 
 def run_sample(data_path):
     data = json.loads(Path(data_path).read_text(encoding='utf-8'))
-    if Path(data_path).name == 'beam001.json' and not data.get('result') and 'reference' not in data:
+    if Path(data_path).name == 'beam001.json' and 'reference' not in data:
         from reference_solutions import assert_beam001
         m = FemModel()
         m.load_model(str(data_path))
         result = m.run()
         assert_beam001(result_to_jsonable(result), data)
-        return result
+        if not data.get('result'):
+            return result
+        if '0' in data['result']:
+            # The zero key explicitly identifies load-step snapshots, not a
+            # legacy load case. The independent oracle above covers ALL steps;
+            # additionally compare every user-provided snapshot/component.
+            snapshots = {str(step['step']): step for step in result['step_results']}
+            m.analysis_params['load_factors'] = [0.]
+            snapshots['0'] = m.run()['step_results'][0]
+            for key, reference in data['result'].items():
+                assert key in snapshots, f'Unknown reference load step {key}'
+                assert {'disg','reac','fsec'} <= reference.keys(), f'Missing physical reference field at step {key}'
+                actual = legacy_result_view(snapshots[key], m, data)
+                for field, values in reference.items():
+                    assert field in actual, f'Missing output field: {field}'
+                    assert_dict_almost_equal(actual[field], values, f'step/{key}/{field}')
+            return result
     if 'reference' in data:
         m = FemModel()
         m.load_model(str(data_path))
@@ -158,7 +192,8 @@ def run_sample(data_path):
             compare_legacy_result(result, reference, m, data)
             continue
         assert case_id in data['load'], f'Unknown reference load case {case_id}'
-        case_data = copy.deepcopy(data)
+        from src.fem.legacy_beam import select_case
+        case_data = select_case(data, case_id)
         case = case_data['load'][case_id]
         case_data['load'] = {case_id: case}
         for field in ('fix_node', 'fix_member', 'element', 'joint'):

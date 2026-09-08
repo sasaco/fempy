@@ -230,10 +230,19 @@ def test_real_jr_failure_restores_last_commit_and_fresh_run():
 
 
 @pytest.mark.parametrize('sample', ['shellRibQuad1.json', 'shellRibTri1.json'])
-def test_failed_postprocessing_clears_result_and_http_is_error(sample):
+def test_failed_postprocessing_clears_result_and_http_is_error(sample, monkeypatch):
     from pathlib import Path
     d = json.loads((Path(__file__).parents[1]/'data/shell'/sample).read_text(encoding='utf-8'))
     m = json_model(d)
+    # The vertical-plane defect is fixed; retain the error-propagation contract
+    # with a deterministic postprocessing failure, not a permanent defect.
+    assert m.run()['element_stresses']
+    from src.fem.elements.shell_element import ShellElement
+    def fail(self, displacement):
+        raise np.linalg.LinAlgError('injected postprocessing failure')
+    monkeypatch.setattr(ShellElement, 'calculate_stress_strain', fail)
+    from fem.elements.shell_element import ShellElement as HttpShellElement
+    monkeypatch.setattr(HttpShellElement, 'calculate_stress_strain', fail)
     with pytest.raises(np.linalg.LinAlgError):
         m.run()
     assert m.results is None

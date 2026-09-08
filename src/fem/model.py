@@ -62,6 +62,7 @@ class FemModel:
         initial_node_count = len(model_data.get('mesh', MeshModel()).nodes)
         initial_elem_count = len(model_data.get('mesh', MeshModel()).elements)
 
+        self.node_labels = model_data.get('node_labels', {})
         self.mesh = model_data.get('mesh', MeshModel())
         self.boundary = model_data.get('boundary', BoundaryCondition())
         self.material = model_data.get('material', Material())
@@ -277,7 +278,10 @@ class FemModel:
         load_type = direction_map.get(direction, direction)
         
         values = [value_i, value_j]
-        self.boundary.add_distributed_load(element_id, load_type, values)
+        if element_id in self.mesh.elements and self.mesh.elements[element_id]['type'] in ('bar','beam'):
+            self.mesh.elements[element_id].setdefault('line_loads', []).append(dict(direction=load_type, values=values))
+        else:
+            self.boundary.add_distributed_load(element_id, load_type, values)
         
     def add_temperature_load(self, element_id: int, temperature: float) -> None:
         """温度荷重を追加
@@ -286,7 +290,9 @@ class FemModel:
             element_id: 要素ID
             temperature: 温度変化
         """
-        self.boundary.add_temperature_load(element_id, temperature)
+        if not np.isfinite(temperature):
+            raise ValueError('Temperature must be finite')
+        self.mesh.elements[element_id]['temperature'] = float(temperature)
         
     def add_forced_displacement(self, node_id: int, dx: float = 0, dy: float = 0, 
                               dz: float = 0, rx: float = 0, ry: float = 0, 
@@ -323,15 +329,10 @@ class FemModel:
             dx, dy, dz: 各方向の分布バネ定数
             rx: 回転方向の分布バネ定数
         """
-        if not hasattr(self, 'distributed_springs'):
-            self.distributed_springs = {}
-            
-        self.distributed_springs[element_id] = {
-            'dx': dx,
-            'dy': dy,
-            'dz': dz,
-            'rx': rx
-        }
+        values = np.asarray([dx, dy, dz, rx], dtype=float)
+        if not np.all(np.isfinite(values)) or np.any(values < 0):
+            raise ValueError('Distributed spring stiffness must be finite and nonnegative')
+        self.mesh.elements[element_id]['foundation'] = values.tolist()
         
     def add_joint_condition(self, element_id: int, *args, **kwargs) -> None:
         """結合条件を追加
@@ -340,14 +341,15 @@ class FemModel:
             element_id: 要素ID
             *args, **kwargs: 結合条件のパラメータ
         """
-        if not hasattr(self, 'joint_conditions'):
-            self.joint_conditions = {}
-            
-        # 簡易的な実装（実際の結合条件は複雑）
-        self.joint_conditions[element_id] = {
-            'args': args,
-            'kwargs': kwargs
-        }
+        names = ('xi','yi','zi','xj','yj','zj')
+        if len(args) > 6 or set(kwargs)-set(names):
+            raise ValueError('Joint accepts xi, yi, zi, xj, yj, zj (0 released, 1 connected)')
+        values = dict(zip(names,args))
+        values.update(kwargs)
+        if any(v not in (0,1) for v in values.values()):
+            raise ValueError('Joint flags must be 0 or 1')
+        self.mesh.elements[element_id]['releases'] = [i for i,k in zip((3,4,5,9,10,11),names)
+                                                     if values.get(k,1) == 0]
         
     def run(self, analysis_type: Optional[str] = None) -> Dict[str, Any]:
         """解析を実行
@@ -620,12 +622,15 @@ class FemModel:
             angle = elem_data.get('angle', 0)
             shear_correction = elem_data.get('shear_correction', True)
             
-            if shear_correction:
+            if shear_correction and not (elem_data.get('releases') or any(elem_data.get('foundation', []))
+                                         or elem_data.get('line_loads') or elem_data.get('temperature')):
                 element = TBarElement(elem_id, node_ids, material_id, 
                                     section_id, angle, shear_correction)
             else:
-                element = BEBarElement(elem_id, node_ids, material_id,
-                                     section_id, angle)
+                from .elements.loaded_bar_element import LoadedBarElement
+                element = LoadedBarElement(elem_id, node_ids, material_id, section_id, angle,
+                    releases=elem_data.get('releases', []),
+                    foundation=elem_data.get('foundation', [0.,0.,0.,0.]), shear_correction=shear_correction)
                                      
             # 材料とパラメータを設定
             bar_param = self._get_bar_parameter(section_id, material_id)
@@ -717,6 +722,13 @@ class FemModel:
         else:
             raise ValueError(f"Unknown element type: {elem_type} (original: {elem_data.get('type', 'N/A')})")
             
+        element.set_node_coordinates(self.mesh.nodes)
+        if hasattr(element, 'set_line_load'):
+            for load in elem_data.get('line_loads', []):
+                element.set_line_load(load['direction'], load['values'])
+            element.temperature_strain = (self.material.materials[material_id].alpha or 0.) * elem_data.get('temperature', 0.)
+        elif elem_data.get('releases') or any(elem_data.get('foundation', [])) or elem_data.get('line_loads') or elem_data.get('temperature'):
+            raise ValueError('Member releases, foundation and distributed loads require a Bernoulli beam')
         self.elements[elem_id] = element
         
     def _get_bar_parameter(self, section_id: int, material_id: int) -> BarParameter:

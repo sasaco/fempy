@@ -11,6 +11,10 @@ from ..material import Material
 class SolidElementBase(BaseElement):
     """ソリッド要素の基底クラス"""
     
+    def calculate_stress_strain(self, displacement):
+        from .solid_postprocess import solid_stress_strain
+        return solid_stress_strain(self, displacement)
+
     def get_dof_per_node(self) -> int:
         """節点あたりの自由度数を取得"""
         return 3  # 3並進のみ（回転自由度なし）

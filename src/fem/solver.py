@@ -5,8 +5,7 @@ JavaScript版のSolver機能に対応
 from typing import Dict, Any, List, Tuple, Optional
 import numpy as np
 from scipy.sparse import lil_matrix, csr_matrix, diags
-from scipy.sparse.linalg import spsolve, eigsh, spilu, gmres, bicgstab
-from scipy.linalg import eigh, svd, lstsq
+from scipy.sparse.linalg import eigsh
 from .mesh import MeshModel
 from .boundary_condition import BoundaryCondition
 from .material import Material
@@ -210,6 +209,12 @@ class Solver:
                     F[base_dof + i] += load.forces[i]
                 
         # 分布荷重の適用
+        for element in elements.values():
+            if hasattr(element, 'get_member_load_vector'):
+                indices = [self._node_dof_start(node, max_dof_per_node)+i
+                           for node in element.node_ids for i in range(6)]
+                F[indices] += element.get_member_load_vector()
+
         for dist_load in boundary.distributed_loads:
             elem_id = dist_load.element_id
             if elem_id not in elements:
@@ -336,195 +341,35 @@ class Solver:
         return K_mod.tocsr(), F_mod
         
     def solve_linear_system(self, K: csr_matrix, F: np.ndarray) -> np.ndarray:
-        """線形方程式系を解く（V1レベル数値安定化技術適用）
-        
-        Args:
-            K: 剛性行列
-            F: 荷重ベクトル
-            
-        Returns:
-            変位ベクトル
-        """
-        from scipy.sparse.linalg import spsolve, spilu, gmres, bicgstab
-        from scipy.linalg import svd, lstsq
-        import warnings
-        
-        print(f"[Solver] V1レベル数値安定化ソルバー開始")
-        print(f"  - 行列サイズ: {K.shape[0]}×{K.shape[1]}")
-        print(f"  - 非零要素数: {K.nnz}")
-        
-        # 段階1: 条件数チェック
+        """Equilibrated direct solve; a mechanism is an error even at zero load."""
+        from scipy.sparse.linalg import splu
+        K = K.tocsr()
+        if not np.all(np.isfinite(K.data)) or not np.all(np.isfinite(F)):
+            raise ValueError('Linear system must be finite')
+        diagonal = np.abs(K.diagonal())
+        if np.any(diagonal <= 0):
+            raise ValueError('Singular stiffness matrix: zero diagonal')
+        scale = 1/np.sqrt(diagonal)
+        D = diags(scale)
+        equilibrated = (D@K@D).tocsc()
         try:
-            # 行列の対角成分統計
-            diag = K.diagonal()
-            max_diag = np.max(diag)
-            min_diag = np.min(diag[diag > 0]) if np.any(diag > 0) else 1e-16
-            cond_estimate = max_diag / min_diag
-            
-            print(f"  - 対角成分統計: max={max_diag:.2e}, min={min_diag:.2e}")
-            print(f"  - 条件数推定: {cond_estimate:.2e}")
-            
-            # 良好な条件数の場合は直接法
-            if cond_estimate < 1e12:
-                print("  → 直接法（UMFPACK）を試行")
-                try:
-                    with warnings.catch_warnings():
-                        warnings.filterwarnings('ignore', category=DeprecationWarning)
-                        self.displacement = spsolve(K, F, use_umfpack=True)
-                    
-                    if not np.any(np.isnan(self.displacement)):
-                        print("  [OK] 直接法成功")
-                        return self.displacement
-                    else:
-                        print("  [NG] 直接法でNaN発生")
-                except:
-                    print("  [NG] 直接法失敗")
-            else:
-                print("  [NG] 条件数不良（>1e12）、安定化手法を適用")
-                
-        except Exception as e:
-            print(f"  [NG] 条件数チェック失敗: {e}")
-        
-        # 段階2: 正則化技術（Tikhonov正則化）
-        print("  [Step] Tikhonov正則化を適用")
-        try:
-            # 正則化パラメータ（対角成分の平均の1e-6倍）
-            diag_mean = np.mean(np.abs(K.diagonal()))
-            reg_param = max(1e-12, diag_mean * 1e-6)
-            
-            # 正則化行列 K_reg = K + λI
-            I_reg = diags(np.full(K.shape[0], reg_param), format='csr')
-            K_reg = K + I_reg
-            
-            print(f"    正則化パラメータ: {reg_param:.2e}")
-            
-            with warnings.catch_warnings():
-                warnings.filterwarnings('ignore')
-                self.displacement = spsolve(K_reg, F, use_umfpack=False)
-            
-            if not np.any(np.isnan(self.displacement)):
-                print("  [OK] Tikhonov正則化成功")
-                return self.displacement
-            else:
-                print("  [NG] 正則化でもNaN発生")
-                
-        except Exception as e:
-            print(f"  [NG] 正則化失敗: {e}")
-        
-        # 段階3: 前処理付き反復法（GMRES）
-        print("  [Step] 前処理付きGMRES反復法を適用")
-        try:
-            # ILU前処理器の作成
-            try:
-                # 正則化された行列でILU分解
-                K_for_ilu = K + diags(np.full(K.shape[0], diag_mean * 1e-8), format='csr')
-                ilu = spilu(K_for_ilu.tocsc(), fill_factor=2.0, drop_tol=1e-6)
-                from scipy.sparse.linalg import LinearOperator
-                
-                def preconditioner(x):
-                    return ilu.solve(x)
-                
-                M = LinearOperator(K.shape, matvec=preconditioner)
-                print("    ILU前処理器作成成功")
-                
-            except Exception as ilu_e:
-                print(f"    ILU前処理器作成失敗: {ilu_e}")
-                M = None
-            
-            # GMRES反復法
-            x0 = np.zeros(K.shape[0])  # 初期推定値
-            
-            self.displacement, info = gmres(
-                K, F, x0=x0, M=M,
-                tol=1e-8, maxiter=2000, restart=50,
-                callback=None, callback_type='legacy'
-            )
-            
-            if info == 0 and not np.any(np.isnan(self.displacement)):
-                print(f"  [OK] GMRES反復法成功（収束）")
-                return self.displacement
-            else:
-                print(f"  [NG] GMRES反復法失敗（info={info}）")
-                
-        except Exception as e:
-            print(f"  [NG] GMRES反復法エラー: {e}")
-        
-        # 段階4: BiCGStab反復法（予備）
-        print("  [Step] BiCGStab反復法を適用")
-        try:
-            x0 = np.zeros(K.shape[0])
-            
-            self.displacement, info = bicgstab(
-                K, F, x0=x0, tol=1e-6, maxiter=1000
-            )
-            
-            if info == 0 and not np.any(np.isnan(self.displacement)):
-                print("  [OK] BiCGStab反復法成功")
-                return self.displacement
-            else:
-                print(f"  [NG] BiCGStab反復法失敗（info={info}）")
-                
-        except Exception as e:
-            print(f"  [NG] BiCGStab反復法エラー: {e}")
-        
-        # 段階5: 最終手段 - SVD疑似逆行列（密行列変換）
-        print("  [Step] 最終手段：SVD疑似逆行列を適用")
-        try:
-            # 小規模問題のみSVDを適用
-            if K.shape[0] <= 1000:
-                print("    密行列に変換してSVD実行")
-                K_dense = K.toarray()
-                
-                # SVDによる疑似逆行列
-                U, s, Vt = svd(K_dense, full_matrices=False)
-                
-                # 特異値の切り捨て（条件数改善）
-                s_cutoff = np.max(s) * 1e-12
-                s_reg = np.where(s > s_cutoff, s, s_cutoff)
-                
-                # 疑似逆行列による解
-                self.displacement = Vt.T @ np.diag(1/s_reg) @ U.T @ F
-                
-                if not np.any(np.isnan(self.displacement)):
-                    print("  [OK] SVD疑似逆行列成功")
-                    return self.displacement
-                else:
-                    print("  [NG] SVD疑似逆行列でもNaN発生")
-            else:
-                print("    行列が大きすぎるためSVDをスキップ")
-                
-        except Exception as e:
-            print(f"  [NG] SVD疑似逆行列エラー: {e}")
-        
-        # 段階6: 最小二乗法による近似解
-        print("  [Step] 最小二乗法による近似解を計算")
-        try:
-            if K.shape[0] <= 2000:
-                K_dense = K.toarray()
-                solution, residuals, rank, s = lstsq(K_dense, F, rcond=1e-12)
-                
-                if not np.any(np.isnan(solution)):
-                    print(f"  [OK] 最小二乗法成功（rank={rank}/{K.shape[0]}）")
-                    self.displacement = solution
-                    return self.displacement
-                    
-        except Exception as e:
-            print(f"  [NG] 最小二乗法エラー: {e}")
-        
-        # 全手法失敗の場合
-        print("  [!!] 全ての数値安定化手法が失敗")
-        print("  [Hint] 構造の根本的見直しが必要です:")
-        print("     - 境界条件の不足（剛体モードの存在）")
-        print("     - 要素の極端な寸法比")
-        print("     - 材料定数の異常値")
-        
-        # エラー情報付きで例外発生
-        raise ValueError(
-            "V1レベル数値安定化ソルバーでも解けませんでした。\n"
-            "構造の境界条件または要素定義を確認してください。\n"
-            f"行列サイズ: {K.shape[0]}×{K.shape[1]}, 条件数推定: {cond_estimate:.2e}"
-        )
-        
+            lu = splu(equilibrated)
+        except RuntimeError as error:
+            raise ValueError('Singular stiffness matrix') from error
+        pivots = np.abs(lu.U.diagonal())
+        if np.min(pivots) <= np.finfo(float).eps * K.shape[0] * max(1., np.max(pivots)):
+            raise ValueError('Singular stiffness matrix: numerical rank deficiency')
+        u = scale*lu.solve(scale*F)
+        # Refine against the original system, without modifying its stiffness.
+        for _ in range(2):
+            u += scale*lu.solve(scale*(F-K@u))
+        residual = K@u-F
+        bound = np.linalg.norm(np.abs(equilibrated)@np.abs(u/scale)+np.abs(scale*F), ord=np.inf)
+        if not np.all(np.isfinite(u)) or np.linalg.norm(scale*residual, ord=np.inf) > 1e-10*max(bound, np.finfo(float).tiny):
+            raise ValueError('Linear system failed equilibrium check')
+        self.displacement = u
+        return u
+
     def solve(self, mesh: MeshModel, material: Material, boundary: BoundaryCondition,
              elements: Dict[int, Any]) -> Dict[str, Any]:
         """静的解析を実行
@@ -549,7 +394,18 @@ class Solver:
         K_mod, F_mod = self.apply_boundary_conditions(K, F, boundary, stride)
         
         # 線形方程式を解く
-        u = self.solve_linear_system(K_mod, F_mod)
+        # A rotation released by every incident beam is absent from the model,
+        # not a structural mechanism. Eliminate only exactly empty, unloaded
+        # rotational rows; free translations and coupled rigid modes still fail.
+        empty = np.asarray(np.abs(K_mod).sum(axis=1)).ravel() == 0
+        absent = empty & (np.arange(len(F_mod)) % stride >= 3) & (F_mod == 0)
+        active = np.flatnonzero(~absent)
+        if np.any(absent):
+            u = np.zeros(len(F_mod))
+            u[active] = self.solve_linear_system(K_mod[active][:, active], F_mod[active])
+            self.displacement = u
+        else:
+            u = self.solve_linear_system(K_mod, F_mod)
         
         # 結果を整形
         results = {
@@ -735,6 +591,8 @@ class Solver:
         
         for node_id, restraint in boundary.restraints.items():
             base_dof = self._node_dof_start(node_id, max_dof_per_node)
+            if node_id in getattr(boundary, 'auxiliary_restraint_nodes', set()):
+                continue
             reaction = {}
             
             for i, is_restrained in enumerate(restraint.dof_restraints):

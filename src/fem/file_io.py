@@ -57,7 +57,10 @@ def _read_json_model(data: Dict[str, Any]) -> Dict[str, Any]:
     # 旧形式のチェック（nodeセクションがある場合）
     if 'node' in data:
         # 旧形式の読み込み処理
+        from .legacy_beam import select_case, prepare_members
+        data = select_case(data)
         model_data = _read_legacy_json_model(data, model_data)
+        prepare_members(data, model_data)
         _read_explicit_boundary(data.get('boundary_conditions', {}), model_data['boundary'])
         return model_data
     
@@ -130,13 +133,25 @@ def _read_explicit_boundary(data, boundary):
     """
     for node, restraint in data.get('restraints', {}).items():
         boundary.add_restraint(int(node), restraint['dof'], restraint.get('values'))
-    boundary.spring_supports = {
-        int(node): dict(values) for node, values in data.get('spring_supports', {}).items()}
+    supports = getattr(boundary, 'spring_supports', {})
+    for node, values in data.get('spring_supports', {}).items():
+        supports.setdefault(int(node), {}).update(values)
+    boundary.spring_supports = supports
+    if 'auxiliary_restraint_nodes' in data:
+        boundary.auxiliary_restraint_nodes = {int(node) for node in data['auxiliary_restraint_nodes']}
+        for node in boundary.auxiliary_restraint_nodes:
+            restraint = boundary.restraints.get(node)
+            if (restraint is None or list(restraint.dof_restraints) != [False,False,True,True,True,False]
+                    or any(restraint.values) or node in supports):
+                raise ValueError('Auxiliary restraint metadata must describe only automatic 2D constraints')
 
 
 def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) -> Dict[str, Any]:
     """旧形式のJSONファイルを読み込む"""
     
+    # Member, shell and solid identifiers occupy separate legacy namespaces.
+    next_element_id = max([int(k) for field in ('member','shell','solid')
+                           for k in data.get(field, {})] or [0])+1
     # nodeセクションの読み込み
     if 'node' in data:
         for node_id, coords in data['node'].items():
@@ -173,6 +188,9 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 'bar',
                 [ni, nj],
                 material_id,
+                section_id=material_id, angle=float(member_data.get('cg') or 0),
+                shear_correction=member_data.get('shear_correction', any(
+                    'nonlinear' in v for case in data.get('element', {}).values() for v in case.values())),
                 member_id=int(member_id)  # 部材IDを保存
             )
     
@@ -197,8 +215,11 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                             thickness = elem_def.get('thickness', 0.01)
                             break
             
+            element_id = int(shell_id)
+            if element_id in model_data['mesh'].elements:
+                element_id, next_element_id = next_element_id, next_element_id+1
             model_data['mesh'].add_element(
-                int(shell_id),
+                element_id,
                 'shell',
                 nodes,
                 material_id,
@@ -225,8 +246,11 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 # 節点数により要素タイプを判定（後方互換性）
                 element_type = 'tetra' if len(nodes) == 4 else 'hexa' if len(nodes) == 8 else 'wedge' if len(nodes) == 6 else 'solid'
             
+            element_id = int(solid_id)
+            if element_id in model_data['mesh'].elements:
+                element_id, next_element_id = next_element_id, next_element_id+1
             model_data['mesh'].add_element(
-                int(solid_id),
+                element_id,
                 element_type,
                 nodes,
                 material_id,
@@ -245,7 +269,7 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                     name=elem_def.get('n', f"Material{material_id}"),
                     E=elem_def['E'],
                     nu=elem_def.get('nu', 0.2 if 'nonlinear' in elem_def else 0.3),
-                    density=elem_def.get('den'),
+                    density=elem_def.get('den'), alpha=elem_def.get('Xp'),
                     shear_modulus=elem_def.get('G')
                 )
                 model_data['material'].add_material(material_id, mp)
@@ -343,7 +367,7 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 elem_data['type'] = 'nonlinear_bar'
                 elem_data['section_id'] = material_id
                 elem_data['hysteresis_dofs'] = nonlinear_materials[material_id]['hysteresis_dofs']
-                elem_data['shear_correction'] = True
+                # Preserve an explicit per-member shear choice.
                 print(f"要素{member_id}を非線形要素に変換: material_id={material_id}, "
                       f"hysteresis_dofs={elem_data['hysteresis_dofs']}")
     
@@ -371,40 +395,16 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 node_id = int(restraint['n'])
                 
                 # 自由度の設定（旧形式では1が拘束、0が自由、>1000がバネ定数）
-                tx_val = restraint.get('tx', 0)
-                ty_val = restraint.get('ty', 0)
-                tz_val = restraint.get('tz', 0)
-                rx_val = restraint.get('rx', 0)
-                ry_val = restraint.get('ry', 0)
-                rz_val = restraint.get('rz', 0)
-                
-                # バネ定数（>1000）、拘束（1）、微小値拘束（0.01以上1未満）の判定
-                dof_restraints = [
-                    tx_val == 1 or tx_val > 1000 or (0.01 <= tx_val < 1),  # X方向並進
-                    ty_val == 1 or ty_val > 1000 or (0.01 <= ty_val < 1),  # Y方向並進
-                    tz_val == 1 or tz_val > 1000 or (0.01 <= tz_val < 1),  # Z方向並進
-                    rx_val == 1 or rx_val > 1000 or (0.01 <= rx_val < 1),  # X軸周り回転
-                    ry_val == 1 or ry_val > 1000 or (0.01 <= ry_val < 1),  # Y軸周り回転
-                    rz_val == 1 or rz_val > 1000 or (0.01 <= rz_val < 1)   # Z軸周り回転
-                ]
-                
-                # バネ定数の値を設定（>1000の場合はバネ、1の場合は0）
-                values = [
-                    tx_val if tx_val > 1000 else 0,
-                    ty_val if ty_val > 1000 else 0,
-                    tz_val if tz_val > 1000 else 0,
-                    rx_val if rx_val > 1000 else 0,
-                    ry_val if ry_val > 1000 else 0,
-                    rz_val if rz_val > 1000 else 0
-                ]
-                
-                # バネ定数が存在する場合のみvaluesを設定
-                if any(v > 1000 for v in values):
-                    model_data['boundary'].add_restraint(node_id, dof_restraints, values)
-                else:
-                    model_data['boundary'].add_restraint(node_id, dof_restraints, None)
-    
-    # notice_pointsセクションを追加（後でFemModelで処理）
+                values = [float(restraint.get(k, 0)) for k in ('tx','ty','tz','rx','ry','rz')]
+                if not np.all(np.isfinite(values)):
+                    raise ValueError('Support values must be finite')
+                model_data['boundary'].add_restraint(node_id, [v == 1 for v in values])
+                springs = getattr(model_data['boundary'], 'spring_supports', {})
+                for name, value in zip(('x','y','z','rx','ry','rz'), values):
+                    if value not in (0, 1):
+                        springs.setdefault(node_id, {})[name] = abs(value)
+                model_data['boundary'].spring_supports = springs
+
     if 'notice_points' in data:
         model_data['notice_points'] = data['notice_points']
     
@@ -450,7 +450,7 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
             # 要素荷重の処理（load_member）
             if 'load_member' in case_data and len(case_data['load_member']) > 0:
                 # 要素荷重を等価節点荷重に変換して境界条件に追加
-                _convert_element_loads_to_node_loads(case_data['load_member'], model_data)
+                pass  # prepare_members applies loads after member subdivision
     
     return model_data
 
@@ -735,6 +735,7 @@ def _write_json_model(model_data: Dict[str, Any], file_path: str) -> None:
     if boundary:
         output_data['boundary_conditions'] = {}
         output_data['boundary_conditions']['spring_supports'] = getattr(boundary, 'spring_supports', {})
+        output_data['boundary_conditions']['auxiliary_restraint_nodes'] = sorted(getattr(boundary, 'auxiliary_restraint_nodes', set()))
         
         if boundary.restraints:
             output_data['boundary_conditions']['restraints'] = {
@@ -858,171 +859,6 @@ def write_result(result_data: Dict[str, Any], file_path: str) -> None:
     
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(output_data, f, indent=2, ensure_ascii=False, allow_nan=False)
-
-
-def _convert_element_loads_to_node_loads(load_members: List[Dict], model_data: Dict[str, Any]) -> None:
-    """要素荷重を等価節点荷重に変換して境界条件に追加
-    
-    Args:
-        load_members: load_memberデータのリスト
-        model_data: モデルデータ辞書
-    """
-    mesh = model_data['mesh']
-    boundary = model_data['boundary']
-    
-    print(f"🔍 分布荷重処理開始: {len(load_members)}個の要素荷重を処理")
-    processed_count = 0
-    skipped_count = 0
-    total_loads_added = 0
-    
-    for i, load_member in enumerate(load_members):
-        # デバッグ出力（最初の10個のみ詳細表示）
-        debug_this = i < 10
-        
-        # 要素ID取得
-        member_id = load_member.get('m')
-        if member_id is None:
-            if debug_this:
-                print(f"  荷重{i+1}: member_id不明 - スキップ")
-            skipped_count += 1
-            continue
-        member_id = int(member_id)
-        
-        # 荷重値とパラメータ取得
-        P1 = load_member.get('P1', 0.0)
-        P2 = load_member.get('P2', 0.0)
-        L1 = load_member.get('L1', 0.0)
-        L2 = load_member.get('L2', 0.0)
-        direction = load_member.get('direction', 'y')
-        mark = load_member.get('mark', 0)
-        
-        if debug_this:
-            print(f"  荷重{i+1}: 要素{member_id}, P1={P1}, P2={P2}, L1={L1}, L2={L2}, direction={direction}, mark={mark}")
-        
-        # 要素データ取得
-        element_data = None
-        for elem_id, elem_data in mesh.elements.items():
-            if elem_id == member_id or elem_data.get('member_id') == member_id:
-                element_data = elem_data
-                break
-        
-        if element_data is None:
-            if debug_this:
-                print(f"    → 要素{member_id}が見つからない - スキップ")
-            skipped_count += 1
-            continue
-            
-        if element_data['type'] != 'bar':
-            if debug_this:
-                print(f"    → 要素{member_id}はbar要素ではない({element_data['type']}) - スキップ")
-            skipped_count += 1
-            continue  # bar要素のみ対応
-            
-        # 荷重タイプ確認（mark=2は分布荷重）
-        if mark != 2:
-            if debug_this:
-                print(f"    → mark={mark}なので分布荷重ではない - スキップ")
-            skipped_count += 1
-            continue  # 分布荷重のみ対応
-            
-        if P1 == 0.0 and P2 == 0.0:
-            if debug_this:
-                print(f"    → P1={P1}, P2={P2}なので荷重値ゼロ - スキップ")
-            skipped_count += 1
-            continue  # 荷重値が0の場合はスキップ
-        
-        # 要素の節点ID取得
-        node_ids = element_data['nodes']
-        if len(node_ids) != 2:
-            if debug_this:
-                print(f"    → 節点数{len(node_ids)}なので2節点要素ではない - スキップ")
-            skipped_count += 1
-            continue
-            
-        node_i_id, node_j_id = node_ids[0], node_ids[1]
-        
-        # 要素長計算
-        node_i = mesh.nodes[node_i_id]
-        node_j = mesh.nodes[node_j_id]
-        dx = node_j[0] - node_i[0]
-        dy = node_j[1] - node_i[1]
-        dz = node_j[2] - node_i[2]
-        element_length = (dx*dx + dy*dy + dz*dz)**0.5
-        
-        if element_length < 1e-12:
-            if debug_this:
-                print(f"    → 要素長{element_length}がゼロ - スキップ")
-            skipped_count += 1
-            continue  # ゼロ長要素はスキップ
-        
-        # 荷重範囲計算（全長に分布の場合: L1=0, L2=0）
-        if L1 == 0.0 and L2 == 0.0:
-            load_length = element_length  # 全長に分布
-        else:
-            load_length = element_length - L1 - abs(L2) if L2 < 0 else element_length - L1 - L2
-            if load_length <= 0:
-                load_length = element_length  # 全長に分布
-        
-        # 台形分布荷重の等価節点荷重（単位：荷重値×長さ）
-        total_load = (P1 + P2) * load_length / 2.0  # 台形の面積
-        
-        # 各節点への配分（均等分布と仮定）
-        force_i = total_load / 2.0
-        force_j = total_load / 2.0
-        
-        if debug_this:
-            print(f"    → 要素長={element_length:.4f}, 荷重長={load_length:.4f}")
-            print(f"    → 全荷重={total_load:.4f}, 節点i荷重={force_i:.4f}, 節点j荷重={force_j:.4f}")
-        
-        # 方向別に荷重成分を設定
-        force_components_i = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]  # [fx, fy, fz, mx, my, mz]
-        force_components_j = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        
-        if direction.lower() == 'x':
-            force_components_i[0] = force_i
-            force_components_j[0] = force_j
-        elif direction.lower() == 'y':
-            force_components_i[1] = force_i
-            force_components_j[1] = force_j
-        elif direction.lower() == 'z':
-            force_components_i[2] = force_i
-            force_components_j[2] = force_j
-        else:
-            # デフォルトはY方向
-            force_components_i[1] = force_i
-            force_components_j[1] = force_j
-        
-        if debug_this:
-            print(f"    → 節点{node_i_id}に荷重{force_components_i}を追加")
-            print(f"    → 節点{node_j_id}に荷重{force_components_j}を追加")
-        
-        # 既存の節点荷重に加算
-        _add_node_load(boundary, node_i_id, force_components_i)
-        _add_node_load(boundary, node_j_id, force_components_j)
-        
-        processed_count += 1
-        total_loads_added += 2  # 2つの節点に荷重追加
-    
-    print(f"🔍 分布荷重処理完了: 処理済み={processed_count}個, スキップ={skipped_count}個, 追加節点荷重={total_loads_added}個")
-
-
-def _add_node_load(boundary: BoundaryCondition, node_id: int, force_components: List[float]) -> None:
-    """節点荷重を追加または既存の荷重に加算
-    
-    Args:
-        boundary: 境界条件オブジェクト
-        node_id: 節点ID
-        force_components: 荷重成分 [fx, fy, fz, mx, my, mz]
-    """
-    # 既存の荷重をチェック
-    if node_id in boundary.loads:
-        # 既存の荷重に加算
-        existing_forces = boundary.loads[node_id].forces
-        new_forces = existing_forces + np.array(force_components)
-        boundary.loads[node_id].forces = new_forces
-    else:
-        # 新規荷重として追加
-        boundary.add_load(node_id, force_components)
 
 
 def write_vtk(model_data: Dict[str, Any], result_data: Dict[str, Any], file_path: str) -> None:

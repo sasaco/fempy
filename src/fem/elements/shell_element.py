@@ -565,6 +565,19 @@ class ShellElement(BaseElement):
             応力・ひずみの辞書
         """
         coords = self.get_element_coordinates()
+        # Recover membrane strain in the element plane, including vertical shells.
+        ex = coords[1]-coords[0]
+        ex = ex/np.linalg.norm(ex)
+        normal = np.cross(ex, coords[-1]-coords[0])
+        normal = normal/np.linalg.norm(normal)
+        ey = np.cross(normal, ex)
+        basis = np.array([ex, ey, normal])
+        coords = (coords-coords[0])@basis.T
+        local = np.asarray(displacement).reshape(self.n_nodes, 6).copy()
+        local[:, :3] = local[:, :3]@basis.T
+        local[:, 3:] = local[:, 3:]@basis.T
+        displacement = local.ravel()
+
         t = self.thickness
         D = self.get_stress_strain_matrix()
         

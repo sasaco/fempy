@@ -119,6 +119,9 @@ class NonlinearSolver(Solver):
         # 荷重増分ループ
         for step, lambda_factor in enumerate(factors):
             F_ext = lambda_factor * F_total
+            for element in elements.values():
+                if hasattr(element, 'load_factor'):
+                    element.load_factor = lambda_factor
 
             print(f"\n--- Step {step + 1}/{n_steps} (lambda = {lambda_factor:.3f}) ---")
 
@@ -355,6 +358,8 @@ class NonlinearSolver(Solver):
         names = ('fx', 'fy', 'fz', 'mx', 'my', 'mz')
         result = {}
         for node_id, restraint in boundary.restraints.items():
+            if node_id in getattr(boundary, 'auxiliary_restraint_nodes', set()):
+                continue
             values = {names[i]: float(reaction[self._node_dof_start(node_id, stride) + i])
                       for i, fixed in enumerate(restraint.dof_restraints[:stride]) if fixed}
             if values:
