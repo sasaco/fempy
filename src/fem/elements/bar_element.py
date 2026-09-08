@@ -118,6 +118,11 @@ class BarElement(BaseElement):
         """要素質量行列を取得（サブクラスで実装）"""
         raise NotImplementedError("Use BEBarElement or TBarElement")
 
+    def calculate_forces(self, displacement: np.ndarray) -> Dict[str, np.ndarray]:
+        """局所節点内力 [N,Vy,Vz,T,My,Mz]。両端とも同じ右手系の符号。"""
+        local = self.get_transformation_matrix(12) @ (self.get_stiffness_matrix() @ displacement)
+        return {'i_end': local[:6].copy(), 'j_end': local[6:].copy()}
+
 
 class BEBarElement(BarElement):
     """Bernoulli-Euler梁要素クラス"""
@@ -170,23 +175,23 @@ class BEBarElement(BarElement):
         
         # y方向曲げ剛性
         Ke[2, 2] = Ke[8, 8] = 12 * E * Iy / L**3
-        Ke[2, 4] = Ke[4, 2] = 6 * E * Iy / L**2
+        Ke[2, 4] = Ke[4, 2] = -6 * E * Iy / L**2
         Ke[2, 8] = Ke[8, 2] = -12 * E * Iy / L**3
-        Ke[2, 10] = Ke[10, 2] = 6 * E * Iy / L**2
+        Ke[2, 10] = Ke[10, 2] = -6 * E * Iy / L**2
         Ke[4, 4] = Ke[10, 10] = 4 * E * Iy / L
-        Ke[4, 8] = Ke[8, 4] = -6 * E * Iy / L**2
+        Ke[4, 8] = Ke[8, 4] = 6 * E * Iy / L**2
         Ke[4, 10] = Ke[10, 4] = 2 * E * Iy / L
-        Ke[8, 10] = Ke[10, 8] = -6 * E * Iy / L**2
+        Ke[8, 10] = Ke[10, 8] = 6 * E * Iy / L**2
         
         # z方向曲げ剛性
         Ke[1, 1] = Ke[7, 7] = 12 * E * Iz / L**3
-        Ke[1, 5] = Ke[5, 1] = -6 * E * Iz / L**2
+        Ke[1, 5] = Ke[5, 1] = 6 * E * Iz / L**2
         Ke[1, 7] = Ke[7, 1] = -12 * E * Iz / L**3
-        Ke[1, 11] = Ke[11, 1] = -6 * E * Iz / L**2
+        Ke[1, 11] = Ke[11, 1] = 6 * E * Iz / L**2
         Ke[5, 5] = Ke[11, 11] = 4 * E * Iz / L
-        Ke[5, 7] = Ke[7, 5] = 6 * E * Iz / L**2
+        Ke[5, 7] = Ke[7, 5] = -6 * E * Iz / L**2
         Ke[5, 11] = Ke[11, 5] = 2 * E * Iz / L
-        Ke[7, 11] = Ke[11, 7] = 6 * E * Iz / L**2
+        Ke[7, 11] = Ke[11, 7] = -6 * E * Iz / L**2
         
         # 全体座標系への変換
         T = self.get_transformation_matrix(12)
@@ -332,8 +337,8 @@ class TBarElement(BarElement):
         # せん断変形パラメータの安全な計算
         if self.shear_correction:
             # ゼロ除算防止: 分母の安全性チェック
-            denom_y_calc = ky * G * A * L**2
-            denom_z_calc = kz * G * A * L**2
+            denom_y_calc = kz * G * A * L**2  # My bends in local z
+            denom_z_calc = ky * G * A * L**2  # Mz bends in local y
             
             if abs(denom_y_calc) < 1e-12:
                 print(f"警告: せん断変形計算でゼロ除算検出 (Y方向)。Bernoulli-Euler梁として処理します。")
@@ -376,14 +381,14 @@ class TBarElement(BarElement):
             denom_y = 1.0
             
         Ke[2, 2] = Ke[8, 8] = 12 * E * Iy / (L**3 * denom_y)
-        Ke[2, 4] = Ke[4, 2] = 6 * E * Iy / (L**2 * denom_y)
+        Ke[2, 4] = Ke[4, 2] = -6 * E * Iy / (L**2 * denom_y)
         Ke[2, 8] = Ke[8, 2] = -12 * E * Iy / (L**3 * denom_y)
-        Ke[2, 10] = Ke[10, 2] = 6 * E * Iy / (L**2 * denom_y)
+        Ke[2, 10] = Ke[10, 2] = -6 * E * Iy / (L**2 * denom_y)
         Ke[4, 4] = (4 + phi_y) * E * Iy / (L * denom_y)
         Ke[10, 10] = (4 + phi_y) * E * Iy / (L * denom_y)
-        Ke[4, 8] = Ke[8, 4] = -6 * E * Iy / (L**2 * denom_y)
+        Ke[4, 8] = Ke[8, 4] = 6 * E * Iy / (L**2 * denom_y)
         Ke[4, 10] = Ke[10, 4] = (2 - phi_y) * E * Iy / (L * denom_y)
-        Ke[8, 10] = Ke[10, 8] = -6 * E * Iy / (L**2 * denom_y)
+        Ke[8, 10] = Ke[10, 8] = 6 * E * Iy / (L**2 * denom_y)
         
         # z方向曲げ剛性（せん断変形を考慮）
         denom_z = 1 + phi_z
@@ -393,14 +398,14 @@ class TBarElement(BarElement):
             denom_z = 1.0
             
         Ke[1, 1] = Ke[7, 7] = 12 * E * Iz / (L**3 * denom_z)
-        Ke[1, 5] = Ke[5, 1] = -6 * E * Iz / (L**2 * denom_z)
+        Ke[1, 5] = Ke[5, 1] = 6 * E * Iz / (L**2 * denom_z)
         Ke[1, 7] = Ke[7, 1] = -12 * E * Iz / (L**3 * denom_z)
-        Ke[1, 11] = Ke[11, 1] = -6 * E * Iz / (L**2 * denom_z)
+        Ke[1, 11] = Ke[11, 1] = 6 * E * Iz / (L**2 * denom_z)
         Ke[5, 5] = (4 + phi_z) * E * Iz / (L * denom_z)
         Ke[11, 11] = (4 + phi_z) * E * Iz / (L * denom_z)
-        Ke[5, 7] = Ke[7, 5] = 6 * E * Iz / (L**2 * denom_z)
+        Ke[5, 7] = Ke[7, 5] = -6 * E * Iz / (L**2 * denom_z)
         Ke[5, 11] = Ke[11, 5] = (2 - phi_z) * E * Iz / (L * denom_z)
-        Ke[7, 11] = Ke[11, 7] = 6 * E * Iz / (L**2 * denom_z)
+        Ke[7, 11] = Ke[11, 7] = -6 * E * Iz / (L**2 * denom_z)
         
         # V1レベルの剛性行列検証
         if np.any(np.isnan(Ke)) or np.any(np.isinf(Ke)):
@@ -427,31 +432,3 @@ class TBarElement(BarElement):
         be_element.length = self.length
         
         return be_element.get_mass_matrix()
-        
-    def calculate_forces(self, displacement: np.ndarray) -> Dict[str, np.ndarray]:
-        """要素力を計算
-        
-        Args:
-            displacement: 要素節点変位ベクトル（12要素）
-            
-        Returns:
-            断面力の辞書 {'i_end': [...], 'j_end': [...]}
-        """
-        # 要素座標系への変換
-        T = self.get_transformation_matrix(12)
-        disp_local = T @ displacement
-        
-        # 要素剛性行列を取得
-        K_local = T @ self.get_stiffness_matrix() @ T.T
-        
-        # 要素力の計算
-        forces_local = K_local @ disp_local
-        
-        # i端とj端の断面力
-        i_forces = forces_local[0:6]
-        j_forces = forces_local[6:12]
-        
-        return {
-            'i_end': i_forces,
-            'j_end': j_forces
-        } 

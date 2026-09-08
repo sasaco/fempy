@@ -89,6 +89,11 @@ class NonlinearMaterialProperty:
 
     4折線スケルトンカーブと剛性低減パラメータを定義
 
+    NonlinearBarElementではδは軸ひずみ（axial）、中央曲率（moment_y/z）、
+    ねじり率（torsion）。Pは対応する軸力または断面モーメント。
+    曲率・ねじり率はrad/長さ、モーメントは力×長さ。集中ヒンジ回転ではない。
+    キーは旧入力と共通だが、絶対端部変位としての旧計算結果は引き継がない。
+
     Attributes:
         name: 材料名
         E: 初期ヤング率
@@ -104,12 +109,12 @@ class NonlinearMaterialProperty:
     nu: float             # ポアソン比
 
     # スケルトンカーブパラメータ（正側）
-    delta_1_pos: float    # ひび割れ変位
-    delta_2_pos: float    # 降伏変位
-    delta_3_pos: float    # 終局変位
-    P_1_pos: float        # ひび割れ荷重
-    P_2_pos: float        # 降伏荷重
-    P_3_pos: float        # 終局荷重
+    delta_1_pos: float    # ひび割れ一般化ひずみ（適用先により曲率・ねじり率）
+    delta_2_pos: float    # 降伏一般化ひずみ
+    delta_3_pos: float    # 終局一般化ひずみ
+    P_1_pos: float        # ひび割れ断面力
+    P_2_pos: float        # 降伏断面力
+    P_3_pos: float        # 終局断面力
 
     # スケルトンカーブパラメータ（負側、省略時は正側と同じ）
     delta_1_neg: Optional[float] = None
@@ -309,4 +314,4 @@ class Material:
             [0, 0, (1 - 2 * nu) / 2]
         ])
         
-        return factor * D 
+        return factor * D

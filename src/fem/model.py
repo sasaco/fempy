@@ -426,8 +426,10 @@ class FemModel:
             material_id: 材料ID
             name: 材料名
             E: 初期ヤング率
-            delta_1, delta_2, delta_3: 特性変位（正側）
-            P_1, P_2, P_3: 特性荷重（正側）
+            delta_1, delta_2, delta_3: 一般化ひずみの折れ点（正側）。
+                axialは軸ひずみ、moment_y/zは曲率、torsionはねじり率。
+                絶対端部変位・集中ヒンジ回転ではない（理論7.21節）。
+            P_1, P_2, P_3: 対応する軸力または断面モーメント（正側）
             beta: 剛性低減係数（デフォルト: 0.4）
             K_min: 戻り剛性下限値（省略時は初期剛性の1%）
             symmetric: 対称スケルトンカーブを使用するか
@@ -738,18 +740,14 @@ class FemModel:
                         else:
                             elem_disp.append(0.0)
                             
-                # 応力計算（実装されている要素のみ）
+                # 梁の断面力APIを優先し、未実装の基底応力APIで遮断しない。
+                if hasattr(element, 'calculate_forces'):
+                    element_stresses[elem_id] = element.calculate_forces(np.array(elem_disp))
+                    continue
                 try:
-                    if hasattr(element, 'calculate_stress_strain'):
-                        stress_strain = element.calculate_stress_strain(
-                            np.array(elem_disp)
-                        )
-                        element_stresses[elem_id] = stress_strain
-                    elif hasattr(element, 'calculate_forces'):
-                        forces = element.calculate_forces(np.array(elem_disp))
-                        element_stresses[elem_id] = forces
-                except Exception as e:
-                    # エラーは無視（未実装の要素タイプなど）
+                    element_stresses[elem_id] = element.calculate_stress_strain(np.array(elem_disp))
+                except Exception:
+                    # 非梁の後処理は既存挙動を維持。梁の計算エラーは上で伝播する。
                     pass
                     
             self.results['element_stresses'] = element_stresses
