@@ -1,0 +1,52 @@
+"""Read-only audit of the first reference case of each legacy sample.
+
+Writes diagnostics, NEVER expected results. Run from the repository root:
+  .venv/Scripts/python.exe tests/audit_phase4_samples.py
+"""
+import contextlib
+import copy
+import io
+import json
+from pathlib import Path
+
+from run_sample import FemModel, _read_json_model, legacy_result_view, comparison_errors
+
+
+def audit(path):
+    data = json.loads(path.read_text(encoding='utf-8'))
+    case_id, reference = next(iter(data['result'].items()))
+    entry = dict(sample=path.as_posix(), case=case_id, scope='first reference case')
+    if 'load' in data:
+        case = data['load'][case_id]
+        data['load'] = {case_id: case}
+        for field in ('fix_node','fix_member','element','joint'):
+            if data.get(field):
+                key = str(case.get(field, case_id))
+                data[field] = {key: data[field][key]}
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            model = FemModel()
+            model.read_json_model(_read_json_model(copy.deepcopy(data)))
+            result = model.run()
+        actual = legacy_result_view(result, model, data)
+        entry['fields'] = {}
+        for field, values in actual.items():
+            if field not in reference:
+                entry['fields'][field] = dict(status='missing reference')
+                continue
+            errors = comparison_errors(values, reference[field], field)
+            entry['fields'][field] = dict(mismatches=len(errors), examples=errors[:3])
+        entry['status'] = 'mismatch' if any(
+            v.get('mismatches', 0) or 'status' in v for v in entry['fields'].values()) else 'match'
+    except Exception as error:
+        entry.update(status='error', error_type=type(error).__name__, message=str(error))
+    return entry
+
+
+if __name__ == '__main__':
+    entries = [audit(path) for folder in ('bar','shell','bend')
+               for path in sorted((Path('tests/data')/folder).glob('*.json'))]
+    output = Path('docs/report/material-nonlinear-phase4-sample-audit.json')
+    output.write_text(json.dumps(entries, ensure_ascii=False, indent=2), encoding='utf-8')
+    print(f'{len(entries)} legacy samples audited: '+str({s:sum(e['status']==s for e in entries)
+                                                       for s in ('match','mismatch','error')}))

@@ -286,6 +286,18 @@ class Solver:
                         springs[base + i] = abs(value)
                     else:
                         prescribed[base + i] = value
+        directions = {'x': 0, 'y': 1, 'z': 2, 'rx': 3, 'ry': 4, 'rz': 5}
+        for node_id, supports in getattr(boundary, 'spring_supports', {}).items():
+            base = self._node_dof_start(node_id, max_dof_per_node)
+            for direction, stiffness in supports.items():
+                if direction not in directions or directions[direction] >= max_dof_per_node:
+                    raise ValueError(f'Invalid spring direction: {direction}')
+                if not np.isfinite(stiffness) or stiffness <= 0:
+                    raise ValueError('Spring stiffness must be finite and positive')
+                dof = base + directions[direction]
+                if dof in prescribed or dof in springs:
+                    raise ValueError('Conflicting restraint and spring at same DOF')
+                springs[dof] = stiffness
         return prescribed, springs
 
     def apply_boundary_conditions(self, K: csr_matrix, F: np.ndarray,
@@ -744,6 +756,14 @@ class Solver:
             if reaction:
                 reactions[node_id] = reaction
                 
+        directions = {'x': 0, 'y': 1, 'z': 2, 'rx': 3, 'ry': 4, 'rz': 5}
+        names = ('fx', 'fy', 'fz', 'mx', 'my', 'mz')
+        for node_id, supports in getattr(boundary, 'spring_supports', {}).items():
+            reaction = reactions.setdefault(node_id, {})
+            for direction in supports:
+                i = directions[direction]
+                dof = self._node_dof_start(node_id, max_dof_per_node) + i
+                reaction[names[i]] = float(F_total[dof] - F[dof])
         return reactions
         
     def _format_eigenmodes(self, eigenvectors: np.ndarray, mesh: MeshModel) -> List[Dict[int, Dict[str, float]]]:

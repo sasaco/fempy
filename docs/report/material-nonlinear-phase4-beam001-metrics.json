@@ -1,0 +1,30 @@
+{
+  "reference": "tests/reference_solutions.py: beam001_reference; equilibrium and piecewise inverse skeleton with scalar flexibility",
+  "input_path": "tests\\data\\snap\\beam001.json",
+  "input_sha256": "2b1489ce3908d9730da5a7c8e4e9cba99a07148f26c2ec46216836f0276f316c",
+  "tip_force": 1000,
+  "central_moment": -4850,
+  "central_curvature": -0.0009325,
+  "shear_strain": 1.2,
+  "tip": {
+    "dx": 6.0004537460628935,
+    "dy": 0.0,
+    "dz": 0.0,
+    "rx": 0.0,
+    "ry": 0.0,
+    "rz": 9.370339622641631e-05
+  },
+  "maximum_absolute_error_final": {
+    "node_displacements": 8.881784197001252e-16,
+    "element_stresses": 1.000444171950221e-10,
+    "reaction_forces": 2.637534635141492e-11
+  },
+  "maximum_absolute_error_all_steps": {
+    "node_displacements": 1.7763568394002505e-15,
+    "element_stresses": 1.6552803572267294e-10,
+    "reaction_forces": 1.5188561519607902e-10
+  },
+  "step_count": 1000,
+  "maximum_final_step_relative_residual": 1.6736530161863795e-13,
+  "limitation": "Mathematical validation of the small-displacement central-section equations only; G=1 produces shear strain 1.2. Not a physical large-deformation validation or external JR match."
+}

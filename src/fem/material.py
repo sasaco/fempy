@@ -18,11 +18,17 @@ class MaterialProperty:
     alpha: Optional[float] = None  # 線膨張係数
     k: Optional[float] = None  # 熱伝導率
     c: Optional[float] = None  # 比熱
+    shear_modulus: Optional[float] = None  # 明示G（省略時はE,nuから計算）
+
+    def __post_init__(self):
+        if self.shear_modulus is not None and (
+                not np.isfinite(self.shear_modulus) or self.shear_modulus <= 0):
+            raise ValueError('Shear modulus must be finite and positive')
     
     @property
     def G(self) -> float:
         """せん断弾性係数を計算"""
-        return self.E / (2 * (1 + self.nu))
+        return self.shear_modulus if self.shear_modulus is not None else self.E / (2 * (1 + self.nu))
         
     @property
     def bulk_modulus(self) -> float:

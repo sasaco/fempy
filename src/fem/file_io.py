@@ -6,6 +6,7 @@ import json
 import os
 from typing import Dict, Any, Optional, List
 import numpy as np
+from dataclasses import asdict
 from .mesh import MeshModel
 from .boundary_condition import BoundaryCondition
 from .material import Material, MaterialProperty, ShellParameter, BarParameter, NonlinearMaterialProperty
@@ -41,19 +42,24 @@ def read_model(file_path: str) -> Dict[str, Any]:
         raise ValueError(f"Unsupported file format: {ext}")
 
 
-def _read_json_model(data: str) -> Dict[str, Any]:
-       
+def _read_json_model(data: Dict[str, Any]) -> Dict[str, Any]:
+    if not isinstance(data, dict) or not (data.get('node') or data.get('nodes')):
+        raise ValueError('Model must contain nodes')
     model_data = {
         'mesh': MeshModel(),
         'boundary': BoundaryCondition(),
         'material': Material(),
-        'section': Section()
+        'section': Section(),
+        'analysis_type': data.get('analysis_type'),
+        'analysis_params': data.get('analysis_params', {}),
     }
     
     # 旧形式のチェック（nodeセクションがある場合）
     if 'node' in data:
         # 旧形式の読み込み処理
-        return _read_legacy_json_model(data, model_data)
+        model_data = _read_legacy_json_model(data, model_data)
+        _read_explicit_boundary(data.get('boundary_conditions', {}), model_data['boundary'])
+        return model_data
     
     # 新形式のノードデータの読み込み
     if 'nodes' in data:
@@ -80,9 +86,15 @@ def _read_json_model(data: str) -> Dict[str, Any]:
                 MaterialProperty(**mat_data)
             )
             
+    for mat_id, mat_data in data.get('nonlinear_materials', {}).items():
+        model_data['material'].add_nonlinear_material(int(mat_id), NonlinearMaterialProperty(**mat_data))
+    for section_id, params in data.get('bar_parameters', {}).items():
+        model_data['material'].add_bar_parameter(int(section_id), BarParameter(**params))
+
     # 新形式の境界条件の読み込み
     if 'boundary_conditions' in data:
         bc_data = data['boundary_conditions']
+        _read_explicit_boundary(bc_data, model_data['boundary'])
         
         # 拘束条件
         if 'restraints' in bc_data:
@@ -108,6 +120,18 @@ def _read_json_model(data: str) -> Dict[str, Any]:
                 )
                 
     return model_data
+
+
+def _read_explicit_boundary(data, boundary):
+    """Explicit restraints and springs, also available with legacy geometry.
+
+    A restraint entry replaces the node's legacy restraint. Springs are separate
+    from prescribed displacement and have no magnitude threshold.
+    """
+    for node, restraint in data.get('restraints', {}).items():
+        boundary.add_restraint(int(node), restraint['dof'], restraint.get('values'))
+    boundary.spring_supports = {
+        int(node): dict(values) for node, values in data.get('spring_supports', {}).items()}
 
 
 def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -220,8 +244,9 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 mp = MaterialProperty(
                     name=elem_def.get('n', f"Material{material_id}"),
                     E=elem_def['E'],
-                    nu=elem_def.get('nu', 0.3),
-                    density=elem_def.get('den')
+                    nu=elem_def.get('nu', 0.2 if 'nonlinear' in elem_def else 0.3),
+                    density=elem_def.get('den'),
+                    shear_modulus=elem_def.get('G')
                 )
                 model_data['material'].add_material(material_id, mp)
 
@@ -238,6 +263,8 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 if 'nonlinear' in elem_def:
                     nl_data = elem_def['nonlinear']
                     nl_type = nl_data.get('type', 'jr_stiffness_reduction')
+                    if nl_type != 'jr_stiffness_reduction':
+                        raise ValueError(f'Unknown nonlinear material type: {nl_type}')
 
                     if nl_type == 'jr_stiffness_reduction':
                         # 対称スケルトンカーブかどうか
@@ -274,7 +301,7 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                         nl_mat = NonlinearMaterialProperty(
                             name=elem_def.get('n', f"Nonlinear{material_id}"),
                             E=elem_def['E'],
-                            nu=elem_def.get('nu', 0.3),
+                            nu=elem_def.get('nu', 0.2),
                             delta_1_pos=delta_1,
                             delta_2_pos=delta_2,
                             delta_3_pos=delta_3,
@@ -377,30 +404,6 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 else:
                     model_data['boundary'].add_restraint(node_id, dof_restraints, None)
     
-    # 2Dフレーム構造の安定性確保（V1ロジック保護のため新実装のみ）
-    if 'fix_node' in data:
-        # rz拘束の確認
-        has_rz_restraint = False
-        for case_id, restraints in data['fix_node'].items():
-            if not isinstance(restraints, list):
-                continue
-            for restraint in restraints:
-                rz_val = restraint.get('rz', 0)
-                if rz_val == 1 or rz_val > 1000 or (0.01 <= rz_val < 1):
-                    has_rz_restraint = True
-                    break
-            if has_rz_restraint:
-                break
-        
-        # rz拘束がない場合、構造安定性のため最低限の拘束を追加
-        if not has_rz_restraint and model_data['boundary'].restraints:
-            # 最初の拘束節点にrz拘束を追加
-            first_node_id = list(model_data['boundary'].restraints.keys())[0]
-            existing_restraint = model_data['boundary'].restraints[first_node_id]
-            new_dof_restraints = list(existing_restraint.dof_restraints)
-            new_dof_restraints[5] = True  # rz拘束を追加
-            model_data['boundary'].restraints[first_node_id].dof_restraints = new_dof_restraints
-    
     # notice_pointsセクションを追加（後でFemModelで処理）
     if 'notice_points' in data:
         model_data['notice_points'] = data['notice_points']
@@ -421,7 +424,11 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 'max_iterations': first_case.get('max_iterations', 50),
                 'tolerance': first_case.get('tolerance', 1e-6),
                 'n_modes': first_case.get('n_modes', 10),
+                'load_factors': first_case.get('load_factors'),
             }
+            if model_data['analysis_type'] is None:
+                model_data['analysis_type'] = first_case.get('analysis_type')
+            model_data['analysis_params'].update(data.get('analysis_params', {}))
             # 最初の荷重ケースを使用（通常は基本荷重ケース）
             first_case_key = list(load_cases.keys())[0]
             case_data = load_cases[first_case_key]
@@ -688,7 +695,7 @@ def write_model(model_data: Dict[str, Any], file_path: str) -> None:
 
 def _write_json_model(model_data: Dict[str, Any], file_path: str) -> None:
     """JSONフォーマットでモデルを書き込む"""
-    output_data = {}
+    output_data = {k: model_data[k] for k in ('analysis_type', 'analysis_params') if k in model_data}
     
     # メッシュデータ
     mesh = model_data.get('mesh')
@@ -713,15 +720,21 @@ def _write_json_model(model_data: Dict[str, Any], file_path: str) -> None:
                 'density': mat.density,
                 'alpha': mat.alpha,
                 'k': mat.k,
-                'c': mat.c
+                'c': mat.c,
+                'shear_modulus': mat.shear_modulus,
             }
             for mat_id, mat in material.materials.items()
         }
+        output_data['nonlinear_materials'] = {
+            str(k): asdict(v) for k, v in material.nonlinear_materials.items()}
+        output_data['bar_parameters'] = {
+            str(k): asdict(v) for k, v in material.bar_params.items()}
         
     # 境界条件
     boundary = model_data.get('boundary')
     if boundary:
         output_data['boundary_conditions'] = {}
+        output_data['boundary_conditions']['spring_supports'] = getattr(boundary, 'spring_supports', {})
         
         if boundary.restraints:
             output_data['boundary_conditions']['restraints'] = {
@@ -819,6 +832,21 @@ def read_result(file_path: str) -> Dict[str, Any]:
         raise ValueError(f"Unsupported result file format: {ext}")
 
 
+def result_to_jsonable(obj):
+    """Shared finite JSON representation for file and HTTP results."""
+    if isinstance(obj, np.ndarray):
+        return result_to_jsonable(obj.tolist())
+    if isinstance(obj, np.generic):
+        return result_to_jsonable(obj.item())
+    if isinstance(obj, dict):
+        return {str(k): result_to_jsonable(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [result_to_jsonable(v) for v in obj]
+    if isinstance(obj, float) and not np.isfinite(obj):
+        raise ValueError('Non-finite analysis result')
+    return obj
+
+
 def write_result(result_data: Dict[str, Any], file_path: str) -> None:
     """結果データをファイルに書き込む
     
@@ -826,21 +854,10 @@ def write_result(result_data: Dict[str, Any], file_path: str) -> None:
         result_data: 結果データ
         file_path: 出力ファイルパス
     """
-    # NumPy配列をリストに変換
-    def convert_arrays(obj):
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        elif isinstance(obj, dict):
-            return {k: convert_arrays(v) for k, v in obj.items()}
-        elif isinstance(obj, list):
-            return [convert_arrays(item) for item in obj]
-        else:
-            return obj
-            
-    output_data = convert_arrays(result_data)
+    output_data = result_to_jsonable(result_data)
     
     with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump(output_data, f, indent=2, ensure_ascii=False)
+        json.dump(output_data, f, indent=2, ensure_ascii=False, allow_nan=False)
 
 
 def _convert_element_loads_to_node_loads(load_members: List[Dict], model_data: Dict[str, Any]) -> None:
@@ -1026,4 +1043,4 @@ def write_vtk(model_data: Dict[str, Any], result_data: Dict[str, Any], file_path
     # 要素応力の出力
     elem_stress = result_data.get('element_stresses', {})
     writer.write_cell_data({'stress': elem_stress})
-    writer.write_footer() 
+    writer.write_footer()

@@ -9,6 +9,7 @@ if src_path not in sys.path:
 import json
 import base64
 import gzip
+import numpy as np
 # functions_framework may import symbols not available in some local Python/site-packages
 # (for example when package expects a newer Python stdlib). Import defensively and
 # provide a minimal stub that implements the decorator used below so local
@@ -29,6 +30,9 @@ from flask import Flask, request
 from app.error_handling import MyError, MyCritical
 from fem.model import FemModel
 from fem.file_io import _read_json_model, read_model
+from fem.file_io import result_to_jsonable
+from fem.nonlinear.nonlinear_solver import NonlinearConvergenceError
+from werkzeug.exceptions import BadRequest, UnsupportedMediaType
 
 # Flaskアプリの作成
 app = Flask(__name__)
@@ -73,6 +77,7 @@ def FrameWeb3(request):
 
     # Set CORS headers for the main request（旧FWそのまま）
     headers = {
+        'Content-Type': 'application/json; charset=utf-8',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Content-Encoding, Authorization'
     }
@@ -99,10 +104,10 @@ def FrameWeb3(request):
         model_data = _read_json_model(inputJson)
         fem_model = FemModel()
         fem_model.read_json_model(model_data)
-        result: dict  = fem_model.run("static")
+        result: dict = fem_model.run()
 
          # 結果を返送する
-        resultStr: str = json.dumps(result)
+        resultStr: str = json.dumps(result_to_jsonable(result), allow_nan=False)
         if encoding == "json":
             response = resultStr
         else:  # 圧縮する場合
@@ -110,12 +115,22 @@ def FrameWeb3(request):
         return (response, 200, headers)
     
     # 以下、エラー処理
+    except NonlinearConvergenceError as e:
+        return (json.dumps({'error': str(e), 'error_code': 'nonlinear_nonconvergence',
+                            'converged': False, 'step': e.step,
+                            'load_factor': e.load_factor}), 422, headers)
+    except np.linalg.LinAlgError:
+        return (json.dumps({'error': 'Analysis or result processing failed',
+                            'error_code': 'analysis_failure', 'converged': False}), 500, headers)
+    except (ValueError, KeyError, TypeError, BadRequest, UnsupportedMediaType) as e:
+        return (json.dumps({'error': str(e), 'error_code': 'invalid_input',
+                            'converged': False}), 400, headers)
     except MyCritical as e:  # システム起因と思われる例外
-        return (json.dumps({'error': e.fixed_msg}, ensure_ascii=False), 200, headers)
+        return (json.dumps({'error': e.fixed_msg, 'converged': False}, ensure_ascii=False), 500, headers)
     except MyError as e:  # ユーザー起因と思われる例外
-        return (json.dumps({'error': e.output_msg()}, ensure_ascii=False), 200, headers)
+        return (json.dumps({'error': e.output_msg(), 'converged': False}, ensure_ascii=False), 400, headers)
     except Exception as e:  # その他の予期せぬエラー
-        return (json.dumps({'error': "予期せぬエラーが発生しました。"}, ensure_ascii=False), 200, headers)
+        return (json.dumps({'error': "予期せぬエラーが発生しました。", 'converged': False}, ensure_ascii=False), 500, headers)
     # endregion
 
     
@@ -137,7 +152,7 @@ class Compressor():
         # base64型を元に戻す
         b = base64.b64decode(data)
         # str型に変換し、カンマでばらしてint配列に変換する
-        l = eval(b) #[int(n) for n in b.decode().split(',')]
+        l = json.loads(b)  # legacy JSON byte-array transport, never execute input
         # gzipを解凍する
         fstr = gzip.decompress(bytes(l))
         # jsonを辞書型にフォーマット

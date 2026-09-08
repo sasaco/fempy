@@ -1,0 +1,30 @@
+{
+  "source": "independent uniform and cyclic references; 248-test measurement run",
+  "metric": "maximum absolute error; displacement in length/rad, force in F or F*length, work in F*length",
+  "by_mode": {
+    "axial": {
+      "displacement": 1.734723475976807e-18,
+      "end_force": 3.552713678800501e-15,
+      "reaction": 3.552713678800501e-15,
+      "work": 2.7755575615628914e-17
+    },
+    "torsion": {
+      "displacement": 1.734723475976807e-18,
+      "end_force": 3.552713678800501e-15,
+      "reaction": 3.552713678800501e-15,
+      "work": 2.7755575615628914e-17
+    },
+    "moment_y": {
+      "displacement": 1.734723475976807e-18,
+      "end_force": 5.742532885992189e-15,
+      "reaction": 3.552713678800501e-15,
+      "work": 2.7755575615628914e-17
+    },
+    "moment_z": {
+      "displacement": 8.673617379884035e-18,
+      "end_force": 7.105427357601002e-15,
+      "reaction": 7.105427357601002e-15,
+      "work": 2.7755575615628914e-17
+    }
+  }
+}

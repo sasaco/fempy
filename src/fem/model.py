@@ -34,6 +34,7 @@ class FemModel:
         self.nonlinear_solver = NonlinearSolver()  # 非線形ソルバー
         self.elements: Dict[int, Any] = {}
         self.results: Optional[Dict[str, Any]] = None
+        self.analysis_type = None
         self.analysis_params = {
             'n_load_steps': 10, 'max_iterations': 50,
             'tolerance': 1e-6, 'n_modes': 10,
@@ -48,13 +49,15 @@ class FemModel:
             file_path: モデルファイルのパス
         """
         # ファイル読み込み
+        self.results = None
         model_data = read_model(file_path)
         
         return self.read_json_model(model_data)
 
 
     def read_json_model(self, model_data: Dict[str, Any]) -> None:
-
+        self.results = None
+        self.analysis_type = model_data.get('analysis_type')
         # データの設定（ここで初期節点数と要素数を記録）
         initial_node_count = len(model_data.get('mesh', MeshModel()).nodes)
         initial_elem_count = len(model_data.get('mesh', MeshModel()).elements)
@@ -148,7 +151,9 @@ class FemModel:
             'mesh': self.mesh,
             'boundary': self.boundary,
             'material': self.material,
-            'section': self.section
+            'section': self.section,
+            'analysis_type': self.analysis_type,
+            'analysis_params': self.analysis_params,
         }
         write_model(model_data, file_path)
         
@@ -344,7 +349,7 @@ class FemModel:
             'kwargs': kwargs
         }
         
-    def run(self, analysis_type: str = 'static') -> Dict[str, Any]:
+    def run(self, analysis_type: Optional[str] = None) -> Dict[str, Any]:
         """解析を実行
 
         Args:
@@ -359,12 +364,23 @@ class FemModel:
                 - max_iterations: 最大反復回数（material_nonlinear用）
                 - tolerance: 収束判定許容差（material_nonlinear用）
                 - n_modes: 固有モード数（modal用）
+                - load_factors: 順番どおりに載荷する係数列（material_nonlinear用）。
+                  指定時はn_load_stepsの等間隔列に代えて使用する。
+            analysis_type省略時は入力の指定を使い、それもなければ
+            nonlinear_barを含む場合material_nonlinear、それ以外はstatic。
 
         Returns:
             解析結果
         """
         # 再解析が失敗した際に、前回の結果を今回の結果として残さない。
         self.results = None
+        if analysis_type is None:
+            analysis_type = self.analysis_type
+        if analysis_type is None:
+            analysis_type = ('material_nonlinear' if any(e['type'] == 'nonlinear_bar'
+                            for e in self.mesh.elements.values()) else 'static')
+        if analysis_type not in ('static', 'modal', 'material_nonlinear'):
+            raise ValueError(f'Unknown analysis type: {analysis_type}')
         # 要素の作成（要素分割後に再実行が必要なため毎回実行）
         self._create_elements()
 
@@ -385,13 +401,19 @@ class FemModel:
                 self.mesh, self.material, self.boundary, self.elements,
                 n_steps=self.analysis_params.get('n_load_steps', 10),
                 max_iter=self.analysis_params.get('max_iterations', 50),
-                tol=self.analysis_params.get('tolerance', 1e-6)
+                tol=self.analysis_params.get('tolerance', 1e-6),
+                load_factors=self.analysis_params.get('load_factors')
             )
         else:
             raise ValueError(f"Unknown analysis type: {analysis_type}")
 
         # 結果の後処理
-        self._post_process_results()
+        self.results['analysis_type'] = analysis_type
+        try:
+            self._post_process_results()
+        except Exception:
+            self.results = None
+            raise
 
         return self.results
 
@@ -416,7 +438,8 @@ class FemModel:
         P_2_neg: Optional[float] = None,
         P_3_neg: Optional[float] = None,
         nu: float = 0.2,
-        density: Optional[float] = None
+        density: Optional[float] = None,
+        shear_modulus: Optional[float] = None
     ) -> None:
         """非線形材料を追加
 
@@ -436,6 +459,7 @@ class FemModel:
             delta_1_neg, ...: 負側パラメータ（symmetric=Falseの場合に使用）
             nu: ポアソン比
             density: 密度
+            shear_modulus: 基準Gの明示値。省略時はE/(2*(1+nu))。
         """
         if symmetric:
             mat = NonlinearMaterialProperty(
@@ -457,7 +481,8 @@ class FemModel:
         self.material.add_nonlinear_material(material_id, mat)
 
         # 線形解析用のMaterialPropertyも追加（互換性のため）
-        linear_mat = MaterialProperty(name=name, E=E, nu=nu, density=density)
+        linear_mat = MaterialProperty(name=name, E=E, nu=nu, density=density,
+                                      shear_modulus=shear_modulus)
         self.material.add_material(material_id, linear_mat)
 
     def add_nonlinear_bar_element(
@@ -666,6 +691,8 @@ class FemModel:
 
             # 非線形材料から履歴パラメータを設定
             nl_mat = self.material.get_nonlinear_material(material_id)
+            if nl_mat is None or not hysteresis_dofs:
+                raise ValueError('nonlinear_bar requires a nonlinear material and hysteresis_dofs')
             if nl_mat is not None and hysteresis_dofs:
                 params = JRStiffnessReductionParams(
                     delta_1_pos=nl_mat.delta_1_pos,
@@ -742,13 +769,15 @@ class FemModel:
                             
                 # 梁の断面力APIを優先し、未実装の基底応力APIで遮断しない。
                 if hasattr(element, 'calculate_forces'):
-                    element_stresses[elem_id] = element.calculate_forces(np.array(elem_disp))
+                    if (self.results.get('analysis_type') == 'static' and
+                            isinstance(element, NonlinearBarElement)):
+                        # Explicit static analysis uses the reference elastic
+                        # stiffness; its output must use the same linear law.
+                        element_stresses[elem_id] = TBarElement.calculate_forces(element, np.array(elem_disp))
+                    else:
+                        element_stresses[elem_id] = element.calculate_forces(np.array(elem_disp))
                     continue
-                try:
-                    element_stresses[elem_id] = element.calculate_stress_strain(np.array(elem_disp))
-                except Exception:
-                    # 非梁の後処理は既存挙動を維持。梁の計算エラーは上で伝播する。
-                    pass
+                element_stresses[elem_id] = element.calculate_stress_strain(np.array(elem_disp))
                     
             self.results['element_stresses'] = element_stresses
             

@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional, Callable
 import numpy as np
 import warnings
 from scipy.sparse import lil_matrix, csr_matrix, diags
-from scipy.sparse.linalg import spsolve, MatrixRankWarning
+from scipy.sparse.linalg import splu, MatrixRankWarning
 
 from ..solver import Solver
 from ..mesh import MeshModel
@@ -55,7 +55,8 @@ class NonlinearSolver(Solver):
         n_steps: int = DEFAULT_N_STEPS,
         max_iter: int = DEFAULT_MAX_ITER,
         tol: float = DEFAULT_TOL,
-        callback: Optional[Callable] = None
+        callback: Optional[Callable] = None,
+        load_factors: Optional[List[float]] = None
     ) -> Dict[str, Any]:
         """材料非線形解析を実行
 
@@ -70,6 +71,8 @@ class NonlinearSolver(Solver):
             max_iter: 各ステップの最大反復回数
             tol: 収束判定許容差
             callback: 各ステップ完了時のコールバック関数
+            load_factors: 有限の載荷係数列。全節点荷重と強制変位を同じ係数で
+                拡大し、順序を保ってcommitする。省略時は1/n_steps,...,1。
 
         Returns:
             解析結果の辞書
@@ -83,6 +86,13 @@ class NonlinearSolver(Solver):
                 raise ValueError(f'{name} must be a positive integer')
         if not np.isfinite(tol) or tol <= 0:
             raise ValueError('tol must be finite and positive')
+        if load_factors is None:
+            factors = np.arange(1, n_steps + 1, dtype=float) / n_steps
+        else:
+            factors = np.asarray(load_factors, dtype=float)
+            if factors.ndim != 1 or len(factors) == 0 or not np.all(np.isfinite(factors)):
+                raise ValueError('load_factors must be a nonempty finite sequence')
+        n_steps = len(factors)
         print("=== 材料非線形解析開始 ===")
         print(f"  - 荷重ステップ数: {n_steps}")
         print(f"  - 最大反復数: {max_iter}")
@@ -94,6 +104,8 @@ class NonlinearSolver(Solver):
 
         # 全荷重ベクトルの組み立て
         F_total = self.assemble_load_vector(mesh, boundary, elements)
+        if not np.all(np.isfinite(F_total)):
+            raise ValueError('Loads must be finite')
 
         # 初期変位
         u = np.zeros(n_dof)
@@ -105,8 +117,7 @@ class NonlinearSolver(Solver):
         self.convergence_history = []
 
         # 荷重増分ループ
-        for step in range(n_steps):
-            lambda_factor = (step + 1) / n_steps
+        for step, lambda_factor in enumerate(factors):
             F_ext = lambda_factor * F_total
 
             print(f"\n--- Step {step + 1}/{n_steps} (lambda = {lambda_factor:.3f}) ---")
@@ -142,6 +153,10 @@ class NonlinearSolver(Solver):
                 'step': step + 1,
                 'lambda': lambda_factor,
                 'displacement': u.copy(),
+                'node_displacements': self._format_node_displacements(u, mesh),
+                'reaction_forces': self._format_reactions(
+                    self._last_internal_force - F_ext, boundary, max_dof_per_node),
+                'element_stresses': self._element_end_forces(elements, u, max_dof_per_node),
                 'converged': converged,
                 'iterations': n_iter
             }
@@ -158,7 +173,7 @@ class NonlinearSolver(Solver):
             'step_results': step_results,
             'convergence_history': self.convergence_history,
             'reaction_forces': self._format_reactions(
-                self._last_internal_force - F_total, boundary, max_dof_per_node),
+                self._last_internal_force - factors[-1] * F_total, boundary, max_dof_per_node),
             'converged': True,
             'analysis_type': 'material_nonlinear'
         }
@@ -250,6 +265,18 @@ class NonlinearSolver(Solver):
             # 収束判定
             if relative_residual < tol:
                 if iteration == 0 or relative_du < tol:
+                    # Zero residual does not establish uniqueness in an unrestrained
+                    # system. Check the constrained tangent before accepting it.
+                    if iteration == 0:
+                        tangent = self._assemble_tangent_stiffness(
+                            mesh, material, elements, u, max_dof_per_node)
+                        constrained, rhs = self.apply_boundary_conditions(
+                            tangent, R, boundary, max_dof_per_node,
+                            current_displacement=u, load_factor=load_factor)
+                        try:
+                            self._solve_newton_system(constrained, rhs)
+                        except ValueError:
+                            return False, u, iteration + 1
                     print(f"    収束しました (iteration = {iteration + 1})")
                     self._last_internal_force = F_int.copy()
                     return True, u, iteration + 1
@@ -269,8 +296,25 @@ class NonlinearSolver(Solver):
                 print(f"    [エラー] 線形ソルバーが失敗: {e}")
                 return False, u, iteration + 1
 
-            # 変位の更新
-            u = u + du
+            # A reversal starts with the tangent stored at the committed point.
+            # Its full Newton step can jump across both skeletons and oscillate.
+            # Backtrack using free-DOF equilibrium, always from committed history.
+            for backtrack in range(24):
+                increment = du * (0.5 ** backtrack)
+                candidate = u + increment
+                candidate_force = self._assemble_internal_forces(
+                    mesh, elements, candidate, max_dof_per_node)
+                candidate_residual = F_ext - candidate_force
+                for dof, stiffness in springs.items():
+                    candidate_residual[dof] -= stiffness * candidate[dof]
+                candidate_norm = np.linalg.norm(self._apply_bc_to_residual(
+                    candidate_residual, boundary, max_dof_per_node))
+                if (candidate_norm < tol * F_norm or
+                        candidate_norm <= (1 - 1e-4 * (0.5 ** backtrack)) * R_norm):
+                    u, du = candidate, increment
+                    break
+            else:
+                return False, u, iteration + 1
 
         # 最大反復数に到達
         print(f"    最大反復数 ({max_iter}) に到達、収束せず")
@@ -289,7 +333,12 @@ class NonlinearSolver(Solver):
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter('error', MatrixRankWarning)
-                scaled_solution = spsolve((D @ K @ D).tocsc(), scaling * R)
+                factorization = splu((D @ K @ D).tocsc())
+                pivots = np.abs(factorization.U.diagonal())
+                rank_floor = np.finfo(float).eps * K.shape[0] * np.max(pivots)
+                if np.min(pivots) <= rank_floor:
+                    raise ValueError('Numerically singular Newton stiffness')
+                scaled_solution = factorization.solve(scaling * R)
         except (MatrixRankWarning, RuntimeError) as error:
             raise ValueError('Singular Newton stiffness') from error
         du = scaling * scaled_solution
@@ -310,6 +359,22 @@ class NonlinearSolver(Solver):
                       for i, fixed in enumerate(restraint.dof_restraints[:stride]) if fixed}
             if values:
                 result[node_id] = values
+        directions = {'x': 0, 'y': 1, 'z': 2, 'rx': 3, 'ry': 4, 'rz': 5}
+        for node_id, supports in getattr(boundary, 'spring_supports', {}).items():
+            values = result.setdefault(node_id, {})
+            for direction in supports:
+                i = directions[direction]
+                values[names[i]] = float(reaction[self._node_dof_start(node_id, stride) + i])
+        return result
+
+    def _element_end_forces(self, elements, u, stride):
+        """Snapshot accepted end forces after commit, never advance constitutive state."""
+        result = {}
+        for elem_id, element in elements.items():
+            if hasattr(element, 'calculate_forces'):
+                indices = [self._node_dof_start(node, stride) + i
+                           for node in element.node_ids for i in range(element.get_dof_per_node())]
+                result[elem_id] = element.calculate_forces(u[indices])
         return result
 
     def _assemble_internal_forces(
