@@ -1,5 +1,6 @@
 var namespacefem =
 [
+    [ "_version", "namespacefem_1_1__version.html", null ],
     [ "axial_interpolation", "namespacefem_1_1axial__interpolation.html", null ],
     [ "beam_equilibrium", "namespacefem_1_1beam__equilibrium.html", null ],
     [ "boundary_condition", "namespacefem_1_1boundary__condition.html", "namespacefem_1_1boundary__condition" ],
