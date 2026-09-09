@@ -4,7 +4,7 @@ from models.fa_node import FA_Node
 
 
 # (注)
-# シェル要素については旧FrameWebをそのまま移植しており理論の確からしさは不明
+# シェル要素については旧FEMPythonをそのまま移植しており理論の確からしさは不明
 
 
 class FA_Shell:

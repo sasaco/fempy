@@ -1,407 +1,117 @@
 # 解析ワークフロー
 
-## 🎉 概要
+[Wikiホーム](index.md) · [Python API](python-api.md) · [結果の読み方](results.md)
 
-**FrameWeb3は、技術的に大成功を収めた次世代FEM解析モジュール**として、革新的な要素分割機能を含む高精度解析ワークフローを提供します。2025年6月に完了したプロジェクトにより、旧実装を上回る66節点の高精度メッシュ生成が可能になりました。
+このページは、入力から結果までの処理と、要素・ソルバーを直接利用する場合の契約を説明します。通常の解析は`FemModel`を使えば、この流れをまとめて実行できます。
 
-## 🚀 新実装（FemModel）の完全解析フロー
+## 入力から結果まで
 
-```mermaid
-graph TD
-    A[JSON入力] --> B[入力検証]
-    B --> C[データ変換]
-    C --> D[要素分割処理]
-    D --> D1[着目点分割]
-    D --> D2[分布荷重分割]
-    D --> D3[集中荷重分割]
-    D1 --> E[剛性行列組み立て]
-    D2 --> E
-    D3 --> E
-    E --> F[荷重ベクトル組み立て]
-    F --> G[高精度ソルバー求解]
-    G --> H[力計算]
-    H --> I[結果フォーマット]
-    I --> J[JSON出力]
-    B --> K[検証エラー]
-    D --> L[分割エラー]
-    E --> M[行列特異性エラー]
-    G --> N[収束エラー]
-    style D fill:#f9f,stroke:#333,stroke-width:4px
-    style D1 fill:#bbf,stroke:#333,stroke-width:2px
-    style D2 fill:#bbf,stroke:#333,stroke-width:2px
-    style D3 fill:#bbf,stroke:#333,stroke-width:2px
+```text
+JSONファイル／HTTP入力
+    ↓ 形式の変換、ケース選択、参照の解決
+内部モデル（mesh・material・boundary・section）
+    ↓ 部材の分割、荷重・剛域・材端条件の対応付け
+要素オブジェクトと自由度の配置
+    ├─ static：参照弾性剛性 → 境界条件 → 直接求解
+    ├─ material_nonlinear：載荷段階 → Newton反復 → 履歴確定
+    └─ modal：剛性・質量行列 → 固有値問題
+    ↓ 変位・反力・端力・応力の整理
+Python結果辞書 → 必要に応じてJSON保存／HTTP応答
 ```
 
-## 🏆 技術的優位性
+### 1. 入力の変換とケース選択
 
-### 📈 改善実績
-- **節点数**: 66節点（旧60節点から6節点増加）
-- **要素分割**: 着目点11箇所、分布荷重31個、集中荷重88個の処理
-- **新規節点**: 25個の自動生成
-- **荷重ケース**: 24ケース全ての包括的対応
+`load_model()`は拡張子に応じた読込を行い、変換済みモデルを`read_json_model()`へ渡します。HTTPは生のJSONを同じ変換処理へ渡します。
 
-## 材料非線形解析ワークフロー（2026年1月追加）
+編集用JSONは先頭の荷重ケースを選び、そのケースが参照する材料・支持・分布ばね・材端条件を解決します。全ケースの解析を並列に実行する処理ではありません。
 
-### 非線形解析フロー
+### 2. 部材の分割
 
-```mermaid
-graph TD
-    A[JSON入力] --> B[入力検証]
-    B --> C[非線形材料パース]
-    C --> D[NonlinearBarElement生成]
-    D --> E[初期荷重設定]
-    E --> F{荷重増分ループ}
-    F --> G[Newton-Raphson反復]
-    G --> H[接線剛性行列組み立て]
-    H --> I[内力計算]
-    I --> J[残差ベクトル計算]
-    J --> K{収束判定}
-    K -->|未収束| L[変位修正]
-    L --> G
-    K -->|収束| M[状態コミット]
-    M --> N{最終ステップ?}
-    N -->|No| F
-    N -->|Yes| O[結果出力]
-    K -->|発散| P[状態ロールバック]
-    P --> Q[エラー処理]
-```
+着目点、分布荷重の境界、集中荷重位置、剛域の境界から分割位置を作ります。荷重を分割後の要素へ配分し、材端の回転解放を元部材の外端へ引き継ぎます。要素の元IDと元部材上の位置も保持します。
 
-### Newton-Raphson法アルゴリズム
+他の荷重ケースの部材荷重位置を共通の分割位置として参照する場合がありますが、実際に載荷するのは選んだケースです。位置が増えることと、複数荷重ケースを計算することは異なります。
 
+### 3. 自由度と行列の組立
+
+節点IDの昇順にコンパクトな自由度表を作ります。対応するソリッドだけなら3並進、それ以外のモデルは6成分を確保し、各要素を必要な自由度へ対応付けます。IDが飛び番でも、`(node_id−1)×6`で直接添字を計算しません。
+
+要素の局所剛性・荷重を全体座標へ変換し、支持ばねや強制変位を反映します。静解析の拘束処理は対称消去、固有値解析ではペナルティを使います。
+
+### 4. 解析
+
+線形静解析は1回の全荷重を参照弾性剛性で解きます。スケーリングや補償計算、必要に応じた高精度計算を使い、小さな変形や端力を保持します。非線形解析の段階を1にした計算とは、材料則も数値処理も異なります。
+
+材料非線形解析は指定された係数列を順に処理します。各段階で基準荷重と強制変位を同じ係数で変化させ、Newton反復と残差に基づく増分縮小を行います。
+
+- 自由DOFの釣合い残差を、`max(自由DOFの外力ノルム, 1)`で正規化します。
+- 変位増分も`max(変位ノルム, 1)`で正規化します。
+- 通常は相対残差と相対増分の両方が許容差未満で収束します。
+- 初回に残差が十分小さい場合は、拘束後の接線行列の可解性も確認して受理します。
+- 試行評価は確定履歴を基準に行い、収束した段階だけをコミットします。
+
+失敗時は直前の確定状態へ戻して例外を送出します。失敗状態のまま次段階へ進めません。
+
+### 5. 後処理
+
+梁の端力、シェルの両面結果、ソリッドの積分点応力を計算します。対象の線形梁では釣合いから端力を回復し、構成則との差も検査します。後処理が失敗した場合も解析成功として返しません。
+
+## 共通ソルバーAPI
+
+`FemModel.run()`の静解析・材料非線形解析は共通の`Solver`を使います。固有値解析は`eigenvalue_analysis()`という別の経路です。
+
+| 呼出し | 意味 |
+|---|---|
+| `solver.solve(mesh, material, boundary, elements)` | 4位置引数の既存呼出しは線形静解析 |
+| `solver.solve(..., analysis_type="material_nonlinear", n_steps=10, max_iter=50, tol=1e-6, load_factors=None, callback=None)` | 材料非線形解析 |
+| `solver.eigenvalue_analysis(..., n_modes=10)` | 固有値解析 |
+
+低水準`solve()`へ`static`と`load_factors`を同時指定すると入力エラーです。`FemModel.run("static")`は非線形用係数を渡さず、基準荷重を1回で解きます。
+
+旧`fem.nonlinear.nonlinear_solver.NonlinearSolver`、`solve_nonlinear()`は共通実装に委譲する互換入口です。`NonlinearSolver.solve()`は非線形解析を選びます。`FemModel.nonlinear_solver`は同じソルバーの変位・収束履歴を参照する互換ビューです。
+
+## コールバックで確定段階を受け取る
+
+低水準APIを使う場合の例です。[はじめに](getting-started.md)の`beam.json`を用意します。線形梁を非線形解析モードで段階載荷し、確定した載荷係数を記録します。要素は線形のままです。
+
+<!-- run: solver-callback -->
 ```python
-u = 0
-for step in range(n_steps):
-    lambda_factor = (step + 1) / n_steps
-    F_ext = lambda_factor * F_total
+from math import isclose
+from fem import FemModel, Solver
 
-    for iteration in range(max_iter):
-        # 内力計算
-        F_int = assemble_internal_forces(elements, u)
-        R = F_ext - F_int
-
-        # 収束判定
-        R_norm = norm(R) / max(norm(F_ext), 1.0)
-        if iteration > 0:
-            du_norm = norm(du) / max(norm(u), 1.0)
-        else:
-            du_norm = float('inf')
-
-        if R_norm < tol and du_norm < tol:
-            break  # 収束
-
-        # 接線剛性行列組み立て・求解
-        K_tan = assemble_tangent_stiffness(elements, u)
-        du = solve(K_tan, R)
-        u += du
-
-    # Step収束後、状態変数をコミット
-    for elem in elements:
-        elem.update_state(u)
-```
-
-### JR総研剛性低減RC型履歴ルール
-
-1. **初期領域**: |δmax| < δ1 の場合、原点を通る勾配 K1 の直線上
-2. **載荷**: スケルトンカーブに沿う
-3. **除荷**: 低減剛性 Kd で除荷
-4. **最大点指向**: P=0通過後、反対側の最大変形点を目指す
-5. **内部ループ**: 最大点指向中に戻る場合、反転点スタックで管理
-6. **骨格曲線逸脱**: 除荷中に骨格曲線の外側に出た場合は補正
-
-### 剛性低減式
-
-- **ひび割れ域（δ1 < δmax < δ2）**: `Kd = K1 × |δmax/δ1|^(-β)`
-- **降伏域以降（δmax > δ2）**: `Kd = K2 × |δmax/δ2|^(-β)`
-- **下限値**: `(Fmax-F1)/(δmax-δ1)`
-
----
-
-## フェーズ1: 入力処理
-
-### 1.1 JSON検証（新実装対応）
-`FemModel`クラスが受信JSONの構造を検証します：
-
-```python
-# 新実装の検証ステップ:
-- 必須セクション（node、element、load、notice_points）の確認
-- 要素分割対象データの検証
-- 荷重データの構造化（24ケース対応）
-- 座標に基づく解析モード（2D/3D）の検出
-- 分布荷重・集中荷重データの詳細検証
-```
-
-### 1.2 データ変換（高精度対応）
-生のJSONデータが内部オブジェクトに変換されます：
-
-```python
-# 新実装の変換プロセス:
 model = FemModel()
-model_data = file_io.read_model(json_path)  # 荷重データ含む完全読み込み
-nodes = model_data["mesh"].nodes  # 初期41節点
-materials = model_data["material"]  # 材料データ
-sections = model_data["section"]  # 断面データ
-loads = model_data["load"]  # 24荷重ケース
-notice_points = model_data["notice_points"]  # 着目点11箇所
-```
+model.load_model("beam.json")
+accepted_factors = []
 
-## 🔧 フェーズ2: 要素分割処理（新機能）
+def on_step(snapshot):
+    accepted_factors.append(snapshot["lambda"])
 
-### 2.1 着目点による分割
-構造の重要箇所で自動的に要素を分割：
-
-```python
-# 着目点分割プロセス（11箇所処理確認済み）:
-def add_notice_points(self, notice_points):
-    for notice_point in notice_points:
-        element_id = notice_point["m"]
-        points = notice_point["Points"]
-        # 要素を分割し新規節点を生成
-        new_nodes = self._divide_element_at_points(element_id, points)
-        self.nodes.extend(new_nodes)
-        print(f"要素{element_id}を{len(points)}個の点で分割、新規節点{len(new_nodes)}個を追加")
-```
-
-### 2.2 分布荷重による分割
-荷重作用位置で精密なメッシュを生成：
-
-```python
-# 分布荷重分割プロセス（31個処理確認済み）:
-def _divide_element_by_distributed_loads(self, all_loads):
-    distributed_loads = all_loads["distributed"]  # 31個の分布荷重
-    for load in distributed_loads:
-        element_id = load["element_id"]
-        start_pos = load["start_position"]
-        end_pos = load["end_position"]
-        # L2負値対応（荷重幅→j端からの距離変換）
-        if end_pos < 0:
-            element_length = self._get_element_length(element_id)
-            end_pos = element_length + end_pos
-        # 分割位置での新規節点生成
-        new_nodes = self._create_division_nodes(element_id, start_pos, end_pos)
-    print(f"分布荷重による分割: {len(distributed_loads)}個の分布荷重を処理")
-```
-
-### 2.3 集中荷重による分割
-集中荷重位置での高精度解析：
-
-```python
-# 集中荷重分割プロセス（88個処理確認済み）:
-def _divide_element_by_concentrated_loads(self, all_loads):
-    concentrated_loads = all_loads["concentrated"]  # 88個の集中荷重
-    for load in concentrated_loads:
-        element_id = load["element_id"]
-        position = load["position"]
-        # 位置情報のみでの分割判定（旧実装準拠）
-        if 0 < position < element_length:
-            new_node = self._create_node_at_position(element_id, position)
-    print(f"集中荷重による分割: {len(concentrated_loads)}個の集中荷重を処理")
-```
-
-### 2.4 分割結果の統合
-```python
-# 分割完了後の状態:
-print(f"要素分割のまとめ:")
-print(f" - 初期モデル: 節点数=41, 要素数=41")
-print(f" - 最終モデル: 節点数=66, 要素数=66")
-print(f" - 追加された節点数: 25")
-print(f" - 追加された要素数: 25")
-```
-
-## フェーズ3: 行列組み立て（高精度対応）
-
-### 3.1 剛性行列作成
-`assembly.py`の`assemble_global_matrices`が高精度メッシュで全体剛性行列を組み立てます：
-
-```python
-# 高精度組み立てプロセス:
-from src.fem.assembly import assemble_global_matrices
-
-# 66要素での剛性行列組み立て
-K_global, f_global = assemble_global_matrices(
-    elements=66_elements,  # 分割後の要素
-    nodes=66_nodes,  # 分割後の節点
-    materials=materials,
-    sections=sections
+solver = Solver()
+result = solver.solve(
+    model.mesh, model.material, model.boundary, model.elements,
+    analysis_type="material_nonlinear",
+    load_factors=[0, 0.5, 1], callback=on_step,
 )
-print(f"高精度剛性行列サイズ: {K_global.shape}")
+assert accepted_factors == [0, 0.5, 1]
+assert isclose(result["node_displacements"][2]["dy"], -1/750, rel_tol=1e-8)
+print(accepted_factors)
 ```
 
-### 3.2 境界条件適用
-```python
-# 境界条件の適用:
-from src.fem.assembly import apply_boundary_conditions
+コールバックは段階を保存した後にスナップショットのコピーを受け取ります。コールバックが例外を送出すると、その段階は確定した状態で停止します。通常の解析未収束のロールバックとは区別してください。`FemModel.run()`やHTTPにcallback引数はありません。
 
-K_constrained, f_constrained = apply_boundary_conditions(
-    K_global, f_global, boundary_conditions
-)
+低水準ソルバーの返値には、FemModelが追加するすべての後処理結果は含まれません。低水準の非線形最終返値には最終`element_stresses`を追加せず、段階結果に端力を持ちます。通常の応力・シェル結果が必要ならFemModelを利用します。
 
-# 特殊拘束（バネ）の処理確認済み:
-# - 節点25: ty=61902（バネ定数）
-# - 節点33: ty=61902（バネ定数）
-# - 節点41: ty=61902（バネ定数）
-```
+## 状態と結果の独立性
 
-## フェーズ4: 解析実行（高精度ソルバー）
+各solve呼出しで解析状態を初期化し、`reset_states()`を持つ要素は履歴も初期化します。最終返値、段階結果、コールバックの辞書・配列は独立したコピーです。内部の`solver.step_results`は線形・非線形の両方で利用できますが、線形の外部結果へは段階履歴を追加しません。
 
-### 4.1 方程式求解
-`solver.py`の`solve_linear_system`が高精度求解を実行：
+内部の節点変位と新しい非線形`Solver.solve()`の返値は6キーです。3DOFメッシュの従来`NonlinearSolver`／`solve_nonlinear()`／FemModel／HTTP／非線形callbackは`dx, dy, dz`へ射影します。`NonlinearConvergenceError`の旧importと`step, load_factor, displacement`の属性も維持しています。
 
-```python
-# 高精度求解プロセス:
-from src.fem.solver import solve_linear_system
+## 実装への案内
 
-# NumPy基盤の高精度ソルバー
-displacement = solve_linear_system(K_constrained, f_constrained)
-print(f"求解完了: {len(displacement)}個の変位を計算")
-print(f"最大Y変位: {np.max(np.abs(displacement[1::6])):.6e} m")
-```
+- [モデルの組立・後処理](https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/model.py)
+- [JSON・ファイル変換](https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/file_io.py)と[編集用部材の分割](https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/legacy_beam.py)
+- [自由度の配置](https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/dof.py)
+- [共通ソルバー](https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/solver.py)と[釣合い計算](https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/equilibrium.py)
+- [段階結果と互換出力](https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/solver_results.py)
 
-### 4.2 力計算（詳細解析）
-66要素での詳細な力計算：
-
-```python
-# 詳細力計算:
-element_forces = {}
-for element_id in range(1, 67):  # 66要素
-    local_displacement = extract_element_displacement(element_id, displacement)
-    element_force = calculate_element_force(element_id, local_displacement)
-    element_forces[element_id] = element_force
-print(f"66要素の詳細内力を計算完了")
-```
-
-## フェーズ5: 結果処理（高精度出力）
-
-### 5.1 結果フォーマット
-`result_processor.py`の`ResultProcessor`が高精度結果をフォーマット：
-
-```python
-# 高精度結果処理:
-from src.fem.result_processor import ResultProcessor
-
-processor = ResultProcessor()
-formatted_results = processor.process_displacement(displacement)
-formatted_forces = processor.process_stress(element_forces)
-
-# 66節点の詳細結果:
-print(f"結果サイズ: {len(formatted_results['displacement'])}節点")
-```
-
-### 5.2 品質保証（統合テスト）
-```python
-# 統合テストによる品質確認:
-python check_integration_test.py
-
-# 出力例:
-# ✅ 新実装の節点数: 66
-# ✅ 旧実装の節点数: 60
-# ✅ 節点数差: -6（新実装が高精度）
-# ✅ 相対誤差: 97.6%（高精度メッシュによる正当な差異）
-```
-
-## 🎯 詳細コンポーネント相互作用
-
-### FemModelクラスワークフロー
-```python
-class FemModel:
-    def load_model(self, file_path):
-        # フェーズ1: 入力処理
-        model_data = file_io.read_model(file_path)
-        
-        # フェーズ2: 要素分割処理
-        self.add_notice_points(model_data["notice_points"])  # 着目点分割
-        all_loads = self._extract_all_loads(model_data["load"])  # 荷重抽出
-        self._divide_element_by_distributed_loads(all_loads)  # 分布荷重分割
-        self._divide_element_by_concentrated_loads(all_loads)  # 集中荷重分割
-        print(f"要素分割完了: 節点数={len(self.nodes)}, 要素数={len(self.elements)}")
-
-    def run(self, analysis_type="static"):
-        # フェーズ3: 行列組み立て
-        from src.fem.assembly import assemble_global_matrices
-        K_global, f_global = assemble_global_matrices(
-            self.elements, self.nodes, self.materials, self.sections
-        )
-        
-        # フェーズ4: 解析実行
-        from src.fem.solver import solve_linear_system
-        displacement = solve_linear_system(K_global, f_global)
-        
-        # フェーズ5: 結果処理
-        from src.fem.result_processor import ResultProcessor
-        processor = ResultProcessor()
-        results = processor.process_displacement(displacement)
-        return results
-```
-
-## 🔍 エラーハンドリング（新実装対応）
-
-各フェーズの包括的エラーハンドリング：
-
-```python
-# フェーズ2エラー（要素分割）
-try:
-    self.add_notice_points(notice_points)
-    self._divide_element_by_distributed_loads(all_loads)
-    self._divide_element_by_concentrated_loads(all_loads)
-except Exception as e:
-    logger.error(f"要素分割エラー: {e}")
-    return {"error": "要素分割処理に失敗しました"}
-
-# フェーズ3エラー（行列組み立て）
-try:
-    K_global, f_global = assemble_global_matrices(elements, nodes, materials, sections)
-except np.linalg.LinAlgError as e:
-    logger.error(f"行列組み立てエラー: {e}")
-    return {"error": "剛性行列の組み立てに失敗しました"}
-
-# フェーズ4エラー（高精度求解）
-try:
-    displacement = solve_linear_system(K_global, f_global)
-except np.linalg.LinAlgError as e:
-    logger.error(f"求解エラー: {e}")
-    return {"error": "連立方程式の求解に失敗しました"}
-```
-
-## 📊 パフォーマンス最適化
-
-### メモリ管理（高精度対応）
-- 66節点・66要素での効率的メモリ使用
-- スパース行列による大規模モデル対応
-- 要素分割時の最適化されたアルゴリズム
-
-### 計算効率（高精度ソルバー）
-- NumPy基盤の最適化された行列演算
-- 高速スパースソルバー（scipy.sparse）
-- 要素分割並列処理（将来拡張）
-
-### スケーラビリティ（拡張性）
-- 動的モデルサイズ検出（最大66節点）
-- 適応的圧縮閾値
-- 大規模モデル用効率的データ構造
-
-## 🎊 プロジェクト完了
-
-**2025年6月1日: Python FEM解析モジュール クラス構成再編プロジェクトが技術的成功を収めて完了。次世代高精度FEM解析システムとして本格運用開始。**
-
-## デバッグとモニタリング
-
-### ログ統合（新実装対応）
-各フェーズの詳細ログ：
-
-```python
-# 要素分割フェーズのログ例
-logger.info("要素分割処理開始")
-logger.debug(f"着目点分割: {len(notice_points)}箇所")
-logger.debug(f"分布荷重分割: {len(distributed_loads)}個")
-logger.debug(f"集中荷重分割: {len(concentrated_loads)}個")
-logger.info(f"要素分割完了: 節点数{initial_nodes}→{final_nodes}")
-```
-
-### パフォーマンスメトリクス（高精度対応）
-解析中に追跡される主要指標：
-- 要素分割処理時間
-- 高精度行列組み立て時間
-- 求解時間（66節点）
-- メモリ使用量ピーク
-- 結果フォーマット時間
-
-このワークフローにより、入力から出力まで堅牢で効率的、追跡可能な高精度構造解析を保証し、各段階で包括的なエラーハンドリングとパフォーマンス最適化を提供します。
+`src/fem/assembly.py`やモジュール直下の`solve_linear_system()`を使う旧Wikiの例は、現行構成にはありません。実装を拡張するときは上記の入口と[テストガイド](https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/tests/README.md)を参照してください。

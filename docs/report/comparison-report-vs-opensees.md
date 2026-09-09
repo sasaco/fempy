@@ -7,13 +7,13 @@
 
 ## 1. 概要
 
-FrameWeb3に実装されたJR総研剛性低減RC型モデルと、OpenSeesのHystereticMaterialを比較し、ロジックの差異を分析した。
+FEMPythonに実装されたJR総研剛性低減RC型モデルと、OpenSeesのHystereticMaterialを比較し、ロジックの差異を分析した。
 
 ### 比較対象ファイル
 
 | 実装 | ファイル |
 |------|----------|
-| FrameWeb3 (JR総研) | `src/fem/nonlinear/hysteresis/jr_stiffness_reduction.py` |
+| FEMPython (JR総研) | `src/fem/nonlinear/hysteresis/jr_stiffness_reduction.py` |
 | OpenSees | `docs/OpenSees/SRC/material/uniaxial/HystereticMaterial.cpp` |
 
 ---

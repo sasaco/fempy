@@ -1,359 +1,99 @@
-# エラーハンドリング
+# エラーと対処
 
-## 概要
-FrameWeb3は、開発者が構造解析リクエストの問題を特定し解決するのに役立つ包括的なエラーハンドリングを提供します。APIは標準的なHTTPステータスコードを使用し、JSON形式で詳細なエラー情報を返します。
+[Wikiホーム](index.md) · [HTTP API](endpoints.md) · [モデルの入力](data-structures.md)
 
-## HTTPステータスコード
+まず「入力を読み込めない」「構造が不安定」「非線形が収束しない」「結果の読取り・保存に失敗する」のどこで止まったかを確認します。条件が同じままの再試行で解決しない問題もあります。
 
-### 200 OK
-解析が正常に完了しました。レスポンスにはすべての荷重ケースの計算結果が含まれます。
+## 症状から調べる
 
-### 400 Bad Request
-無効な入力データ。以下の場合に発生します：
-- 必須フィールドが欠如している
-- データ形式が正しくない
-- 参照されるエンティティが存在しない（例：存在しない節点を参照）
-- 無効な数値
+| 症状 | 最初に確認すること |
+|---|---|
+| `No module named fem` | プロジェクトの環境から実行しているか。`uv sync --locked --extra dev`後に`uv run ...`を使う。 |
+| HTTP 400 | `error`本文、JSONの階層、必須座標・参照ID・有限値。 |
+| `KeyError: 'z'` | 2Dでも各節点へ`z: 0`を指定する。 |
+| `Missing ... case ...` | 荷重ケースが参照する材料・支持・ばね・材端ケースを用意する。 |
+| `Singular stiffness matrix` | 支持不足、切り離された節点、ゼロ剛性の自由度、材端解放の組合せ。 |
+| `Conflicting restraint and spring at same DOF` | 同じ自由度に拘束と支持ばねを重ねていないか。 |
+| HTTP 422／`NonlinearConvergenceError` | 載荷段階・基準荷重、骨格曲線の耐力、支持、ステップ幅。 |
+| 面圧を入れても変形しない | `nodes/elements`形式か。`node`形式では明示pressuresを読み込まない。 |
+| 期待した荷重倍率にならない | `rate`は現行経路で乗算されない。荷重値または非線形の`load_factors`を使う。 |
+| `NotImplementedError` | 要素・解析の組合せを[対応表](elements.md)で確認する。 |
+| `Non-finite analysis result` | NaN・Infinityを含む結果はHTTP・JSON保存できない。固有値のゼロモード等を確認。 |
+| VTK変換中の`TypeError` | 配列を含む要素結果をそのまま渡していないか。[整形例](file-formats.md)を参照。 |
+| `KeyError: 'disg'`や`'case1'` | 現行結果は`node_displacements`等を直接返す。 |
 
-### 500 Internal Server Error
-解析計算エラー。以下の場合に発生します：
-- 構造解析が収束しない
-- 特異剛性行列（不安定構造）
-- 数値計算エラー
-- システムレベルエラー
+JSONの未知キーや不正な階層の一部は無視されるため、エラーが出ないことだけでは条件が正しく適用されたとは判断できません。荷重・支持を1つずつ追加し、反力と変位で確かめてください。
 
-## エラーレスポンス形式
-すべてのエラーレスポンスは一貫したJSON構造に従います：
+## 不安定なモデルを直す
 
-```json
-{
-  "error": "エラーカテゴリ",
-  "message": "詳細なエラーメッセージ",
-  "details": {
-    "node": 5,
-    "member": 3,
-    "loadCase": "DL",
-    "caseComb": {
-      "nMaterialCase": 1,
-      "nSupportCase": 1,
-      "nSpringCase": 1,
-      "nJointCase": 1
-    }
-  }
-}
-```
+1. 梁・シェルなら6つの剛体運動、平面モデルなら対応する面内の剛体運動を抑える支持があるか確認します。
+2. 要素に接続されていない節点や、剛性0の自由度が残っていないか確認します。
+3. 梁の回転を材端で解放した場合、接続節点の回転が他の要素にも支持にもつながらず、不要な自由度として残ることがあります。
+4. 梁・シェルとソリッドを混在させた場合、ソリッドだけの節点に不要な回転自由度がないか確認します。
+5. 断面値・剛域の剛性比・部材長・単位を確認します。
 
-## 一般的なエラータイプ
+計算を通すためだけに無関係な節点を固定すると、解析対象そのものが変わります。実際の支持と、モデル化で不要になる自由度を区別して設定します。
 
-### 入力データエラー (400)
+## 非線形の未収束
 
-#### 必須データの欠如
-```json
-{
-  "error": "入力データエラー",
-  "message": "節点データがありません",
-  "details": {}
-}
-```
+`NonlinearConvergenceError`は次の情報を持ちます。
 
-#### 無効な節点参照
-```json
-{
-  "error": "入力データエラー",
-  "message": "存在しない節点が参照されています: 節点番号(5)",
-  "details": {
-    "node": 5,
-    "member": 3
-  }
-}
-```
+| 属性 | 意味 |
+|---|---|
+| `step` | 失敗した段階番号（1始まり） |
+| `load_factor` | 失敗した載荷係数 |
+| `displacement` | 最後に収束した変位のコピー。失敗段階の解ではない |
 
-#### 材料特性の欠如
-```json
-{
-  "error": "入力データエラー",
-  "message": "材料特性データが不足しています: 材料番号(2)",
-  "details": {
-    "material": 2,
-    "member": 1
-  }
-}
-```
+解析失敗後の`model.get_results()`はNoneです。直前までの低水準スナップショットは`model.solver.step_results`に残りますが、完了した解析結果として扱わないでください。HTTPの422応答は、これらの途中変位を返しません。
 
-#### 無効な荷重データ
-```json
-{
-  "error": "入力データエラー",
-  "message": "荷重データが不正です: 荷重ケース(LL)",
-  "details": {
-    "loadCase": "LL",
-    "node": 3
-  }
-}
-```
+以下は耐力22 N·mのモデルへ30 N·mを与え、失敗を検出する例です。
 
-### 解析計算エラー (500)
-
-#### 特異剛性行列
-```json
-{
-  "error": "計算エラー",
-  "message": "剛性行列の特異性により解析が収束しませんでした",
-  "details": {
-    "loadCase": "DL",
-    "caseComb": {
-      "nMaterialCase": 1,
-      "nSupportCase": 1,
-      "nSpringCase": 1,
-      "nJointCase": 1
-    }
-  }
-}
-```
-
-#### 数値不安定性
-```json
-{
-  "error": "計算エラー",
-  "message": "数値計算が不安定になりました",
-  "details": {
-    "loadCase": "WL",
-    "member": 5
-  }
-}
-```
-
-#### メモリ割り当てエラー
-```json
-{
-  "error": "システムエラー",
-  "message": "メモリ不足により計算を継続できません",
-  "details": {
-    "nodeCount": 10000,
-    "elementCount": 25000
-  }
-}
-```
-
-## エラーハンドリングのベストプラクティス
-
-### 1. 入力データの検証
-リクエストを送信する前に、常に入力データを検証してください：
-
+<!-- run: nonlinear-error -->
 ```python
-def validate_model_data(model_data):
-    """解析前に構造モデルデータを検証"""
-    errors = []
-    
-    # 必須セクションの確認
-    required_sections = ['node', 'element', 'load']
-    for section in required_sections:
-        if section not in model_data:
-            errors.append(f"必須セクションが欠如しています: {section}")
-    
-    # 部材の節点参照を検証
-    if 'member' in model_data and 'node' in model_data:
-        node_ids = set(model_data['node'].keys())
-        for member_id, member in model_data['member'].items():
-            if str(member['ni']) not in node_ids:
-                errors.append(f"部材 {member_id} が存在しない節点 {member['ni']} を参照しています")
-            if str(member['nj']) not in node_ids:
-                errors.append(f"部材 {member_id} が存在しない節点 {member['nj']} を参照しています")
-    
-    # 要素特性参照を検証
-    if 'member' in model_data and 'element' in model_data:
-        element_ids = set(model_data['element'].keys())
-        for member_id, member in model_data['member'].items():
-            if str(member['e']) not in element_ids:
-                errors.append(f"部材 {member_id} が存在しない要素 {member['e']} を参照しています")
-    
-    return errors
+from fem import FemModel, BarParameter
+from fem.nonlinear.nonlinear_solver import NonlinearConvergenceError
 
-# 使用例
-errors = validate_model_data(model_data)
-if errors:
-    print("検証エラー:")
-    for error in errors:
-        print(f" - {error}")
-    return
+model = FemModel()
+model.add_node(1, 0, 0, 0)
+model.add_node(2, 2, 0, 0)
+model.add_nonlinear_material(
+    1, "Capacity example", E=10000,
+    delta_1=0.001, delta_2=0.004, delta_3=0.010,
+    P_1=10, P_2=16, P_3=22,
+)
+model.material.add_bar_parameter(1, BarParameter(1, 1, 1, 2))
+model.add_nonlinear_bar_element(1, [1, 2], 1, 1, ["moment_z"], shear_correction=False)
+model.add_restraint(1, True, True, True, True, True, True)
+model.add_load(2, mz=30)
+model.analysis_params.update(load_factors=[1], max_iterations=10)
+try:
+    model.run()
+    raise AssertionError("耐力を超えたモデルは成功しないはずです")
+except NonlinearConvergenceError as error:
+    assert error.step == 1
+    assert model.get_results() is None
+    print("失敗段階:", error.step, "載荷係数:", error.load_factor)
 ```
 
-### 2. APIエラーの適切な処理
-```python
-import requests
-import json
+対処の順序は次のとおりです。
 
-def analyze_structure_with_error_handling(model_data):
-    """包括的なエラーハンドリングを含む構造解析の実行"""
-    try:
-        response = requests.post(
-            'http://localhost:5000/',
-            json=model_data,
-            headers={'Content-Type': 'application/json'},
-            timeout=60
-        )
-        
-        if response.status_code == 200:
-            return response.json()
-        elif response.status_code == 400:
-            error_data = response.json()
-            print(f"入力エラー: {error_data['message']}")
-            
-            # 特定のエラータイプの処理
-            if 'details' in error_data:
-                details = error_data['details']
-                if 'node' in details:
-                    print(f"節点の問題: {details['node']}")
-                if 'member' in details:
-                    print(f"部材の問題: {details['member']}")
-                if 'loadCase' in details:
-                    print(f"荷重ケースの問題: {details['loadCase']}")
-            return None
-        elif response.status_code == 500:
-            error_data = response.json()
-            print(f"解析エラー: {error_data['message']}")
-            
-            # 構造不安定性の確認
-            if "特異性" in error_data['message']:
-                print("構造が不安定な可能性があります。支点条件を確認してください。")
-            return None
-        else:
-            print(f"予期しないエラー: HTTP {response.status_code}")
-            print(response.text)
-            return None
-            
-    except requests.exceptions.Timeout:
-        print("リクエストがタイムアウトしました。解析に時間がかかりすぎている可能性があります。")
-        return None
-    except requests.exceptions.ConnectionError:
-        print("FrameWeb3 APIに接続できませんでした。サービスが実行されているか確認してください。")
-        return None
-    except json.JSONDecodeError:
-        print("サーバーから無効なJSONレスポンスを受信しました")
-        return None
-    except Exception as e:
-        print(f"予期しないエラー: {e}")
-        return None
-```
+1. `delta_*`が節点変位ではなく、適用成分のひずみ・曲率・ねじり率であることを確認する。
+2. 単位、支持、荷重方向、骨格の耐力と勾配を確認する。
+3. 解が存在する荷重範囲なら、折れ点・除荷・反転付近の`load_factors`を細かくする。
+4. 収束履歴を見て、必要に応じて`max_iterations`を調整する。
 
-### 3. 一時的エラーのリトライロジック
-```python
-import time
-from typing import Optional
+耐力を超えて釣合い解がない場合や機構になった場合は、反復回数を増やしても解決しません。許容差を緩めただけの結果を妥当と判断せず、自由節点の釣合いと履歴を確認します。
 
-def analyze_with_retry(model_data, max_retries=3, retry_delay=1.0):
-    """一時的エラーに対するリトライロジックを含む構造解析"""
-    for attempt in range(max_retries):
-        try:
-            response = requests.post(
-                'http://localhost:5000/',
-                json=model_data,
-                headers={'Content-Type': 'application/json'},
-                timeout=60
-            )
-            
-            if response.status_code == 200:
-                return response.json()
-            elif response.status_code == 400:
-                # 入力エラーはリトライしない
-                error_data = response.json()
-                print(f"入力エラー（リトライなし）: {error_data['message']}")
-                return None
-            elif response.status_code == 500:
-                error_data = response.json()
-                if attempt < max_retries - 1:
-                    print(f"サーバーエラー（試行 {attempt + 1}/{max_retries}）: {error_data['message']}")
-                    print(f"{retry_delay}秒後にリトライします...")
-                    time.sleep(retry_delay)
-                    retry_delay *= 2  # 指数バックオフ
-                    continue
-                else:
-                    print(f"サーバーエラー（最終試行）: {error_data['message']}")
-                    return None
-                    
-        except requests.exceptions.Timeout:
-            if attempt < max_retries - 1:
-                print(f"タイムアウト（試行 {attempt + 1}/{max_retries}）。リトライします...")
-                time.sleep(retry_delay)
-                retry_delay *= 2
-                continue
-            else:
-                print("最終タイムアウト。解析に失敗しました。")
-                return None
-                
-        except requests.exceptions.ConnectionError:
-            if attempt < max_retries - 1:
-                print(f"接続エラー（試行 {attempt + 1}/{max_retries}）。リトライします...")
-                time.sleep(retry_delay)
-                retry_delay *= 2
-                continue
-            else:
-                print("最終接続エラー。サービスがダウンしている可能性があります。")
-                return None
-    
-    return None
-```
+## HTTPステータスの解釈
 
-## 一般的な問題のトラブルシューティング
+入力検証のValueErrorなどは400、非線形未収束は422、NumPyの線形代数例外は500です。同じ「不安定構造」でも、検出される箇所によってステータスが変わる場合があります。
 
-### 構造不安定性
-**問題**: "剛性行列の特異性により解析が収束しませんでした"
+`error_code`は`invalid_input`、`nonlinear_nonconvergence`、`analysis_failure`などで、例外によっては付かない場合もあります。共通する`error`と`converged: false`を確認します。タイムアウト・通信断はサーバーのエラーJSONを受け取れないこともあります。
 
-**解決策**:
-1. 支点条件を確認
-   - 構造が適切に拘束されていることを確認
-2. すべての部材が正しく接続されていることを確認
-3. ゼロまたは非常に小さい断面特性がないか確認
-4. 材料特性が現実的であることを確認
+圧縮要求のエラー応答は通常JSONです。成功時のBase64/gzip復号をエラー応答に適用しないでください。[HTTPの例](endpoints.md)を参照してください。
 
-```python
-def check_structural_stability(model_data):
-    """構造安定性の基本チェック"""
-    issues = []
-    
-    # 支点があるかチェック
-    if 'fix_node' not in model_data or not model_data['fix_node']:
-        issues.append("支点条件が定義されていません - 構造が不安定な可能性があります")
-    
-    # 非常に小さい断面特性をチェック
-    if 'element' in model_data:
-        for elem_id, elem in model_data['element'].items():
-            if 'A' in elem and elem['A'] < 1e-6:
-                issues.append(f"要素 {elem_id} の断面積が非常に小さいです: {elem['A']}")
-            if 'E' in elem and elem['E'] < 1000:
-                issues.append(f"要素 {elem_id} のヤング係数が非常に小さいです: {elem['E']}")
-    
-    return issues
-```
+## 問題を再現できる形にする
 
-### 大規模モデルの性能
-**問題**: 解析に時間がかかりすぎる、またはメモリ不足
+解析種別、入力JSON、期待する値と得られた値、例外またはHTTP応答、Python・依存環境を残します。材料非線形では`load_factors`と失敗した段階も必要です。結果が大きくずれるときは、元の大規模モデルとともに、問題を保った小さなモデルを作ると原因を追いやすくなります。
 
-**解決策**:
-1. 大きなリクエストにはモデル圧縮を使用
-2. 可能な場合はモデルを簡略化
-3. 不要な要素分割がないか確認
-4. プレートには多数の梁要素の代わりにシェル要素の使用を検討
-
-### 無効な参照
-**問題**: 存在しない節点、材料などへの参照
-
-**解決策**:
-1. リクエスト送信前にすべての参照を検証
-2. 一貫した番号付けスキームを使用
-3. 節点・要素番号のタイプミスをチェック
-
-## エラーコードリファレンス
-
-| エラータイプ | HTTPコード | カテゴリ | 説明 |
-|------------|-----------|----------|-------------|
-| 必須データの欠如 | 400 | 入力データエラー | 入力から必須セクションが欠如 |
-| 無効な節点参照 | 400 | 入力データエラー | 部材が存在しない節点を参照 |
-| 無効な材料参照 | 400 | 入力データエラー | 要素が存在しない材料を参照 |
-| 無効な荷重データ | 400 | 入力データエラー | 荷重ケースに無効なデータが含まれる |
-| 特異剛性行列 | 500 | 計算エラー | 構造が不安定または不適切に拘束 |
-| 数値不安定性 | 500 | 計算エラー | 数値問題により計算が失敗 |
-| メモリ割り当てエラー | 500 | システムエラー | 解析に必要なメモリが不足 |
-| タイムアウトエラー | 500 | システムエラー | 解析が制限時間を超過 |
-
-追加サポートについては、動作するコードサンプルの[使用例](examples.md)ドキュメントと、詳細な入力形式仕様の[データ構造](data-structures.md)リファレンスを参照してください。
+製品の既存テストと保証範囲は[テストガイド](https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/tests/README.md)を参照してください。

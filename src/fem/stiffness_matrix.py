@@ -44,7 +44,7 @@ QUAD1_INT = [[1/math.sqrt(3), 1/math.sqrt(3), 1],
 TRI1_MASS1 = [[1, 0.5, 0.5], [0.5, 1, 0.5], [0.5, 0.5, 1]]
 
 # (注)
-# シェル要素については旧FrameWebをそのまま移植しており理論の確からしさは不明
+# シェル要素については旧FEMPythonをそのまま移植しており理論の確からしさは不明
 
 
 class Freedom(TypedDict):

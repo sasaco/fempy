@@ -1,4 +1,4 @@
-# FrameWeb3 をuv環境に変換する計画
+# FEMPython をuv環境に変換する計画
 
 ## 概要
 現在の `requirements.txt` ベースのプロジェクトを `uv` パッケージマネージャー環境に移行します。
@@ -10,7 +10,7 @@
 
 ```toml
 [project]
-name = "frameweb3"
+name = "FEMPython"
 version = "1.0.0"
 description = "Python FEM解析モジュール"
 requires-python = ">=3.11"

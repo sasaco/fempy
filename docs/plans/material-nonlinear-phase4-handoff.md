@@ -200,7 +200,7 @@ V0読込の未対応範囲は梁パラメータ・ローカル境界座標・熱
 
 ## 以下は以前のhandoff（履歴）
 
-作成: 2026-09-08。作業ディレクトリ: `C:\Users\sasai\Documents\FrameWeb3`。
+作成: 2026-09-08。作業ディレクトリ: `C:\Users\sasai\Documents\FEMPython`。
 
 ## 継続実装後の状況（2026-09-08）
 

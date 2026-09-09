@@ -16,7 +16,7 @@ class VTKWriter:
     def write_header(self):
         # VTKファイルヘッダ
         self.file.write("# vtk DataFile Version 3.0\n")
-        self.file.write("FrameWeb3 VTK Output\n")
+        self.file.write("FEMPython VTK Output\n")
         self.file.write("ASCII\n")
         self.file.write("DATASET UNSTRUCTURED_GRID\n")
 

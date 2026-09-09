@@ -37,7 +37,7 @@ def execute(page, output_dir):
     page.window_resizable = False  # サイズ変更不可
     page.bgcolor = "#CFD8DC"  # Blue Grey 100 の hex コードに置き換え
     # テキスト
-    text1 = ft.Text(value="FrameWebファイルの選択", size=20, weight=ft.FontWeight.BOLD)
+    text1 = ft.Text(value="FEMPythonファイルの選択", size=20, weight=ft.FontWeight.BOLD)
     # ファイル選択ボタン
     button1 = ft.ElevatedButton("ファイルの選択", autofocus=True)
     # ファイルパス用テキストフィールド

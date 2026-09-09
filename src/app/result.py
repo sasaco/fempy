@@ -297,7 +297,7 @@ def make_fsec(fiBeams: list[SectionForce], fjBeams: list[SectionForce],\
                 nodeJ = member.nodes[nj]  # j端節点
                 if (nodeJ.isNode) or (nodeJ.isPoint) or (nodeJ.isRigid):
                 #if (nodeJ.isNode) or (nodeJ.isPoint) or (nodeJ.isRigid) or (lCase in nodeJ.lCases):
-                    # ひとまず旧FrameWebに合わせて着目点（剛域境界含む）で分割した要素の結果しか出力しない
+                    # ひとまず着目点（剛域境界含む）で分割した要素の結果しか出力しない
                     # ただし、本来は全分割要素の結果を出力し、フロントエンドでピックアップファイル作成時にフィルターすべき
                     ib += 1
                     id = "P" + str(ib)  # P{通し番号}　例：P1、P5など

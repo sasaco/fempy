@@ -39,15 +39,15 @@ app = Flask(__name__)
 
 @app.route('/', methods=['OPTIONS', 'GET', 'POST'])
 def post():
-    return FrameWeb3(request)
+    return FEMPython(request)
 
 
-# FrameWeb3の定義
+# FEMPythonの定義
 @functions_framework.http
-def FrameWeb3(request):
-    """FrameWeb3のメイン関数
+def FEMPython(request):
+    """FEMPythonのメイン関数
     
-    @brief FrameWeb3 APIのメインエントリーポイント
+    @brief FEMPython APIのメインエントリーポイント
     
     HTTPリクエストを受け取り、構造解析を実行して結果を返します。
     GET/POSTリクエストに対応し、JSONデータの圧縮もサポートします。

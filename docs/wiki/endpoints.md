@@ -1,261 +1,150 @@
-# APIエンドポイント
+# HTTP API
 
-## ベースエンドポイント
+[Wikiホーム](index.md) · [モデルの入力](data-structures.md) · [結果の読み方](results.md) · [エラーと対処](error-handling.md)
 
-**URL**: `/`
-**メソッド**: `GET`, `POST`
-**Content-Type**: `application/json`
+HTTP APIは、Pythonの`FemModel`と同じ解析経路を使います。1回のPOSTで1つの荷重条件を解析し、結果をJSONで返します。
 
-## POST / - 構造解析
+## ローカルサーバーの起動
 
-提供されたモデルデータに対して構造解析を実行します。
+リポジトリ直下で次を実行します。[環境の準備](getting-started.md)が済んでいることを確認してください。
 
-### リクエスト
-
-#### ヘッダー
-
-- `Content-Type: application/json`
-- `Content-Encoding: gzip` (オプション、圧縮リクエスト用)
-
-#### リクエストボディ
-
-リクエストボディには構造モデルを表すJSONオブジェクトを含める必要があります。データはgzipエンコーディングを使用してオプションで圧縮できます。
-
-**基本構造:**
-```json
-{
-    "node": { ... },
-    "member": { ... },
-    "element": { ... },
-    "fix_node": { ... },
-    "load": { ... }
-}
+```console
+uv run --locked --extra dev python -m flask --app main:app run --host 127.0.0.1 --port 5000
 ```
 
-**圧縮サポート:**
-APIは大きなモデルに対してgzip圧縮をサポートします。圧縮データを送信する場合：
+別のターミナルから、以降のクライアント例を実行します。例ではPython標準ライブラリを使うため、追加のHTTPクライアントライブラリは不要です。
 
-1. JSON文字列をgzipで圧縮
-2. 圧縮データをbase64でエンコード
-3. `Content-Encoding: gzip` ヘッダーを設定
+## エンドポイント
 
-### レスポンス
+| メソッド・パス | 応答 | 用途 |
+|---|---|---|
+| `POST /` | 成功時200と解析結果 | モデルを解析する |
+| `GET /` | 200、`{"results": "Hello World!"}` | HTTP経路の疎通確認。解析の健全性・バージョンを返す機能ではない |
+| `OPTIONS /` | 204、空ボディ | CORSのプリフライト |
 
-#### 成功レスポンス (200 OK)
+通常のPOSTは`Content-Type: application/json`にします。`Content-Encoding`は省略するか`json`を指定します。
 
-すべての荷重ケースの解析結果を返します。
+CORSは`Access-Control-Allow-Origin: *`で、プリフライトではGET・POSTと、Content-Type・Content-Encoding・Authorizationなどのヘッダーを許可します。認証・レート制限はこのアプリ内には実装されておらず、Authorizationヘッダーを送るだけで認証処理が行われるわけではありません。
 
-```json
-{
-    "loadCase1": {
-        "disg": { ... },
-        "reac": { ... },
-        "fsec": { ... },
-        "shell_results": { ... },
-        "size": 100
-    },
-    "loadCase2": { ... }
-}
+## 通常JSONで解析する
+
+[はじめに](getting-started.md)の`beam.json`をクライアントの作業ディレクトリへ保存して実行します。
+
+<!-- run: http-json -->
+```python
+import json
+from pathlib import Path
+from math import isclose
+from urllib.request import Request, urlopen
+
+url = "http://localhost:5000/"
+model_data = json.loads(Path("beam.json").read_text(encoding="utf-8"))
+request = Request(url, data=json.dumps(model_data).encode("utf-8"),
+                  headers={"Content-Type": "application/json"}, method="POST")
+with urlopen(request, timeout=30) as response:
+    result = json.load(response)
+
+assert result["analysis_type"] == "static"
+assert isclose(result["node_displacements"]["2"]["dy"], -1/750, rel_tol=1e-8)
+print("先端変位 [m]:", result["node_displacements"]["2"]["dy"])
+print("支点反力:", result["reaction_forces"]["1"])
 ```
 
-#### レスポンス圧縮
+### 入力と解析モード
 
-大きなレスポンスは以下の場合に自動的にgzipで圧縮され、base64エンコードされます：
+POSTは編集用`node/member/element`形式と、保存用`nodes/elements/materials`形式の両方を受け付けます。ファイル名や `.fem` ファイルそのものをPOSTする仕様ではありません。
 
-- レスポンスサイズが内部閾値を超える場合
-- クライアントが圧縮をサポートする場合
+`analysis_type`を省略したときは、入力内の指定と非線形要素の有無から解析を選びます。詳しくは[解析の選び方](elements.md)を参照してください。`load_factors`は材料非線形の載荷係数です。
 
-圧縮レスポンスには以下が含まれます：
+編集用JSONの`load`に複数ケースがある場合は、先頭のケースだけを解析します。結果に荷重ケース名の階層は付きません。全ケースの処理は[ケースごとの実行例](examples.md)と同様に、クライアント側で1ケースずつ送ります。
 
-- `Content-Encoding: gzip` ヘッダー
-- Base64エンコードされたgzip圧縮JSONデータ
+### 成功時の結果
 
-### エラーレスポンス
+線形解析では`analysis_type`、`node_displacements`、`reaction_forces`、`element_stresses`などを返します。非線形解析では`converged`、`step_results`、`curvature`、`convergence_history`が加わります。固有値解析では`frequencies`、`periods`、`modes`などになります。
 
-#### 400 Bad Request
+JSONのIDは文字列です。`case1.disg/reac/fsec`を返す旧説明とは異なります。単位・符号・任意項目は[結果の読み方](results.md)を参照してください。
 
-無効な入力データ形式または必須フィールドの欠如。
+## 互換用の圧縮転送
 
-```json
-{
-    "error": "入力データエラー",
-    "message": "節点データが不足しています",
-    "details": {
-        "node": 5,
-        "member": 3
-    }
-}
+通常のJSON送信から始めることを推奨します。既存クライアントとの互換用に圧縮経路もありますが、**標準HTTPのgzip転送とは異なり、要求と応答の包み方も非対称**です。
+
+| 方向 | 実際の形式 |
+|---|---|
+| 要求 | JSONをUTF-8化 → gzip → バイト値の配列をJSON文字列化 → Base64 |
+| 成功応答 | 結果JSONをUTF-8化 → gzip → Base64 |
+| エラー応答 | 通常のJSON。圧縮しない |
+
+要求に`Content-Encoding: gzip`を付けるとこの互換経路に入ります。`Base64(gzip(JSON))`だけの要求や、生のgzipバイト列は現行の要求形式ではありません。
+
+<!-- run: http-compressed -->
+```python
+import base64
+import gzip
+import json
+from pathlib import Path
+from math import isclose
+from urllib.request import Request, urlopen
+
+url = "http://localhost:5000/"
+model_data = json.loads(Path("beam.json").read_text(encoding="utf-8"))
+compressed = gzip.compress(json.dumps(model_data).encode("utf-8"))
+request_body = base64.b64encode(json.dumps(list(compressed)).encode("utf-8"))
+request = Request(url, data=request_body, method="POST", headers={
+    "Content-Type": "application/json",
+    "Content-Encoding": "gzip",
+})
+with urlopen(request, timeout=30) as response:
+    result = json.loads(gzip.decompress(base64.b64decode(response.read())).decode("utf-8"))
+
+assert isclose(result["reaction_forces"]["1"]["fy"], 1000, rel_tol=1e-8)
+print(result["node_displacements"]["2"])
 ```
 
-#### 500 Internal Server Error
+圧縮の選択は要求の`Content-Encoding`によります。応答サイズによる自動切替や`Accept-Encoding`との交渉はありません。成功した圧縮応答には現在`Content-Encoding`が付かず、Content-TypeもJSONのままです。クライアントは自分が選んだ要求方式に合わせて復号します。
 
-解析計算エラーまたはシステム障害。
+## エラー応答
 
-```json
-{
-    "error": "計算エラー",
-    "message": "剛性行列の特異性により解析が収束しませんでした",
-    "details": {
-        "loadCase": "case1",
-        "caseComb": {
-            "nMaterialCase": 1,
-            "nSupportCase": 1,
-            "nSpringCase": 1,
-            "nJointCase": 1
-        }
-    }
-}
-```
+| HTTP | 代表的な`error_code` | 意味 |
+|---:|---|---|
+| 400 | `invalid_input` | JSON形式・値・参照・解析種別などの問題 |
+| 422 | `nonlinear_nonconvergence` | 非線形の指定段階が未収束 |
+| 500 | `analysis_failure` | 線形代数・結果処理の例外 |
+| 500 | キーなしの場合あり | その他の内部例外 |
 
-## GET / - ヘルスチェック
-
-基本的なサービス情報とヘルス状態を返します。
-
-### リクエスト
-
-リクエストボディは不要です。
-
-### レスポンス
+エラーの共通項目は`error`と`converged: false`です。例外によって`error_code`がない場合もあります。常に`message/details`を持つ固定形式ではありません。
 
 ```json
 {
-    "service": "FrameWeb3",
-    "status": "running",
-    "version": "3.0",
-    "timestamp": "2025-05-31T12:35:04Z"
+  "error": "Nonlinear analysis did not converge at step 2 (load factor 0.5)",
+  "error_code": "nonlinear_nonconvergence",
+  "converged": false,
+  "step": 2,
+  "load_factor": 0.5
 }
 ```
 
-## リクエスト/レスポンス例
+Python標準の`urlopen()`は400・422・500で`HTTPError`を送出します。エラーのボディは、圧縮要求の場合でもJSONとして読みます。
 
-### シンプルな2Dフレーム解析
+<!-- run: http-invalid-input -->
+```python
+import json
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 
-**リクエスト:**
-```bash
-curl -X POST http://localhost:5000/ \
--H "Content-Type: application/json" \
--d '{
-    "node": {
-        "1": {"x": 0, "y": 0},
-        "2": {"x": 5, "y": 0},
-        "3": {"x": 5, "y": 3}
-    },
-    "member": {
-        "1": {"ni": 1, "nj": 2, "e": 1},
-        "2": {"ni": 2, "nj": 3, "e": 1}
-    },
-    "element": {
-        "1": {
-            "E": 205000000,
-            "G": 79000000,
-            "Iy": 0.0001,
-            "Iz": 0.0001,
-            "J": 0.0001,
-            "A": 0.01
-        }
-    },
-    "fix_node": {
-        "1": {"1": {"x": 1, "y": 1, "rx": 1, "ry": 1, "rz": 1}}
-    },
-    "load": {
-        "DL": {
-            "load_node": [{"n": 3, "ty": -50}]
-        }
-    }
-}'
+request = Request("http://localhost:5000/", data=b"{}", method="POST",
+                  headers={"Content-Type": "application/json"})
+try:
+    with urlopen(request, timeout=30) as response:
+        raise AssertionError("空モデルは成功しないはずです")
+except HTTPError as error:
+    body = json.loads(error.read().decode("utf-8"))
+    assert error.code == 400
+    assert body["converged"] is False
+    print(error.code, body["error"])
 ```
 
-**レスポンス:**
-```json
-{
-    "DL": {
-        "disg": {
-            "1": {"dx": 0, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0},
-            "2": {"dx": 0.0012, "dy": -0.0008, "dz": 0, "rx": 0, "ry": 0, "rz": -0.0003},
-            "3": {"dx": 0.0024, "dy": -0.0015, "dz": 0, "rx": 0, "ry": 0, "rz": -0.0005}
-        },
-        "reac": {
-            "1": {"tx": -25, "ty": 50, "tz": 0, "mx": 0, "my": 0, "mz": 75}
-        },
-        "fsec": {
-            "1": {
-                "1": {
-                    "fxi": 25,
-                    "fyi": 0,
-                    "fzi": 0,
-                    "mxi": 0,
-                    "myi": 0,
-                    "mzi": 0,
-                    "fxj": -25,
-                    "fyj": 0,
-                    "fzj": 0,
-                    "mxj": 0,
-                    "myj": 0,
-                    "mzj": 0,
-                    "L": 5
-                }
-            },
-            "2": {
-                "1": {
-                    "fxi": 0,
-                    "fyi": 50,
-                    "fzi": 0,
-                    "mxi": 0,
-                    "myi": 0,
-                    "mzi": 0,
-                    "fxj": 0,
-                    "fyj": -50,
-                    "fzj": 0,
-                    "mxj": 0,
-                    "myj": 0,
-                    "mzj": 150,
-                    "L": 3
-                }
-            }
-        },
-        "shell_results": {},
-        "size": 3
-    }
-}
-```
+特異なモデルが常に500になるとは限りません。入力検証で検出されれば400、非線形の釣合いが成立しなければ422になる場合があります。[エラーと対処](error-handling.md)の手順でモデル条件を確認してください。
 
-### シェル要素を含む3Dフレーム
+## 運用上の挙動
 
-**リクエスト:**
-```bash
-curl -X POST http://localhost:5000/ \
--H "Content-Type: application/json" \
--d '{
-    "node": {
-        "1": {"x": 0, "y": 0, "z": 0},
-        "2": {"x": 4, "y": 0, "z": 0},
-        "3": {"x": 4, "y": 4, "z": 0},
-        "4": {"x": 0, "y": 4, "z": 0}
-    },
-    "shell": {
-        "1": {"ni": 1, "nj": 2, "nk": 3, "nl": 4, "e": 1}
-    },
-    "element": {
-        "1": {"E": 30000000, "G": 12000000, "poi": 0.2}
-    },
-    "thickness": {
-        "1": {"t": 0.2}
-    },
-    "fix_node": {
-        "1": {"1": {"x": 1, "y": 1, "z": 1, "rx": 1, "ry": 1, "rz": 1}}
-    },
-    "load": {
-        "LL": {
-            "load_node": [{"n": 3, "tz": -100}]
-        }
-    }
-}'
-```
-
-## レート制限
-
-現在、レート制限は実装されていません。ただし、本番環境での展開では、インフラストラクチャ要件に基づいて適切なレート制限の実装を検討してください。
-
-## 認証
-
-現在のAPIは認証を必要としません。本番環境での展開では、APIキーやOAuthトークンなどの適切な認証メカニズムを実装してください。
+POSTは同期処理です。ジョブIDの発行、進捗取得、キャンセル用エンドポイントはありません。クライアントがタイムアウトしても、サーバー側で計算が停止したことを意味しません。環境の処理時間・メモリ制約は、ライブラリの固定上限とは別に確認してください。
