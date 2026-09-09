@@ -26,7 +26,8 @@ LFへ正規化した内容、現行Git blobのいずれとも一致していな�
 
 原資料の識別規則を `sha256_utf8_lf` とした。これはUTF-8テキストのCRLFと単独CRをLFへ
 正規化した後のSHA-256であり、現行Git blobと一致する。`.gitattributes`にも対象データ、
-oracle、旧ソース、JSON報告のLFを宣言した。manifestと35件の修復記録は、構造回帰323ケースが
+oracle、旧ソース、JSON報告のLFを宣言し、旧ソース内のPDF・PNG・XLSXはテキスト変換から
+除外した。manifestと35件の修復記録は、構造回帰323ケースが
 成功した現行Git内容および現行独立ソースから再計算した。`original_sha256`は履歴値として変更していない。
 
 ## PQ-01: 固有値解析
@@ -40,8 +41,9 @@ oracle、旧ソース、JSON報告のLFを宣言した。manifestと35件の修�
 - 固有ベクトルを質量正規化して全DOFへ復元し、固有対相対残差と質量直交性誤差を返す。
 - ゼロモード周期はPythonで`inf`、HTTP・保存用JSONで`null`とする。
 
-残件は、実シェル・ソリッド要素の独立参照比較と、大規模な実構造モデルに対する
-ARPACK再試行の評価である。このためPQ-01全体は一部完了とする。
+この時点の残件は、実シェル・ソリッド要素の独立参照比較と、大規模な実構造モデルに対する
+ARPACK再試行の評価だった。これらは後続の[PQ-01実装・検証報告](product-quality-pq01.md)で
+完了した。
 
 ## PQ-02: 公開変位後処理
 
@@ -59,5 +61,16 @@ ARPACK再試行の評価である。このためPQ-01全体は一部完了とす
 - PQ-00修正後のharness検査: 19成功。
 - 修正後全件: `1960 passed, 0 failed, 0 skipped`、終了コード0、`1353.89s`。
   JUnitは`tmp/product-quality-pq00-pq02-green.xml`。PQ-00の全件ゲートを完了とする。
+
+その後、`ebd64ea`だけをcheckoutした別worktreeでは`1924 passed, 2 failed`となった。
+2件はいずれも`sampleBendTetra1.fem`の固定SHA-256を生バイトで比較していたため、Windowsの
+既存CRLF作業コピーとLF checkoutで値が変わる問題だった。また、`docs/v0/** text eol=lf`が
+PDF・PNG・XLSXにも適用され、checkout直後から6バイナリがdirtyになることも確認した。
+固定原本ハッシュをLF正規形で比較し、3種のバイナリを`-text`へ分離した。
+
+最終確認は`aedbd26b62607e11b2e80744e449518da567db0e`にPQ-01/PQ-03/PQ-05と上記修正だけを
+重ねたclean worktreeで実行した。Python 3.13.11で`1972 passed, 0 failed, 0 skipped`、
+終了コード0、`1134.23s`だった。JUnitは検証worktree内の
+`tmp/product-quality-current-clean.xml`へ保存した。
 
 `ruff`は環境に実行ファイルがないため未実行。変更Pythonは`py_compile`で構文確認した。

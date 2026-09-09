@@ -21,3 +21,11 @@ def history_samples():
     return [
         DATA / sample["file"] for sample in registered_samples() if sample["contract"] == "cantilever_history"
     ]
+
+
+def displacement_control_history_samples():
+    return [
+        DATA / sample["file"]
+        for sample in registered_samples()
+        if sample["contract"] == "displacement_control_history"
+    ]

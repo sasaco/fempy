@@ -626,7 +626,7 @@ class FemModel:
         # V0要素タイプ名を標準名に変換
         if elem_type in v0_shell_elements:
             elem_type = v0_shell_elements[elem_type]
-            print(f"🔧 V0互換: {elem_data['type']} → {elem_type} (要素ID: {elem_id})")
+            print(f"V0互換: {elem_data['type']} -> {elem_type} (要素ID: {elem_id})")
         elif elem_type in v0_bar_elements:
             elem_type = v0_bar_elements[elem_type]
         elif elem_type in v0_solid_elements:
@@ -663,18 +663,18 @@ class FemModel:
                 if len(node_ids) != 3:
                     raise ValueError(f"TriElement1 must have exactly 3 nodes, got {len(node_ids)} nodes (element {elem_id})")
                 element = ShellElement(elem_id, node_ids, material_id, thickness)
-                print(f"✅ V0互換: TriElement1作成 (要素ID: {elem_id}, 節点: {node_ids})")
+                print(f"V0互換: TriElement1作成 (要素ID: {elem_id}, 節点: {node_ids})")
                 
             elif original_type == 'QuadElement1' or original_type == 'ShellElement':
                 # 四角形要素として作成
                 if len(node_ids) != 4:
                     # 3節点の場合は三角形要素として処理
                     if len(node_ids) == 3:
-                        print(f"🔧 QuadElement1が3節点のため三角形として処理 (要素ID: {elem_id})")
+                        print(f"V0互換: QuadElement1が3節点のため三角形として処理 (要素ID: {elem_id})")
                     else:
                         raise ValueError(f"QuadElement1 must have 3 or 4 nodes, got {len(node_ids)} nodes (element {elem_id})")
                 element = ShellElement(elem_id, node_ids, material_id, thickness)
-                print(f"✅ V0互換: {original_type}作成 (要素ID: {elem_id}, 節点: {node_ids})")
+                print(f"V0互換: {original_type}作成 (要素ID: {elem_id}, 節点: {node_ids})")
                 
             else:
                 # 汎用Shell要素として作成（節点数による自動判定）

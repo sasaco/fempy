@@ -18,7 +18,7 @@ def test_sample_manifest_covers_all_original_files_cases_and_snapshots():
     samples = registered_samples()
     manifest = json.loads((DATA / "manifest.json").read_text(encoding="utf8"))
     assert manifest["hash_policy"] == "sha256_utf8_lf"
-    assert len(samples) == 45
+    assert len(samples) == 46
     assert len({s["id"] for s in samples}) == len(samples)
     assert {s["file"] for s in samples} == {
         p.relative_to(DATA).as_posix()
@@ -33,7 +33,14 @@ def test_sample_manifest_covers_all_original_files_cases_and_snapshots():
         if sample["contract"] == "cantilever_history":
             assert sample["steps"] == list(data["result"])
             assert set(sample["steps"]) == {str(i) for i in range(101)}
+        elif sample["contract"] == "displacement_control_history":
+            targets = next(iter(data["load"].values()))["displacement_control"]["targets"]
+            assert sample["cases"] == []
+            assert sample["steps"] == list(data["result"])
+            assert sample["steps"] == [str(i) for i in range(1, len(targets) + 1)]
+            assert len(sample["steps"]) == len(targets) == 10
         else:
+            assert sample["contract"] == "section_cut_cases"
             assert sample["cases"] == list(
                 dict.fromkeys([*data.get("load", {}), *data.get("result", {})] or ["1"])
             )

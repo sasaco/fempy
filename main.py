@@ -133,7 +133,9 @@ def FEMPython(request):
         return (json.dumps({'error': "予期せぬエラーが発生しました。", 'converged': False}, ensure_ascii=False), 500, headers)
     # endregion
 
-    
+
+# Compatibility name used by earlier functions-framework deployments.
+FrameWeb3 = FEMPython
 
 # データの圧縮用クラスの定義（旧FWそのまま）
 class Compressor():

@@ -26,6 +26,32 @@ def compare_section_cut_result(result, expected, model, data):
     assert not errors, f"{len(errors)} legacy mismatches; first 12:\n" + "\n".join(errors[:12])
 
 
+def displacement_control_history_view(step, model, data):
+    """Select the physical fields saved by the displacement-history contract."""
+    section = section_cut_result_view(step, model, data)
+    return {
+        "lambda": step["lambda"],
+        "control_displacement": step["control_displacement"],
+        "curvature": section["curvature"],
+        "disg": section["disg"],
+        "reac": section["reac"],
+        "fsec": section["fsec"],
+    }
+
+
+def compare_displacement_control_history(result, expected, model, data, targets):
+    """Compare one continuous solve against every requested saved target."""
+    steps = result["step_results"]
+    step_ids = [str(i) for i in range(1, len(targets) + 1)]
+    assert list(expected) == step_ids, "Saved step IDs must be contiguous and ordered"
+    assert len(steps) == len(targets) == len(expected)
+    for step_id, target, step in zip(step_ids, targets, steps):
+        assert step["step"] == int(step_id)
+        assert_dict_almost_equal(step["control_displacement"], target, f"step/{step_id}/target")
+        actual = displacement_control_history_view(step, model, data)
+        assert_dict_almost_equal(actual, expected[step_id], f"step/{step_id}")
+
+
 def run_sample(data_path, *, contract=None):
     data = json.loads(Path(data_path).read_text(encoding="utf-8"))
     if contract is None:
@@ -35,6 +61,17 @@ def run_sample(data_path, *, contract=None):
             (s["contract"] for s in registered_samples() if Path(s["file"]).name == Path(data_path).name),
             None,
         )
+    if contract == "displacement_control_history":
+        expected = data.get("result")
+        assert expected, f"Independent displacement history is missing: {data_path}"
+        assert len(data.get("load", {})) == 1, "Displacement-history samples require one load case"
+        case = next(iter(data["load"].values()))
+        targets = case["displacement_control"]["targets"]
+        m = FemModel()
+        m.load_model(str(data_path))
+        result = m.run()
+        compare_displacement_control_history(result, expected, m, data, targets)
+        return result
     if contract == "cantilever_history" and "reference" not in data:
         from tests.support.assertions import assert_cantilever_history
 

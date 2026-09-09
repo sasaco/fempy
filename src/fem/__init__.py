@@ -35,6 +35,7 @@ from .nonlinear import (
 
 # 結果処理
 from .result_processor import ResultProcessor
+from ._version import __version__
 
 # 注記: 旧実装（FEMCalculation）は2025年6月に削除されました
 # 新実装（FemModel）をご使用ください
@@ -69,5 +70,3 @@ __all__ = [
     # 結果処理
     'ResultProcessor'
 ]
-
-__version__ = '2.1.0'  # 非線形解析機能追加

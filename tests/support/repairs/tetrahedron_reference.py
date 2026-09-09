@@ -5,6 +5,7 @@ nor its reference dependencies import the production FEM solver.
 """
 
 import copy
+import hashlib
 
 from tests.support.paths import ROOT
 from tests.support.repairs.solid_sources import assert_source_input
@@ -15,14 +16,16 @@ SOURCE = "docs/v0/testdata/bend/sampleBendTetra1.fem"
 
 ORIGINAL_SHA256 = "e208edfae118c637fb858593495791bc1596c840e26b884e32d5d7bfc1348e16"
 
-SOURCE_SHA256 = "c27e8c496dfb09cb50ab261869bd212c325086ad67f668c82f57e835bd1608a6"
+SOURCE_CANONICAL_SHA256 = "47fc076bde3d60d637aa2f3cb3473f14c730066a317367bade8d4de5cc2f8ff1"
 
 MANIFEST = ROOT / "docs/report/material-nonlinear-phase4-tetra1-repair.json"
 
 
 def completed_data(data, source, reference):
     topology = assert_source_input(data, source)
-    assert source["sha256"] == SOURCE_SHA256
+    source_bytes = (ROOT / source["path"]).read_bytes()
+    canonical_source = source_bytes.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    assert hashlib.sha256(canonical_source).hexdigest() == SOURCE_CANONICAL_SHA256
     assert data.get("solid") and len(topology) == 2160
     assert reference.get("input_only") is True
     assert reference["hashes"][source["path"]] == source["sha256"]

@@ -1,190 +1,109 @@
 # FEMPython
 
-🎉 **Python FEM解析モジュール - 次世代高精度解析システム**
+FEMPythonは、梁・シェル・ソリッドで構造物の変位、反力、断面力、応力を計算する
+Python有限要素解析ライブラリです。Python API、JSONファイル、およびリポジトリ／
+コンテナから起動するHTTP APIを提供します。
 
-## 🚀 **プロジェクト概要**
-
-FEMPythonは、**技術的に大成功を収めた次世代FEM解析モジュール**です。2025年6月に完了したクラス構成再編プロジェクトにより、旧実装を上回る高精度解析システムとして完成しています。
-
-### 🏆 **技術的優位性**
-- **高精度メッシュ**: 66節点（旧60節点から6節点増加）
-- **包括的荷重処理**: 24荷重ケース、分布荷重31個、集中荷重88個の詳細処理
-- **自動要素分割**: 着目点・分布荷重・集中荷重による高精度メッシュ生成
-- **モジュール化設計**: 保守性・拡張性に優れたアーキテクチャ
-
-## ✨ **主要機能**
-
-### 🔧 **要素分割機能**（完全実装）
-- **着目点分割**: 構造の重要箇所で自動的に要素を分割
-- **分布荷重分割**: 荷重作用位置で精密なメッシュを生成
-- **集中荷重分割**: 集中荷重位置での高精度解析
-
-### 📊 **荷重データ処理**（完全実装）
-- **多重荷重ケース**: 最大24ケースの同時処理
-- **分布荷重**: 31個の分布荷重の詳細処理
-- **集中荷重**: 88個の集中荷重の正確な処理
-
-### 🧮 **解析エンジン**
-- **FemModel**: 統合解析インターフェース
-- **高精度ソルバー**: NumPy基盤の高速計算
-- **結果処理**: 詳細な変位・応力解析
-
-## 📈 **プロジェクト成果**
-
-### 🎯 **改善実績**
-- **節点数差**: 312節点差 → -6節点差（318節点の劇的改善）
-- **精度向上**: 新実装が旧実装を上回る高精度メッシュ
-- **安定性**: 統合テストによる品質保証
-
-### 📋 **完了した機能**
-- ✅ 要素分割機能の完全実装
-- ✅ 荷重データ処理の完全実装  
-- ✅ 統合テストの安定化
-- ✅ モジュール化設計の完成
-
-## 🚀 **使用方法**
-
-```python
-from src.fem.model import FemModel
-
-# 高精度FEM解析の実行
-model = FemModel()
-model.load_model("path/to/model.json")  # 自動要素分割実行
-results = model.run(analysis_type="static")
-displacement = model.get_results()["displacement"]
-```
-
-## 📊 **技術仕様**
-
-- **節点数**: 最大66節点（動的拡張）
-- **要素数**: 最大66要素（自動分割）
-- **荷重ケース**: 最大24ケース同時処理
-- **解析タイプ**: 静的解析、固有値解析対応
-
-## 🔍 **品質保証**
-
-### 📋 **統合テスト**
-```bash
-python check_integration_test.py
-```
-
-統合テストにより新旧実装の比較と品質確認を実行できます。
-
-## 📚 **ドキュメント**
-
-詳細な技術情報は以下を参照してください：
-- `docs/tips/class_structure_alignment.md`: プロジェクト完了報告
-- `src/fem/`: モジュール実装詳細
-- `tests/`: テストケース
-
-## 🎊 **プロジェクト完了**
-
-**2025年6月1日: Python FEM解析モジュール クラス構成再編プロジェクトが技術的成功を収めて完了。次世代高精度FEM解析システムとして本格運用開始。**
-
-## [ドキュメント](https://structuralengine.github.io/FEMPython)
-
-包括的なAPIドキュメントが`docs/wiki/`ディレクトリに用意されています：
-
-- **[概要](docs/wiki/index.md)** - ドキュメント全体の概要
-- **[はじめに](docs/wiki/getting-started.md)** - クイックスタートガイドと基本概念
-- **[APIリファレンス](docs/wiki/endpoints.md)** - 詳細なエンドポイントドキュメント  
-- **[データ構造](docs/wiki/data-structures.md)** - 完全な入出力形式リファレンス
-- **[使用例](docs/wiki/examples.md)** - コード付きの実用的な使用例
-- **[エラーハンドリング](docs/wiki/error-handling.md)** - 包括的なエラーリファレンス
-- **[解析ワークフロー](docs/wiki/workflow.md)** - 内部処理ワークフロー
-- **[クイックリファレンス](docs/wiki/quick-reference.md)** - よく使用するパターン集
-
-
-
-### クイックスタート
-
-```python
-import requests
-
-# シンプルな2Dフレーム解析
-model_data = {
-    "dimension": 2,
-    "node": {
-        "1": {"x": 0, "y": 0},
-        "2": {"x": 5, "y": 0}
-    },
-    "member": {
-        "1": {"ni": 1, "nj": 2, "e": 1}
-    },
-    "element": {
-        "1": {
-            "1": {"E": 205000000, "G": 79000000, "nu": 0.3, "Xp": 1.2e-5, "A": 0.01, "Iy": 0.0001, "Iz": 0.0001, "J": 0.0001}
-        }
-    },
-    "fix_node": {
-        "1": [
-            {"n": "1", "tx": 1, "ty": 1, "tz": 0, "rx": 1, "ry": 1, "rz": 1}
-        ]
-    },
-    "load": {
-        "case1": {"rate": 1.0, "symbol": "case1", "load_node": [{"n": 2, "ty": -10}]}
-    }
-}
-
-response = requests.post('http://localhost:5000/', json=model_data)
-results = response.json()
-```
-
-## 機能
-
-- 2D・3Dフレーム解析
-- 複数要素タイプ（梁、シェル、ソリッド）
-- 様々な荷重条件
-- 複数荷重ケース対応
-- 包括的な結果出力
+現行実装は、線形静解析、JR総研剛性低減RC型の材料非線形解析、固有値解析に対応します。
+要素ごとの対応範囲と未実装の組合せは[要素と解析の選び方](docs/wiki/elements.md)を確認してください。
 
 ## インストール
 
-```bash
-pip install -r requirements.txt
-```
-
-## ドキュメント生成
-
-doxygenを使用して完全なドキュメントを生成：
+配布wheelを利用する場合:
 
 ```bash
-doxygen Doxyfile
+python -m pip install FEMPython
 ```
 
-生成されたドキュメントは`docs/`ディレクトリで利用可能になります。
+リポジトリから開発・検証する場合はPython 3.11以上、uv、固有の旧JavaScript比較を行う場合は
+Node.jsを用意します。
 
-## ディレクトリ構成
-
-```
-.
-├── README.md
-├── main.py
-├── requirements.txt
-├── Doxyfile
-├── docs/
-│   ├── v0/              # 旧バージョン
-│   └── wiki/            # APIドキュメント（日本語）
-├── src/
-│   ├── app/             # アプリ本体
-│   └── fem/             # FEM計算エンジン
-└── tests/               # テストとサンプルデータ
+```bash
+git clone https://github.com/sasaco/fempy.git
+cd fempy
+uv sync --locked --extra dev
 ```
 
-## VSCodeでのデバッグ
+公開import名は`fem`と`app`です。リポジトリ内部の配置名である`src.fem`は使いません。
 
-### 1. Flaskサーバー
-ローカルバックエンドサーバーとして実行（http://127.0.0.1:5000）
+## 最小の解析例
 
-### 2. 単独実行
-フロントエンドを介さずJSONファイルを直接読み込んで実行
+次はN・m・sの一貫単位系で、長さ1 m、`E=1000 N/m²`、断面積2 m²の軸材へ
+100 Nを載荷します。独立解は`u=F L/(E A)=0.05 m`です。
 
-## 注意事項
+```python
+from math import isclose
+from fem import BarParameter, FemModel
 
-- 部材分布バネとピン接合の組み合わせは計算結果の確認が不十分
-- 不安定構造の完全な判定は困難な場合がある
-- 影響線荷重は未実装
+model = FemModel()
+model.add_node(1, 0, 0, 0)
+model.add_node(2, 1, 0, 0)
+model.add_material(1, "test", E=1000, nu=0.25, density=2)
+model.material.add_bar_parameter(
+    1, BarParameter(area=2, Iy=1, Iz=1, J=1)
+)
+model.add_element(
+    1, "bar", [1, 2], 1, section_id=1, shear_correction=False
+)
+model.add_restraint(1, True, True, True, True, True, True)
+model.add_restraint(2, False, True, True, True, True, True)
+model.add_load(2, fx=100)
 
+result = model.run("static")
+displacement = result["node_displacements"][2]["dx"]
+assert isclose(displacement, 0.05, rel_tol=1e-12)
+print(displacement)
+```
 
+入力値へ単位情報は保存されません。力・長さ・時間の単位をモデル全体で統一してください。
+入力形式、境界条件、結果の符号・評価位置は[ユーザーガイド](https://sasaco.github.io/fempy/)にあります。
 
-????????????????????? [tests/README.md](tests/README.md)????????? [??????](docs/plans/test_items.md) ??????????
+## HTTP API
+
+HTTP入口の`main.py`はwheelには含まれません。リポジトリまたは提供コンテナから起動します。
+
+```bash
+uv run functions-framework --target FEMPython --source main.py --port 8080
+```
+
+旧デプロイ名`FrameWeb3`は`FEMPython`の互換aliasとして残しています。通常JSONと互換圧縮形式、
+成功・失敗レスポンスは[HTTP API](docs/wiki/endpoints.md)を参照してください。
+
+## 対応範囲
+
+- 梁、三角形／四角形シェル、一次／二次ソリッドを扱います。
+- 線形静解析、材料非線形解析、固有値解析を選択できます。
+- 節点荷重、部材荷重、温度荷重、支持ばね、強制変位などは要素・解析ごとに対応範囲が異なります。
+- 複数の荷重ケースを同時に重ねて解く入口ではありません。編集用JSONでは選択した1ケースを解析します。
+- 一次wedgeの通常`FemModel`経路には質量行列がなく、固有値解析は未対応です。
+- 影響線解析、一般的な座屈解析、幾何学的非線形解析は提供していません。
+
+「計算が終了したこと」と「対象構造に対して妥当なモデルであること」は別です。支持条件、単位、
+要素選択、メッシュ依存性を確認し、重要な用途では独立解・実験・他実装との比較を行ってください。
+
+## 検証
+
+ロックした開発環境で全テストとWikiの実行例を検査します。
+
+```bash
+uv run --locked --extra dev pytest tests
+uv run --locked --extra dev python -m tools.validation.check_wiki
+```
+
+検証範囲と最新の結果は、[テスト保証範囲](docs/plans/test_items.md)、
+[テスト台帳](docs/plans/test_inventory.md)、[品質ロードマップ](docs/plans/product-quality-roadmap.md)、
+および[検証報告](docs/report/)を参照してください。
+
+## ドキュメント
+
+- [公開ユーザーガイド](https://sasaco.github.io/fempy/)
+- [はじめに](docs/wiki/getting-started.md)
+- [Python API](docs/wiki/python-api.md)
+- [入力データ](docs/wiki/data-structures.md)
+- [実行例](docs/wiki/examples.md)
+- [結果の読み方](docs/wiki/results.md)
+- [エラーと対処](docs/wiki/error-handling.md)
+
+## ライセンス
+
+[MIT License](LICENSE)

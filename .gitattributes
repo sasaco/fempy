@@ -2,3 +2,6 @@ tests/data/**/*.json text eol=lf
 tests/support/oracles/** text eol=lf
 docs/report/*.json text eol=lf
 docs/v0/** text eol=lf
+docs/v0/**/*.pdf -text
+docs/v0/**/*.png -text
+docs/v0/**/*.xlsx -text

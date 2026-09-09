@@ -322,7 +322,17 @@ class ShellElement(BaseElement):
         Me = np.zeros((matrix_size, matrix_size))
         
         # ガウス積分
-        xi_gp, w_gp = self.get_gauss_points()
+        # Mass integrates N_i*N_j. For a linear triangle that product is
+        # quadratic, so the centroid rule used by stiffness is insufficient.
+        if self.element_type == "triangle":
+            xi_gp = np.array([
+                [1.0 / 6.0, 1.0 / 6.0],
+                [2.0 / 3.0, 1.0 / 6.0],
+                [1.0 / 6.0, 2.0 / 3.0],
+            ])
+            w_gp = np.full(3, 1.0 / 6.0)
+        else:
+            xi_gp, w_gp = self.get_gauss_points()
         
         for i, (xi, w) in enumerate(zip(xi_gp, w_gp)):
             # 形状関数
