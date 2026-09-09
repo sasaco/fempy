@@ -12,7 +12,10 @@ from .mesh import MeshModel
 from .boundary_condition import BoundaryCondition
 from .material import Material
 from .dof import DofLayout
-from .equilibrium import NonlinearConvergenceError, direct_step, newton_iteration, solve_direct_system, solve_newton_system
+from .equilibrium import (
+    NonlinearConvergenceError, direct_step, displacement_control_iteration,
+    newton_iteration, solve_direct_system, solve_newton_system,
+)
 from .solver_results import snapshot, final_result
 
 
@@ -205,6 +208,53 @@ class Solver:
                 springs[dof] = stiffness
         return prescribed, springs
 
+    def _prepare_displacement_control(self, control, boundary, n_steps):
+        """Validate public displacement-control input and resolve its global DOF."""
+        if not isinstance(control, dict):
+            raise ValueError('displacement_control must be an object')
+        allowed = {'node', 'dof', 'target', 'targets'}
+        if set(control) - allowed or 'node' not in control or 'dof' not in control:
+            raise ValueError('displacement_control requires node, dof, and target(s)')
+        node = control['node']
+        if isinstance(node, (bool, np.bool_)) or not isinstance(node, (int, np.integer)):
+            raise ValueError('displacement_control node must be an integer')
+        if node not in self.layout.node_offsets:
+            raise ValueError(f'Unknown displacement-control node {node}')
+        names = {'dx': 0, 'dy': 1, 'dz': 2, 'rx': 3, 'ry': 4, 'rz': 5}
+        name = control['dof']
+        if not isinstance(name, str) or name not in names or names[name] >= self.layout.stride:
+            raise ValueError(f'Invalid displacement-control DOF: {name}')
+        dof = self.layout.node_offsets[node]+names[name]
+        prescribed, _ = self._get_boundary_dofs(
+            boundary, self.layout.size, self.layout.stride
+        )
+        if dof in prescribed:
+            raise ValueError('Displacement-control DOF must not be restrained')
+        if any(value != 0 for value in prescribed.values()):
+            raise ValueError(
+                'Displacement control currently requires zero prescribed support motion'
+            )
+        has_target, has_targets = 'target' in control, 'targets' in control
+        if has_target == has_targets:
+            raise ValueError('Specify exactly one of target or targets')
+        if has_targets:
+            try:
+                targets = np.asarray(control['targets'], dtype=float)
+            except (TypeError, ValueError) as error:
+                raise ValueError('displacement-control targets must be numeric') from error
+        else:
+            target = control['target']
+            if (isinstance(target, (bool, np.bool_)) or
+                    not isinstance(target, (int, float, np.integer, np.floating))):
+                raise ValueError('displacement-control target must be numeric')
+            targets = np.linspace(float(target)/n_steps, float(target), n_steps)
+        if targets.ndim != 1 or len(targets) == 0 or not np.all(np.isfinite(targets)):
+            raise ValueError('displacement-control targets must be a nonempty finite sequence')
+        return {
+            'node': int(node), 'dof_name': name, 'dof': dof,
+            'targets': targets.astype(float, copy=False),
+        }
+
     def apply_boundary_conditions(self, K: csr_matrix, F: np.ndarray,
                                   boundary: BoundaryCondition, max_dof_per_node: int = 6,
                                   current_displacement: Optional[np.ndarray] = None,
@@ -250,21 +300,27 @@ class Solver:
     def _newton_raphson_iteration(self, *args, **kwargs):
         return newton_iteration(self, *args, **kwargs)
 
+    def _displacement_control_iteration(self, *args, **kwargs):
+        return displacement_control_iteration(self, *args, **kwargs)
+
     def solve_nonlinear(self, mesh, material, boundary, elements,
                         n_steps=DEFAULT_N_STEPS, max_iter=DEFAULT_MAX_ITER,
-                        tol=DEFAULT_TOL, callback=None, load_factors=None):
+                        tol=DEFAULT_TOL, callback=None, load_factors=None,
+                        displacement_control=None):
         """Legacy method name; all analysis work belongs to solve()."""
         from .solver_results import legacy_nonlinear_result
         result = self.solve(mesh, material, boundary, elements,
                             analysis_type='material_nonlinear', n_steps=n_steps,
                             max_iter=max_iter, tol=tol, callback=callback,
-                            load_factors=load_factors)
+                            load_factors=load_factors,
+                            displacement_control=displacement_control)
         return legacy_nonlinear_result(result, self.layout.stride)
 
     def solve(self, mesh: MeshModel, material: Material, boundary: BoundaryCondition,
               elements: Dict[int, Any], *, analysis_type='static',
               n_steps=DEFAULT_N_STEPS, max_iter=DEFAULT_MAX_ITER,
-              tol=DEFAULT_TOL, callback=None, load_factors=None):
+              tol=DEFAULT_TOL, callback=None, load_factors=None,
+              displacement_control=None):
         """Shared static flow; analysis type selects material law and equilibrium.
 
         The original four positional arguments select reference-elastic static
@@ -282,13 +338,18 @@ class Solver:
                     raise ValueError(f'{name} must be a positive integer')
             if not np.isfinite(tol) or tol <= 0:
                 raise ValueError('tol must be finite and positive')
-            factors = (np.arange(1, n_steps + 1, dtype=float) / n_steps
-                       if load_factors is None else np.asarray(load_factors, dtype=float))
-            if factors.ndim != 1 or len(factors) == 0 or not np.all(np.isfinite(factors)):
-                raise ValueError('load_factors must be a nonempty finite sequence')
+            if displacement_control is not None and load_factors is not None:
+                raise ValueError('load_factors and displacement_control are mutually exclusive')
+            if displacement_control is None:
+                factors = (np.arange(1, n_steps + 1, dtype=float) / n_steps
+                           if load_factors is None else np.asarray(load_factors, dtype=float))
+                if factors.ndim != 1 or len(factors) == 0 or not np.all(np.isfinite(factors)):
+                    raise ValueError('load_factors must be a nonempty finite sequence')
+            else:
+                factors = None
         else:
-            if load_factors is not None:
-                raise ValueError('load_factors is only supported for material_nonlinear')
+            if load_factors is not None or displacement_control is not None:
+                raise ValueError('nonlinear controls are only supported for material_nonlinear')
             factors = [1.0]
 
         self._set_dof_layout(mesh)
@@ -304,11 +365,24 @@ class Solver:
         total = self.assemble_load_vector(mesh, boundary, elements)
         if not np.all(np.isfinite(total)):
             raise ValueError('Loads must be finite')
+        control = None
+        if displacement_control is not None:
+            control = self._prepare_displacement_control(
+                displacement_control, boundary, n_steps
+            )
+            prescribed, _ = self._get_boundary_dofs(boundary, self.layout.size, stride)
+            free = np.array([i for i in range(self.layout.size) if i not in prescribed])
+            if np.linalg.norm(total[free]) == 0:
+                raise ValueError('Displacement control requires a nonzero free-DOF load pattern')
         u = np.zeros(self.layout.size)
         self.displacement = u.copy()
 
-        for step, factor in enumerate(factors, 1):
-            force = factor * total
+        schedule = ([(float(factor), None) for factor in factors] if control is None
+                    else [(None, float(target)) for target in control['targets']])
+        for step, (factor, target) in enumerate(schedule, 1):
+            if control is not None:
+                factor = self.load_factor
+            force = factor*total
             committed_u = u.copy()
             committed_force = deepcopy(self._last_internal_force)
             previous_factors = {key: e.load_factor for key, e in elements.items()
@@ -318,9 +392,15 @@ class Solver:
             history_start = len(self.convergence_history)
             try:
                 if nonlinear:
-                    converged, u, iterations = self._newton_raphson_iteration(
-                        mesh, material, boundary, elements, u, force,
-                        max_iter, tol, stride, factor)
+                    if control is None:
+                        converged, u, iterations = self._newton_raphson_iteration(
+                            mesh, material, boundary, elements, u, force,
+                            max_iter, tol, stride, factor)
+                    else:
+                        converged, u, iterations, factor = self._displacement_control_iteration(
+                            mesh, material, boundary, elements, u, total,
+                            control['dof'], target, factor, max_iter, tol, stride)
+                        force = factor*total
                     if not converged:
                         raise NonlinearConvergenceError(step, factor, committed_u)
                     solution = (u, self._last_internal_force, None, iterations)
@@ -342,6 +422,8 @@ class Solver:
                     record.update(step=step, **{'lambda': factor})
 
             if nonlinear:
+                for key in previous_factors:
+                    elements[key].load_factor = factor
                 for element in elements.values():
                     if hasattr(element, 'commit_state'):
                         element.commit_state()
@@ -350,6 +432,13 @@ class Solver:
             self.displacement_correction = None if solution[2] is None else solution[2].copy()
             self.load_factor = factor
             accepted = snapshot(self, mesh, boundary, elements, solution, force, step, factor, nonlinear)
+            if control is not None:
+                accepted.update(
+                    control_mode='displacement',
+                    control_node=control['node'],
+                    control_dof=control['dof_name'],
+                    control_displacement=float(u[control['dof']]),
+                )
             self.step_results.append(accepted)
             if callback is not None:
                 callback(deepcopy(accepted) if not nonlinear else

@@ -370,6 +370,8 @@ class FemModel:
                 - n_modes: 固有モード数（modal用）
                 - load_factors: 順番どおりに載荷する係数列（material_nonlinear用）。
                   指定時はn_load_stepsの等間隔列に代えて使用する。
+                - displacement_control: node、dofとtargetまたはtargetsで指定する変位制御。
+                  荷重係数を未知数として負勾配を追跡する。load_factorsとは排他。
             analysis_type省略時は入力の指定を使い、それもなければ
             nonlinear_barを含む場合material_nonlinear、それ以外はstatic。
 
@@ -406,7 +408,9 @@ class FemModel:
                 max_iter=self.analysis_params.get('max_iterations', 50),
                 tol=self.analysis_params.get('tolerance', 1e-6),
                 load_factors=(self.analysis_params.get('load_factors')
-                              if analysis_type == 'material_nonlinear' else None)
+                              if analysis_type == 'material_nonlinear' else None),
+                displacement_control=(self.analysis_params.get('displacement_control')
+                                      if analysis_type == 'material_nonlinear' else None)
             )
             if analysis_type == 'material_nonlinear':
                 legacy_nonlinear_result(self.results, self.solver.layout.stride)
@@ -443,7 +447,11 @@ class FemModel:
         P_3_neg: Optional[float] = None,
         nu: float = 0.2,
         density: Optional[float] = None,
-        shear_modulus: Optional[float] = None
+        shear_modulus: Optional[float] = None,
+        delta_4: Optional[float] = None,
+        P_4: Optional[float] = None,
+        delta_4_neg: Optional[float] = None,
+        P_4_neg: Optional[float] = None
     ) -> None:
         """非線形材料を追加
 
@@ -457,6 +465,7 @@ class FemModel:
                 axialは軸ひずみ、moment_y/zは曲率、torsionはねじり率。
                 絶対端部変位・集中ヒンジ回転ではない（理論7.21節）。
             P_1, P_2, P_3: 対応する軸力または断面モーメント（正側）
+            delta_4, P_4: K4を定める正側参照点。両方省略時はK4=0。
             beta: 剛性低減係数（デフォルト: 0.4）
             K_min: 戻り剛性下限値（省略時は初期剛性の1%）
             symmetric: 対称スケルトンカーブを使用するか
@@ -470,6 +479,7 @@ class FemModel:
                 name=name, E=E, nu=nu,
                 delta_1_pos=delta_1, delta_2_pos=delta_2, delta_3_pos=delta_3,
                 P_1_pos=P_1, P_2_pos=P_2, P_3_pos=P_3,
+                delta_4_pos=delta_4, P_4_pos=P_4,
                 beta=beta, K_min=K_min, density=density
             )
         else:
@@ -479,6 +489,8 @@ class FemModel:
                 P_1_pos=P_1, P_2_pos=P_2, P_3_pos=P_3,
                 delta_1_neg=delta_1_neg, delta_2_neg=delta_2_neg, delta_3_neg=delta_3_neg,
                 P_1_neg=P_1_neg, P_2_neg=P_2_neg, P_3_neg=P_3_neg,
+                delta_4_pos=delta_4, P_4_pos=P_4,
+                delta_4_neg=delta_4_neg, P_4_neg=P_4_neg,
                 beta=beta, K_min=K_min, density=density
             )
 
@@ -719,12 +731,16 @@ class FemModel:
                     P_1_pos=nl_mat.P_1_pos,
                     P_2_pos=nl_mat.P_2_pos,
                     P_3_pos=nl_mat.P_3_pos,
+                    delta_4_pos=nl_mat.delta_4_pos,
+                    P_4_pos=nl_mat.P_4_pos,
                     delta_1_neg=nl_mat.delta_1_neg,
                     delta_2_neg=nl_mat.delta_2_neg,
                     delta_3_neg=nl_mat.delta_3_neg,
                     P_1_neg=nl_mat.P_1_neg,
                     P_2_neg=nl_mat.P_2_neg,
                     P_3_neg=nl_mat.P_3_neg,
+                    delta_4_neg=nl_mat.delta_4_neg,
+                    P_4_neg=nl_mat.P_4_neg,
                     beta=nl_mat.beta,
                     K_min=nl_mat.K_min
                 )

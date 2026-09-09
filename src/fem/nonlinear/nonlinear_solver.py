@@ -27,8 +27,10 @@ class NonlinearSolver:
 
     def solve_nonlinear(self, mesh, material, boundary, elements,
                         n_steps=DEFAULT_N_STEPS, max_iter=DEFAULT_MAX_ITER,
-                        tol=DEFAULT_TOL, callback=None, load_factors=None):
+                        tol=DEFAULT_TOL, callback=None, load_factors=None,
+                        displacement_control=None):
         return self.solve(mesh, material, boundary, elements,
                           analysis_type='material_nonlinear', n_steps=n_steps,
                           max_iter=max_iter, tol=tol, callback=callback,
-                          load_factors=load_factors)
+                          load_factors=load_factors,
+                          displacement_control=displacement_control)

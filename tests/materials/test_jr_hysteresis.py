@@ -31,6 +31,79 @@ def test_monotonic_skeleton_all_segments_and_outgoing_tangent(sign, delta, p, k)
 
 @pytest.mark.material_nonlinear
 @pytest.mark.parametrize("sign", [1, -1])
+def test_fourth_slope_is_defined_by_point_four_and_continues_beyond_it(sign):
+    params = parameters(
+        delta_4_pos=18, P_4_pos=14,
+        delta_4_neg=18, P_4_neg=14,
+    )
+    model = Model(params)
+    # K4=(14-22)/(18-10)=-1 and is not changed at delta_4.
+    for delta, force in ((10, 22), (14, 18), (18, 14), (22, 10), (34, -2)):
+        assert model.get_skeleton_force(sign*delta, sign) == pytest.approx(
+            (sign*force, -1)
+        )
+
+
+@pytest.mark.material_nonlinear
+def test_fourth_reference_point_may_be_asymmetric():
+    model = Model(parameters(
+        delta_4_pos=18, P_4_pos=14,
+        delta_4_neg=16, P_4_neg=10,
+    ))
+    assert model.get_skeleton_force(20, 1) == pytest.approx((12, -1))
+    assert model.get_skeleton_force(-20, -1) == pytest.approx((-2, -2))
+
+
+@pytest.mark.material_nonlinear
+@pytest.mark.parametrize("sign", [1, -1])
+def test_reversal_from_fourth_slope_uses_jr_reduced_stiffness(sign):
+    model = Model(parameters(
+        delta_4_pos=18, P_4_pos=14,
+        delta_4_neg=18, P_4_neg=14,
+    ))
+    state = history(model, [sign*14])  # P=18 on K4=-1.
+    state = advance(model, state, sign*13)
+    # beta=0 gives Kd=K2=2 after delta_2.
+    assert (state.current_P, state.current_K) == pytest.approx((sign*16, 2))
+    assert state.reversal_delta == pytest.approx(sign*14)
+
+
+@pytest.mark.material_nonlinear
+@pytest.mark.parametrize("sign", [1, -1])
+def test_reversal_after_fourth_slope_force_zero_stays_continuous(sign):
+    model = Model(parameters(
+        delta_4_pos=18, P_4_pos=14,
+        delta_4_neg=18, P_4_neg=14,
+    ))
+    state = history(model, [sign*34])  # P=-2*sign after K4 crosses P=0.
+
+    state = advance(model, state, sign*33.9)
+
+    # The Kd=2 line has no force-zero point in the reversal direction, so it
+    # continues without jumping to a maximum-point reloading branch.
+    assert (state.current_P, state.current_K) == pytest.approx((-2.2*sign, 2))
+    assert state.branch == "unloading"
+    assert state.reversal_delta == pytest.approx(sign*34)
+
+
+@pytest.mark.material_nonlinear
+@pytest.mark.parametrize("sign", [1, -1])
+def test_unbounded_post_zero_unloading_retraces_to_fourth_skeleton(sign):
+    model = Model(parameters(
+        delta_4_pos=18, P_4_pos=14,
+        delta_4_neg=18, P_4_neg=14,
+    ))
+    state = history(model, [sign*34, sign*20])
+    assert (state.current_P, state.current_K) == pytest.approx((-30*sign, 2))
+
+    state = advance(model, state, sign*34)
+
+    assert (state.current_P, state.current_K) == pytest.approx((-2*sign, -1))
+    assert state.branch == "skeleton"
+
+
+@pytest.mark.material_nonlinear
+@pytest.mark.parametrize("sign", [1, -1])
 def test_reversal_uses_latest_committed_point_and_is_continuous(sign):
     m = Model(parameters(beta=1))
     s = history(m, [sign * 1, sign * 2])  # (2,12), Kd=10/2=5
@@ -260,6 +333,11 @@ def test_nonfinite_parameters_are_explicitly_rejected(field, bad):
         dict(K_min=11),
         dict(P_2_pos=50, P_3_pos=60),
         dict(P_3_neg=40),
+        dict(delta_4_pos=18),
+        dict(P_4_pos=14),
+        dict(delta_4_pos=10, P_4_pos=14),
+        dict(delta_4_pos=18, P_4_pos=22),
+        dict(delta_4_neg=18, P_4_neg=-1),
     ],
 )
 def test_invalid_parameter_order_and_incompatible_stiffness_rejected(changes):
@@ -321,6 +399,15 @@ def test_material_api_validates_before_division_or_analysis(changes):
 def test_symmetric_constructor_rejects_zero_before_default_stiffness_division():
     with pytest.raises(ValueError):
         Params.symmetric(0, 4, 10, 10, 16, 22, 0.4)
+
+
+@pytest.mark.material_nonlinear
+def test_symmetric_constructor_copies_fourth_reference_point():
+    params = Params.symmetric(1, 4, 10, 10, 16, 22, 0.4,
+                              delta_4=18, P_4=14)
+    assert (params.delta_4_pos, params.P_4_pos) == (18, 14)
+    assert (params.delta_4_neg, params.P_4_neg) == (18, 14)
+    assert (params.K_4_pos, params.K_4_neg) == (-1, -1)
 
 
 @pytest.mark.material_nonlinear

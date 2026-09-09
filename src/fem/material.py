@@ -104,8 +104,9 @@ class NonlinearMaterialProperty:
         name: 材料名
         E: 初期ヤング率
         nu: ポアソン比
-        delta_1_pos〜P_3_pos: 正側スケルトンカーブパラメータ
-        delta_1_neg〜P_3_neg: 負側スケルトンカーブパラメータ（省略時は正側と同じ）
+        delta_1_pos〜P_3_pos: 正側の第1〜3骨格点
+        delta_4_pos, P_4_pos: 正側の第4勾配を定める参照点（両方省略可）
+        delta_1_neg〜P_4_neg: 負側パラメータ（省略時は正側と同じ）
         beta: 剛性低減係数
         K_min: 戻り剛性下限値
         density: 密度
@@ -129,13 +130,18 @@ class NonlinearMaterialProperty:
     P_1_neg: Optional[float] = None
     P_2_neg: Optional[float] = None
     P_3_neg: Optional[float] = None
-
     # 剛性低減パラメータ
     beta: float = 0.4     # 剛性低減係数
     K_min: Optional[float] = None  # 戻り剛性下限値（省略時は自動計算）
 
     # その他
     density: Optional[float] = None
+
+    # 第4勾配の参照点（既存の位置引数互換のため末尾へ追加）
+    delta_4_pos: Optional[float] = None
+    P_4_pos: Optional[float] = None
+    delta_4_neg: Optional[float] = None
+    P_4_neg: Optional[float] = None
 
     def __post_init__(self):
         """負側パラメータが省略された場合は正側と同じ値を設定"""
@@ -159,6 +165,10 @@ class NonlinearMaterialProperty:
             self.P_2_neg = self.P_2_pos
         if self.P_3_neg is None:
             self.P_3_neg = self.P_3_pos
+        if self.delta_4_neg is None:
+            self.delta_4_neg = self.delta_4_pos
+        if self.P_4_neg is None:
+            self.P_4_neg = self.P_4_pos
         # Validate before deriving a default floor (including division by δ1).
         params = JRStiffnessReductionParams(**{
             name: getattr(self, name)

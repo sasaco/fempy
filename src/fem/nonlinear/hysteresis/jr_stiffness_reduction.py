@@ -12,10 +12,11 @@ from .base_hysteresis import BaseHysteresis, HysteresisState, HysteresisSegment
 
 @dataclass
 class JRStiffnessReductionParams:
-    """Nonnegative magnitudes on both sides; final (fourth) slope is zero.
+    """Nonnegative skeleton-point magnitudes on both sides.
 
-    This RC model accepts decreasing nonnegative skeleton slopes. K_min is a
-    floor on unloading stiffness only, bounded by both initial stiffnesses.
+    The optional fourth reference point defines the final slope from point 3;
+    that slope continues beyond delta_4. Omitting both delta_4 and P_4 keeps the
+    legacy zero final slope. K_min is an unloading-stiffness floor only.
     """
     delta_1_pos: float
     delta_2_pos: float
@@ -31,11 +32,15 @@ class JRStiffnessReductionParams:
     P_3_neg: float
     beta: float
     K_min: Optional[float] = None
+    delta_4_pos: Optional[float] = None
+    P_4_pos: Optional[float] = None
+    delta_4_neg: Optional[float] = None
+    P_4_neg: Optional[float] = None
 
     def __post_init__(self):
         for item in fields(self):
             value = getattr(self, item.name)
-            if item.name == 'K_min' and value is None:
+            if value is None and (item.name == 'K_min' or '_4_' in item.name):
                 continue
             if not isinstance(value, (int, float)) or not isfinite(value):
                 raise ValueError(f'{item.name} must be finite')
@@ -49,6 +54,15 @@ class JRStiffnessReductionParams:
             k1, k2, k3 = p1/d1, (p2-p1)/(d2-d1), (p3-p2)/(d3-d2)
             if not all(isfinite(k) for k in (k1, k2, k3)) or not 0 <= k3 <= k2 <= k1:
                 raise ValueError(f'{side}: require finite K1 >= K2 >= K3 >= 0')
+            d4 = getattr(self, f'delta_4_{side}')
+            p4 = getattr(self, f'P_4_{side}')
+            if (d4 is None) != (p4 is None):
+                raise ValueError(f'{side}: delta_4 and P_4 must be specified together')
+            if d4 is not None:
+                if not d4 > d3:
+                    raise ValueError(f'{side}: require delta_4 > delta_3')
+                if not 0 <= p4 < p3:
+                    raise ValueError(f'{side}: require 0 <= P_4 < P_3')
         if self.beta < 0:
             raise ValueError('beta must be nonnegative')
         upper = min(self.K_1_pos, self.K_1_neg)
@@ -58,9 +72,11 @@ class JRStiffnessReductionParams:
             raise ValueError('require 0 < K_min <= min(K1_pos, K1_neg)')
 
     @classmethod
-    def symmetric(cls, delta_1, delta_2, delta_3, P_1, P_2, P_3, beta, K_min=None):
+    def symmetric(cls, delta_1, delta_2, delta_3, P_1, P_2, P_3, beta,
+                  K_min=None, delta_4=None, P_4=None):
         return cls(delta_1, delta_2, delta_3, P_1, P_2, P_3,
-                   delta_1, delta_2, delta_3, P_1, P_2, P_3, beta, K_min)
+                   delta_1, delta_2, delta_3, P_1, P_2, P_3, beta, K_min,
+                   delta_4, P_4, delta_4, P_4)
 
     @property
     def K_1_pos(self):
@@ -85,6 +101,18 @@ class JRStiffnessReductionParams:
     @property
     def K_3_neg(self):
         return (self.P_3_neg-self.P_2_neg)/(self.delta_3_neg-self.delta_2_neg)
+
+    @property
+    def K_4_pos(self):
+        if self.delta_4_pos is None:
+            return 0.
+        return (self.P_4_pos-self.P_3_pos)/(self.delta_4_pos-self.delta_3_pos)
+
+    @property
+    def K_4_neg(self):
+        if self.delta_4_neg is None:
+            return 0.
+        return (self.P_4_neg-self.P_3_neg)/(self.delta_4_neg-self.delta_3_neg)
 
 
 class JRStiffnessReductionModel(BaseHysteresis):
@@ -122,7 +150,8 @@ class JRStiffnessReductionModel(BaseHysteresis):
                 k = (end_p-start_p)/(end_d-start_d)
                 return direction*(start_p+k*(d-start_d)), k
             start_d, start_p = end_d, end_p
-        return direction*start_p, 0.
+        k = self._value('K_4', direction)
+        return direction*(start_p+k*(d-start_d)), k
 
     def get_reduced_stiffness(self, state, direction):
         side = self._side(direction)
@@ -156,13 +185,13 @@ class JRStiffnessReductionModel(BaseHysteresis):
         """Extend to the first forward envelope intersection if zero overshoots.
 
         Solve kd*(delta-zero)=a+k*delta on each forward skeleton interval.
-        The constant final capacity and kd>0 guarantee a finite intersection.
+        The nonpositive final slope and kd>0 guarantee a finite intersection.
         """
         start = start_p = 0.
         for i in (1, 2, 3, 4):
             end = self._value(f'delta_{i}', direction) if i < 4 else float('inf')
             end_p = self._value(f'P_{i}', direction) if i < 4 else start_p
-            k = (end_p-start_p)/(end-start) if i < 4 else 0.
+            k = (end_p-start_p)/(end-start) if i < 4 else self._value('K_4', direction)
             intercept = direction*(start_p-k*start)
             if kd != k:
                 x = (kd*zero+intercept)/(kd-k)
@@ -199,9 +228,25 @@ class JRStiffnessReductionModel(BaseHysteresis):
             s.reversal_stack.append((x, p))
             s.reversal_paths.append(old)
 
-        source_direction = 1 if p > 0 else -1 if p < 0 else -direction
+        # On the skeleton, a negative K4 can carry force through zero without
+        # changing the deformation side. Active return paths still identify
+        # their source side by force sign, as required by the existing nested
+        # loop rules.
+        if old is None and x != 0:
+            source_direction = 1 if x > 0 else -1
+        else:
+            source_direction = 1 if p > 0 else -1 if p < 0 else -direction
         kd = self.get_reduced_stiffness(s, source_direction)
         zero = x-p/kd
+        if direction*(zero-x) < 0:
+            # The K4 branch has passed P=0, so the positive-Kd unloading line
+            # cannot reach zero in the reversal direction. Keep that line
+            # continuous indefinitely; a later reversal retraces it to x.
+            s.active_segment = HysteresisSegment(
+                x, p, direction*float('inf'), direction*float('inf'), kd,
+                'inner_unloading' if old is not None else 'unloading',
+                reverse_segment=old, origin_depth=depth)
+            return
         if len(s.reversal_stack) >= 2:
             target_x, target_p = s.reversal_stack[-2]
             continuation = s.reversal_paths[-2]

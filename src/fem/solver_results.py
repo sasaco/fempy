@@ -37,7 +37,10 @@ def final_result(solver, nonlinear):
         # The historical low-level result has no final element_stresses key;
         # FemModel consumes the accepted end-force snapshot during postprocess.
         keys = ('displacement', 'node_displacements', 'reaction_forces', 'curvature', 'converged')
-        result = {key: last[key] for key in keys}
+        if last.get('control_mode') == 'displacement':
+            keys += ('lambda', 'control_mode', 'control_node', 'control_dof',
+                     'control_displacement')
+        result = {key: last[key] for key in keys if key in last}
         result.update(step_results=deepcopy(solver.step_results),
                       convergence_history=deepcopy(solver.convergence_history),
                       analysis_type='material_nonlinear')

@@ -310,6 +310,8 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                         P_1 = nl_data.get('P_1', 100.0)
                         P_2 = nl_data.get('P_2', 500.0)
                         P_3 = nl_data.get('P_3', 550.0)
+                        delta_4 = nl_data.get('delta_4')
+                        P_4 = nl_data.get('P_4')
 
                         # 負側パラメータ（非対称の場合）
                         if symmetric:
@@ -319,6 +321,8 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                             P_1_neg = P_1
                             P_2_neg = P_2
                             P_3_neg = P_3
+                            delta_4_neg = delta_4
+                            P_4_neg = P_4
                         else:
                             delta_1_neg = nl_data.get('delta_1_neg', delta_1)
                             delta_2_neg = nl_data.get('delta_2_neg', delta_2)
@@ -326,6 +330,8 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                             P_1_neg = nl_data.get('P_1_neg', P_1)
                             P_2_neg = nl_data.get('P_2_neg', P_2)
                             P_3_neg = nl_data.get('P_3_neg', P_3)
+                            delta_4_neg = nl_data.get('delta_4_neg', delta_4)
+                            P_4_neg = nl_data.get('P_4_neg', P_4)
 
                         beta = nl_data.get('beta', 0.4)
                         K_min = nl_data.get('K_min', None)
@@ -341,12 +347,16 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                             P_1_pos=P_1,
                             P_2_pos=P_2,
                             P_3_pos=P_3,
+                            delta_4_pos=delta_4,
+                            P_4_pos=P_4,
                             delta_1_neg=delta_1_neg,
                             delta_2_neg=delta_2_neg,
                             delta_3_neg=delta_3_neg,
                             P_1_neg=P_1_neg,
                             P_2_neg=P_2_neg,
                             P_3_neg=P_3_neg,
+                            delta_4_neg=delta_4_neg,
+                            P_4_neg=P_4_neg,
                             beta=beta,
                             K_min=K_min,
                             density=elem_def.get('den')
@@ -434,6 +444,7 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 'tolerance': first_case.get('tolerance', 1e-6),
                 'n_modes': first_case.get('n_modes', 10),
                 'load_factors': first_case.get('load_factors'),
+                'displacement_control': first_case.get('displacement_control'),
             }
             if model_data['analysis_type'] is None:
                 model_data['analysis_type'] = first_case.get('analysis_type')

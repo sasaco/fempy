@@ -49,11 +49,14 @@ def axial_json(force=12, **controls):
     }
 
 
-def python_axial(force=12):
+def python_axial(force=12, *, delta_4=None, P_4=None):
     m = FemModel()
     m.add_node(10, 0, 0, 0)
     m.add_node(30, 2, 0, 0)
-    m.add_nonlinear_material(1, "reference", 10000, 0.001, 0.004, 0.010, 10, 16, 22, beta=0, nu=0.25)
+    m.add_nonlinear_material(
+        1, "reference", 10000, 0.001, 0.004, 0.010, 10, 16, 22,
+        beta=0, nu=0.25, delta_4=delta_4, P_4=P_4,
+    )
     m.material.add_bar_parameter(1, BarParameter(1, 1, 1, 1))
     m.add_nonlinear_bar_element(7, [10, 30], 1, 1, ["axial"])
     m.add_restraint(10, True, True, True, True, True, True)

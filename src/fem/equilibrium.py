@@ -7,7 +7,7 @@ The algebra functions return values without mutating accepted solver state.
 import warnings
 from typing import Any, Dict
 import numpy as np
-from scipy.sparse import csr_matrix, diags
+from scipy.sparse import bmat, csr_matrix, diags
 from scipy.sparse.linalg import splu, MatrixRankWarning
 from .mesh import MeshModel
 from .material import Material
@@ -383,3 +383,118 @@ def newton_iteration(
     # 最大反復数に到達
     print(f"    最大反復数 ({max_iter}) に到達、収束せず")
     return False, u, max_iter
+
+
+def displacement_control_iteration(
+    self,
+    mesh: MeshModel,
+    material: Material,
+    boundary: BoundaryCondition,
+    elements: Dict[int, Any],
+    u_init: np.ndarray,
+    load_pattern: np.ndarray,
+    control_dof: int,
+    target: float,
+    initial_load_factor: float,
+    max_iter: int,
+    tol: float,
+    max_dof_per_node: int,
+) -> tuple:
+    """Solve equilibrium with one displacement constraint and unknown lambda.
+
+    The Newton system is ``[K, -P; c.T, 0] [du, dlambda] = [R, g]``.
+    It remains regular at a simple load limit point and permits a negative
+    structural tangent. Snap-back still requires arc-length control.
+    """
+    u = u_init.copy()
+    load_factor = float(initial_load_factor)
+    prescribed, springs = self._get_boundary_dofs(
+        boundary, len(u), max_dof_per_node
+    )
+    active = np.array([i for i in range(len(u)) if i not in prescribed], dtype=int)
+    if control_dof not in set(active):
+        raise ValueError('Displacement control DOF must be free')
+    control_column = int(np.flatnonzero(active == control_dof)[0])
+    selector = np.zeros(len(active))
+    selector[control_column] = 1.0
+    du = np.zeros_like(u)
+    dlambda = 0.0
+
+    for iteration in range(max_iter):
+        F_int = self._assemble_internal_forces(mesh, elements, u, max_dof_per_node)
+        spring_force = self._spring_force(u, springs)
+        residual = load_factor*load_pattern-F_int-spring_force
+        residual_free = residual[active]
+        constraint = target-u[control_dof]
+        force_scale = max(
+            np.linalg.norm(load_factor*load_pattern[active]),
+            np.linalg.norm((F_int+spring_force)[active]),
+            np.linalg.norm(load_pattern[active]),
+            1.0,
+        )
+        displacement_scale = max(abs(target), abs(u[control_dof]), 1.0)
+        relative_residual = np.linalg.norm(residual_free)/force_scale
+        relative_constraint = abs(constraint)/displacement_scale
+        if iteration:
+            relative_du = max(
+                np.linalg.norm(du)/max(np.linalg.norm(u), 1.0),
+                abs(dlambda)/max(abs(load_factor), 1.0),
+            )
+        else:
+            relative_du = float('inf')
+        self.convergence_history.append({
+            'iteration': iteration+1,
+            'residual_norm': float(np.linalg.norm(residual_free)),
+            'relative_residual': float(relative_residual),
+            'control_residual': float(constraint),
+            'relative_control_residual': float(relative_constraint),
+            'relative_du': float(relative_du) if iteration else None,
+            'load_factor': float(load_factor),
+        })
+
+        if max(relative_residual, relative_constraint) < tol:
+            if iteration == 0 or relative_du < tol:
+                # As in load control, a zero residual is accepted only after
+                # proving that the augmented tangent has numerical rank.
+                if iteration == 0:
+                    tangent = self._assemble_tangent_stiffness(
+                        mesh, material, elements, u, max_dof_per_node
+                    ).tolil()
+                    for dof, stiffness in springs.items():
+                        tangent[dof, dof] += stiffness
+                    reduced = tangent.tocsr()[active][:, active]
+                    augmented = bmat([
+                        [reduced, csr_matrix(-load_pattern[active, None])],
+                        [csr_matrix(selector[None, :]), csr_matrix((1, 1))],
+                    ], format='csr')
+                    try:
+                        self._solve_newton_system(augmented, np.zeros(len(active)+1))
+                    except ValueError:
+                        return False, u, iteration+1, load_factor
+                self._last_internal_force = F_int.copy()
+                return True, u, iteration+1, load_factor
+
+        tangent = self._assemble_tangent_stiffness(
+            mesh, material, elements, u, max_dof_per_node
+        ).tolil()
+        for dof, stiffness in springs.items():
+            tangent[dof, dof] += stiffness
+        reduced = tangent.tocsr()[active][:, active]
+        augmented = bmat([
+            [reduced, csr_matrix(-load_pattern[active, None])],
+            [csr_matrix(selector[None, :]), csr_matrix((1, 1))],
+        ], format='csr')
+        rhs = np.r_[residual_free, constraint]
+        try:
+            increment = self._solve_newton_system(augmented, rhs)
+        except ValueError:
+            return False, u, iteration+1, load_factor
+        du = np.zeros_like(u)
+        du[active] = increment[:-1]
+        dlambda = float(increment[-1])
+        u += du
+        load_factor += dlambda
+        if not np.all(np.isfinite(u)) or not np.isfinite(load_factor):
+            return False, u, iteration+1, load_factor
+
+    return False, u, max_iter, load_factor

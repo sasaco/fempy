@@ -34,6 +34,33 @@ def test_python_json_file_http_equivalence(tmp_path):
 
 
 @pytest.mark.material_nonlinear
+def test_json_and_http_displacement_control_trace_actual_jr_softening():
+    control = {
+        "node": 30,
+        "dof": "dx",
+        "targets": [0.008, 0.020, 0.028, 0.036, 0.040, 0.068, 0.0678],
+    }
+    data = axial_json(force=1, displacement_control=control)
+    nonlinear = data["element"]["1"]["1"]["nonlinear"]
+    nonlinear.update(delta_4=0.018, P_4=14)  # K4=(14-22)/(.018-.010)=-1000.
+    python_model = python_axial(1, delta_4=0.018, P_4=14)
+    python_model.analysis_params["displacement_control"] = control
+    results = [wire(python_model.run()), wire(json_model(data).run())]
+    response = app.test_client().post("/", json=data)
+    assert response.status_code == 200
+    results.append(json.loads(response.data))
+    for result in results:
+        assert [step["lambda"] for step in result["step_results"]] == pytest.approx(
+            [16, 22, 18, 14, 12, -2, -2.2], abs=1e-9
+        )
+        assert [step["control_displacement"] for step in result["step_results"]] == pytest.approx(
+            control["targets"], abs=1e-12
+        )
+        assert result["lambda"] == pytest.approx(-2.2)
+        assert result["node_displacements"]["30"]["dx"] == pytest.approx(0.0678)
+
+
+@pytest.mark.material_nonlinear
 def test_omitted_nu_has_same_nonlinear_default_in_python_json_and_http():
     d = axial_json(0)
     del d["element"]["1"]["1"]["nu"]

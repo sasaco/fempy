@@ -75,3 +75,28 @@ class CappedBar(CubicBar):
         b = np.zeros(12)
         b[0], b[6] = -1, 1
         return np.outer(b, b) if abs(u[6] - u[0]) <= 1 else np.zeros((12, 12))
+
+
+class SofteningBar(CubicBar):
+    """One-DOF envelope with a peak and a negative post-peak tangent."""
+
+    @staticmethod
+    def _response(delta):
+        if delta <= 1:
+            return delta, 1.0
+        if delta < 2:
+            return 2-delta, -1.0
+        return 0.0, 0.0
+
+    def get_internal_force(self, u):
+        self.trial = u[6] - u[0]
+        value, _ = self._response(self.trial)
+        force = np.zeros(12)
+        force[6], force[0] = value, -value
+        return force
+
+    def get_tangent_stiffness_matrix(self, u):
+        b = np.zeros(12)
+        b[0], b[6] = -1, 1
+        _, tangent = self._response(u[6] - u[0])
+        return tangent * np.outer(b, b)
