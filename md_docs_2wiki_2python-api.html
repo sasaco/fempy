@@ -98,9 +98,9 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2python-api.html',''); i
   <div class="headertitle"><div class="title">Python API</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md76"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2examples.html">実行例</a> · <a class="el" href="md_docs_2wiki_2file-formats.html">ファイル入出力</a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md78"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2examples.html">実行例</a> · <a class="el" href="md_docs_2wiki_2file-formats.html">ファイル入出力</a></p>
 <p>通常は<code>FemModel</code>を入口にします。節点・材料・断面・要素・支持・荷重を作り、<code>run()</code>で解析します。要素の追加時に材料や座標を参照するため、以下の順序で設定してください。</p>
-<h1><a class="anchor" id="autotoc_md77"></a>
+<h1><a class="anchor" id="autotoc_md79"></a>
 Pythonだけで片持ち梁を作る</h1>
 <p>この例はファイルを用意せずに実行できます。<a class="el" href="md_docs_2wiki_2getting-started.html">はじめに</a>のJSONモデルと同じ条件です。</p>
 <div class="fragment"><div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> isclose</div>
@@ -122,7 +122,7 @@ Pythonだけで片持ち梁を作る</h1>
 <div class="line">print(model.get_node_displacement(2))</div>
 <div class="line">print(model.get_element_stress(1))</div>
 </div><!-- fragment --><p>Python APIには<code>dimension</code>の設定はありません。この例は3Dの梁として組み立てますが、荷重と形状によりXY平面内で変形します。厳密に平面の自由度へ制限する場合は、各節点の<code>dz, rx, ry</code>を明示的に拘束します。</p>
-<h1><a class="anchor" id="autotoc_md78"></a>
+<h1><a class="anchor" id="autotoc_md80"></a>
 モデルを作る操作</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -163,7 +163,7 @@ Pythonだけで片持ち梁を作る</h1>
 <p>分布荷重の方向は<code>local_x, local_y, local_z, local_r, global_x, global_y, global_z</code>です。部材途中だけの分布荷重や集中荷重は、<a class="el" href="md_docs_2wiki_2data-structures.html">編集用JSONの荷重・分割指定</a>を使うと、荷重区間と節点を一緒に処理できます。</p>
 <p>支持・荷重の上書きと加算は区別してください。<code>add_load()</code>は同じ節点への荷重を加算します。<code>add_restraint()</code>はその節点の拘束を置き換えます。<code>add_forced_displacement()</code>の0は「既存の値を0に戻す」操作ではありません。値を0へ戻す場合は<code>add_restraint(..., values=[...])</code>で支持全体を再設定します。</p>
 <p>拘束値の絶対値が1,000を超える場合のばね互換処理、同一自由度の拘束とばねの競合については<a class="el" href="md_docs_2wiki_2data-structures.html">入力ガイド</a>を参照してください。</p>
-<h1><a class="anchor" id="autotoc_md79"></a>
+<h1><a class="anchor" id="autotoc_md81"></a>
 解析・結果の操作</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -175,27 +175,30 @@ Pythonだけで片持ち梁を作る</h1>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>analysis_params</code>   </td><td class="markdownTableBodyNone">解析制御の辞書。載荷係数、反復上限、許容差、モード数を設定。    </td></tr>
 <tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>model_metadata</code>   </td><td class="markdownTableBodyNone">座標系と一貫単位系の宣言。既定では単位未指定。    </td></tr>
+<tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>get_results()</code>   </td><td class="markdownTableBodyNone">現在の結果。未解析・解析失敗後はNone。    </td></tr>
-<tr class="markdownTableRowOdd">
+<tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>get_node_displacement(node_id)</code>   </td><td class="markdownTableBodyNone">解析済み節点変位。存在しなければNone。    </td></tr>
-<tr class="markdownTableRowEven">
+<tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>get_element_stress(elem_id)</code>   </td><td class="markdownTableBodyNone">要素結果。梁では端力。存在しなければNone。    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>get_model_info()</code>   </td><td class="markdownTableBodyNone"><code>n_nodes, n_elements, n_materials, n_restraints, n_loads, element_types</code>など。    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>load_model(path)</code>、<code>save_model(path)</code>   </td><td class="markdownTableBodyNone">モデルを読込・保存。    </td></tr>
+<td class="markdownTableBodyNone"><code>get_model_info()</code>   </td><td class="markdownTableBodyNone"><code>n_nodes, n_elements, n_materials, n_restraints, n_loads, element_types</code>など。    </td></tr>
 <tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>load_model(path)</code>、<code>save_model(path)</code>   </td><td class="markdownTableBodyNone">モデルを読込・保存。    </td></tr>
+<tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>save_results(path)</code>、<code>load_results(path)</code>   </td><td class="markdownTableBodyNone">結果JSONを保存・読込。履歴状態の再開には使わない。   </td></tr>
 </table>
 <p>固有値解析のモード数は<code>model.analysis_params["n_modes"]</code>で指定して<code>run("modal")</code>を呼ぶか、<code>run_modal_analysis(n_modes=...)</code>へ直接渡します。後者は呼出し中だけ設定を上書きし、解析後は元の<code>analysis_params</code>を復元します。モード数には正の整数を指定してください。<a class="el" href="md_docs_2wiki_2examples.html">固有値解析の例</a>も参照してください。</p>
 <p><code>get_node_count()</code>・<code>get_element_count()</code>というメソッドはありません。<code>model.get_model_info()["n_nodes"]</code>、または<code>len(model.mesh.nodes)</code>を使います。</p>
-<h1><a class="anchor" id="autotoc_md80"></a>
+<h1><a class="anchor" id="autotoc_md82"></a>
 ファイルを読んでから組み立てる場合</h1>
 <p><code>load_model()</code>は変換と組立をまとめて行います。途中のモデルを扱う必要があれば、<code>fem.file_io.read_model(path)</code>が返す内部モデル辞書を<code>model.read_json_model(...)</code>へ渡せます。</p>
 <p><code>read_json_model()</code>は名前に反して、生のJSON辞書をそのまま受け取るメソッドではありません。<code>mesh, material, boundary, section</code>などのオブジェクトへ変換済みの辞書が必要です。<code>load_model_from_dict()</code>も存在しません。通常はJSONファイルを保存して<code>load_model()</code>を使うか、上記の構築APIで組み立ててください。</p>
-<h1><a class="anchor" id="autotoc_md81"></a>
+<h1><a class="anchor" id="autotoc_md83"></a>
 状態の管理</h1>
 <p><code>run()</code>は毎回、要素を作り直して解析状態を初期化します。材料非線形の前回履歴を続行する操作ではありません。モデル読込や再解析が失敗した場合、前回の結果を今回の成功結果として残さないよう<code>results</code>を消去します。</p>
+<p>解析失敗は<code>ValueError</code>／<code>RuntimeError</code>互換の診断例外で、<code>error_code</code>と確定できた<code>details</code>を 参照できます。分類とログ設定は<a class="el" href="md_docs_2wiki_2error-handling.html">エラーと対処</a>、成功結果の<code>metadata</code>は <a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a>を参照してください。</p>
 <p>返値や<code>get_results()</code>はアプリで利用する結果です。独立した保管用コピーが必要なら<code>copy.deepcopy()</code>またはJSON保存を使ってください。複数ケース・複数ジョブでは、ケースごとに<code>FemModel</code>を作ると状態の混同を避けられます。</p>
 <p>要素・ソルバーを直接組み合わせる上級用途は<a class="el" href="md_docs_2wiki_2workflow.html">解析ワークフロー</a>を参照してください。 </p>
 </div></div><!-- contents -->

@@ -12,7 +12,7 @@ var searchData=
   ['solid_9',['Solid',['../classapp_1_1components_1_1solid_1_1Solid.html',1,'app::components::solid']]],
   ['solidelement_10',['SolidElement',['../classfem_1_1elements_1_1solid__element_1_1SolidElement.html',1,'fem::elements::solid_element']]],
   ['solidelementbase_11',['SolidElementBase',['../classfem_1_1elements_1_1solid__element_1_1SolidElementBase.html',1,'fem::elements::solid_element']]],
-  ['solve_12',['solve',['../classfem_1_1solver_1_1Solver.html#ad1617bf2434bff2c72270863427ae84a',1,'fem.solver.Solver.solve()'],['../namespacefem_1_1decimal__bvp.html#a2d346eea7b0d26f26031063efca345c9',1,'fem.decimal_bvp.solve()']]],
+  ['solve_12',['solve',['../namespacefem_1_1decimal__bvp.html#a2d346eea7b0d26f26031063efca345c9',1,'fem.decimal_bvp.solve()'],['../classfem_1_1solver_1_1Solver.html#ad1617bf2434bff2c72270863427ae84a',1,'fem.solver.Solver.solve()']]],
   ['solve_5fdirect_5fsystem_13',['solve_direct_system',['../namespacefem_1_1equilibrium.html#a460874644f1bfa5dfade063e1cfa6c2e',1,'fem::equilibrium']]],
   ['solve_5flinear_5fsystem_14',['solve_linear_system',['../classfem_1_1solver_1_1Solver.html#a9171b95906f305a0f5c83635a915ca4b',1,'fem::solver::Solver']]],
   ['solve_5fnewton_5fsystem_15',['solve_newton_system',['../namespacefem_1_1equilibrium.html#a60c18d77ad76b417eb985f617b96cac4',1,'fem::equilibrium']]],
@@ -25,5 +25,6 @@ var searchData=
   ['strain_5fpart_22',['strain_part',['../namespacefem_1_1strain__stress.html#abb5d7b007a4d1ead08c6944461756588',1,'fem::strain_stress']]],
   ['strain_5fstress_23',['strain_stress',['../namespacefem_1_1strain__stress.html#ac193cf897c0482e22f47a8d4f547dbb3',1,'fem::strain_stress']]],
   ['stress_24',['Stress',['../classfem_1_1strain__stress_1_1Stress.html',1,'fem::strain_stress']]],
-  ['support_25',['Support',['../classapp_1_1components_1_1support_1_1Support.html',1,'app::components::support']]]
+  ['structuralmechanismerror_25',['StructuralMechanismError',['../classfem_1_1diagnostics_1_1StructuralMechanismError.html',1,'fem::diagnostics']]],
+  ['support_26',['Support',['../classapp_1_1components_1_1support_1_1Support.html',1,'app::components::support']]]
 ];

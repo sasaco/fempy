@@ -98,9 +98,9 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2workflow.html',''); ini
   <div class="headertitle"><div class="title">解析ワークフロー</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md104"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2python-api.html">Python API</a> · <a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md107"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2python-api.html">Python API</a> · <a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a></p>
 <p>このページは、入力から結果までの処理と、要素・ソルバーを直接利用する場合の契約を説明します。通常の解析は<code>FemModel</code>を使えば、この流れをまとめて実行できます。</p>
-<h1><a class="anchor" id="autotoc_md105"></a>
+<h1><a class="anchor" id="autotoc_md108"></a>
 入力から結果まで</h1>
 <div class="fragment"><div class="line">JSONファイル／HTTP入力</div>
 <div class="line">    ↓ 形式の変換、ケース選択、参照の解決</div>
@@ -112,19 +112,19 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2workflow.html',''); ini
 <div class="line">    └─ modal：剛性・質量行列 → 固有値問題</div>
 <div class="line">    ↓ 変位・反力・端力・応力の整理</div>
 <div class="line">Python結果辞書 → 必要に応じてJSON保存／HTTP応答</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md106"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md109"></a>
 1. 入力の変換とケース選択</h2>
 <p><code>load_model()</code>は拡張子に応じた読込を行い、変換済みモデルを<code>read_json_model()</code>へ渡します。HTTPは生のJSONを同じ変換処理へ渡します。</p>
 <p>編集用JSONは先頭の荷重ケースを選び、そのケースが参照する材料・支持・分布ばね・材端条件を解決します。全ケースの解析を並列に実行する処理ではありません。</p>
-<h2><a class="anchor" id="autotoc_md107"></a>
+<h2><a class="anchor" id="autotoc_md110"></a>
 2. 部材の分割</h2>
 <p>着目点、分布荷重の境界、集中荷重位置、剛域の境界から分割位置を作ります。荷重を分割後の要素へ配分し、材端の回転解放を元部材の外端へ引き継ぎます。要素の元IDと元部材上の位置も保持します。</p>
 <p>他の荷重ケースの部材荷重位置を共通の分割位置として参照する場合がありますが、実際に載荷するのは選んだケースです。位置が増えることと、複数荷重ケースを計算することは異なります。</p>
-<h2><a class="anchor" id="autotoc_md108"></a>
+<h2><a class="anchor" id="autotoc_md111"></a>
 3. 自由度と行列の組立</h2>
 <p>節点IDの昇順にコンパクトな自由度表を作ります。対応するソリッドだけなら3並進、それ以外のモデルは6成分を確保し、各要素を必要な自由度へ対応付けます。IDが飛び番でも、<code>(node_id−1)×6</code>で直接添字を計算しません。</p>
 <p>要素の局所剛性・荷重を全体座標へ変換し、支持ばねや強制変位を反映します。静解析の拘束処理は対称消去、固有値解析では剛性・質量の両方から同じ拘束自由度を除いて縮約します。</p>
-<h2><a class="anchor" id="autotoc_md109"></a>
+<h2><a class="anchor" id="autotoc_md112"></a>
 4. 解析</h2>
 <p>線形静解析は1回の全荷重を参照弾性剛性で解きます。スケーリングや補償計算、必要に応じた高精度計算を使い、小さな変形や端力を保持します。非線形解析の段階を1にした計算とは、材料則も数値処理も異なります。</p>
 <p>材料非線形解析は指定された係数列を順に処理します。各段階で基準荷重と強制変位を同じ係数で変化させ、Newton反復と残差に基づく増分縮小を行います。</p>
@@ -136,10 +136,10 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2workflow.html',''); ini
 <li>試行評価は確定履歴を基準に行い、収束した段階だけをコミットします。</li>
 </ul>
 <p>失敗時は直前の確定状態へ戻して例外を送出します。失敗状態のまま次段階へ進めません。</p>
-<h2><a class="anchor" id="autotoc_md110"></a>
+<h2><a class="anchor" id="autotoc_md113"></a>
 5. 後処理</h2>
 <p>梁の端力、シェルの両面結果、ソリッドの積分点応力を計算します。対象の線形梁では釣合いから端力を回復し、構成則との差も検査します。後処理が失敗した場合も解析成功として返しません。</p>
-<h1><a class="anchor" id="autotoc_md111"></a>
+<h1><a class="anchor" id="autotoc_md114"></a>
 共通ソルバーAPI</h1>
 <p><code>FemModel.run()</code>の静解析・材料非線形解析は共通の<code>Solver</code>を使います。固有値解析は<code>eigenvalue_analysis()</code>という別の経路です。</p>
 <table class="markdownTable">
@@ -154,7 +154,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2workflow.html',''); ini
 </table>
 <p>低水準<code>solve()</code>へ<code>static</code>と<code>load_factors</code>を同時指定すると入力エラーです。<code>FemModel.run("static")</code>は非線形用係数を渡さず、基準荷重を1回で解きます。</p>
 <p>旧<code><a class="el" href="classfem_1_1nonlinear_1_1nonlinear__solver_1_1NonlinearSolver.html">fem.nonlinear.nonlinear_solver.NonlinearSolver</a></code>、<code>solve_nonlinear()</code>は共通実装に委譲する互換入口です。<code>NonlinearSolver.solve()</code>は非線形解析を選びます。<code>FemModel.nonlinear_solver</code>は同じソルバーの変位・収束履歴を参照する互換ビューです。</p>
-<h1><a class="anchor" id="autotoc_md112"></a>
+<h1><a class="anchor" id="autotoc_md115"></a>
 コールバックで確定段階を受け取る</h1>
 <p>低水準APIを使う場合の例です。<a class="el" href="md_docs_2wiki_2getting-started.html">はじめに</a>の<code>beam.json</code>を用意します。線形梁を非線形解析モードで段階載荷し、確定した載荷係数を記録します。要素は線形のままです。</p>
 <div class="fragment"><div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> isclose</div>
@@ -178,11 +178,11 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2workflow.html',''); ini
 <div class="line">print(accepted_factors)</div>
 </div><!-- fragment --><p>コールバックは段階を保存した後にスナップショットのコピーを受け取ります。コールバックが例外を送出すると、その段階は確定した状態で停止します。通常の解析未収束のロールバックとは区別してください。<code>FemModel.run()</code>やHTTPにcallback引数はありません。</p>
 <p>低水準ソルバーの返値には、FemModelが追加するすべての後処理結果は含まれません。低水準の非線形最終返値には最終<code>element_stresses</code>を追加せず、段階結果に端力を持ちます。通常の応力・シェル結果が必要ならFemModelを利用します。</p>
-<h1><a class="anchor" id="autotoc_md113"></a>
+<h1><a class="anchor" id="autotoc_md116"></a>
 状態と結果の独立性</h1>
 <p>各solve呼出しで解析状態を初期化し、<code>reset_states()</code>を持つ要素は履歴も初期化します。最終返値、段階結果、コールバックの辞書・配列は独立したコピーです。内部の<code>solver.step_results</code>は線形・非線形の両方で利用できますが、線形の外部結果へは段階履歴を追加しません。</p>
 <p>内部の節点変位と新しい非線形<code>Solver.solve()</code>の返値は6キーです。3DOFメッシュの従来<code>NonlinearSolver</code>／<code>solve_nonlinear()</code>／FemModel／HTTP／非線形callbackは<code>dx, dy, dz</code>へ射影します。<code>NonlinearConvergenceError</code>の旧importと<code>step, load_factor, displacement</code>の属性も維持しています。</p>
-<h1><a class="anchor" id="autotoc_md114"></a>
+<h1><a class="anchor" id="autotoc_md117"></a>
 実装への案内</h1>
 <ul>
 <li><a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/model.py">モデルの組立・後処理</a></li>

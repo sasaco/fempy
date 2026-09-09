@@ -116,30 +116,39 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2elements.html',''); ini
 <p>非線形梁を含むモデルに<code>static</code>を指定すると、履歴則を使わない参照弾性解析になります。弾性剛性は材料の<code>E</code>・<code>G</code>と断面から計算するため、入力した非線形骨格の初期勾配と一致するように設定したかを確認してください。</p>
 <h1><a class="anchor" id="autotoc_md16"></a>
 対応する要素</h1>
-<p>以下は<code>FemModel</code>で選ぶ主要な要素名です。「材料非線形則」は非線形則を持てる要素を示し、線形要素は非線形モデル内でも線形のまま使われます。</p>
+<p>以下は<code>FemModel</code>で選ぶ主要な要素名です。線形要素は材料非線形モデル内でも線形のまま使われます。</p>
+<p>この表は配布物に含まれる<code>fem/capabilities.json</code>から生成します。 「実装済み」は経路が存在するものの、この組合せに対する個別の力学検証が未完了であることを示します。 荷重・結果欄にない項目は未対応です。JSON正本では未対応項目と理由も明示しています。</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">要素   </th><th class="markdownTableHeadRight">節点数   </th><th class="markdownTableHeadNone">線形静解析   </th><th class="markdownTableHeadNone">材料非線形則   </th><th class="markdownTableHeadNone">質量行列／固有値解析    </th></tr>
+<th class="markdownTableHeadNone">要素（公開名）   </th><th class="markdownTableHeadRight">節点数   </th><th class="markdownTableHeadNone">線形静解析   </th><th class="markdownTableHeadNone">材料非線形解析   </th><th class="markdownTableHeadNone">固有値解析   </th><th class="markdownTableHeadNone">質量行列   </th><th class="markdownTableHeadNone">利用できる荷重   </th><th class="markdownTableHeadNone">取得できる結果    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>bar</code>、<code>beam</code>   </td><td class="markdownTableBodyRight">2   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone">質量行列あり    </td></tr>
+<td class="markdownTableBodyNone"><code>bar</code>、<code>beam</code>   </td><td class="markdownTableBodyRight">2   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）、部材分布荷重（検証済み）、温度荷重（検証済み）、分布ばね（検証済み）、材端解放（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、梁端力（検証済み）、固有値・モード（検証済み）    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>nonlinear_bar</code>   </td><td class="markdownTableBodyRight">2   </td><td class="markdownTableBodyNone">参照弾性で対応   </td><td class="markdownTableBodyNone">JR剛性低減型   </td><td class="markdownTableBodyNone">参照梁の質量行列を使用    </td></tr>
+<td class="markdownTableBodyNone"><code>nonlinear_bar</code>   </td><td class="markdownTableBodyRight">2   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、梁端力（検証済み）、固有値・モード（実装済み）    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>shell</code>   </td><td class="markdownTableBodyRight">3、4   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone">質量行列あり    </td></tr>
+<td class="markdownTableBodyNone"><code>shell</code>   </td><td class="markdownTableBodyRight">3、4   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）、シェル面圧（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、シェル表面量（検証済み）、固有値・モード（検証済み）    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>tetra</code>   </td><td class="markdownTableBodyRight">4   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone">質量行列あり    </td></tr>
+<td class="markdownTableBodyNone"><code>tetra</code>、<code>tet</code>   </td><td class="markdownTableBodyRight">4   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）、固有値・モード（検証済み）    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>wedge</code>   </td><td class="markdownTableBodyRight">6   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone"><b>通常のFemModel経路では未実装</b>    </td></tr>
+<td class="markdownTableBodyNone"><code>wedge</code>   </td><td class="markdownTableBodyRight">6   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>hexa</code>   </td><td class="markdownTableBodyRight">8   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone">質量行列あり    </td></tr>
+<td class="markdownTableBodyNone"><code>hexa</code>、<code>hex</code>   </td><td class="markdownTableBodyRight">8   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）、固有値・モード（実装済み）    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>tetra2</code>   </td><td class="markdownTableBodyRight">10   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone">質量行列あり    </td></tr>
+<td class="markdownTableBodyNone"><code>tetra2</code>   </td><td class="markdownTableBodyRight">10   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）、固有値・モード（検証済み）    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>wedge2</code>   </td><td class="markdownTableBodyRight">15   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone">質量行列あり    </td></tr>
+<td class="markdownTableBodyNone"><code>wedge2</code>   </td><td class="markdownTableBodyRight">15   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）、固有値・モード（実装済み）    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>hexa2</code>   </td><td class="markdownTableBodyRight">20   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone">質量行列あり   </td></tr>
+<td class="markdownTableBodyNone"><code>hexa2</code>   </td><td class="markdownTableBodyRight">20   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）、固有値・モード（実装済み）    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>pyramid</code>   </td><td class="markdownTableBodyRight">5   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone">—   </td><td class="markdownTableBodyNone">—    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>hexa20</code>   </td><td class="markdownTableBodyRight">20   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone">—   </td><td class="markdownTableBodyNone">—   </td></tr>
 </table>
-<p>質量行列があることは、あらゆる支持条件・形状で固有値計算が成功するという意味ではありません。密度、不要自由度、収束を確認する必要があります。</p>
+<p>状態と全aliasを含む機械可読な定義はPythonからも取得できます。</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> fem <span class="keyword">import</span> get_capability_registry</div>
+<div class="line"> </div>
+<div class="line">capabilities = get_capability_registry()</div>
+</div><!-- fragment --><p>質量行列があることは、あらゆる支持条件・形状で固有値計算が成功するという意味ではありません。密度、不要自由度、収束を確認する必要があります。</p>
 <p><code>pyramid</code>と<code>hexa20</code>はクラス名・入口が残っていますが、必要な計算が未実装です。20節点六面体を使う場合の実装済み名称は**<code>hexa2</code>**です。旧名称<code>TetraElement2</code>、<code>WedgeElement2</code>、<code>HexaElement2</code>はそれぞれ二次要素に対応します。</p>
 <h1><a class="anchor" id="autotoc_md17"></a>
 梁：曲げとせん断変形</h1>

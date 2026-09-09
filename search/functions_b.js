@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['output_5fmsg_0',['output_msg',['../classapp_1_1error__handling_1_1MyError.html#a90c34b46acca884eb2ddaec21427926d',1,'app::error_handling::MyError']]]
+  ['newton_5fiteration_0',['newton_iteration',['../namespacefem_1_1equilibrium.html#a0156a09e92b6114f4983ec904ada78b3',1,'fem::equilibrium']]],
+  ['normalize_5fmodel_5fmetadata_1',['normalize_model_metadata',['../namespacefem_1_1solver__results.html#a0a6dd59c515552aded61ad169aa89e94',1,'fem::solver_results']]],
+  ['normalvector_2',['normalVector',['../classfem_1_1models_1_1fa__shell_1_1FA__Shell.html#aa80afd73512086c1dc4a672e61a3c6bd',1,'fem::models::fa_shell::FA_Shell']]]
 ];

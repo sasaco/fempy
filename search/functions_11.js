@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['write_5fmodel_0',['write_model',['../namespacefem_1_1file__io.html#a69d5b49db33e7e89c09feb364dd59b8f',1,'fem::file_io']]],
-  ['write_5fresult_1',['write_result',['../namespacefem_1_1file__io.html#ae81a5ec2bb046a8585f5bdbfbb444390',1,'fem::file_io']]],
-  ['write_5fvtk_2',['write_vtk',['../namespacefem_1_1file__io.html#af094c8dabc88175b5916692a79345171',1,'fem::file_io']]]
+  ['update_5fstate_0',['update_state',['../classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1BaseHysteresis.html#a6b7850b1b23f3744c604a98101b2941f',1,'fem.nonlinear.hysteresis.base_hysteresis.BaseHysteresis.update_state()'],['../classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel.html#ae96686fc46e9b11b77b06e9c339e1310',1,'fem.nonlinear.hysteresis.jr_stiffness_reduction.JRStiffnessReductionModel.update_state()']]]
 ];

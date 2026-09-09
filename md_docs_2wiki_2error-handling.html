@@ -134,7 +134,11 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2error-handling.html',''
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>load_factor</code>   </td><td class="markdownTableBodyNone">失敗した載荷係数    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>displacement</code>   </td><td class="markdownTableBodyNone">最後に収束した変位のコピー。失敗段階の解ではない   </td></tr>
+<td class="markdownTableBodyNone"><code>displacement</code>   </td><td class="markdownTableBodyNone">最後に収束した変位のコピー。失敗段階の解ではない    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>error_code</code>   </td><td class="markdownTableBodyNone">常に<code>nonlinear_nonconvergence</code>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>details</code>   </td><td class="markdownTableBodyNone"><code>step</code>と<code>load_factor</code>を持つ機械可読な辞書   </td></tr>
 </table>
 <p>解析失敗後の<code>model.get_results()</code>はNoneです。直前までの低水準スナップショットは<code>model.solver.step_results</code>に残りますが、完了した解析結果として扱わないでください。HTTPの422応答は、これらの途中変位を返しません。</p>
 <p>以下は耐力22 N·mのモデルへ30 N·mを与え、失敗を検出する例です。</p>
@@ -158,6 +162,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2error-handling.html',''
 <div class="line">    model.run()</div>
 <div class="line">    <span class="keywordflow">raise</span> AssertionError(<span class="stringliteral">&quot;耐力を超えたモデルは成功しないはずです&quot;</span>)</div>
 <div class="line"><span class="keywordflow">except</span> NonlinearConvergenceError <span class="keyword">as</span> error:</div>
+<div class="line">    <span class="keyword">assert</span> error.error_code == <span class="stringliteral">&quot;nonlinear_nonconvergence&quot;</span></div>
 <div class="line">    <span class="keyword">assert</span> error.step == 1</div>
 <div class="line">    <span class="keyword">assert</span> model.get_results() <span class="keywordflow">is</span> <span class="keywordtype">None</span></div>
 <div class="line">    print(<span class="stringliteral">&quot;失敗段階:&quot;</span>, error.step, <span class="stringliteral">&quot;載荷係数:&quot;</span>, error.load_factor)</div>
@@ -171,11 +176,39 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2error-handling.html',''
 </ol>
 <p>耐力を超えて釣合い解がない場合や機構になった場合は、反復回数を増やしても解決しません。許容差を緩めただけの結果を妥当と判断せず、自由節点の釣合いと履歴を確認します。</p>
 <h1><a class="anchor" id="autotoc_md35"></a>
-HTTPステータスの解釈</h1>
-<p>入力検証のValueErrorなどは400、非線形未収束は422、NumPyの線形代数例外は500です。同じ「不安定構造」でも、検出される箇所によってステータスが変わる場合があります。</p>
-<p><code>error_code</code>は<code>invalid_input</code>、<code>nonlinear_nonconvergence</code>、<code>analysis_failure</code>などで、例外によっては付かない場合もあります。共通する<code>error</code>と<code>converged: false</code>を確認します。タイムアウト・通信断はサーバーのエラーJSONを受け取れないこともあります。</p>
-<p>圧縮要求のエラー応答は通常JSONです。成功時のBase64/gzip復号をエラー応答に適用しないでください。<a class="el" href="md_docs_2wiki_2endpoints.html">HTTPの例</a>を参照してください。</p>
+Pythonの診断例外</h1>
+<p><code>FemModel.run()</code>は従来の<code>ValueError</code>／<code>RuntimeError</code>との互換性を保ちながら、次の機械可読な <code>error_code</code>を持つ例外を返します。</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone"><code>error_code</code>   </th><th class="markdownTableHeadNone">代表例   </th><th class="markdownTableHeadNone">Python例外    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>invalid_input</code>   </td><td class="markdownTableBodyNone">トポロジ欠落、解析パラメータ不正   </td><td class="markdownTableBodyNone"><code>InputValidationError</code>（<code>ValueError</code>）    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>unsupported_analysis</code>   </td><td class="markdownTableBodyNone">未知解析、未対応の要素・解析組合せ   </td><td class="markdownTableBodyNone"><code>UnsupportedAnalysisError</code>または<code>UnsupportedCapabilityError</code>（<code>ValueError</code>）    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>structural_mechanism</code>   </td><td class="markdownTableBodyNone">剛体運動、特異剛性   </td><td class="markdownTableBodyNone"><code>StructuralMechanismError</code>（<code>ValueError</code>）    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>numerical_ill_conditioning</code>   </td><td class="markdownTableBodyNone">数値ランク不足、釣合い精度不足   </td><td class="markdownTableBodyNone"><code>NumericalConditionError</code>（<code>ValueError</code>）    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>nonlinear_nonconvergence</code>   </td><td class="markdownTableBodyNone">Newton反復の未収束   </td><td class="markdownTableBodyNone"><code>NonlinearConvergenceError</code>（<code>RuntimeError</code>）    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>modal_nonconvergence</code>   </td><td class="markdownTableBodyNone">固有値ソルバー再試行の未収束   </td><td class="markdownTableBodyNone"><code>ModalConvergenceError</code>（<code>RuntimeError</code>）   </td></tr>
+</table>
+<p>例外の<code>details</code>には、確定できる場合だけ<code>analysis_type</code>、<code>issues</code>内の要素ID、<code>matrix_dofs</code>、 <code>step</code>、<code>load_factor</code>などが入ります。一般的な特異行列から原因節点を一意に決められない場合は、 推測した節点・自由度を返しません。入力ファイルの読込そのものや低水準APIでは、従来どおり 診断属性を持たない<code>ValueError</code>が出る場合があります。</p>
 <h1><a class="anchor" id="autotoc_md36"></a>
+HTTPステータスの解釈</h1>
+<p>HTTPエラーJSONは常に<code>error</code>、<code>error_code</code>、<code>error_category</code>、<code>converged: false</code>を持ちます。 入力不正と未知解析は400、未対応組合せ・構造機構・数値悪条件・反復未収束は422、 分類できない内部失敗は500です。<code>details</code>は確定した追加情報がある場合だけ付きます。 同じ<code>FemModel.run()</code>の失敗はPython例外とHTTPで同じ<code>error_code</code>になります。</p>
+<p>分類できない後処理の<code>LinAlgError</code>などは<code>analysis_failure</code>です。タイムアウト・通信断は サーバーのエラーJSONを受け取れないこともあります。</p>
+<p>圧縮要求のエラー応答は通常JSONです。成功時のBase64/gzip復号をエラー応答に適用しないでください。<a class="el" href="md_docs_2wiki_2endpoints.html">HTTPの例</a>を参照してください。</p>
+<h1><a class="anchor" id="autotoc_md37"></a>
+解析ログを有効にする</h1>
+<p>ライブラリは解析反復やモデル分割を標準出力へ無条件に書きません。Python標準の<code>logging</code>で 必要な範囲だけ有効にできます。Newton反復は<code><a class="el" href="namespacefem_1_1equilibrium.html">fem.equilibrium</a></code>のDEBUG、未収束通知はINFOです。</p>
+<div class="fragment"><div class="line"><span class="keyword">import</span> logging</div>
+<div class="line"> </div>
+<div class="line">logging.basicConfig(level=logging.INFO)</div>
+<div class="line">logging.getLogger(<span class="stringliteral">&quot;fem.equilibrium&quot;</span>).setLevel(logging.DEBUG)</div>
+</div><!-- fragment --><p>入力変換は<code><a class="el" href="namespacefem_1_1file__io.html">fem.file_io</a></code>、モデル分割は<code><a class="el" href="namespacefem_1_1model.html">fem.model</a></code>、要素の数値警告は各要素モジュールの loggerへ出ます。アプリケーション側でhandler、level、出力先を設定してください。</p>
+<h1><a class="anchor" id="autotoc_md38"></a>
 問題を再現できる形にする</h1>
 <p>解析種別、入力JSON、期待する値と得られた値、例外またはHTTP応答、Python・依存環境を残します。材料非線形では<code>load_factors</code>と失敗した段階も必要です。結果が大きくずれるときは、元の大規模モデルとともに、問題を保った小さなモデルを作ると原因を追いやすくなります。</p>
 <p>製品の既存テストと保証範囲は<a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/tests/README.md">テストガイド</a>を参照してください。 </p>

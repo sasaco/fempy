@@ -5,5 +5,6 @@ var searchData=
   ['nonlinearbarelement_2',['NonlinearBarElement',['../classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html',1,'fem::elements::nonlinear_bar_element']]],
   ['nonlinearconvergenceerror_3',['NonlinearConvergenceError',['../classfem_1_1equilibrium_1_1NonlinearConvergenceError.html',1,'fem::equilibrium']]],
   ['nonlinearmaterialproperty_4',['NonlinearMaterialProperty',['../classfem_1_1material_1_1NonlinearMaterialProperty.html',1,'fem::material']]],
-  ['nonlinearsolver_5',['NonlinearSolver',['../classfem_1_1nonlinear_1_1nonlinear__solver_1_1NonlinearSolver.html',1,'fem::nonlinear::nonlinear_solver']]]
+  ['nonlinearsolver_5',['NonlinearSolver',['../classfem_1_1nonlinear_1_1nonlinear__solver_1_1NonlinearSolver.html',1,'fem::nonlinear::nonlinear_solver']]],
+  ['numericalconditionerror_6',['NumericalConditionError',['../classfem_1_1diagnostics_1_1NumericalConditionError.html',1,'fem::diagnostics']]]
 ];

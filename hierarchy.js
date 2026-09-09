@@ -24,6 +24,13 @@ var hierarchy =
     ] ],
     [ "fem.boundary_condition.BoundaryCondition", "classfem_1_1boundary__condition_1_1BoundaryCondition.html", null ],
     [ "app.components.load.CaseComb", "classapp_1_1components_1_1load_1_1CaseComb.html", null ],
+    [ "fem.diagnostics.DiagnosticErrorMixin", "classfem_1_1diagnostics_1_1DiagnosticErrorMixin.html", [
+      [ "fem.diagnostics.InputValidationError", "classfem_1_1diagnostics_1_1InputValidationError.html", null ],
+      [ "fem.diagnostics.ModalConvergenceError", "classfem_1_1diagnostics_1_1ModalConvergenceError.html", null ],
+      [ "fem.diagnostics.NumericalConditionError", "classfem_1_1diagnostics_1_1NumericalConditionError.html", null ],
+      [ "fem.diagnostics.StructuralMechanismError", "classfem_1_1diagnostics_1_1StructuralMechanismError.html", null ],
+      [ "fem.diagnostics.UnsupportedAnalysisError", "classfem_1_1diagnostics_1_1UnsupportedAnalysisError.html", null ]
+    ] ],
     [ "fem.boundary_condition.DistributedLoad", "classfem_1_1boundary__condition_1_1DistributedLoad.html", null ],
     [ "fem.dof.DofLayout", "classfem_1_1dof_1_1DofLayout.html", null ],
     [ "Exception", null, [
@@ -95,6 +102,7 @@ var hierarchy =
     [ "fem.boundary_condition.Restraint", "classfem_1_1boundary__condition_1_1Restraint.html", null ],
     [ "fem.result_processor.ResultProcessor", "classfem_1_1result__processor_1_1ResultProcessor.html", null ],
     [ "RuntimeError", null, [
+      [ "fem.diagnostics.ModalConvergenceError", "classfem_1_1diagnostics_1_1ModalConvergenceError.html", null ],
       [ "fem.equilibrium.NonlinearConvergenceError", "classfem_1_1equilibrium_1_1NonlinearConvergenceError.html", null ]
     ] ],
     [ "fem.section.Section", "classfem_1_1section_1_1Section.html", null ],
@@ -106,6 +114,13 @@ var hierarchy =
     [ "fem.strain_stress.Strain", "classfem_1_1strain__stress_1_1Strain.html", null ],
     [ "fem.strain_stress.Stress", "classfem_1_1strain__stress_1_1Stress.html", null ],
     [ "fem.boundary_condition.Temperature", "classfem_1_1boundary__condition_1_1Temperature.html", null ],
+    [ "ValueError", null, [
+      [ "fem.capabilities.UnsupportedCapabilityError", "classfem_1_1capabilities_1_1UnsupportedCapabilityError.html", null ],
+      [ "fem.diagnostics.InputValidationError", "classfem_1_1diagnostics_1_1InputValidationError.html", null ],
+      [ "fem.diagnostics.NumericalConditionError", "classfem_1_1diagnostics_1_1NumericalConditionError.html", null ],
+      [ "fem.diagnostics.StructuralMechanismError", "classfem_1_1diagnostics_1_1StructuralMechanismError.html", null ],
+      [ "fem.diagnostics.UnsupportedAnalysisError", "classfem_1_1diagnostics_1_1UnsupportedAnalysisError.html", null ]
+    ] ],
     [ "fem.vtk_writer.VTKWriter", "classfem_1_1vtk__writer_1_1VTKWriter.html", null ],
     [ "ABC", null, [
       [ "fem.nonlinear.hysteresis.base_hysteresis.BaseHysteresis", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1BaseHysteresis.html", [

@@ -145,7 +145,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2endpoints.html',''); in
 <p>編集用JSONの<code>load</code>に複数ケースがある場合は、先頭のケースだけを解析します。結果に荷重ケース名の階層は付きません。全ケースの処理は<a class="el" href="md_docs_2wiki_2examples.html">ケースごとの実行例</a>と同様に、クライアント側で1ケースずつ送ります。</p>
 <h2><a class="anchor" id="autotoc_md27"></a>
 成功時の結果</h2>
-<p>線形解析では<code>analysis_type</code>、<code>node_displacements</code>、<code>reaction_forces</code>、<code>element_stresses</code>などを返します。非線形解析では<code>converged</code>、<code>step_results</code>、<code>curvature</code>、<code>convergence_history</code>が加わります。固有値解析では<code>frequencies</code>、<code>periods</code>、<code>modes</code>などになります。</p>
+<p>線形解析では<code>analysis_type</code>、<code>node_displacements</code>、<code>reaction_forces</code>、<code>element_stresses</code>などを返します。非線形解析では<code>converged</code>、<code>step_results</code>、<code>curvature</code>、<code>convergence_history</code>が加わります。固有値解析では<code>frequencies</code>、<code>periods</code>、<code>modes</code>などになります。すべての成功結果に、製品version、入力SHA-256、解析条件、座標・単位宣言、残差、反復数、警告、高精度経路をまとめた<code>metadata</code>が付きます。</p>
 <p>JSONのIDは文字列です。<code>case1.disg/reac/fsec</code>を返す旧説明とは異なります。単位・符号・任意項目は<a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a>を参照してください。</p>
 <h1><a class="anchor" id="autotoc_md28"></a>
 互換用の圧縮転送</h1>
@@ -188,21 +188,29 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2endpoints.html',''); in
 <tr class="markdownTableHead">
 <th class="markdownTableHeadRight">HTTP   </th><th class="markdownTableHeadNone">代表的な<code>error_code</code>   </th><th class="markdownTableHeadNone">意味    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyRight">400   </td><td class="markdownTableBodyNone"><code>invalid_input</code>   </td><td class="markdownTableBodyNone">JSON形式・値・参照・解析種別などの問題    </td></tr>
+<td class="markdownTableBodyRight">400   </td><td class="markdownTableBodyNone"><code>invalid_input</code>   </td><td class="markdownTableBodyNone">JSON形式・値・参照などの問題    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyRight">422   </td><td class="markdownTableBodyNone"><code>nonlinear_nonconvergence</code>   </td><td class="markdownTableBodyNone">非線形の指定段階が未収束    </td></tr>
+<td class="markdownTableBodyRight">400   </td><td class="markdownTableBodyNone"><code>unsupported_analysis</code>   </td><td class="markdownTableBodyNone">未知の解析種別    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyRight">500   </td><td class="markdownTableBodyNone"><code>analysis_failure</code>   </td><td class="markdownTableBodyNone">線形代数・結果処理の例外    </td></tr>
+<td class="markdownTableBodyRight">422   </td><td class="markdownTableBodyNone"><code>unsupported_analysis</code>   </td><td class="markdownTableBodyNone">要素・荷重と解析種別の未対応組合せ    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyRight">500   </td><td class="markdownTableBodyNone">キーなしの場合あり   </td><td class="markdownTableBodyNone">その他の内部例外   </td></tr>
+<td class="markdownTableBodyRight">422   </td><td class="markdownTableBodyNone"><code>structural_mechanism</code>   </td><td class="markdownTableBodyNone">剛体運動・特異剛性    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyRight">422   </td><td class="markdownTableBodyNone"><code>numerical_ill_conditioning</code>   </td><td class="markdownTableBodyNone">数値ランク・釣合い精度の問題    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyRight">422   </td><td class="markdownTableBodyNone"><code>nonlinear_nonconvergence</code> / <code>modal_nonconvergence</code>   </td><td class="markdownTableBodyNone">反復解法の未収束    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyRight">500   </td><td class="markdownTableBodyNone"><code>analysis_failure</code>   </td><td class="markdownTableBodyNone">分類できない線形代数・結果処理・内部例外   </td></tr>
 </table>
-<p>エラーの共通項目は<code>error</code>と<code>converged: false</code>です。例外によって<code>error_code</code>がない場合もあります。常に<code>message/details</code>を持つ固定形式ではありません。</p>
+<p>エラーの共通項目は<code>error</code>、<code>error_code</code>、<code>error_category</code>、<code>converged: false</code>です。 確定した節点・自由度・要素・失敗段階などがある場合だけ<code>details</code>が付きます。</p>
 <div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;error&quot;: &quot;Nonlinear analysis did not converge at step 2 (load factor 0.5)&quot;,</div>
 <div class="line">  &quot;error_code&quot;: &quot;nonlinear_nonconvergence&quot;,</div>
+<div class="line">  &quot;error_category&quot;: &quot;convergence&quot;,</div>
 <div class="line">  &quot;converged&quot;: false,</div>
 <div class="line">  &quot;step&quot;: 2,</div>
-<div class="line">  &quot;load_factor&quot;: 0.5</div>
+<div class="line">  &quot;load_factor&quot;: 0.5,</div>
+<div class="line">  &quot;details&quot;: {&quot;step&quot;: 2, &quot;load_factor&quot;: 0.5}</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>Python標準の<code>urlopen()</code>は400・422・500で<code>HTTPError</code>を送出します。エラーのボディは、圧縮要求の場合でもJSONとして読みます。</p>
 <div class="fragment"><div class="line"><span class="keyword">import</span> json</div>
@@ -219,7 +227,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2endpoints.html',''); in
 <div class="line">    <span class="keyword">assert</span> error.code == 400</div>
 <div class="line">    <span class="keyword">assert</span> body[<span class="stringliteral">&quot;converged&quot;</span>] <span class="keywordflow">is</span> <span class="keyword">False</span></div>
 <div class="line">    print(error.code, body[<span class="stringliteral">&quot;error&quot;</span>])</div>
-</div><!-- fragment --><p>特異なモデルが常に500になるとは限りません。入力検証で検出されれば400、非線形の釣合いが成立しなければ422になる場合があります。<a class="el" href="md_docs_2wiki_2error-handling.html">エラーと対処</a>の手順でモデル条件を確認してください。</p>
+</div><!-- fragment --><p>特異な静解析モデルは<code>structural_mechanism</code>、非線形反復で同じ状態へ到達した場合は <code>nonlinear_nonconvergence</code>になることがあります。後者は反復中に機構の原因を確定できないためです。 <a class="el" href="md_docs_2wiki_2error-handling.html">エラーと対処</a>の手順でモデル条件を確認してください。</p>
 <h1><a class="anchor" id="autotoc_md30"></a>
 運用上の挙動</h1>
 <p>POSTは同期処理です。ジョブIDの発行、進捗取得、キャンセル用エンドポイントはありません。クライアントがタイムアウトしても、サーバー側で計算が停止したことを意味しません。環境の処理時間・メモリ制約は、ライブラリの固定上限とは別に確認してください。 </p>

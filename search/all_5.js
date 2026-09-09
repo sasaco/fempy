@@ -36,9 +36,10 @@ var searchData=
   ['_5fread_5flegacy_5fjson_5fmodel_33',['_read_legacy_json_model',['../namespacefem_1_1file__io.html#ad623a45cb8a59d0b996a7a52832be556',1,'fem::file_io']]],
   ['_5frecover_5fbeam_5fend_5fforces_34',['_recover_beam_end_forces',['../classfem_1_1model_1_1FemModel.html#a0e307aeda3b15df4b5278fa11d07311e',1,'fem::model::FemModel']]],
   ['_5frefine_5fbeam_5fequilibrium_35',['_refine_beam_equilibrium',['../namespacefem_1_1equilibrium.html#ae3b800cec4fec31d3efd16967b004e07',1,'fem::equilibrium']]],
-  ['_5fsection_5foperators_36',['_section_operators',['../classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#ac4dc810addb2510ef0f8b3b32bb10137',1,'fem::elements::nonlinear_bar_element::NonlinearBarElement']]],
-  ['_5fset_5felement_5fcoordinates_37',['_set_element_coordinates',['../classfem_1_1model_1_1FemModel.html#ad79ece1c1a9b6623a04654dfc9193844',1,'fem::model::FemModel']]],
-  ['_5fsolve_38',['_solve',['../namespacefem_1_1elements_1_1solid__precision.html#a37bda6436acff95984fb4239b64a7d48',1,'fem::elements::solid_precision']]],
-  ['_5fwrite_5ffw3_5fmodel_39',['_write_fw3_model',['../namespacefem_1_1file__io.html#abc46b178a0cdb779b2847c07296c0d43',1,'fem::file_io']]],
-  ['_5fwrite_5fjson_5fmodel_40',['_write_json_model',['../namespacefem_1_1file__io.html#a3a9d9919690c15bb3af4cacdda58a2da',1,'fem::file_io']]]
+  ['_5frun_36',['_run',['../classfem_1_1model_1_1FemModel.html#ac080735198ac0469fd1c7b3a1793cf91',1,'fem::model::FemModel']]],
+  ['_5fsection_5foperators_37',['_section_operators',['../classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#ac4dc810addb2510ef0f8b3b32bb10137',1,'fem::elements::nonlinear_bar_element::NonlinearBarElement']]],
+  ['_5fset_5felement_5fcoordinates_38',['_set_element_coordinates',['../classfem_1_1model_1_1FemModel.html#ad79ece1c1a9b6623a04654dfc9193844',1,'fem::model::FemModel']]],
+  ['_5fsolve_39',['_solve',['../namespacefem_1_1elements_1_1solid__precision.html#a37bda6436acff95984fb4239b64a7d48',1,'fem::elements::solid_precision']]],
+  ['_5fwrite_5ffw3_5fmodel_40',['_write_fw3_model',['../namespacefem_1_1file__io.html#abc46b178a0cdb779b2847c07296c0d43',1,'fem::file_io']]],
+  ['_5fwrite_5fjson_5fmodel_41',['_write_json_model',['../namespacefem_1_1file__io.html#a3a9d9919690c15bb3af4cacdda58a2da',1,'fem::file_io']]]
 ];

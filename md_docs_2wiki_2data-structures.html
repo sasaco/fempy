@@ -162,6 +162,8 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2data-structures.html','
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>analysis_params</code>   </td><td class="markdownTableBodyNone">解析制御。選択した荷重ケース内の同名設定より優先する。    </td></tr>
 <tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>model_metadata</code>   </td><td class="markdownTableBodyNone">保存用JSONで使う座標系・一貫単位系の宣言。編集用旧JSONでは省略可。    </td></tr>
+<tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>boundary_conditions</code>   </td><td class="markdownTableBodyNone">強制変位・支持ばねを明示する補助形式。下記参照。   </td></tr>
 </table>
 <p><code>load</code>は静解析の荷重を与える通常の入口ですが、強制変位だけのモデルや固有値解析では省略できます。支持が不足したモデルは、荷重がゼロでも適切な解析モデルにはなりません。</p>

@@ -4,9 +4,11 @@ var namespacefem =
     [ "axial_interpolation", "namespacefem_1_1axial__interpolation.html", null ],
     [ "beam_equilibrium", "namespacefem_1_1beam__equilibrium.html", null ],
     [ "boundary_condition", "namespacefem_1_1boundary__condition.html", "namespacefem_1_1boundary__condition" ],
+    [ "capabilities", "namespacefem_1_1capabilities.html", "namespacefem_1_1capabilities" ],
     [ "decimal_bvp", "namespacefem_1_1decimal__bvp.html", [
       [ "solve", "namespacefem_1_1decimal__bvp.html#a2d346eea7b0d26f26031063efca345c9", null ]
     ] ],
+    [ "diagnostics", "namespacefem_1_1diagnostics.html", "namespacefem_1_1diagnostics" ],
     [ "dof", "namespacefem_1_1dof.html", "namespacefem_1_1dof" ],
     [ "elements", "namespacefem_1_1elements.html", "namespacefem_1_1elements" ],
     [ "equilibrium", "namespacefem_1_1equilibrium.html", "namespacefem_1_1equilibrium" ],
@@ -17,6 +19,7 @@ var namespacefem =
       [ "_read_legacy_json_model", "namespacefem_1_1file__io.html#ad623a45cb8a59d0b996a7a52832be556", null ],
       [ "_write_fw3_model", "namespacefem_1_1file__io.html#abc46b178a0cdb779b2847c07296c0d43", null ],
       [ "_write_json_model", "namespacefem_1_1file__io.html#a3a9d9919690c15bb3af4cacdda58a2da", null ],
+      [ "model_to_jsonable", "namespacefem_1_1file__io.html#aab3bbf057cea060eea59bdfa9a2364b3", null ],
       [ "read_model", "namespacefem_1_1file__io.html#aaf4b451226733b7da601b75f9da9c438", null ],
       [ "read_result", "namespacefem_1_1file__io.html#aca6e236275d362ee5e4cacaa5af915fc", null ],
       [ "result_to_jsonable", "namespacefem_1_1file__io.html#a1fc53acc532c189a94cc062979937fed", null ],
@@ -39,7 +42,9 @@ var namespacefem =
     [ "section", "namespacefem_1_1section.html", "namespacefem_1_1section" ],
     [ "solver", "namespacefem_1_1solver.html", "namespacefem_1_1solver" ],
     [ "solver_results", "namespacefem_1_1solver__results.html", [
-      [ "legacy_nonlinear_result", "namespacefem_1_1solver__results.html#a3e034f8b426015525b9ef44c907b9779", null ]
+      [ "build_result_metadata", "namespacefem_1_1solver__results.html#a6a4adfb58e5c85b30ec1b51608523c90", null ],
+      [ "legacy_nonlinear_result", "namespacefem_1_1solver__results.html#a3e034f8b426015525b9ef44c907b9779", null ],
+      [ "normalize_model_metadata", "namespacefem_1_1solver__results.html#a0a6dd59c515552aded61ad169aa89e94", null ]
     ] ],
     [ "strain_stress", "namespacefem_1_1strain__stress.html", "namespacefem_1_1strain__stress" ],
     [ "v0_io", "namespacefem_1_1v0__io.html", null ],

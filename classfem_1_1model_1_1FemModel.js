@@ -12,6 +12,7 @@ var classfem_1_1model_1_1FemModel =
     [ "_get_element_type_summary", "classfem_1_1model_1_1FemModel.html#aaadbbcec85f546f72fa422ddcae1fe22", null ],
     [ "_post_process_results", "classfem_1_1model_1_1FemModel.html#aa93418462ccc701bcf0fc3b105b77eb9", null ],
     [ "_recover_beam_end_forces", "classfem_1_1model_1_1FemModel.html#a0e307aeda3b15df4b5278fa11d07311e", null ],
+    [ "_run", "classfem_1_1model_1_1FemModel.html#ac080735198ac0469fd1c7b3a1793cf91", null ],
     [ "_set_element_coordinates", "classfem_1_1model_1_1FemModel.html#ad79ece1c1a9b6623a04654dfc9193844", null ],
     [ "add_distributed_load", "classfem_1_1model_1_1FemModel.html#a377ca84e3fc693c418be5832c1dcdd9e", null ],
     [ "add_distributed_spring", "classfem_1_1model_1_1FemModel.html#a5c60138b51d8f88d6601ad1c653bb30c", null ],

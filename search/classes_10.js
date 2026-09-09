@@ -12,5 +12,6 @@ var searchData=
   ['stiffnessmatrix_9',['StiffnessMatrix',['../classfem_1_1stiffness__matrix_1_1StiffnessMatrix.html',1,'fem::stiffness_matrix']]],
   ['strain_10',['Strain',['../classfem_1_1strain__stress_1_1Strain.html',1,'fem::strain_stress']]],
   ['stress_11',['Stress',['../classfem_1_1strain__stress_1_1Stress.html',1,'fem::strain_stress']]],
-  ['support_12',['Support',['../classapp_1_1components_1_1support_1_1Support.html',1,'app::components::support']]]
+  ['structuralmechanismerror_12',['StructuralMechanismError',['../classfem_1_1diagnostics_1_1StructuralMechanismError.html',1,'fem::diagnostics']]],
+  ['support_13',['Support',['../classapp_1_1components_1_1support_1_1Support.html',1,'app::components::support']]]
 ];

@@ -64,6 +64,17 @@ var annotated_dup =
         [ "Restraint", "classfem_1_1boundary__condition_1_1Restraint.html", "classfem_1_1boundary__condition_1_1Restraint" ],
         [ "Temperature", "classfem_1_1boundary__condition_1_1Temperature.html", "classfem_1_1boundary__condition_1_1Temperature" ]
       ] ],
+      [ "capabilities", "namespacefem_1_1capabilities.html", [
+        [ "UnsupportedCapabilityError", "classfem_1_1capabilities_1_1UnsupportedCapabilityError.html", null ]
+      ] ],
+      [ "diagnostics", "namespacefem_1_1diagnostics.html", [
+        [ "DiagnosticErrorMixin", "classfem_1_1diagnostics_1_1DiagnosticErrorMixin.html", null ],
+        [ "InputValidationError", "classfem_1_1diagnostics_1_1InputValidationError.html", null ],
+        [ "ModalConvergenceError", "classfem_1_1diagnostics_1_1ModalConvergenceError.html", null ],
+        [ "NumericalConditionError", "classfem_1_1diagnostics_1_1NumericalConditionError.html", null ],
+        [ "StructuralMechanismError", "classfem_1_1diagnostics_1_1StructuralMechanismError.html", null ],
+        [ "UnsupportedAnalysisError", "classfem_1_1diagnostics_1_1UnsupportedAnalysisError.html", null ]
+      ] ],
       [ "dof", "namespacefem_1_1dof.html", [
         [ "DofLayout", "classfem_1_1dof_1_1DofLayout.html", null ]
       ] ],

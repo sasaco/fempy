@@ -188,6 +188,9 @@ None&#160;</td><td class="memItemRight" valign="bottom"><b>read_json_model</b> (
 <tr class="memitem:ae58f45108cc02be4b13af438c8178016" id="r_ae58f45108cc02be4b13af438c8178016"><td class="memItemLeft" align="right" valign="top"><a id="ae58f45108cc02be4b13af438c8178016" name="ae58f45108cc02be4b13af438c8178016"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>analysis_params</b></td></tr>
 <tr class="separator:ae58f45108cc02be4b13af438c8178016"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8504d7afe3d3f19b6d3e0eb2213ee646" id="r_a8504d7afe3d3f19b6d3e0eb2213ee646"><td class="memItemLeft" align="right" valign="top"><a id="a8504d7afe3d3f19b6d3e0eb2213ee646" name="a8504d7afe3d3f19b6d3e0eb2213ee646"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>model_metadata</b></td></tr>
+<tr class="separator:a8504d7afe3d3f19b6d3e0eb2213ee646"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad3f7ebc055edadeb21e0528485f5f0b2" id="r_ad3f7ebc055edadeb21e0528485f5f0b2"><td class="memItemLeft" align="right" valign="top"><a id="ad3f7ebc055edadeb21e0528485f5f0b2" name="ad3f7ebc055edadeb21e0528485f5f0b2"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>results</b></td></tr>
 <tr class="separator:ad3f7ebc055edadeb21e0528485f5f0b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -206,6 +209,8 @@ None&#160;</td><td class="memItemRight" valign="bottom"><b>read_json_model</b> (
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 限定公開メンバ関数</h2></td></tr>
+<tr class="memitem:ac080735198ac0469fd1c7b3a1793cf91" id="r_ac080735198ac0469fd1c7b3a1793cf91"><td class="memItemLeft" align="right" valign="top">Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#ac080735198ac0469fd1c7b3a1793cf91">_run</a> (self, Optional[str] analysis_type=None)</td></tr>
+<tr class="separator:ac080735198ac0469fd1c7b3a1793cf91"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a31c6ae6a005d19dc49c06e4126cf14b3" id="r_a31c6ae6a005d19dc49c06e4126cf14b3"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a31c6ae6a005d19dc49c06e4126cf14b3">_create_elements</a> (self)</td></tr>
 <tr class="separator:a31c6ae6a005d19dc49c06e4126cf14b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a6d2c770fba77063a4909bd267b8879" id="r_a8a6d2c770fba77063a4909bd267b8879"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a8a6d2c770fba77063a4909bd267b8879">_create_element_instance</a> (self, int elem_id)</td></tr>
@@ -680,6 +685,65 @@ Returns:
 </table>
 </div><div class="memdoc">
 <pre class="fragment">Keep constitutive snapshots and expose equilibrium-recovered branches.</pre> 
+</div>
+</div>
+<a id="ac080735198ac0469fd1c7b3a1793cf91" name="ac080735198ac0469fd1c7b3a1793cf91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac080735198ac0469fd1c7b3a1793cf91">&#9670;&#160;</a></span>_run()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[str, Any] fem.model.FemModel._run </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[str] &#160;</td>
+          <td class="paramname"><em>analysis_type</em> = <code>None</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">解析を実行
+
+Args:
+    analysis_type: 解析タイプ
+        - 'static': 線形静解析
+        - 'modal': モード解析
+        - 'material_nonlinear': 材料非線形解析
+
+Note:
+    解析パラメータはJSONファイルのloadセクションで指定:
+        - n_load_steps: 荷重増分ステップ数（material_nonlinear用）
+        - max_iterations: 最大反復回数（material_nonlinear用）
+        - tolerance: 収束判定許容差（material_nonlinear用）
+        - n_modes: 固有モード数（modal用）
+        - load_factors: 順番どおりに載荷する係数列（material_nonlinear用）。
+          指定時はn_load_stepsの等間隔列に代えて使用する。
+        - displacement_control: node、dofとtargetまたはtargetsで指定する変位制御。
+          荷重係数を未知数として負勾配を追跡する。load_factorsとは排他。
+    analysis_type省略時は入力の指定を使い、それもなければ
+    nonlinear_barを含む場合material_nonlinear、それ以外はstatic。
+
+Returns:
+    解析結果
+</pre> 
 </div>
 </div>
 <a id="ad79ece1c1a9b6623a04654dfc9193844" name="ad79ece1c1a9b6623a04654dfc9193844"></a>
@@ -1847,30 +1911,7 @@ Args:
         </tr>
       </table>
 </div><div class="memdoc">
-<pre class="fragment">解析を実行
-
-Args:
-    analysis_type: 解析タイプ
-        - 'static': 線形静解析
-        - 'modal': モード解析
-        - 'material_nonlinear': 材料非線形解析
-
-Note:
-    解析パラメータはJSONファイルのloadセクションで指定:
-        - n_load_steps: 荷重増分ステップ数（material_nonlinear用）
-        - max_iterations: 最大反復回数（material_nonlinear用）
-        - tolerance: 収束判定許容差（material_nonlinear用）
-        - n_modes: 固有モード数（modal用）
-        - load_factors: 順番どおりに載荷する係数列（material_nonlinear用）。
-          指定時はn_load_stepsの等間隔列に代えて使用する。
-        - displacement_control: node、dofとtargetまたはtargetsで指定する変位制御。
-          荷重係数を未知数として負勾配を追跡する。load_factorsとは排他。
-    analysis_type省略時は入力の指定を使い、それもなければ
-    nonlinear_barを含む場合material_nonlinear、それ以外はstatic。
-
-Returns:
-    解析結果
-</pre> 
+<pre class="fragment">Run an analysis and expose stable diagnostics for input failures.</pre> 
 </div>
 </div>
 <a id="ac4aa8410a0e1d2176ede420d6bfa71bd" name="ac4aa8410a0e1d2176ede420d6bfa71bd"></a>
