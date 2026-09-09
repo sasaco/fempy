@@ -1,6 +1,6 @@
 # 現行テスト台帳
 
-2026-09-09。55 ファイル・312 関数定義・1,911 展開ケース。材料非線形の検証範囲は857ケース。一般FEMの修復で、荷重配分・軸力部材の分割・精度保持と独立参照の検証を追加。関数数とパラメータ展開数を混同しない。
+2026-09-10。65ファイル・383関数定義・2,023展開ケース。`material_nonlinear` markerは909ケース。一般FEMの修復に加え、PQ-01〜10の固有値、配布、機能表、VTK、診断、メッシュ収束、単位不変性の検証を反映した。関数数とパラメータ展開数を混同しない。
 
 [項目表](test_items.md) / [実行方法](../../tests/README.md) / [移行・統合記録](../report/test-reorganization.md)。整理前の全 264 関数・112 ファイルの移管先と hash は [機械可読な移行記録](../report/test-reorganization-evidence.json) にある。
 
@@ -22,6 +22,7 @@
 | [harness/test_sample_runner.py](../../tests/harness/test_sample_runner.py) | 5 | 14 | unit |
 | [harness/test_source_repairs.py](../../tests/harness/test_source_repairs.py) | 7 | 37 | unit |
 | [harness/test_suite_contracts.py](../../tests/harness/test_suite_contracts.py) | 7 | 15 | unit |
+| [harness/test_release_workflows.py](../../tests/harness/test_release_workflows.py) | 3 | 3 | unit |
 | [integration/test_axial_subdivision.py](../../tests/integration/test_axial_subdivision.py) | 4 | 9 | integration |
 | [integration/test_beam_foundation.py](../../tests/integration/test_beam_foundation.py) | 2 | 2 | integration |
 | [integration/test_beam_precision.py](../../tests/integration/test_beam_precision.py) | 10 | 16 | integration |
@@ -38,21 +39,29 @@
 | [integration/test_pressure_solution.py](../../tests/integration/test_pressure_solution.py) | 2 | 2 | integration |
 | [integration/test_solids.py](../../tests/integration/test_solids.py) | 2 | 12 | integration |
 | [io/test_http.py](../../tests/io/test_http.py) | 6 | 21 | integration |
+| [io/test_diagnostics.py](../../tests/io/test_diagnostics.py) | 11 | 11 | integration |
 | [io/test_model_lifecycle.py](../../tests/io/test_model_lifecycle.py) | 4 | 6 | integration |
 | [io/test_model_roundtrip.py](../../tests/io/test_model_roundtrip.py) | 2 | 2 | integration |
 | [io/test_pressure.py](../../tests/io/test_pressure.py) | 8 | 8 | integration |
+| [io/test_package_metadata.py](../../tests/io/test_package_metadata.py) | 2 | 2 | integration |
 | [io/test_source_input.py](../../tests/io/test_source_input.py) | 3 | 13 | integration |
 | [io/test_structural_input.py](../../tests/io/test_structural_input.py) | 9 | 28 | integration |
+| [io/test_vtk.py](../../tests/io/test_vtk.py) | 5 | 7 | integration |
 | [materials/test_jr_hysteresis.py](../../tests/materials/test_jr_hysteresis.py) | 26 | 152 | unit |
 | [postprocess/test_beam_equilibrium.py](../../tests/postprocess/test_beam_equilibrium.py) | 4 | 11 | unit |
+| [postprocess/test_result_processor.py](../../tests/postprocess/test_result_processor.py) | 4 | 4 | unit |
 | [postprocess/test_shell_results.py](../../tests/postprocess/test_shell_results.py) | 10 | 33 | unit |
 | [postprocess/test_solid_stress.py](../../tests/postprocess/test_solid_stress.py) | 1 | 3 | unit |
 | [regression/test_cantilever_history.py](../../tests/regression/test_cantilever_history.py) | 4 | 5 | regression |
+| [regression/test_displacement_control_history.py](../../tests/regression/test_displacement_control_history.py) | 4 | 7 | regression |
 | [regression/test_structural_samples.py](../../tests/regression/test_structural_samples.py) | 1 | 323 | regression |
 | [solvers/test_boundary_conditions.py](../../tests/solvers/test_boundary_conditions.py) | 6 | 6 | unit |
+| [solvers/test_capabilities.py](../../tests/solvers/test_capabilities.py) | 9 | 14 | unit |
 | [solvers/test_linear.py](../../tests/solvers/test_linear.py) | 3 | 5 | unit |
+| [solvers/test_modal_analysis.py](../../tests/solvers/test_modal_analysis.py) | 12 | 17 | unit |
 | [solvers/test_nonlinear.py](../../tests/solvers/test_nonlinear.py) | 9 | 15 | unit |
 | [solvers/test_unification.py](../../tests/solvers/test_unification.py) | 16 | 21 | unit |
+| [validation/test_mesh_convergence.py](../../tests/validation/test_mesh_convergence.py) | 4 | 4 | oracle |
 | [validation/test_plane_frame_series.py](../../tests/validation/test_plane_frame_series.py) | 8 | 197 | oracle |
 | [validation/test_provenance.py](../../tests/validation/test_provenance.py) | 6 | 13 | oracle |
 | [validation/test_shell_variational.py](../../tests/validation/test_shell_variational.py) | 5 | 16 | oracle |
@@ -61,6 +70,7 @@
 | [validation/test_space_frame_series.py](../../tests/validation/test_space_frame_series.py) | 10 | 128 | oracle |
 | [validation/test_stored_references.py](../../tests/validation/test_stored_references.py) | 6 | 10 | oracle |
 | [validation/test_triangle_sample_references.py](../../tests/validation/test_triangle_sample_references.py) | 5 | 12 | oracle |
+| [validation/test_unit_invariance.py](../../tests/validation/test_unit_invariance.py) | 5 | 5 | oracle |
 
 ## 各ファイルが所有する検証
 
@@ -760,3 +770,134 @@ validation / stored references contracts.
 | `test_independent_spin_operator_has_six_physical_rigid_modes` | 1 |
 | `test_independent_spin_operator_constant_membrane_energy` | 1 |
 | `test_independent_spin_operator_relative_rotation_energy` | 1 |
+
+## 2026-09-10までの品質ロードマップ追加分
+
+### harness/test_release_workflows.py
+
+同一artifactを検証から公開へ渡すCI・provenance契約。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_verification_builds_once_and_gates_every_required_check` | 1 |
+| `test_publish_uses_only_the_successful_reusable_workflow_artifact` | 1 |
+| `test_distribution_manifest_rejects_changed_bytes_or_commit` | 1 |
+
+### io/test_diagnostics.py
+
+診断コード、結果メタデータ、入力hash、ログ、保存往復。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_static_result_metadata_and_model_result_roundtrip` | 1 |
+| `test_input_hash_changes_with_analysis_input` | 1 |
+| `test_static_metadata_residual_includes_spring_equilibrium` | 1 |
+| `test_model_metadata_cannot_override_provenance_fields` | 1 |
+| `test_modal_metadata_uses_eigenpair_residual` | 1 |
+| `test_high_precision_path_is_declared_in_metadata` | 1 |
+| `test_nonlinear_metadata_summarizes_accepted_history` | 1 |
+| `test_unknown_analysis_has_same_python_and_http_code` | 1 |
+| `test_mechanism_has_same_python_and_http_code_and_dof_details` | 1 |
+| `test_numerical_rank_failure_is_distinct_from_input_and_mechanism` | 1 |
+| `test_nonconvergence_exposes_stable_python_details` | 1 |
+
+### io/test_package_metadata.py
+
+配布・実行時versionの単一源とHTTP旧名互換。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_distribution_and_runtime_versions_have_one_source` | 1 |
+| `test_legacy_http_function_name_is_a_compatibility_alias` | 1 |
+
+### io/test_vtk.py
+
+Legacy VTKのセル型、ID、節点順、結果整列と明示的失敗。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_mixed_topology_ids_and_quadratic_node_order_roundtrip` | 1 |
+| `test_result_quantities_remain_distinct_and_cell_aligned` | 1 |
+| `test_public_shell_analysis_results_roundtrip` | 1 |
+| `test_missing_generic_cell_component_is_nan_not_zero` | 1 |
+| `test_unsupported_or_malformed_cell_fails_explicitly` | 3 |
+
+### postprocess/test_result_processor.py
+
+3／6DOF、混在、非連続IDと変位長不整合の公開後処理。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_three_dof_displacements_follow_sorted_noncontiguous_node_layout` | 1 |
+| `test_six_dof_displacements_preserve_existing_schema` | 1 |
+| `test_mixed_three_and_six_dof_elements_use_one_six_dof_layout` | 1 |
+| `test_displacement_length_mismatch_is_not_hidden_by_zero_fill` | 1 |
+
+### regression/test_displacement_control_history.py
+
+JR K4負勾配の保存変位制御履歴と参照改変拒否。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_jr_k4_fixture_stores_every_requested_displacement` | 1 |
+| `test_all_stored_displacement_control_steps` | 1 |
+| `test_jr_k4_history_comparison_rejects_old_all_zero_curvature_fixture` | 1 |
+| `test_jr_k4_history_comparison_rejects_changed_softening_values` | 4 |
+
+### solvers/test_capabilities.py
+
+機械可読な機能対応表、alias、未対応組合せの解析前拒否、生成文書。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_registry_is_complete_json_data_and_returned_as_a_copy` | 1 |
+| `test_public_and_legacy_names_resolve_from_registry` | 4 |
+| `test_public_wedge_modal_is_rejected_with_ids_before_solver` | 1 |
+| `test_legacy_wedge_name_uses_actual_public_path_in_rejection` | 1 |
+| `test_saved_json_public_input_rejects_unsupported_wedge_modal` | 1 |
+| `test_stub_element_paths_are_rejected_before_matrix_calls` | 3 |
+| `test_solid_pressure_is_rejected_before_load_assembly` | 1 |
+| `test_registry_does_not_accept_the_other_same_named_wedge_implementation` | 1 |
+| `test_readme_and_wiki_tables_are_generated_from_registry` | 1 |
+
+### solvers/test_modal_analysis.py
+
+固有値の自由DOF縮約、要求数、ゼロ・負値、再試行、残差・直交性と実要素参照。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_public_modal_wrapper_uses_requested_count_and_restores_configuration` | 1 |
+| `test_v0_modal_element_construction_uses_controllable_logging` | 1 |
+| `test_modal_mode_count_must_be_a_positive_integer` | 4 |
+| `test_modal_reduces_stiffness_and_mass_to_the_same_free_dofs` | 1 |
+| `test_modal_does_not_silently_reduce_requested_mode_count` | 1 |
+| `test_zero_mode_has_infinite_python_period_and_json_safe_null` | 1 |
+| `test_significant_negative_eigenvalue_is_reported_as_instability` | 1 |
+| `test_modal_retry_keeps_low_mode_selection` | 1 |
+| `test_modal_reports_residual_and_mass_orthogonality_checks` | 1 |
+| `test_wiki_spring_supported_beam_modal_example_has_closed_form_frequency` | 1 |
+| `test_public_modal_path_matches_independent_one_dof_element_roots` | 3 |
+| `test_large_public_shell_model_retry_returns_same_low_modes` | 1 |
+
+### validation/test_mesh_convergence.py
+
+閉形式・製造解に対する梁、DKT、MITC4、Hexa8の収束率と適用限界。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_closed_form_references_and_expected_asymptotic_rates` | 1 |
+| `test_distortion_and_aspect_sweeps_remain_within_measured_scope` | 1 |
+| `test_mitc4_thickness_sweep_has_no_shear_locking_in_strip_problem` | 1 |
+| `test_hexa8_nearly_incompressible_stress_and_energy_are_an_explicit_limit` | 1 |
+
+### validation/test_unit_invariance.py
+
+N–m、N–mm、kN–mの一般化ノルム、非線形応答・判定、ばね、強制変位、固有値。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_generalized_norms_follow_force_and_length_scaling` | 1 |
+| `test_load_control_mixed_translation_rotation_has_same_decision_and_response` | 1 |
+| `test_cyclic_spring_and_prescribed_motion_are_unit_invariant` | 1 |
+| `test_displacement_control_decision_is_unit_invariant` | 1 |
+| `test_density_and_translational_rotational_springs_preserve_frequency` | 1 |

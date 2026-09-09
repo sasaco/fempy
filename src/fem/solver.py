@@ -13,6 +13,7 @@ from .boundary_condition import BoundaryCondition
 from .material import Material
 from .dof import DofLayout
 from .diagnostics import ModalConvergenceError, UnsupportedAnalysisError
+from .convergence import characteristic_length
 from .equilibrium import (
     NonlinearConvergenceError, direct_step, displacement_control_iteration,
     newton_iteration, solve_direct_system, solve_newton_system,
@@ -50,6 +51,8 @@ class Solver:
         self.precise_reactions = None
         self.interpolated_displacements = {}
         self.analysis_warnings = []
+        self.characteristic_length = None
+        self.characteristic_length_source = None
 
     def _set_dof_layout(self, mesh: MeshModel) -> None:
         signature = (tuple(sorted(mesh.nodes)), tuple(
@@ -58,6 +61,11 @@ class Solver:
             self.layout = DofLayout.from_mesh(mesh)
             self._layout_signature = signature
             self._node_dof_offsets = self.layout.node_offsets
+        geometry_length = characteristic_length(mesh)
+        self.characteristic_length = geometry_length or 1.0
+        self.characteristic_length_source = (
+            'geometry_span' if geometry_length is not None else 'point_model_fallback'
+        )
 
     def _node_dof_start(self, node_id: int, stride: int) -> int:
         if self._node_dof_offsets is None:

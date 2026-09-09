@@ -14,6 +14,11 @@ from .mesh import MeshModel
 from .material import Material
 from .boundary_condition import BoundaryCondition
 from .precision import sparse_product, add_correction
+from .convergence import (
+    generalized_displacement_norm,
+    generalized_force_norm,
+    relative_measure,
+)
 from .diagnostics import (
     InputValidationError,
     NumericalConditionError,
@@ -306,6 +311,7 @@ def newton_iteration(
     """
     u = u_init.copy()
     du = np.zeros_like(u)
+    length = self.characteristic_length
     prescribed, _ = self._get_boundary_dofs(boundary, len(u), max_dof_per_node)
     # このステップの強制変位を先に満たす。反復ごとに加算しない。
     for dof, value in prescribed.items():
@@ -322,16 +328,42 @@ def newton_iteration(
         R_mod = self._equilibrium_residual(R, u, boundary, max_dof_per_node)
 
         # 収束判定
-        R_norm = np.linalg.norm(R_mod)
+        R_norm = generalized_force_norm(
+            R_mod, stride=max_dof_per_node, length=length
+        )
         # 固定DOFへ直接加えた荷重は自由DOFの釣合い精度の尺度に含めない。
         F_free = self._apply_bc_to_residual(F_ext, boundary, max_dof_per_node)
-        F_norm = max(np.linalg.norm(F_free), 1.0)
-        relative_residual = R_norm / F_norm
+        restoring = self._apply_bc_to_residual(
+            F_int + self._spring_force(u, self._get_boundary_dofs(
+                boundary, len(u), max_dof_per_node
+            )[1]),
+            boundary,
+            max_dof_per_node,
+        )
+        F_norm = max(
+            generalized_force_norm(F_free, stride=max_dof_per_node, length=length),
+            generalized_force_norm(restoring, stride=max_dof_per_node, length=length),
+            generalized_force_norm(
+                self._apply_bc_to_residual(
+                    self.load_vector, boundary, max_dof_per_node
+                ),
+                stride=max_dof_per_node,
+                length=length,
+            ),
+        )
+        relative_residual = relative_measure(R_norm, F_norm)
 
         # 変位増分ノルム（初回以降）
         if iteration > 0:
-            du_norm = np.linalg.norm(du)
-            u_norm = max(np.linalg.norm(u), 1.0)
+            du_norm = generalized_displacement_norm(
+                du, stride=max_dof_per_node, length=length
+            )
+            u_norm = max(
+                generalized_displacement_norm(
+                    u, stride=max_dof_per_node, length=length
+                ),
+                1.0,
+            )
             relative_du = du_norm / u_norm
         else:
             relative_du = float('inf')
@@ -340,7 +372,10 @@ def newton_iteration(
         self.convergence_history.append({
             'iteration': iteration + 1,
             'residual_norm': R_norm,
+            'residual_scale': F_norm,
             'relative_residual': relative_residual,
+            'increment_norm': du_norm if iteration > 0 else None,
+            'solution_norm': u_norm if iteration > 0 else None,
             'relative_du': relative_du if iteration > 0 else None
         })
 
@@ -391,8 +426,13 @@ def newton_iteration(
             candidate = u + increment
             candidate_force = self._assemble_internal_forces(
                 mesh, elements, candidate, max_dof_per_node)
-            candidate_norm = np.linalg.norm(self._equilibrium_residual(
-                F_ext - candidate_force, candidate, boundary, max_dof_per_node))
+            candidate_norm = generalized_force_norm(
+                self._equilibrium_residual(
+                    F_ext - candidate_force, candidate, boundary, max_dof_per_node
+                ),
+                stride=max_dof_per_node,
+                length=length,
+            )
             if (candidate_norm < tol * F_norm or
                     candidate_norm <= (1 - 1e-4 * (0.5 ** backtrack)) * R_norm):
                 u, du = candidate, increment
@@ -428,6 +468,7 @@ def displacement_control_iteration(
     """
     u = u_init.copy()
     load_factor = float(initial_load_factor)
+    length = self.characteristic_length
     prescribed, springs = self._get_boundary_dofs(
         boundary, len(u), max_dof_per_node
     )
@@ -446,28 +487,63 @@ def displacement_control_iteration(
         residual = load_factor*load_pattern-F_int-spring_force
         residual_free = residual[active]
         constraint = target-u[control_dof]
-        force_scale = max(
-            np.linalg.norm(load_factor*load_pattern[active]),
-            np.linalg.norm((F_int+spring_force)[active]),
-            np.linalg.norm(load_pattern[active]),
-            1.0,
+        residual_norm = generalized_force_norm(
+            residual_free,
+            stride=max_dof_per_node,
+            length=length,
+            dof_indices=active,
         )
-        displacement_scale = max(abs(target), abs(u[control_dof]), 1.0)
-        relative_residual = np.linalg.norm(residual_free)/force_scale
-        relative_constraint = abs(constraint)/displacement_scale
+        force_scale = max(
+            generalized_force_norm(
+                load_factor*load_pattern[active],
+                stride=max_dof_per_node,
+                length=length,
+                dof_indices=active,
+            ),
+            generalized_force_norm(
+                (F_int+spring_force)[active],
+                stride=max_dof_per_node,
+                length=length,
+                dof_indices=active,
+            ),
+            generalized_force_norm(
+                load_pattern[active],
+                stride=max_dof_per_node,
+                length=length,
+                dof_indices=active,
+            ),
+        )
+        control_scale = length if control_dof % max_dof_per_node < 3 else 1.0
+        displacement_scale = max(
+            abs(target)/control_scale, abs(u[control_dof])/control_scale, 1.0
+        )
+        relative_residual = relative_measure(residual_norm, force_scale)
+        relative_constraint = abs(constraint)/control_scale/displacement_scale
         if iteration:
+            du_norm = generalized_displacement_norm(
+                du, stride=max_dof_per_node, length=length
+            )
+            u_norm = max(
+                generalized_displacement_norm(
+                    u, stride=max_dof_per_node, length=length
+                ),
+                1.0,
+            )
             relative_du = max(
-                np.linalg.norm(du)/max(np.linalg.norm(u), 1.0),
+                du_norm/u_norm,
                 abs(dlambda)/max(abs(load_factor), 1.0),
             )
         else:
             relative_du = float('inf')
         self.convergence_history.append({
             'iteration': iteration+1,
-            'residual_norm': float(np.linalg.norm(residual_free)),
+            'residual_norm': residual_norm,
+            'residual_scale': force_scale,
             'relative_residual': float(relative_residual),
             'control_residual': float(constraint),
             'relative_control_residual': float(relative_constraint),
+            'increment_norm': float(du_norm) if iteration else None,
+            'solution_norm': float(u_norm) if iteration else None,
             'relative_du': float(relative_du) if iteration else None,
             'load_factor': float(load_factor),
         })

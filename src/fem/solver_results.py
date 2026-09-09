@@ -7,6 +7,7 @@ import json
 import numpy as np
 
 from ._version import __version__
+from .convergence import generalized_force_norm, relative_measure
 
 
 RESULT_SCHEMA_VERSION = "1.0"
@@ -79,23 +80,50 @@ def build_result_metadata(model, analysis_type):
     solver = model.solver
     history = solver.convergence_history
     step_iterations = [int(step.get("iterations", 0)) for step in solver.step_results]
-    residual_norm = relative_residual = None
+    residual_norm = residual_scale = relative_residual = None
     if history:
         residual_norm = float(history[-1]["residual_norm"])
+        residual_scale = float(history[-1]["residual_scale"])
         relative_residual = float(history[-1]["relative_residual"])
     elif analysis_type == "static" and solver.displacement is not None:
         applied = solver.load_factor * solver.load_vector
         residual = solver._equilibrium_residual(
-            solver._last_internal_force - applied,
+            applied - solver._last_internal_force,
             solver.displacement,
             model.boundary,
             solver.layout.stride,
         )
-        residual_norm = float(np.linalg.norm(residual))
+        residual_norm = generalized_force_norm(
+            residual,
+            stride=solver.layout.stride,
+            length=solver.characteristic_length,
+        )
         free_load = solver._apply_bc_to_residual(
             applied, model.boundary, solver.layout.stride
         )
-        relative_residual = residual_norm / max(float(np.linalg.norm(free_load)), 1.0)
+        _, springs = solver._get_boundary_dofs(
+            model.boundary, len(solver.displacement), solver.layout.stride
+        )
+        restoring = solver._apply_bc_to_residual(
+            solver._last_internal_force + solver._spring_force(
+                solver.displacement, springs
+            ),
+            model.boundary,
+            solver.layout.stride,
+        )
+        residual_scale = max(
+            generalized_force_norm(
+                free_load,
+                stride=solver.layout.stride,
+                length=solver.characteristic_length,
+            ),
+            generalized_force_norm(
+                restoring,
+                stride=solver.layout.stride,
+                length=solver.characteristic_length,
+            ),
+        )
+        relative_residual = relative_measure(residual_norm, residual_scale)
     elif analysis_type == "modal" and model.results.get("eigenpair_residuals"):
         relative_residual = float(max(model.results["eigenpair_residuals"]))
 
@@ -115,7 +143,17 @@ def build_result_metadata(model, analysis_type):
             "iterations": sum(step_iterations),
             "step_iterations": step_iterations,
             "residual_norm": residual_norm,
+            "residual_scale": residual_scale,
             "relative_residual": relative_residual,
+            "convergence_measure": {
+                "type": "dimensionless_generalized_l2",
+                "characteristic_length": solver.characteristic_length,
+                "characteristic_length_source": solver.characteristic_length_source,
+                "force_components": "[Fx,Fy,Fz,Mx/L,My/L,Mz/L]",
+                "displacement_components": "[dx/L,dy/L,dz/L,rx,ry,rz]",
+                "residual_absolute_floor": None,
+                "displacement_reference_floor": 1.0,
+            },
             "warnings": deepcopy(solver.analysis_warnings),
             "high_precision": solver.precise_end_forces is not None,
         },

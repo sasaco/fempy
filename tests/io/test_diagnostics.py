@@ -66,6 +66,17 @@ def test_input_hash_changes_with_analysis_input():
     assert first != second
 
 
+def test_static_metadata_residual_includes_spring_equilibrium():
+    model = python_axial()
+    model.add_spring_support(30, "x", 1000)
+
+    solver_metadata = model.run("static")["metadata"]["solver"]
+
+    assert solver_metadata["residual_norm"] < 1e-12
+    assert solver_metadata["residual_scale"] == pytest.approx(12)
+    assert solver_metadata["relative_residual"] < 1e-12
+
+
 def test_model_metadata_cannot_override_provenance_fields():
     model = python_axial()
     model.model_metadata["product"] = {"version": "forged"}

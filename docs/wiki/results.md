@@ -28,7 +28,8 @@ Pythonでは`result["node_displacements"][2]["dy"]`、HTTPでは`result["node_di
 | `coordinate_system` | 現在は全体直交座標`global_cartesian`、軸は`x,y,z` |
 | `units` | 入力と結果に共通する一貫単位系の宣言 |
 | `solver.iterations/step_iterations` | 合計反復数と段階別反復数。モーダルは0と空配列 |
-| `solver.residual_norm/relative_residual` | 最終釣合い残差。モーダルの相対値は最大固有対残差 |
+| `solver.residual_norm/residual_scale/relative_residual` | 最終釣合い残差、その基準量、相対値。モーダルの相対値は最大固有対残差 |
+| `solver.convergence_measure` | 一般化ノルム、代表長さと取得方法、残差floorなし、変位の無次元reference floor |
 | `solver.warnings` | 結果へ付記した構造化警告。警告がなければ空配列 |
 | `solver.high_precision` | 線形梁の高精度経路を使ったか |
 
@@ -151,7 +152,15 @@ assert result["metadata"]["solver"]["converged"] is True
 
 ### 収束履歴
 
-`convergence_history`はNewton反復ごとの配列です。各記録に`step`、`lambda`、`iteration`、`residual_norm`、`relative_residual`、`relative_du`があります。初回反復の`relative_du`はnullです。収束判定の詳細は[解析ワークフロー](workflow.md)を参照してください。
+`convergence_history`はNewton反復ごとの配列です。各記録に`step`、`lambda`、`iteration`、
+`residual_norm`、`residual_scale`、`relative_residual`、`increment_norm`、`solution_norm`、
+`relative_du`があります。初回反復の増分3項目はnullです。
+
+`residual_norm`と`residual_scale`は、モデル代表長さ`L`でモーメントを割った一般化力
+`[F, M/L]`のL2ノルムで、入力の力単位を持ちます。`increment_norm`と`solution_norm`は
+`[u/L, theta]`の無次元L2ノルムです。したがって、力とモーメント、並進と回転を生の数値のまま
+足していません。`relative_residual`と`relative_du`が実際の判定値です。詳細は
+[解析ワークフロー](workflow.md)を参照してください。
 
 ## シェルの結果
 
