@@ -1,0 +1,211 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FEMPython: Python API</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FEMPython
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('md_docs_2wiki_2python-api.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">Python API</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="autotoc_md75"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2examples.html">実行例</a> · <a class="el" href="md_docs_2wiki_2file-formats.html">ファイル入出力</a></p>
+<p>通常は<code>FemModel</code>を入口にします。節点・材料・断面・要素・支持・荷重を作り、<code>run()</code>で解析します。要素の追加時に材料や座標を参照するため、以下の順序で設定してください。</p>
+<h1><a class="anchor" id="autotoc_md76"></a>
+Pythonだけで片持ち梁を作る</h1>
+<p>この例はファイルを用意せずに実行できます。<a class="el" href="md_docs_2wiki_2getting-started.html">はじめに</a>のJSONモデルと同じ条件です。</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> isclose</div>
+<div class="line"><span class="keyword">from</span> fem <span class="keyword">import</span> FemModel, BarParameter</div>
+<div class="line"> </div>
+<div class="line">model = FemModel()</div>
+<div class="line">model.add_node(1, 0, 0, 0)</div>
+<div class="line">model.add_node(2, 2, 0, 0)</div>
+<div class="line">model.add_material(1, <span class="stringliteral">&quot;Steel&quot;</span>, E=200e9, nu=0.3)</div>
+<div class="line">model.material.add_bar_parameter(</div>
+<div class="line">    1, BarParameter(area=0.01, Iy=1e-5, Iz=1e-5, J=2e-5)</div>
+<div class="line">)</div>
+<div class="line">model.add_element(1, <span class="stringliteral">&quot;bar&quot;</span>, [1, 2], 1, section_id=1, shear_correction=<span class="keyword">False</span>)</div>
+<div class="line">model.add_restraint(1, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>)</div>
+<div class="line">model.add_load(2, fy=-1000)</div>
+<div class="line">result = model.run(<span class="stringliteral">&quot;static&quot;</span>)</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">assert</span> isclose(result[<span class="stringliteral">&quot;node_displacements&quot;</span>][2][<span class="stringliteral">&quot;dy&quot;</span>], -1/750, rel_tol=1e-8)</div>
+<div class="line">print(model.get_node_displacement(2))</div>
+<div class="line">print(model.get_element_stress(1))</div>
+</div><!-- fragment --><p>Python APIには<code>dimension</code>の設定はありません。この例は3Dの梁として組み立てますが、荷重と形状によりXY平面内で変形します。厳密に平面の自由度へ制限する場合は、各節点の<code>dz, rx, ry</code>を明示的に拘束します。</p>
+<h1><a class="anchor" id="autotoc_md77"></a>
+モデルを作る操作</h1>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">操作   </th><th class="markdownTableHeadNone">主な引数・注意点    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>add_node(node_id, x, y, z)</code>   </td><td class="markdownTableBodyNone">節点を追加。zも必要。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>add_material(material_id, name, E, nu, density=None, ...)</code>   </td><td class="markdownTableBodyNone">弾性材料。Gの明示値は<code>shear_modulus</code>、線膨張係数は<code>alpha</code>。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>material.add_bar_parameter(section_id, BarParameter(...))</code>   </td><td class="markdownTableBodyNone">梁の断面。<code>area, Iy, Iz, J</code>を明示する。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>add_element(elem_id, elem_type, node_ids, material_id, ...)</code>   </td><td class="markdownTableBodyNone">梁なら<code>section_id, angle, shear_correction</code>、シェルなら<code>thickness, formulation</code>を指定。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>add_nonlinear_material(...)</code>   </td><td class="markdownTableBodyNone">JR材料を追加。同時に参照弾性材料も作る。<a class="el" href="md_docs_2wiki_2nonlinear-analysis.html">非線形ガイド</a>参照。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>add_nonlinear_bar_element(elem_id, node_ids, material_id, section_id, hysteresis_dofs, ...)</code>   </td><td class="markdownTableBodyNone">非線形梁を追加。断面・適用自由度を指定。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>add_restraint(node_id, dx=False, dy=False, dz=False, rx=False, ry=False, rz=False, values=None)</code>   </td><td class="markdownTableBodyNone">Trueの成分を拘束。<code>values</code>は6成分の強制変位・回転。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>add_load(node_id, fx=0, fy=0, fz=0, mx=0, my=0, mz=0)</code>   </td><td class="markdownTableBodyNone">全体座標の節点荷重。JSON入力とは名前が異なる。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>add_spring_support(node_id, direction, stiffness)</code>   </td><td class="markdownTableBodyNone">全体方向<code>x,y,z,rx,ry,rz</code>の支持ばね。正の有限剛性。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>add_forced_displacement(node_id, dx=0, dy=0, dz=0, rx=0, ry=0, rz=0)</code>   </td><td class="markdownTableBodyNone">非ゼロ成分を拘束し、既存支持に追加する。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>add_distributed_load(element_id, direction, value_i, value_j)</code>   </td><td class="markdownTableBodyNone">要素全長に線形変化する分布荷重。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>add_temperature_load(element_id, temperature)</code>   </td><td class="markdownTableBodyNone">線形梁の一様温度変化。材料の<code>alpha</code>も指定する。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>add_distributed_spring(element_id, dx=0, dy=0, dz=0, rx=0)</code>   </td><td class="markdownTableBodyNone">梁局所方向の分布ばね。最後のrxは分布ねじりばね。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>add_joint_condition(element_id, xi=1, yi=1, zi=1, xj=1, yj=1, zj=1)</code>   </td><td class="markdownTableBodyNone">局所軸の材端回転を0で解放、1で接続。省略は接続。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>boundary.add_pressure(element_id, face, pressure)</code>   </td><td class="markdownTableBodyNone">シェルのF1/F2に一様面圧。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>add_notice_points([{ "m": ..., "Points": [...] }])</code>   </td><td class="markdownTableBodyNone">部材内の位置で分割。荷重と合わせたモデル作成には編集用JSONの入口を利用する。   </td></tr>
+</table>
+<p>分布荷重の方向は<code>local_x, local_y, local_z, local_r, global_x, global_y, global_z</code>です。部材途中だけの分布荷重や集中荷重は、<a class="el" href="md_docs_2wiki_2data-structures.html">編集用JSONの荷重・分割指定</a>を使うと、荷重区間と節点を一緒に処理できます。</p>
+<p>支持・荷重の上書きと加算は区別してください。<code>add_load()</code>は同じ節点への荷重を加算します。<code>add_restraint()</code>はその節点の拘束を置き換えます。<code>add_forced_displacement()</code>の0は「既存の値を0に戻す」操作ではありません。値を0へ戻す場合は<code>add_restraint(..., values=[...])</code>で支持全体を再設定します。</p>
+<p>拘束値の絶対値が1,000を超える場合のばね互換処理、同一自由度の拘束とばねの競合については<a class="el" href="md_docs_2wiki_2data-structures.html">入力ガイド</a>を参照してください。</p>
+<h1><a class="anchor" id="autotoc_md78"></a>
+解析・結果の操作</h1>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">操作   </th><th class="markdownTableHeadNone">内容    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>run(analysis_type=None)</code>   </td><td class="markdownTableBodyNone">解析して辞書を返す。未指定時の選択規則は<a class="el" href="md_docs_2wiki_2elements.html">解析モード</a>参照。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>run_static_analysis()</code>   </td><td class="markdownTableBodyNone"><code>run("static")</code>と同じ。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>analysis_params</code>   </td><td class="markdownTableBodyNone">解析制御の辞書。載荷係数、反復上限、許容差、モード数を設定。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>get_results()</code>   </td><td class="markdownTableBodyNone">現在の結果。未解析・解析失敗後はNone。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>get_node_displacement(node_id)</code>   </td><td class="markdownTableBodyNone">解析済み節点変位。存在しなければNone。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>get_element_stress(elem_id)</code>   </td><td class="markdownTableBodyNone">要素結果。梁では端力。存在しなければNone。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>get_model_info()</code>   </td><td class="markdownTableBodyNone"><code>n_nodes, n_elements, n_materials, n_restraints, n_loads, element_types</code>など。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>load_model(path)</code>、<code>save_model(path)</code>   </td><td class="markdownTableBodyNone">モデルを読込・保存。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>save_results(path)</code>、<code>load_results(path)</code>   </td><td class="markdownTableBodyNone">結果JSONを保存・読込。履歴状態の再開には使わない。   </td></tr>
+</table>
+<p>固有値解析のモード数は<code>model.analysis_params["n_modes"]</code>で指定します。現行の<code>run_modal_analysis(n_modes=...)</code>の引数は解析に反映されません。<a class="el" href="md_docs_2wiki_2examples.html">固有値解析の例</a>の呼び方を使ってください。</p>
+<p><code>get_node_count()</code>・<code>get_element_count()</code>というメソッドはありません。<code>model.get_model_info()["n_nodes"]</code>、または<code>len(model.mesh.nodes)</code>を使います。</p>
+<h1><a class="anchor" id="autotoc_md79"></a>
+ファイルを読んでから組み立てる場合</h1>
+<p><code>load_model()</code>は変換と組立をまとめて行います。途中のモデルを扱う必要があれば、<code>fem.file_io.read_model(path)</code>が返す内部モデル辞書を<code>model.read_json_model(...)</code>へ渡せます。</p>
+<p><code>read_json_model()</code>は名前に反して、生のJSON辞書をそのまま受け取るメソッドではありません。<code>mesh, material, boundary, section</code>などのオブジェクトへ変換済みの辞書が必要です。<code>load_model_from_dict()</code>も存在しません。通常はJSONファイルを保存して<code>load_model()</code>を使うか、上記の構築APIで組み立ててください。</p>
+<h1><a class="anchor" id="autotoc_md80"></a>
+状態の管理</h1>
+<p><code>run()</code>は毎回、要素を作り直して解析状態を初期化します。材料非線形の前回履歴を続行する操作ではありません。モデル読込や再解析が失敗した場合、前回の結果を今回の成功結果として残さないよう<code>results</code>を消去します。</p>
+<p>返値や<code>get_results()</code>はアプリで利用する結果です。独立した保管用コピーが必要なら<code>copy.deepcopy()</code>またはJSON保存を使ってください。複数ケース・複数ジョブでは、ケースごとに<code>FemModel</code>を作ると状態の混同を避けられます。</p>
+<p>要素・ソルバーを直接組み合わせる上級用途は<a class="el" href="md_docs_2wiki_2workflow.html">解析ワークフロー</a>を参照してください。 </p>
+</div></div><!-- contents -->
+</div><!-- PageDoc -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

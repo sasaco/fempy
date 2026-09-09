@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>FrameWeb: 解析ワークフロー</title>
+<title>FEMPython: 解析ワークフロー</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -30,7 +30,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">FrameWeb
+   <div id="projectname">FEMPython
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -98,369 +98,100 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2workflow.html',''); ini
   <div class="headertitle"><div class="title">解析ワークフロー</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md208"></a> </p>
-<h1><a class="anchor" id="autotoc_md209"></a>
-🎉 概要</h1>
-<p>**FrameWeb3は、技術的に大成功を収めた次世代FEM解析モジュール**として、革新的な要素分割機能を含む高精度解析ワークフローを提供します。2025年6月に完了したプロジェクトにより、旧実装を上回る66節点の高精度メッシュ生成が可能になりました。</p>
-<h1><a class="anchor" id="autotoc_md210"></a>
-🚀 新実装（FemModel）の完全解析フロー</h1>
-<div class="fragment"><div class="line">graph TD</div>
-<div class="line">    A[JSON入力] --&gt; B[入力検証]</div>
-<div class="line">    B --&gt; C[データ変換]</div>
-<div class="line">    C --&gt; D[要素分割処理]</div>
-<div class="line">    D --&gt; D1[着目点分割]</div>
-<div class="line">    D --&gt; D2[分布荷重分割]</div>
-<div class="line">    D --&gt; D3[集中荷重分割]</div>
-<div class="line">    D1 --&gt; E[剛性行列組み立て]</div>
-<div class="line">    D2 --&gt; E</div>
-<div class="line">    D3 --&gt; E</div>
-<div class="line">    E --&gt; F[荷重ベクトル組み立て]</div>
-<div class="line">    F --&gt; G[高精度ソルバー求解]</div>
-<div class="line">    G --&gt; H[力計算]</div>
-<div class="line">    H --&gt; I[結果フォーマット]</div>
-<div class="line">    I --&gt; J[JSON出力]</div>
-<div class="line">    B --&gt; K[検証エラー]</div>
-<div class="line">    D --&gt; L[分割エラー]</div>
-<div class="line">    E --&gt; M[行列特異性エラー]</div>
-<div class="line">    G --&gt; N[収束エラー]</div>
-<div class="line">    style D fill:#f9f,stroke:#333,stroke-width:4px</div>
-<div class="line">    style D1 fill:#bbf,stroke:#333,stroke-width:2px</div>
-<div class="line">    style D2 fill:#bbf,stroke:#333,stroke-width:2px</div>
-<div class="line">    style D3 fill:#bbf,stroke:#333,stroke-width:2px</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md211"></a>
-🏆 技術的優位性</h1>
-<h2><a class="anchor" id="autotoc_md212"></a>
-📈 改善実績</h2>
+<div class="textblock"><p><a class="anchor" id="autotoc_md103"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2python-api.html">Python API</a> · <a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a></p>
+<p>このページは、入力から結果までの処理と、要素・ソルバーを直接利用する場合の契約を説明します。通常の解析は<code>FemModel</code>を使えば、この流れをまとめて実行できます。</p>
+<h1><a class="anchor" id="autotoc_md104"></a>
+入力から結果まで</h1>
+<div class="fragment"><div class="line">JSONファイル／HTTP入力</div>
+<div class="line">    ↓ 形式の変換、ケース選択、参照の解決</div>
+<div class="line">内部モデル（mesh・material・boundary・section）</div>
+<div class="line">    ↓ 部材の分割、荷重・剛域・材端条件の対応付け</div>
+<div class="line">要素オブジェクトと自由度の配置</div>
+<div class="line">    ├─ static：参照弾性剛性 → 境界条件 → 直接求解</div>
+<div class="line">    ├─ material_nonlinear：載荷段階 → Newton反復 → 履歴確定</div>
+<div class="line">    └─ modal：剛性・質量行列 → 固有値問題</div>
+<div class="line">    ↓ 変位・反力・端力・応力の整理</div>
+<div class="line">Python結果辞書 → 必要に応じてJSON保存／HTTP応答</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md105"></a>
+1. 入力の変換とケース選択</h2>
+<p><code>load_model()</code>は拡張子に応じた読込を行い、変換済みモデルを<code>read_json_model()</code>へ渡します。HTTPは生のJSONを同じ変換処理へ渡します。</p>
+<p>編集用JSONは先頭の荷重ケースを選び、そのケースが参照する材料・支持・分布ばね・材端条件を解決します。全ケースの解析を並列に実行する処理ではありません。</p>
+<h2><a class="anchor" id="autotoc_md106"></a>
+2. 部材の分割</h2>
+<p>着目点、分布荷重の境界、集中荷重位置、剛域の境界から分割位置を作ります。荷重を分割後の要素へ配分し、材端の回転解放を元部材の外端へ引き継ぎます。要素の元IDと元部材上の位置も保持します。</p>
+<p>他の荷重ケースの部材荷重位置を共通の分割位置として参照する場合がありますが、実際に載荷するのは選んだケースです。位置が増えることと、複数荷重ケースを計算することは異なります。</p>
+<h2><a class="anchor" id="autotoc_md107"></a>
+3. 自由度と行列の組立</h2>
+<p>節点IDの昇順にコンパクトな自由度表を作ります。対応するソリッドだけなら3並進、それ以外のモデルは6成分を確保し、各要素を必要な自由度へ対応付けます。IDが飛び番でも、<code>(node_id−1)×6</code>で直接添字を計算しません。</p>
+<p>要素の局所剛性・荷重を全体座標へ変換し、支持ばねや強制変位を反映します。静解析の拘束処理は対称消去、固有値解析ではペナルティを使います。</p>
+<h2><a class="anchor" id="autotoc_md108"></a>
+4. 解析</h2>
+<p>線形静解析は1回の全荷重を参照弾性剛性で解きます。スケーリングや補償計算、必要に応じた高精度計算を使い、小さな変形や端力を保持します。非線形解析の段階を1にした計算とは、材料則も数値処理も異なります。</p>
+<p>材料非線形解析は指定された係数列を順に処理します。各段階で基準荷重と強制変位を同じ係数で変化させ、Newton反復と残差に基づく増分縮小を行います。</p>
 <ul>
-<li><b>節点数</b>: 66節点（旧60節点から6節点増加）</li>
-<li><b>要素分割</b>: 着目点11箇所、分布荷重31個、集中荷重88個の処理</li>
-<li><b>新規節点</b>: 25個の自動生成</li>
-<li><b>荷重ケース</b>: 24ケース全ての包括的対応</li>
+<li>自由DOFの釣合い残差を、<code>max(自由DOFの外力ノルム, 1)</code>で正規化します。</li>
+<li>変位増分も<code>max(変位ノルム, 1)</code>で正規化します。</li>
+<li>通常は相対残差と相対増分の両方が許容差未満で収束します。</li>
+<li>初回に残差が十分小さい場合は、拘束後の接線行列の可解性も確認して受理します。</li>
+<li>試行評価は確定履歴を基準に行い、収束した段階だけをコミットします。</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md213"></a>
-材料非線形解析ワークフロー（2026年1月追加）</h1>
-<h2><a class="anchor" id="autotoc_md214"></a>
-非線形解析フロー</h2>
-<div class="fragment"><div class="line">graph TD</div>
-<div class="line">    A[JSON入力] --&gt; B[入力検証]</div>
-<div class="line">    B --&gt; C[非線形材料パース]</div>
-<div class="line">    C --&gt; D[NonlinearBarElement生成]</div>
-<div class="line">    D --&gt; E[初期荷重設定]</div>
-<div class="line">    E --&gt; F{荷重増分ループ}</div>
-<div class="line">    F --&gt; G[Newton-Raphson反復]</div>
-<div class="line">    G --&gt; H[接線剛性行列組み立て]</div>
-<div class="line">    H --&gt; I[内力計算]</div>
-<div class="line">    I --&gt; J[残差ベクトル計算]</div>
-<div class="line">    J --&gt; K{収束判定}</div>
-<div class="line">    K --&gt;|未収束| L[変位修正]</div>
-<div class="line">    L --&gt; G</div>
-<div class="line">    K --&gt;|収束| M[状態コミット]</div>
-<div class="line">    M --&gt; N{最終ステップ?}</div>
-<div class="line">    N --&gt;|No| F</div>
-<div class="line">    N --&gt;|Yes| O[結果出力]</div>
-<div class="line">    K --&gt;|発散| P[状態ロールバック]</div>
-<div class="line">    P --&gt; Q[エラー処理]</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md215"></a>
-Newton-Raphson法アルゴリズム</h2>
-<div class="fragment"><div class="line">u = 0</div>
-<div class="line"><span class="keywordflow">for</span> step <span class="keywordflow">in</span> range(n_steps):</div>
-<div class="line">    lambda_factor = (step + 1) / n_steps</div>
-<div class="line">    F_ext = lambda_factor * F_total</div>
+<p>失敗時は直前の確定状態へ戻して例外を送出します。失敗状態のまま次段階へ進めません。</p>
+<h2><a class="anchor" id="autotoc_md109"></a>
+5. 後処理</h2>
+<p>梁の端力、シェルの両面結果、ソリッドの積分点応力を計算します。対象の線形梁では釣合いから端力を回復し、構成則との差も検査します。後処理が失敗した場合も解析成功として返しません。</p>
+<h1><a class="anchor" id="autotoc_md110"></a>
+共通ソルバーAPI</h1>
+<p><code>FemModel.run()</code>の静解析・材料非線形解析は共通の<code>Solver</code>を使います。固有値解析は<code>eigenvalue_analysis()</code>という別の経路です。</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">呼出し   </th><th class="markdownTableHeadNone">意味    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>solver.solve(mesh, material, boundary, elements)</code>   </td><td class="markdownTableBodyNone">4位置引数の既存呼出しは線形静解析    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>solver.solve(..., analysis_type="material_nonlinear", n_steps=10, max_iter=50, tol=1e-6, load_factors=None, callback=None)</code>   </td><td class="markdownTableBodyNone">材料非線形解析    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>solver.eigenvalue_analysis(..., n_modes=10)</code>   </td><td class="markdownTableBodyNone">固有値解析   </td></tr>
+</table>
+<p>低水準<code>solve()</code>へ<code>static</code>と<code>load_factors</code>を同時指定すると入力エラーです。<code>FemModel.run("static")</code>は非線形用係数を渡さず、基準荷重を1回で解きます。</p>
+<p>旧<code><a class="el" href="classfem_1_1nonlinear_1_1nonlinear__solver_1_1NonlinearSolver.html">fem.nonlinear.nonlinear_solver.NonlinearSolver</a></code>、<code>solve_nonlinear()</code>は共通実装に委譲する互換入口です。<code>NonlinearSolver.solve()</code>は非線形解析を選びます。<code>FemModel.nonlinear_solver</code>は同じソルバーの変位・収束履歴を参照する互換ビューです。</p>
+<h1><a class="anchor" id="autotoc_md111"></a>
+コールバックで確定段階を受け取る</h1>
+<p>低水準APIを使う場合の例です。<a class="el" href="md_docs_2wiki_2getting-started.html">はじめに</a>の<code>beam.json</code>を用意します。線形梁を非線形解析モードで段階載荷し、確定した載荷係数を記録します。要素は線形のままです。</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> isclose</div>
+<div class="line"><span class="keyword">from</span> fem <span class="keyword">import</span> FemModel, Solver</div>
 <div class="line"> </div>
-<div class="line">    <span class="keywordflow">for</span> iteration <span class="keywordflow">in</span> range(max_iter):</div>
-<div class="line">        <span class="comment"># 内力計算</span></div>
-<div class="line">        F_int = assemble_internal_forces(elements, u)</div>
-<div class="line">        R = F_ext - F_int</div>
-<div class="line"> </div>
-<div class="line">        <span class="comment"># 収束判定</span></div>
-<div class="line">        R_norm = norm(R) / max(norm(F_ext), 1.0)</div>
-<div class="line">        <span class="keywordflow">if</span> iteration &gt; 0:</div>
-<div class="line">            du_norm = norm(du) / max(norm(u), 1.0)</div>
-<div class="line">        <span class="keywordflow">else</span>:</div>
-<div class="line">            du_norm = float(<span class="stringliteral">&#39;inf&#39;</span>)</div>
-<div class="line"> </div>
-<div class="line">        <span class="keywordflow">if</span> R_norm &lt; tol <span class="keywordflow">and</span> du_norm &lt; tol:</div>
-<div class="line">            <span class="keywordflow">break</span>  <span class="comment"># 収束</span></div>
-<div class="line"> </div>
-<div class="line">        <span class="comment"># 接線剛性行列組み立て・求解</span></div>
-<div class="line">        K_tan = assemble_tangent_stiffness(elements, u)</div>
-<div class="line">        du = solve(K_tan, R)</div>
-<div class="line">        u += du</div>
-<div class="line"> </div>
-<div class="line">    <span class="comment"># Step収束後、状態変数をコミット</span></div>
-<div class="line">    <span class="keywordflow">for</span> elem <span class="keywordflow">in</span> elements:</div>
-<div class="line">        elem.update_state(u)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md216"></a>
-JR総研剛性低減RC型履歴ルール</h2>
-<ol type="1">
-<li><b>初期領域</b>: |δmax| &lt; δ1 の場合、原点を通る勾配 K1 の直線上</li>
-<li><b>載荷</b>: スケルトンカーブに沿う</li>
-<li><b>除荷</b>: 低減剛性 Kd で除荷</li>
-<li><b>最大点指向</b>: P=0通過後、反対側の最大変形点を目指す</li>
-<li><b>内部ループ</b>: 最大点指向中に戻る場合、反転点スタックで管理</li>
-<li><b>骨格曲線逸脱</b>: 除荷中に骨格曲線の外側に出た場合は補正</li>
-</ol>
-<h2><a class="anchor" id="autotoc_md217"></a>
-剛性低減式</h2>
-<ul>
-<li><b>ひび割れ域（δ1 &lt; δmax &lt; δ2）</b>: <code>Kd = K1 × |δmax/δ1|^(-β)</code></li>
-<li><b>降伏域以降（δmax &gt; δ2）</b>: <code>Kd = K2 × |δmax/δ2|^(-β)</code></li>
-<li><b>下限値</b>: <code>(Fmax-F1)/(δmax-δ1)</code></li>
-</ul>
-<hr  />
-<h1><a class="anchor" id="autotoc_md219"></a>
-フェーズ1: 入力処理</h1>
-<h2><a class="anchor" id="autotoc_md220"></a>
-1.1 JSON検証（新実装対応）</h2>
-<p><code>FemModel</code>クラスが受信JSONの構造を検証します：</p>
-<div class="fragment"><div class="line"><span class="comment"># 新実装の検証ステップ:</span></div>
-<div class="line">- 必須セクション（node、element、load、notice_points）の確認</div>
-<div class="line">- 要素分割対象データの検証</div>
-<div class="line">- 荷重データの構造化（24ケース対応）</div>
-<div class="line">- 座標に基づく解析モード（2D/3D）の検出</div>
-<div class="line">- 分布荷重・集中荷重データの詳細検証</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md221"></a>
-1.2 データ変換（高精度対応）</h2>
-<p>生のJSONデータが内部オブジェクトに変換されます：</p>
-<div class="fragment"><div class="line"><span class="comment"># 新実装の変換プロセス:</span></div>
 <div class="line">model = FemModel()</div>
-<div class="line">model_data = file_io.read_model(json_path)  <span class="comment"># 荷重データ含む完全読み込み</span></div>
-<div class="line">nodes = model_data[<span class="stringliteral">&quot;mesh&quot;</span>].nodes  <span class="comment"># 初期41節点</span></div>
-<div class="line">materials = model_data[<span class="stringliteral">&quot;material&quot;</span>]  <span class="comment"># 材料データ</span></div>
-<div class="line">sections = model_data[<span class="stringliteral">&quot;section&quot;</span>]  <span class="comment"># 断面データ</span></div>
-<div class="line">loads = model_data[<span class="stringliteral">&quot;load&quot;</span>]  <span class="comment"># 24荷重ケース</span></div>
-<div class="line">notice_points = model_data[<span class="stringliteral">&quot;notice_points&quot;</span>]  <span class="comment"># 着目点11箇所</span></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md222"></a>
-🔧 フェーズ2: 要素分割処理（新機能）</h1>
-<h2><a class="anchor" id="autotoc_md223"></a>
-2.1 着目点による分割</h2>
-<p>構造の重要箇所で自動的に要素を分割：</p>
-<div class="fragment"><div class="line"><span class="comment"># 着目点分割プロセス（11箇所処理確認済み）:</span></div>
-<div class="line"><span class="keyword">def </span>add_notice_points(self, notice_points):</div>
-<div class="line">    <span class="keywordflow">for</span> notice_point <span class="keywordflow">in</span> notice_points:</div>
-<div class="line">        element_id = notice_point[<span class="stringliteral">&quot;m&quot;</span>]</div>
-<div class="line">        points = notice_point[<span class="stringliteral">&quot;Points&quot;</span>]</div>
-<div class="line">        <span class="comment"># 要素を分割し新規節点を生成</span></div>
-<div class="line">        new_nodes = self._divide_element_at_points(element_id, points)</div>
-<div class="line">        self.nodes.extend(new_nodes)</div>
-<div class="line">        print(f<span class="stringliteral">&quot;要素{element_id}を{len(points)}個の点で分割、新規節点{len(new_nodes)}個を追加&quot;</span>)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md224"></a>
-2.2 分布荷重による分割</h2>
-<p>荷重作用位置で精密なメッシュを生成：</p>
-<div class="fragment"><div class="line"><span class="comment"># 分布荷重分割プロセス（31個処理確認済み）:</span></div>
-<div class="line"><span class="keyword">def </span>_divide_element_by_distributed_loads(self, all_loads):</div>
-<div class="line">    distributed_loads = all_loads[<span class="stringliteral">&quot;distributed&quot;</span>]  <span class="comment"># 31個の分布荷重</span></div>
-<div class="line">    <span class="keywordflow">for</span> load <span class="keywordflow">in</span> distributed_loads:</div>
-<div class="line">        element_id = load[<span class="stringliteral">&quot;element_id&quot;</span>]</div>
-<div class="line">        start_pos = load[<span class="stringliteral">&quot;start_position&quot;</span>]</div>
-<div class="line">        end_pos = load[<span class="stringliteral">&quot;end_position&quot;</span>]</div>
-<div class="line">        <span class="comment"># L2負値対応（荷重幅→j端からの距離変換）</span></div>
-<div class="line">        <span class="keywordflow">if</span> end_pos &lt; 0:</div>
-<div class="line">            element_length = self._get_element_length(element_id)</div>
-<div class="line">            end_pos = element_length + end_pos</div>
-<div class="line">        <span class="comment"># 分割位置での新規節点生成</span></div>
-<div class="line">        new_nodes = self._create_division_nodes(element_id, start_pos, end_pos)</div>
-<div class="line">    print(f<span class="stringliteral">&quot;分布荷重による分割: {len(distributed_loads)}個の分布荷重を処理&quot;</span>)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md225"></a>
-2.3 集中荷重による分割</h2>
-<p>集中荷重位置での高精度解析：</p>
-<div class="fragment"><div class="line"><span class="comment"># 集中荷重分割プロセス（88個処理確認済み）:</span></div>
-<div class="line"><span class="keyword">def </span>_divide_element_by_concentrated_loads(self, all_loads):</div>
-<div class="line">    concentrated_loads = all_loads[<span class="stringliteral">&quot;concentrated&quot;</span>]  <span class="comment"># 88個の集中荷重</span></div>
-<div class="line">    <span class="keywordflow">for</span> load <span class="keywordflow">in</span> concentrated_loads:</div>
-<div class="line">        element_id = load[<span class="stringliteral">&quot;element_id&quot;</span>]</div>
-<div class="line">        position = load[<span class="stringliteral">&quot;position&quot;</span>]</div>
-<div class="line">        <span class="comment"># 位置情報のみでの分割判定（旧実装準拠）</span></div>
-<div class="line">        <span class="keywordflow">if</span> 0 &lt; position &lt; element_length:</div>
-<div class="line">            new_node = self._create_node_at_position(element_id, position)</div>
-<div class="line">    print(f<span class="stringliteral">&quot;集中荷重による分割: {len(concentrated_loads)}個の集中荷重を処理&quot;</span>)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md226"></a>
-2.4 分割結果の統合</h2>
-<div class="fragment"><div class="line"><span class="comment"># 分割完了後の状態:</span></div>
-<div class="line">print(f<span class="stringliteral">&quot;要素分割のまとめ:&quot;</span>)</div>
-<div class="line">print(f<span class="stringliteral">&quot; - 初期モデル: 節点数=41, 要素数=41&quot;</span>)</div>
-<div class="line">print(f<span class="stringliteral">&quot; - 最終モデル: 節点数=66, 要素数=66&quot;</span>)</div>
-<div class="line">print(f<span class="stringliteral">&quot; - 追加された節点数: 25&quot;</span>)</div>
-<div class="line">print(f<span class="stringliteral">&quot; - 追加された要素数: 25&quot;</span>)</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md227"></a>
-フェーズ3: 行列組み立て（高精度対応）</h1>
-<h2><a class="anchor" id="autotoc_md228"></a>
-3.1 剛性行列作成</h2>
-<p><code>assembly.py</code>の<code>assemble_global_matrices</code>が高精度メッシュで全体剛性行列を組み立てます：</p>
-<div class="fragment"><div class="line"><span class="comment"># 高精度組み立てプロセス:</span></div>
-<div class="line"><span class="keyword">from</span> src.fem.assembly <span class="keyword">import</span> assemble_global_matrices</div>
+<div class="line">model.load_model(<span class="stringliteral">&quot;beam.json&quot;</span>)</div>
+<div class="line">accepted_factors = []</div>
 <div class="line"> </div>
-<div class="line"><span class="comment"># 66要素での剛性行列組み立て</span></div>
-<div class="line">K_global, f_global = assemble_global_matrices(</div>
-<div class="line">    elements=66_elements,  <span class="comment"># 分割後の要素</span></div>
-<div class="line">    nodes=66_nodes,  <span class="comment"># 分割後の節点</span></div>
-<div class="line">    materials=materials,</div>
-<div class="line">    sections=sections</div>
+<div class="line"><span class="keyword">def </span>on_step(snapshot):</div>
+<div class="line">    accepted_factors.append(snapshot[<span class="stringliteral">&quot;lambda&quot;</span>])</div>
+<div class="line"> </div>
+<div class="line">solver = Solver()</div>
+<div class="line">result = solver.solve(</div>
+<div class="line">    model.mesh, model.material, model.boundary, model.elements,</div>
+<div class="line">    analysis_type=<span class="stringliteral">&quot;material_nonlinear&quot;</span>,</div>
+<div class="line">    load_factors=[0, 0.5, 1], callback=on_step,</div>
 <div class="line">)</div>
-<div class="line">print(f<span class="stringliteral">&quot;高精度剛性行列サイズ: {K_global.shape}&quot;</span>)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md229"></a>
-3.2 境界条件適用</h2>
-<div class="fragment"><div class="line"><span class="comment"># 境界条件の適用:</span></div>
-<div class="line"><span class="keyword">from</span> src.fem.assembly <span class="keyword">import</span> apply_boundary_conditions</div>
-<div class="line"> </div>
-<div class="line">K_constrained, f_constrained = apply_boundary_conditions(</div>
-<div class="line">    K_global, f_global, boundary_conditions</div>
-<div class="line">)</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># 特殊拘束（バネ）の処理確認済み:</span></div>
-<div class="line"><span class="comment"># - 節点25: ty=61902（バネ定数）</span></div>
-<div class="line"><span class="comment"># - 節点33: ty=61902（バネ定数）</span></div>
-<div class="line"><span class="comment"># - 節点41: ty=61902（バネ定数）</span></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md230"></a>
-フェーズ4: 解析実行（高精度ソルバー）</h1>
-<h2><a class="anchor" id="autotoc_md231"></a>
-4.1 方程式求解</h2>
-<p><code>solver.py</code>の<code>solve_linear_system</code>が高精度求解を実行：</p>
-<div class="fragment"><div class="line"><span class="comment"># 高精度求解プロセス:</span></div>
-<div class="line"><span class="keyword">from</span> src.fem.solver <span class="keyword">import</span> solve_linear_system</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># NumPy基盤の高精度ソルバー</span></div>
-<div class="line">displacement = solve_linear_system(K_constrained, f_constrained)</div>
-<div class="line">print(f<span class="stringliteral">&quot;求解完了: {len(displacement)}個の変位を計算&quot;</span>)</div>
-<div class="line">print(f<span class="stringliteral">&quot;最大Y変位: {np.max(np.abs(displacement[1::6])):.6e} m&quot;</span>)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md232"></a>
-4.2 力計算（詳細解析）</h2>
-<p>66要素での詳細な力計算：</p>
-<div class="fragment"><div class="line"><span class="comment"># 詳細力計算:</span></div>
-<div class="line">element_forces = {}</div>
-<div class="line"><span class="keywordflow">for</span> element_id <span class="keywordflow">in</span> range(1, 67):  <span class="comment"># 66要素</span></div>
-<div class="line">    local_displacement = extract_element_displacement(element_id, displacement)</div>
-<div class="line">    element_force = calculate_element_force(element_id, local_displacement)</div>
-<div class="line">    element_forces[element_id] = element_force</div>
-<div class="line">print(f<span class="stringliteral">&quot;66要素の詳細内力を計算完了&quot;</span>)</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md233"></a>
-フェーズ5: 結果処理（高精度出力）</h1>
-<h2><a class="anchor" id="autotoc_md234"></a>
-5.1 結果フォーマット</h2>
-<p><code>result_processor.py</code>の<code>ResultProcessor</code>が高精度結果をフォーマット：</p>
-<div class="fragment"><div class="line"><span class="comment"># 高精度結果処理:</span></div>
-<div class="line"><span class="keyword">from</span> src.fem.result_processor <span class="keyword">import</span> ResultProcessor</div>
-<div class="line"> </div>
-<div class="line">processor = ResultProcessor()</div>
-<div class="line">formatted_results = processor.process_displacement(displacement)</div>
-<div class="line">formatted_forces = processor.process_stress(element_forces)</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># 66節点の詳細結果:</span></div>
-<div class="line">print(f<span class="stringliteral">&quot;結果サイズ: {len(formatted_results[&#39;displacement&#39;])}節点&quot;</span>)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md235"></a>
-5.2 品質保証（統合テスト）</h2>
-<div class="fragment"><div class="line"><span class="comment"># 統合テストによる品質確認:</span></div>
-<div class="line">python check_integration_test.py</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># 出力例:</span></div>
-<div class="line"><span class="comment"># ✅ 新実装の節点数: 66</span></div>
-<div class="line"><span class="comment"># ✅ 旧実装の節点数: 60</span></div>
-<div class="line"><span class="comment"># ✅ 節点数差: -6（新実装が高精度）</span></div>
-<div class="line"><span class="comment"># ✅ 相対誤差: 97.6%（高精度メッシュによる正当な差異）</span></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md236"></a>
-🎯 詳細コンポーネント相互作用</h1>
-<h2><a class="anchor" id="autotoc_md237"></a>
-FemModelクラスワークフロー</h2>
-<div class="fragment"><div class="line"><span class="keyword">class </span>FemModel:</div>
-<div class="line">    <span class="keyword">def </span>load_model(self, file_path):</div>
-<div class="line">        <span class="comment"># フェーズ1: 入力処理</span></div>
-<div class="line">        model_data = file_io.read_model(file_path)</div>
-<div class="line">        </div>
-<div class="line">        <span class="comment"># フェーズ2: 要素分割処理</span></div>
-<div class="line">        self.add_notice_points(model_data[<span class="stringliteral">&quot;notice_points&quot;</span>])  <span class="comment"># 着目点分割</span></div>
-<div class="line">        all_loads = self._extract_all_loads(model_data[<span class="stringliteral">&quot;load&quot;</span>])  <span class="comment"># 荷重抽出</span></div>
-<div class="line">        self._divide_element_by_distributed_loads(all_loads)  <span class="comment"># 分布荷重分割</span></div>
-<div class="line">        self._divide_element_by_concentrated_loads(all_loads)  <span class="comment"># 集中荷重分割</span></div>
-<div class="line">        print(f<span class="stringliteral">&quot;要素分割完了: 節点数={len(self.nodes)}, 要素数={len(self.elements)}&quot;</span>)</div>
-<div class="line"> </div>
-<div class="line">    <span class="keyword">def </span>run(self, analysis_type=&quot;static&quot;):</div>
-<div class="line">        <span class="comment"># フェーズ3: 行列組み立て</span></div>
-<div class="line">        <span class="keyword">from</span> src.fem.assembly <span class="keyword">import</span> assemble_global_matrices</div>
-<div class="line">        K_global, f_global = assemble_global_matrices(</div>
-<div class="line">            self.elements, self.nodes, self.materials, self.sections</div>
-<div class="line">        )</div>
-<div class="line">        </div>
-<div class="line">        <span class="comment"># フェーズ4: 解析実行</span></div>
-<div class="line">        <span class="keyword">from</span> src.fem.solver <span class="keyword">import</span> solve_linear_system</div>
-<div class="line">        displacement = solve_linear_system(K_global, f_global)</div>
-<div class="line">        </div>
-<div class="line">        <span class="comment"># フェーズ5: 結果処理</span></div>
-<div class="line">        <span class="keyword">from</span> src.fem.result_processor <span class="keyword">import</span> ResultProcessor</div>
-<div class="line">        processor = ResultProcessor()</div>
-<div class="line">        results = processor.process_displacement(displacement)</div>
-<div class="line">        <span class="keywordflow">return</span> results</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md238"></a>
-🔍 エラーハンドリング（新実装対応）</h1>
-<p>各フェーズの包括的エラーハンドリング：</p>
-<div class="fragment"><div class="line"><span class="comment"># フェーズ2エラー（要素分割）</span></div>
-<div class="line"><span class="keywordflow">try</span>:</div>
-<div class="line">    self.add_notice_points(notice_points)</div>
-<div class="line">    self._divide_element_by_distributed_loads(all_loads)</div>
-<div class="line">    self._divide_element_by_concentrated_loads(all_loads)</div>
-<div class="line"><span class="keywordflow">except</span> Exception <span class="keyword">as</span> e:</div>
-<div class="line">    logger.error(f<span class="stringliteral">&quot;要素分割エラー: {e}&quot;</span>)</div>
-<div class="line">    <span class="keywordflow">return</span> {<span class="stringliteral">&quot;error&quot;</span>: <span class="stringliteral">&quot;要素分割処理に失敗しました&quot;</span>}</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># フェーズ3エラー（行列組み立て）</span></div>
-<div class="line"><span class="keywordflow">try</span>:</div>
-<div class="line">    K_global, f_global = assemble_global_matrices(elements, nodes, materials, sections)</div>
-<div class="line"><span class="keywordflow">except</span> np.linalg.LinAlgError <span class="keyword">as</span> e:</div>
-<div class="line">    logger.error(f<span class="stringliteral">&quot;行列組み立てエラー: {e}&quot;</span>)</div>
-<div class="line">    <span class="keywordflow">return</span> {<span class="stringliteral">&quot;error&quot;</span>: <span class="stringliteral">&quot;剛性行列の組み立てに失敗しました&quot;</span>}</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># フェーズ4エラー（高精度求解）</span></div>
-<div class="line"><span class="keywordflow">try</span>:</div>
-<div class="line">    displacement = solve_linear_system(K_global, f_global)</div>
-<div class="line"><span class="keywordflow">except</span> np.linalg.LinAlgError <span class="keyword">as</span> e:</div>
-<div class="line">    logger.error(f<span class="stringliteral">&quot;求解エラー: {e}&quot;</span>)</div>
-<div class="line">    <span class="keywordflow">return</span> {<span class="stringliteral">&quot;error&quot;</span>: <span class="stringliteral">&quot;連立方程式の求解に失敗しました&quot;</span>}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md239"></a>
-📊 パフォーマンス最適化</h1>
-<h2><a class="anchor" id="autotoc_md240"></a>
-メモリ管理（高精度対応）</h2>
+<div class="line"><span class="keyword">assert</span> accepted_factors == [0, 0.5, 1]</div>
+<div class="line"><span class="keyword">assert</span> isclose(result[<span class="stringliteral">&quot;node_displacements&quot;</span>][2][<span class="stringliteral">&quot;dy&quot;</span>], -1/750, rel_tol=1e-8)</div>
+<div class="line">print(accepted_factors)</div>
+</div><!-- fragment --><p>コールバックは段階を保存した後にスナップショットのコピーを受け取ります。コールバックが例外を送出すると、その段階は確定した状態で停止します。通常の解析未収束のロールバックとは区別してください。<code>FemModel.run()</code>やHTTPにcallback引数はありません。</p>
+<p>低水準ソルバーの返値には、FemModelが追加するすべての後処理結果は含まれません。低水準の非線形最終返値には最終<code>element_stresses</code>を追加せず、段階結果に端力を持ちます。通常の応力・シェル結果が必要ならFemModelを利用します。</p>
+<h1><a class="anchor" id="autotoc_md112"></a>
+状態と結果の独立性</h1>
+<p>各solve呼出しで解析状態を初期化し、<code>reset_states()</code>を持つ要素は履歴も初期化します。最終返値、段階結果、コールバックの辞書・配列は独立したコピーです。内部の<code>solver.step_results</code>は線形・非線形の両方で利用できますが、線形の外部結果へは段階履歴を追加しません。</p>
+<p>内部の節点変位と新しい非線形<code>Solver.solve()</code>の返値は6キーです。3DOFメッシュの従来<code>NonlinearSolver</code>／<code>solve_nonlinear()</code>／FemModel／HTTP／非線形callbackは<code>dx, dy, dz</code>へ射影します。<code>NonlinearConvergenceError</code>の旧importと<code>step, load_factor, displacement</code>の属性も維持しています。</p>
+<h1><a class="anchor" id="autotoc_md113"></a>
+実装への案内</h1>
 <ul>
-<li>66節点・66要素での効率的メモリ使用</li>
-<li>スパース行列による大規模モデル対応</li>
-<li>要素分割時の最適化されたアルゴリズム</li>
+<li><a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/model.py">モデルの組立・後処理</a></li>
+<li><a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/file_io.py">JSON・ファイル変換</a>と<a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/legacy_beam.py">編集用部材の分割</a></li>
+<li><a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/dof.py">自由度の配置</a></li>
+<li><a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/solver.py">共通ソルバー</a>と<a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/equilibrium.py">釣合い計算</a></li>
+<li><a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/solver_results.py">段階結果と互換出力</a></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md241"></a>
-計算効率（高精度ソルバー）</h2>
-<ul>
-<li>NumPy基盤の最適化された行列演算</li>
-<li>高速スパースソルバー（scipy.sparse）</li>
-<li>要素分割並列処理（将来拡張）</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md242"></a>
-スケーラビリティ（拡張性）</h2>
-<ul>
-<li>動的モデルサイズ検出（最大66節点）</li>
-<li>適応的圧縮閾値</li>
-<li>大規模モデル用効率的データ構造</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md243"></a>
-🎊 プロジェクト完了</h1>
-<p><b>2025年6月1日: Python FEM解析モジュール クラス構成再編プロジェクトが技術的成功を収めて完了。次世代高精度FEM解析システムとして本格運用開始。</b></p>
-<h1><a class="anchor" id="autotoc_md244"></a>
-デバッグとモニタリング</h1>
-<h2><a class="anchor" id="autotoc_md245"></a>
-ログ統合（新実装対応）</h2>
-<p>各フェーズの詳細ログ：</p>
-<div class="fragment"><div class="line"><span class="comment"># 要素分割フェーズのログ例</span></div>
-<div class="line">logger.info(<span class="stringliteral">&quot;要素分割処理開始&quot;</span>)</div>
-<div class="line">logger.debug(f<span class="stringliteral">&quot;着目点分割: {len(notice_points)}箇所&quot;</span>)</div>
-<div class="line">logger.debug(f<span class="stringliteral">&quot;分布荷重分割: {len(distributed_loads)}個&quot;</span>)</div>
-<div class="line">logger.debug(f<span class="stringliteral">&quot;集中荷重分割: {len(concentrated_loads)}個&quot;</span>)</div>
-<div class="line">logger.info(f<span class="stringliteral">&quot;要素分割完了: 節点数{initial_nodes}→{final_nodes}&quot;</span>)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md246"></a>
-パフォーマンスメトリクス（高精度対応）</h2>
-<p>解析中に追跡される主要指標：</p><ul>
-<li>要素分割処理時間</li>
-<li>高精度行列組み立て時間</li>
-<li>求解時間（66節点）</li>
-<li>メモリ使用量ピーク</li>
-<li>結果フォーマット時間</li>
-</ul>
-<p>このワークフローにより、入力から出力まで堅牢で効率的、追跡可能な高精度構造解析を保証し、各段階で包括的なエラーハンドリングとパフォーマンス最適化を提供します。 </p>
+<p><code>src/fem/assembly.py</code>やモジュール直下の<code>solve_linear_system()</code>を使う旧Wikiの例は、現行構成にはありません。実装を拡張するときは上記の入口と<a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/tests/README.md">テストガイド</a>を参照してください。 </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

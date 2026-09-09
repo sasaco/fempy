@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['はじめに_0',['はじめに',['../md_docs_2wiki_2getting-started.html',1,'']]]
+  ['http_20api_0',['HTTP API',['../md_docs_2wiki_2endpoints.html',1,'']]]
 ];

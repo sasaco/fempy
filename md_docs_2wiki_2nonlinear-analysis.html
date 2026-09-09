@@ -1,0 +1,236 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FEMPython: 材料非線形解析</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FEMPython
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('md_docs_2wiki_2nonlinear-analysis.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">材料非線形解析</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="autotoc_md67"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a></p>
+<p>材料非線形解析は、荷重を増減させながら、部材の剛性低下と履歴を追う解析です。たとえば、載荷で曲がった部材が除荷後にどれだけ曲率を残すかを調べられます。現行の履歴モデルはJR総研剛性低減RC型です。</p>
+<h1><a class="anchor" id="autotoc_md68"></a>
+モデル化の範囲</h1>
+<ul>
+<li>小変位・小回転の梁を対象に、**要素中央の1断面**へ非線形則を置きます。</li>
+<li>非線形化する成分は<code>axial</code>、<code>moment_y</code>、<code>moment_z</code>、<code>torsion</code>から選びます。</li>
+<li>各成分は独立した履歴です。軸力と曲げの相互作用や、断面のファイバー積分ではありません。</li>
+<li>せん断柔性は基準弾性から定まり、材料履歴に合わせてせん断剛性を低減するモデルではありません。</li>
+<li>線形梁、シェル、ソリッドを同じ解析に含めても、それらの材料は線形のままです。</li>
+</ul>
+<p>塑性分布が一様でない部材では、要素分割による結果の変化を確認してください。有限回転、集中塑性ヒンジ、任意の軟化、破断、弧長法、時刻歴の動的応答は対象外です。数学的な検証と実験・外部JR実装との較正は別で、外部との同条件較正は未実施です。<a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/docs/report/material-nonlinear-closure.md">検証の適用範囲</a>も参照してください。</p>
+<h1><a class="anchor" id="autotoc_md69"></a>
+入力するのは断面の関係</h1>
+<p><code>delta_1, delta_2, delta_3</code>という名前でも、節点の絶対変位や集中ヒンジの回転を入れる欄ではありません。</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone"><code>hysteresis_dofs</code>   </th><th class="markdownTableHeadNone"><code>delta_*</code>の意味   </th><th class="markdownTableHeadNone"><code>P_*</code>の意味   </th><th class="markdownTableHeadNone">N・m系での単位    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>axial</code>   </td><td class="markdownTableBodyNone">軸ひずみε   </td><td class="markdownTableBodyNone">軸力N   </td><td class="markdownTableBodyNone">無次元、N    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>moment_y</code>   </td><td class="markdownTableBodyNone">局所y軸まわりの中央曲率κy   </td><td class="markdownTableBodyNone">曲げモーメントMy   </td><td class="markdownTableBodyNone">1/m、N·m    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>moment_z</code>   </td><td class="markdownTableBodyNone">局所z軸まわりの中央曲率κz   </td><td class="markdownTableBodyNone">曲げモーメントMz   </td><td class="markdownTableBodyNone">1/m、N·m    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>torsion</code>   </td><td class="markdownTableBodyNone">局所x軸まわりの単位長さ当たりのねじり角   </td><td class="markdownTableBodyNone">ねじりモーメントT   </td><td class="markdownTableBodyNone">rad/m、N·m   </td></tr>
+</table>
+<p>初期勾配<code>P_1/delta_1</code>は断面剛性です。参照弾性と整合させる場合、軸は<code>EA</code>、曲げは対応する<code>EI</code>、ねじりは<code>GJ</code>と合わせます。同一材料の<code>hysteresis_dofs</code>を複数指定すると、同じ数値の骨格を各成分へ設定します。異なる単位・剛性の成分へ無条件に同じ曲線を流用しないでください。</p>
+<h1><a class="anchor" id="autotoc_md70"></a>
+骨格曲線の設定</h1>
+<p>編集用JSONの<code>element</code>に次のように定義します。例は曲げ用の説明値で、設計用の材料推奨値ではありません。</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;element&quot;: {</div>
+<div class="line">    &quot;1&quot;: {</div>
+<div class="line">      &quot;1&quot;: {</div>
+<div class="line">        &quot;E&quot;: 10000.0, &quot;nu&quot;: 0.25, &quot;A&quot;: 1.0, &quot;Iy&quot;: 1.0, &quot;Iz&quot;: 1.0, &quot;J&quot;: 2.0,</div>
+<div class="line">        &quot;nonlinear&quot;: {</div>
+<div class="line">          &quot;type&quot;: &quot;jr_stiffness_reduction&quot;,</div>
+<div class="line">          &quot;delta_1&quot;: 0.001, &quot;delta_2&quot;: 0.004, &quot;delta_3&quot;: 0.010,</div>
+<div class="line">          &quot;P_1&quot;: 10.0, &quot;P_2&quot;: 16.0, &quot;P_3&quot;: 22.0,</div>
+<div class="line">          &quot;beta&quot;: 0.4, &quot;symmetric&quot;: true,</div>
+<div class="line">          &quot;hysteresis_dofs&quot;: [&quot;moment_z&quot;]</div>
+<div class="line">        }</div>
+<div class="line">      }</div>
+<div class="line">    }</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>原点と3つの折れ点を結び、第3点以降は一定の力・モーメントとなる4折線です。第3点は自動破断点ではありません。各側で以下を満たす必要があります。</p>
+<ul>
+<li><code>0 &lt; delta_1 &lt; delta_2 &lt; delta_3</code></li>
+<li><code>0 &lt; P_1 &lt;= P_2 &lt;= P_3</code></li>
+<li>勾配<code>K1 &gt;= K2 &gt;= K3 &gt;= 0</code>。K2・K3は隣接する折れ点間の勾配。</li>
+<li>すべて有限値。<code>beta &gt;= 0</code>。</li>
+</ul>
+<p><code>K_min</code>は**除荷剛性の下限**です。省略すると正負の初期剛性の小さい方の1になります。指定する場合は<code>0 &lt; K_min &lt;= min(K1正, K1負)</code>です。骨格曲線の最終勾配を正にするパラメータではありません。</p>
+<h2><a class="anchor" id="autotoc_md71"></a>
+正負非対称の骨格</h2>
+<p>編集用JSONと<code>add_nonlinear_material()</code>では、正側は接尾辞のない<code>delta_1</code>・<code>P_1</code>など、負側は<code>delta_1_neg</code>・<code>P_1_neg</code>などを使います。負側も**正の大きさ**で指定します。</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;nonlinear&quot;: {</div>
+<div class="line">    &quot;type&quot;: &quot;jr_stiffness_reduction&quot;,</div>
+<div class="line">    &quot;symmetric&quot;: false,</div>
+<div class="line">    &quot;delta_1&quot;: 0.001, &quot;delta_2&quot;: 0.004, &quot;delta_3&quot;: 0.010,</div>
+<div class="line">    &quot;P_1&quot;: 10, &quot;P_2&quot;: 16, &quot;P_3&quot;: 22,</div>
+<div class="line">    &quot;delta_1_neg&quot;: 0.002, &quot;delta_2_neg&quot;: 0.008, &quot;delta_3_neg&quot;: 0.020,</div>
+<div class="line">    &quot;P_1_neg&quot;: 8, &quot;P_2_neg&quot;: 14, &quot;P_3_neg&quot;: 20,</div>
+<div class="line">    &quot;beta&quot;: 0.4,</div>
+<div class="line">    &quot;hysteresis_dofs&quot;: [&quot;moment_z&quot;]</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>負側の省略項目は正側を使います。<code>symmetric: true</code>なら負側の指定値は使用しません。<code>delta_1_pos</code>などの<code>_pos</code>付き名称を使うのは、保存用JSONの<code>nonlinear_materials</code>や低水準のパラメータクラスです。入力形式を混同しないでください。</p>
+<h1><a class="anchor" id="autotoc_md72"></a>
+載荷の順序を指定する</h1>
+<p><code>n_load_steps: 10</code>なら基準荷重の0.1倍から1倍までの10段階です。除荷・反転を含めたい場合は<code>load_factors</code>で順序を指定します。</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;analysis_type&quot;: &quot;material_nonlinear&quot;,</div>
+<div class="line">  &quot;analysis_params&quot;: {</div>
+<div class="line">    &quot;load_factors&quot;: [0, 0.5, 1, 0.5, 0, -0.5, -1, 0],</div>
+<div class="line">    &quot;max_iterations&quot;: 50,</div>
+<div class="line">    &quot;tolerance&quot;: 0.000001</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>係数はその段階の**絶対倍率**です。基準荷重と基準強制変位が同じ係数で比例的に変化します。独立した複数の荷重パターンを段階ごとに切り替えたり、未知の荷重倍率を求める変位制御・弧長制御を行ったりする機能ではありません。</p>
+<p>0も負値も繰返し値も指定できます。通常の等間隔載荷には初期0段階を含めないため、必要なら配列の先頭へ0を入れます。<code>n_load_steps</code>と<code>max_iterations</code>は<code>load_factors</code>を使う場合も正の整数にします。</p>
+<h1><a class="anchor" id="autotoc_md73"></a>
+実行例：曲げ・除荷・反転</h1>
+<p>以下は単独で実行できます。単位はN・mです。長さ2 mの梁の先端にモーメントを与えるため、曲げモーメントが一様になり、中央断面の曲率と入力した骨格を比較できます。</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> isclose</div>
+<div class="line"><span class="keyword">from</span> fem <span class="keyword">import</span> FemModel, BarParameter</div>
+<div class="line"> </div>
+<div class="line">model = FemModel()</div>
+<div class="line">model.add_node(1, 0, 0, 0)</div>
+<div class="line">model.add_node(2, 2, 0, 0)</div>
+<div class="line">model.add_nonlinear_material(</div>
+<div class="line">    1, <span class="stringliteral">&quot;Illustrative RC law&quot;</span>, E=10000, nu=0.25,</div>
+<div class="line">    delta_1=0.001, delta_2=0.004, delta_3=0.010,</div>
+<div class="line">    P_1=10, P_2=16, P_3=22, beta=0.4,</div>
+<div class="line">)</div>
+<div class="line">model.material.add_bar_parameter(1, BarParameter(area=1, Iy=1, Iz=1, J=2))</div>
+<div class="line">model.add_nonlinear_bar_element(7, [1, 2], 1, 1, [<span class="stringliteral">&quot;moment_z&quot;</span>], shear_correction=<span class="keyword">False</span>)</div>
+<div class="line">model.add_restraint(1, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>)</div>
+<div class="line">model.add_load(2, mz=12)</div>
+<div class="line">model.analysis_params.update(</div>
+<div class="line">    load_factors=[0, 0.5, 1, 0.5, 0, -0.5, -1, 0],</div>
+<div class="line">    max_iterations=50, tolerance=1e-9,</div>
+<div class="line">)</div>
+<div class="line">result = model.run(<span class="stringliteral">&quot;material_nonlinear&quot;</span>)</div>
+<div class="line"> </div>
+<div class="line"><span class="keywordflow">for</span> step <span class="keywordflow">in</span> result[<span class="stringliteral">&quot;step_results&quot;</span>]:</div>
+<div class="line">    print(step[<span class="stringliteral">&quot;lambda&quot;</span>], step[<span class="stringliteral">&quot;curvature&quot;</span>][7][<span class="stringliteral">&quot;z&quot;</span>], step[<span class="stringliteral">&quot;reaction_forces&quot;</span>][1][<span class="stringliteral">&quot;mz&quot;</span>])</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># M=12: 第2枝の勾配は(16-10)/(.004-.001)=2000</span></div>
+<div class="line">expected_curvature = 0.001 + (12 - 10) / 2000</div>
+<div class="line"><span class="keyword">assert</span> isclose(result[<span class="stringliteral">&quot;step_results&quot;</span>][2][<span class="stringliteral">&quot;curvature&quot;</span>][7][<span class="stringliteral">&quot;z&quot;</span>], expected_curvature, rel_tol=1e-8)</div>
+<div class="line"><span class="keyword">assert</span> len(result[<span class="stringliteral">&quot;step_results&quot;</span>]) == 8</div>
+<div class="line"><span class="keyword">assert</span> result[<span class="stringliteral">&quot;converged&quot;</span>] <span class="keywordflow">is</span> <span class="keyword">True</span></div>
+<div class="line"><span class="keyword">assert</span> abs(result[<span class="stringliteral">&quot;curvature&quot;</span>][7][<span class="stringliteral">&quot;z&quot;</span>]) &gt; 1e-8  <span class="comment"># 除荷後の残留曲率</span></div>
+<div class="line">model.save_results(<span class="stringliteral">&quot;nonlinear-result.json&quot;</span>)</div>
+</div><!-- fragment --><p>出力の各行は「載荷係数・中央曲率・固定端反力モーメント」です。係数1の段階の曲率は0.002 1/mです。最後の係数0でも、履歴を経た曲率は通常0には戻りません。曲率の符号は局所軸に基づき、材端力のi端・j端の符号とは区別します。</p>
+<h1><a class="anchor" id="autotoc_md74"></a>
+収束と履歴の扱い</h1>
+<p>Newton反復では、直前に収束・確定した履歴から試行状態を評価します。残差が下がるように変位増分を小さくする処理を含み、収束した段階だけを確定・保存します。</p>
+<p>未収束時は<code>NonlinearConvergenceError</code>を送出し、その段階の変位・内力・要素履歴・載荷係数を直前の確定状態へ戻します。失敗段階の結果を成功結果として返しません。HTTPでは422になります。<a class="el" href="md_docs_2wiki_2error-handling.html">エラーと対処</a>に例外の扱いを示します。</p>
+<p><code>model.run()</code>をもう一度呼ぶと、新しい解析として履歴を初期化します。保存した結果を読み込んで非線形状態を再開する機能はありません。続きの履歴を計算したい場合は、それまでを含む係数列を指定して最初から実行してください。</p>
+<p>詳しい段階出力・収束履歴は<a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a>、コールバックを使う低水準APIは<a class="el" href="md_docs_2wiki_2workflow.html">解析ワークフロー</a>を参照してください。 </p>
+</div></div><!-- contents -->
+</div><!-- PageDoc -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

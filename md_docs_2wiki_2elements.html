@@ -1,0 +1,223 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FEMPython: 要素と解析の選び方</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FEMPython
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('md_docs_2wiki_2elements.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">要素と解析の選び方</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="autotoc_md14"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2examples.html">実行例</a></p>
+<p>部材を線で表すなら梁、厚さに比べて広い面ならシェル、厚みを含む内部の状態を調べるならソリッドを使います。要素を選んだ後、線形静解析・材料非線形解析・固有値解析を選びます。</p>
+<h1><a class="anchor" id="autotoc_md15"></a>
+解析モード</h1>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone"><code>analysis_type</code>   </th><th class="markdownTableHeadNone">計算内容   </th><th class="markdownTableHeadNone">選ぶ場面    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>static</code>   </td><td class="markdownTableBodyNone">参照弾性剛性を使い、全荷重を1ステップで解く   </td><td class="markdownTableBodyNone">弾性範囲の変形・応力を調べる    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>material_nonlinear</code>   </td><td class="markdownTableBodyNone">載荷段階ごとに材料の履歴と釣合いを反復計算   </td><td class="markdownTableBodyNone">剛性低下、除荷・再載荷、残留変形を調べる    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>modal</code>   </td><td class="markdownTableBodyNone">剛性行列と質量行列から固有値問題を解く   </td><td class="markdownTableBodyNone">振動数・周期・振動モードを調べる   </td></tr>
+</table>
+<p><code>model.run("static")</code>のような明示指定が最優先です。引数を省略すると入力の<code>analysis_type</code>を使い、それもない場合は<code>nonlinear_bar</code>があれば<code>material_nonlinear</code>、なければ<code>static</code>になります。<code>n_load_steps</code>を増やすだけでは非線形解析になりません。</p>
+<p>非線形梁を含むモデルに<code>static</code>を指定すると、履歴則を使わない参照弾性解析になります。弾性剛性は材料の<code>E</code>・<code>G</code>と断面から計算するため、入力した非線形骨格の初期勾配と一致するように設定したかを確認してください。</p>
+<h1><a class="anchor" id="autotoc_md16"></a>
+対応する要素</h1>
+<p>以下は<code>FemModel</code>で選ぶ主要な要素名です。「材料非線形則」は非線形則を持てる要素を示し、線形要素は非線形モデル内でも線形のまま使われます。</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">要素   </th><th class="markdownTableHeadRight">節点数   </th><th class="markdownTableHeadNone">線形静解析   </th><th class="markdownTableHeadNone">材料非線形則   </th><th class="markdownTableHeadNone">質量行列／固有値解析    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>bar</code>、<code>beam</code>   </td><td class="markdownTableBodyRight">2   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone">質量行列あり    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>nonlinear_bar</code>   </td><td class="markdownTableBodyRight">2   </td><td class="markdownTableBodyNone">参照弾性で対応   </td><td class="markdownTableBodyNone">JR剛性低減型   </td><td class="markdownTableBodyNone">参照梁の質量行列を使用    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>shell</code>   </td><td class="markdownTableBodyRight">3、4   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone">質量行列あり    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>tetra</code>   </td><td class="markdownTableBodyRight">4   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone">質量行列あり    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>wedge</code>   </td><td class="markdownTableBodyRight">6   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone"><b>通常のFemModel経路では未実装</b>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>hexa</code>   </td><td class="markdownTableBodyRight">8   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone">質量行列あり    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>tetra2</code>   </td><td class="markdownTableBodyRight">10   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone">質量行列あり    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>wedge2</code>   </td><td class="markdownTableBodyRight">15   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone">質量行列あり    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>hexa2</code>   </td><td class="markdownTableBodyRight">20   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone">質量行列あり   </td></tr>
+</table>
+<p>質量行列があることは、あらゆる支持条件・形状で固有値計算が成功するという意味ではありません。密度、不要自由度、収束を確認する必要があります。</p>
+<p><code>pyramid</code>と<code>hexa20</code>はクラス名・入口が残っていますが、必要な計算が未実装です。20節点六面体を使う場合の実装済み名称は**<code>hexa2</code>**です。旧名称<code>TetraElement2</code>、<code>WedgeElement2</code>、<code>HexaElement2</code>はそれぞれ二次要素に対応します。</p>
+<h1><a class="anchor" id="autotoc_md17"></a>
+梁：曲げとせん断変形</h1>
+<p>梁は1節点につき並進3成分・回転3成分を持ちます。局所x軸はi端からj端、曲げの剛性は<code>E Iy</code>・<code>E Iz</code>、ねじりの剛性は<code>G J</code>です。</p>
+<ul>
+<li><code>shear_correction: false</code>：せん断変形を無視するBernoulli系の梁。</li>
+<li><code>shear_correction: true</code>：基準弾性のせん断柔性を含むTimoshenko系の梁。</li>
+</ul>
+<p>**<code>node/member/element</code>形式のJSONでは、材料の<code>G</code>を省略すると、梁の<code>shear_correction</code>は必ず<code>false</code>になります。** 線形・非線形梁の両方に適用されます。ねじりに使うGは引き続き<code>E/[2(1+nu)]</code>から計算します。</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">JSON材料の<code>G</code>   </th><th class="markdownTableHeadNone">部材の<code>shear_correction</code>   </th><th class="markdownTableHeadNone">実際の設定    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">省略   </td><td class="markdownTableBodyNone">省略・false・trueのいずれでも   </td><td class="markdownTableBodyNone">false    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">有限かつ正の値   </td><td class="markdownTableBodyNone">false   </td><td class="markdownTableBodyNone">false    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">有限かつ正の値   </td><td class="markdownTableBodyNone">true   </td><td class="markdownTableBodyNone">true    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">有限かつ正の値   </td><td class="markdownTableBodyNone">省略   </td><td class="markdownTableBodyNone">選択材料ケースに非線形材料があればtrue、線形材料だけならfalse   </td></tr>
+</table>
+<p>この省略規則はPython APIや保存用<code>materials/elements</code>形式には適用されません。そちらでは明示した<code>shear_correction</code>を保持します。剛域に別材料を割り当てた場合は、その区間の材料に対して規則を適用します。</p>
+<p>材端解放・分布ばね・分布荷重・温度荷重は、対応する線形梁の経路で利用します。<code>nonlinear_bar</code>にこれらを直接組み合わせる入力は対応していません。非線形梁の載荷には節点荷重・強制変位を使い、必要に応じて線形梁と接続してください。</p>
+<h1><a class="anchor" id="autotoc_md18"></a>
+シェル：薄板と厚板</h1>
+<p>現行のシェルは平面要素です。傾いた平面は扱いますが、1要素の節点を曲面上にねじって配置する使い方ではありません。</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">形状と入口   </th><th class="markdownTableHeadNone">既定の曲げ定式化   </th><th class="markdownTableHeadNone">特徴    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">編集用JSONの三角形<code>shell</code>、旧<code>TriElement1</code>   </td><td class="markdownTableBodyNone"><code>dkt</code>   </td><td class="markdownTableBodyNone">離散Kirchhoff曲げ。薄板向けで横せん断変形を無視    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Python／保存用JSONの三角形<code>shell</code>   </td><td class="markdownTableBodyNone"><code>mindlin</code>   </td><td class="markdownTableBodyNone">横せん断変形を含む。薄板ではせん断ロッキングに注意    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">四角形<code>shell</code>   </td><td class="markdownTableBodyNone"><code>mindlin</code>   </td><td class="markdownTableBodyNone">Mindlin曲げとMITC4せん断補間   </td></tr>
+</table>
+<p>三角形は<code>formulation: "dkt"</code>または<code>"mindlin"</code>で明示できます。四角形に<code>dkt</code>は指定できません。厚さは編集用JSONでは材料の<code>thickness</code>または<code>A</code>、Python・保存用JSONでは要素の<code>thickness</code>で指定します。</p>
+<p>応力の上下面・座標系・せん断ひずみの定義は<a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a>を参照してください。DKTの合せん断力は曲げモーメントの釣合いから回復したもので、横せん断変形を導入した結果ではありません。</p>
+<h1><a class="anchor" id="autotoc_md19"></a>
+ソリッド：一次と二次</h1>
+<p>ソリッドは1節点につき並進3成分です。梁用の<code>A, Iy, Iz, J</code>は使わず、座標から形状・体積を求めます。材料は小ひずみの等方線形弾性です。</p>
+<p>二次要素には辺の中間節点が必要です。頂点だけを渡したり、中間節点を省略したりすることはできません。下表の辺番号は、入力配列内の**1始まりの位置**です。</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">要素   </th><th class="markdownTableHeadNone">最初に置く頂点   </th><th class="markdownTableHeadNone">続ける中間節点の辺順序    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>tetra2</code>   </td><td class="markdownTableBodyNone">四面体の頂点1〜4   </td><td class="markdownTableBodyNone">1–2、2–3、3–1、1–4、2–4、3–4    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>wedge2</code>   </td><td class="markdownTableBodyNone">底面の三角形1〜3、対応する上面4〜6   </td><td class="markdownTableBodyNone">1–2、2–3、3–1、4–5、5–6、6–4、1–4、2–5、3–6    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>hexa2</code>   </td><td class="markdownTableBodyNone">底面を一周する1〜4、対応する上面5〜8   </td><td class="markdownTableBodyNone">1–2、2–3、3–4、4–1、5–6、6–7、7–8、8–5、1–5、2–6、3–7、4–8   </td></tr>
+</table>
+<p>正のヤコビアンになる向きで頂点を並べます。<a class="el" href="md_docs_2wiki_2examples.html">二次四面体の実行例</a>に具体的な座標を示します。詳細な自然座標は<a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/elements/quadratic_solid.py">要素定義</a>で確認できます。</p>
+<h1><a class="anchor" id="autotoc_md20"></a>
+固有値解析の設定と制約</h1>
+<p><code>model.analysis_params["n_modes"] = 3</code>のように指定し、<code>model.run("modal")</code>を呼びます。現在の<code>run_modal_analysis(n_modes=...)</code>は引数を解析パラメータへ反映しないため、この明示的な設定方法を使ってください。</p>
+<ul>
+<li>密度はPython／保存用JSONでは<code>density</code>、編集用JSONでは<code>den</code>です。N・m・s系ではkg/m³、kN・m・s系ではt/m³になります。要素ごとの密度の既定値に頼らず指定してください。</li>
+<li>梁の質量行列は集中質量の近似です。連続体の厳密解との比較では、要素分割と質量の表現による差を確認してください。</li>
+<li>モード数は内部で全自由度数の約1/3以下に制限されるため、要求数と出力数が異なる場合があります。</li>
+<li>拘束は剛性行列に大きなペナルティとして適用します。悪条件により、本来正の固有値が0として返る場合があります。固定支持モデルでは独立した参照値との確認が必要です。実行例には、ばねと質量から振動数を確認できる弾性支持モデルを用います。</li>
+<li>ARPACKの未収束時にはシフト・モード数削減などの再試行があります。最後の再試行は大きい固有値を取得するため、再試行ログがある結果を「必ず低次からのモード」と解釈しないでください。</li>
+<li>負の固有値は0に切り詰められます。ゼロ固有値の<code>periods</code>は0や非有限値になる場合があり、正の有限振動数を確認してから周期を読みます。</li>
+<li>非線形解析後の接線剛性による振動解析ではありません。履歴状態を引き継いだ固有値解析として利用しないでください。</li>
+</ul>
+<p><a class="el" href="md_docs_2wiki_2examples.html">固有値解析の実行例</a>は、明示した密度と支持条件を使います。</p>
+<h1><a class="anchor" id="autotoc_md21"></a>
+対応範囲を広げるとき</h1>
+<p>要素を細かくした結果を比較し、変位だけでなく反力と応力・端力の変化も確認してください。自動分割は指定位置や荷重位置で区切る処理であり、誤差を推定して自動的に収束メッシュを作る機能ではありません。</p>
+<p>異なる要素を接続したモデルでは、共有節点の自由度と力の伝達を確認します。特にソリッドだけの節点には回転剛性がないため、梁・シェルとの混在時に不要な回転自由度を残さないようにします。 </p>
+</div></div><!-- contents -->
+</div><!-- PageDoc -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

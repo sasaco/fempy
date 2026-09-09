@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['最小限の2dフレーム解析_0',['最小限の2Dフレーム解析',['../md_docs_2wiki_2quick-reference.html#autotoc_md173',1,'']]]
+  ['静解析の微小補正_0',['静解析の微小補正',['../md_docs_2wiki_2results.html#autotoc_md102',1,'']]]
 ];

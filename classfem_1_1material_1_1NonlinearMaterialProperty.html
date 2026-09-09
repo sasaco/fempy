@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>FrameWeb: fem.material.NonlinearMaterialProperty クラス</title>
+<title>FEMPython: fem.material.NonlinearMaterialProperty クラス</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -30,7 +30,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">FrameWeb
+   <div id="projectname">FEMPython
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -113,6 +113,15 @@ $(document).ready(function(){initNavTree('classfem_1_1material_1_1NonlinearMater
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 公開変数類</h2></td></tr>
+<tr class="memitem:a72a9ec83fb9b5709936ed749798a48ce" id="r_a72a9ec83fb9b5709936ed749798a48ce"><td class="memItemLeft" align="right" valign="top"><a id="a72a9ec83fb9b5709936ed749798a48ce" name="a72a9ec83fb9b5709936ed749798a48ce"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>E</b></td></tr>
+<tr class="separator:a72a9ec83fb9b5709936ed749798a48ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9ff06c4634c8bde2823a5805eee8c62d" id="r_a9ff06c4634c8bde2823a5805eee8c62d"><td class="memItemLeft" align="right" valign="top"><a id="a9ff06c4634c8bde2823a5805eee8c62d" name="a9ff06c4634c8bde2823a5805eee8c62d"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>nu</b></td></tr>
+<tr class="separator:a9ff06c4634c8bde2823a5805eee8c62d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec4a01a4422e59a99f525cde6a150756" id="r_aec4a01a4422e59a99f525cde6a150756"><td class="memItemLeft" align="right" valign="top"><a id="aec4a01a4422e59a99f525cde6a150756" name="aec4a01a4422e59a99f525cde6a150756"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>density</b></td></tr>
+<tr class="separator:aec4a01a4422e59a99f525cde6a150756"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa45afbef1f0991b22d86cc4b0fcd3f2f" id="r_aa45afbef1f0991b22d86cc4b0fcd3f2f"><td class="memItemLeft" align="right" valign="top"><a id="aa45afbef1f0991b22d86cc4b0fcd3f2f" name="aa45afbef1f0991b22d86cc4b0fcd3f2f"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>delta_1_neg</b></td></tr>
 <tr class="separator:aa45afbef1f0991b22d86cc4b0fcd3f2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -134,9 +143,6 @@ $(document).ready(function(){initNavTree('classfem_1_1material_1_1NonlinearMater
 <tr class="memitem:addc7750652c59ed97459632185f0e949" id="r_addc7750652c59ed97459632185f0e949"><td class="memItemLeft" align="right" valign="top"><a id="addc7750652c59ed97459632185f0e949" name="addc7750652c59ed97459632185f0e949"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>K_min</b></td></tr>
 <tr class="separator:addc7750652c59ed97459632185f0e949"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9ff06c4634c8bde2823a5805eee8c62d" id="r_a9ff06c4634c8bde2823a5805eee8c62d"><td class="memItemLeft" align="right" valign="top"><a id="a9ff06c4634c8bde2823a5805eee8c62d" name="a9ff06c4634c8bde2823a5805eee8c62d"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>nu</b></td></tr>
-<tr class="separator:a9ff06c4634c8bde2823a5805eee8c62d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 静的公開変数類</h2></td></tr>
@@ -199,6 +205,11 @@ Optional&#160;</td><td class="memItemRight" valign="bottom"><b>density</b> = Non
 <div class="textblock"><pre class="fragment">非線形材料物性（JR総研剛性低減RC型用）
 
 4折線スケルトンカーブと剛性低減パラメータを定義
+
+NonlinearBarElementではδは軸ひずみ（axial）、中央曲率（moment_y/z）、
+ねじり率（torsion）。Pは対応する軸力または断面モーメント。
+曲率・ねじり率はrad/長さ、モーメントは力×長さ。集中ヒンジ回転ではない。
+キーは旧入力と共通だが、絶対端部変位としての旧計算結果は引き継がない。
 
 Attributes:
     name: 材料名

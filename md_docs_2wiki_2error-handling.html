@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>FrameWeb: エラーハンドリング</title>
+<title>FEMPython: エラーと対処</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -30,7 +30,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">FrameWeb
+   <div id="projectname">FEMPython
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -95,353 +95,90 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2error-handling.html',''
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">エラーハンドリング</div></div>
+  <div class="headertitle"><div class="title">エラーと対処</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md54"></a> </p>
-<h1><a class="anchor" id="autotoc_md55"></a>
-概要</h1>
-<p>FrameWeb3は、開発者が構造解析リクエストの問題を特定し解決するのに役立つ包括的なエラーハンドリングを提供します。APIは標準的なHTTPステータスコードを使用し、JSON形式で詳細なエラー情報を返します。</p>
-<h1><a class="anchor" id="autotoc_md56"></a>
-HTTPステータスコード</h1>
-<h2><a class="anchor" id="autotoc_md57"></a>
-200 OK</h2>
-<p>解析が正常に完了しました。レスポンスにはすべての荷重ケースの計算結果が含まれます。</p>
-<h2><a class="anchor" id="autotoc_md58"></a>
-400 Bad Request</h2>
-<p>無効な入力データ。以下の場合に発生します：</p><ul>
-<li>必須フィールドが欠如している</li>
-<li>データ形式が正しくない</li>
-<li>参照されるエンティティが存在しない（例：存在しない節点を参照）</li>
-<li>無効な数値</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md59"></a>
-500 Internal Server Error</h2>
-<p>解析計算エラー。以下の場合に発生します：</p><ul>
-<li>構造解析が収束しない</li>
-<li>特異剛性行列（不安定構造）</li>
-<li>数値計算エラー</li>
-<li>システムレベルエラー</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md60"></a>
-エラーレスポンス形式</h1>
-<p>すべてのエラーレスポンスは一貫したJSON構造に従います：</p>
-<div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;error&quot;: &quot;エラーカテゴリ&quot;,</div>
-<div class="line">  &quot;message&quot;: &quot;詳細なエラーメッセージ&quot;,</div>
-<div class="line">  &quot;details&quot;: {</div>
-<div class="line">    &quot;node&quot;: 5,</div>
-<div class="line">    &quot;member&quot;: 3,</div>
-<div class="line">    &quot;loadCase&quot;: &quot;DL&quot;,</div>
-<div class="line">    &quot;caseComb&quot;: {</div>
-<div class="line">      &quot;nMaterialCase&quot;: 1,</div>
-<div class="line">      &quot;nSupportCase&quot;: 1,</div>
-<div class="line">      &quot;nSpringCase&quot;: 1,</div>
-<div class="line">      &quot;nJointCase&quot;: 1</div>
-<div class="line">    }</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md61"></a>
-一般的なエラータイプ</h1>
-<h2><a class="anchor" id="autotoc_md62"></a>
-入力データエラー (400)</h2>
-<h3><a class="anchor" id="autotoc_md63"></a>
-必須データの欠如</h3>
-<div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;error&quot;: &quot;入力データエラー&quot;,</div>
-<div class="line">  &quot;message&quot;: &quot;節点データがありません&quot;,</div>
-<div class="line">  &quot;details&quot;: {}</div>
-<div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md64"></a>
-無効な節点参照</h3>
-<div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;error&quot;: &quot;入力データエラー&quot;,</div>
-<div class="line">  &quot;message&quot;: &quot;存在しない節点が参照されています: 節点番号(5)&quot;,</div>
-<div class="line">  &quot;details&quot;: {</div>
-<div class="line">    &quot;node&quot;: 5,</div>
-<div class="line">    &quot;member&quot;: 3</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md65"></a>
-材料特性の欠如</h3>
-<div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;error&quot;: &quot;入力データエラー&quot;,</div>
-<div class="line">  &quot;message&quot;: &quot;材料特性データが不足しています: 材料番号(2)&quot;,</div>
-<div class="line">  &quot;details&quot;: {</div>
-<div class="line">    &quot;material&quot;: 2,</div>
-<div class="line">    &quot;member&quot;: 1</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md66"></a>
-無効な荷重データ</h3>
-<div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;error&quot;: &quot;入力データエラー&quot;,</div>
-<div class="line">  &quot;message&quot;: &quot;荷重データが不正です: 荷重ケース(LL)&quot;,</div>
-<div class="line">  &quot;details&quot;: {</div>
-<div class="line">    &quot;loadCase&quot;: &quot;LL&quot;,</div>
-<div class="line">    &quot;node&quot;: 3</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md67"></a>
-解析計算エラー (500)</h2>
-<h3><a class="anchor" id="autotoc_md68"></a>
-特異剛性行列</h3>
-<div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;error&quot;: &quot;計算エラー&quot;,</div>
-<div class="line">  &quot;message&quot;: &quot;剛性行列の特異性により解析が収束しませんでした&quot;,</div>
-<div class="line">  &quot;details&quot;: {</div>
-<div class="line">    &quot;loadCase&quot;: &quot;DL&quot;,</div>
-<div class="line">    &quot;caseComb&quot;: {</div>
-<div class="line">      &quot;nMaterialCase&quot;: 1,</div>
-<div class="line">      &quot;nSupportCase&quot;: 1,</div>
-<div class="line">      &quot;nSpringCase&quot;: 1,</div>
-<div class="line">      &quot;nJointCase&quot;: 1</div>
-<div class="line">    }</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md69"></a>
-数値不安定性</h3>
-<div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;error&quot;: &quot;計算エラー&quot;,</div>
-<div class="line">  &quot;message&quot;: &quot;数値計算が不安定になりました&quot;,</div>
-<div class="line">  &quot;details&quot;: {</div>
-<div class="line">    &quot;loadCase&quot;: &quot;WL&quot;,</div>
-<div class="line">    &quot;member&quot;: 5</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md70"></a>
-メモリ割り当てエラー</h3>
-<div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;error&quot;: &quot;システムエラー&quot;,</div>
-<div class="line">  &quot;message&quot;: &quot;メモリ不足により計算を継続できません&quot;,</div>
-<div class="line">  &quot;details&quot;: {</div>
-<div class="line">    &quot;nodeCount&quot;: 10000,</div>
-<div class="line">    &quot;elementCount&quot;: 25000</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md71"></a>
-エラーハンドリングのベストプラクティス</h1>
-<h2><a class="anchor" id="autotoc_md72"></a>
-1. 入力データの検証</h2>
-<p>リクエストを送信する前に、常に入力データを検証してください：</p>
-<div class="fragment"><div class="line"><span class="keyword">def </span>validate_model_data(model_data):</div>
-<div class="line">    <span class="stringliteral">&quot;&quot;&quot;解析前に構造モデルデータを検証&quot;&quot;&quot;</span></div>
-<div class="line">    errors = []</div>
-<div class="line">    </div>
-<div class="line">    <span class="comment"># 必須セクションの確認</span></div>
-<div class="line">    required_sections = [<span class="stringliteral">&#39;node&#39;</span>, <span class="stringliteral">&#39;element&#39;</span>, <span class="stringliteral">&#39;load&#39;</span>]</div>
-<div class="line">    <span class="keywordflow">for</span> section <span class="keywordflow">in</span> required_sections:</div>
-<div class="line">        <span class="keywordflow">if</span> section <span class="keywordflow">not</span> <span class="keywordflow">in</span> model_data:</div>
-<div class="line">            errors.append(f<span class="stringliteral">&quot;必須セクションが欠如しています: {section}&quot;</span>)</div>
-<div class="line">    </div>
-<div class="line">    <span class="comment"># 部材の節点参照を検証</span></div>
-<div class="line">    <span class="keywordflow">if</span> <span class="stringliteral">&#39;member&#39;</span> <span class="keywordflow">in</span> model_data <span class="keywordflow">and</span> <span class="stringliteral">&#39;node&#39;</span> <span class="keywordflow">in</span> model_data:</div>
-<div class="line">        node_ids = set(model_data[<span class="stringliteral">&#39;node&#39;</span>].keys())</div>
-<div class="line">        <span class="keywordflow">for</span> member_id, member <span class="keywordflow">in</span> model_data[<span class="stringliteral">&#39;member&#39;</span>].items():</div>
-<div class="line">            <span class="keywordflow">if</span> str(member[<span class="stringliteral">&#39;ni&#39;</span>]) <span class="keywordflow">not</span> <span class="keywordflow">in</span> node_ids:</div>
-<div class="line">                errors.append(f<span class="stringliteral">&quot;部材 {member_id} が存在しない節点 {member[&#39;ni&#39;]} を参照しています&quot;</span>)</div>
-<div class="line">            <span class="keywordflow">if</span> str(member[<span class="stringliteral">&#39;nj&#39;</span>]) <span class="keywordflow">not</span> <span class="keywordflow">in</span> node_ids:</div>
-<div class="line">                errors.append(f<span class="stringliteral">&quot;部材 {member_id} が存在しない節点 {member[&#39;nj&#39;]} を参照しています&quot;</span>)</div>
-<div class="line">    </div>
-<div class="line">    <span class="comment"># 要素特性参照を検証</span></div>
-<div class="line">    <span class="keywordflow">if</span> <span class="stringliteral">&#39;member&#39;</span> <span class="keywordflow">in</span> model_data <span class="keywordflow">and</span> <span class="stringliteral">&#39;element&#39;</span> <span class="keywordflow">in</span> model_data:</div>
-<div class="line">        element_ids = set(model_data[<span class="stringliteral">&#39;element&#39;</span>].keys())</div>
-<div class="line">        <span class="keywordflow">for</span> member_id, member <span class="keywordflow">in</span> model_data[<span class="stringliteral">&#39;member&#39;</span>].items():</div>
-<div class="line">            <span class="keywordflow">if</span> str(member[<span class="stringliteral">&#39;e&#39;</span>]) <span class="keywordflow">not</span> <span class="keywordflow">in</span> element_ids:</div>
-<div class="line">                errors.append(f<span class="stringliteral">&quot;部材 {member_id} が存在しない要素 {member[&#39;e&#39;]} を参照しています&quot;</span>)</div>
-<div class="line">    </div>
-<div class="line">    <span class="keywordflow">return</span> errors</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># 使用例</span></div>
-<div class="line">errors = validate_model_data(model_data)</div>
-<div class="line"><span class="keywordflow">if</span> errors:</div>
-<div class="line">    print(<span class="stringliteral">&quot;検証エラー:&quot;</span>)</div>
-<div class="line">    <span class="keywordflow">for</span> error <span class="keywordflow">in</span> errors:</div>
-<div class="line">        print(f<span class="stringliteral">&quot; - {error}&quot;</span>)</div>
-<div class="line">    <span class="keywordflow">return</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md73"></a>
-2. APIエラーの適切な処理</h2>
-<div class="fragment"><div class="line"><span class="keyword">import</span> requests</div>
-<div class="line"><span class="keyword">import</span> json</div>
-<div class="line"> </div>
-<div class="line"><span class="keyword">def </span>analyze_structure_with_error_handling(model_data):</div>
-<div class="line">    <span class="stringliteral">&quot;&quot;&quot;包括的なエラーハンドリングを含む構造解析の実行&quot;&quot;&quot;</span></div>
-<div class="line">    <span class="keywordflow">try</span>:</div>
-<div class="line">        response = requests.post(</div>
-<div class="line">            <span class="stringliteral">&#39;http://localhost:5000/&#39;</span>,</div>
-<div class="line">            json=model_data,</div>
-<div class="line">            headers={<span class="stringliteral">&#39;Content-Type&#39;</span>: <span class="stringliteral">&#39;application/json&#39;</span>},</div>
-<div class="line">            timeout=60</div>
-<div class="line">        )</div>
-<div class="line">        </div>
-<div class="line">        <span class="keywordflow">if</span> response.status_code == 200:</div>
-<div class="line">            <span class="keywordflow">return</span> response.json()</div>
-<div class="line">        <span class="keywordflow">elif</span> response.status_code == 400:</div>
-<div class="line">            error_data = response.json()</div>
-<div class="line">            print(f<span class="stringliteral">&quot;入力エラー: {error_data[&#39;message&#39;]}&quot;</span>)</div>
-<div class="line">            </div>
-<div class="line">            <span class="comment"># 特定のエラータイプの処理</span></div>
-<div class="line">            <span class="keywordflow">if</span> <span class="stringliteral">&#39;details&#39;</span> <span class="keywordflow">in</span> error_data:</div>
-<div class="line">                details = error_data[<span class="stringliteral">&#39;details&#39;</span>]</div>
-<div class="line">                <span class="keywordflow">if</span> <span class="stringliteral">&#39;node&#39;</span> <span class="keywordflow">in</span> details:</div>
-<div class="line">                    print(f<span class="stringliteral">&quot;節点の問題: {details[&#39;node&#39;]}&quot;</span>)</div>
-<div class="line">                <span class="keywordflow">if</span> <span class="stringliteral">&#39;member&#39;</span> <span class="keywordflow">in</span> details:</div>
-<div class="line">                    print(f<span class="stringliteral">&quot;部材の問題: {details[&#39;member&#39;]}&quot;</span>)</div>
-<div class="line">                <span class="keywordflow">if</span> <span class="stringliteral">&#39;loadCase&#39;</span> <span class="keywordflow">in</span> details:</div>
-<div class="line">                    print(f<span class="stringliteral">&quot;荷重ケースの問題: {details[&#39;loadCase&#39;]}&quot;</span>)</div>
-<div class="line">            <span class="keywordflow">return</span> <span class="keywordtype">None</span></div>
-<div class="line">        <span class="keywordflow">elif</span> response.status_code == 500:</div>
-<div class="line">            error_data = response.json()</div>
-<div class="line">            print(f<span class="stringliteral">&quot;解析エラー: {error_data[&#39;message&#39;]}&quot;</span>)</div>
-<div class="line">            </div>
-<div class="line">            <span class="comment"># 構造不安定性の確認</span></div>
-<div class="line">            <span class="keywordflow">if</span> <span class="stringliteral">&quot;特異性&quot;</span> <span class="keywordflow">in</span> error_data[<span class="stringliteral">&#39;message&#39;</span>]:</div>
-<div class="line">                print(<span class="stringliteral">&quot;構造が不安定な可能性があります。支点条件を確認してください。&quot;</span>)</div>
-<div class="line">            <span class="keywordflow">return</span> <span class="keywordtype">None</span></div>
-<div class="line">        <span class="keywordflow">else</span>:</div>
-<div class="line">            print(f<span class="stringliteral">&quot;予期しないエラー: HTTP {response.status_code}&quot;</span>)</div>
-<div class="line">            print(response.text)</div>
-<div class="line">            <span class="keywordflow">return</span> <span class="keywordtype">None</span></div>
-<div class="line">            </div>
-<div class="line">    <span class="keywordflow">except</span> requests.exceptions.Timeout:</div>
-<div class="line">        print(<span class="stringliteral">&quot;リクエストがタイムアウトしました。解析に時間がかかりすぎている可能性があります。&quot;</span>)</div>
-<div class="line">        <span class="keywordflow">return</span> <span class="keywordtype">None</span></div>
-<div class="line">    <span class="keywordflow">except</span> requests.exceptions.ConnectionError:</div>
-<div class="line">        print(<span class="stringliteral">&quot;FrameWeb3 APIに接続できませんでした。サービスが実行されているか確認してください。&quot;</span>)</div>
-<div class="line">        <span class="keywordflow">return</span> <span class="keywordtype">None</span></div>
-<div class="line">    <span class="keywordflow">except</span> json.JSONDecodeError:</div>
-<div class="line">        print(<span class="stringliteral">&quot;サーバーから無効なJSONレスポンスを受信しました&quot;</span>)</div>
-<div class="line">        <span class="keywordflow">return</span> <span class="keywordtype">None</span></div>
-<div class="line">    <span class="keywordflow">except</span> Exception <span class="keyword">as</span> e:</div>
-<div class="line">        print(f<span class="stringliteral">&quot;予期しないエラー: {e}&quot;</span>)</div>
-<div class="line">        <span class="keywordflow">return</span> <span class="keywordtype">None</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md74"></a>
-3. 一時的エラーのリトライロジック</h2>
-<div class="fragment"><div class="line"><span class="keyword">import</span> time</div>
-<div class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> Optional</div>
-<div class="line"> </div>
-<div class="line"><span class="keyword">def </span>analyze_with_retry(model_data, max_retries=3, retry_delay=1.0):</div>
-<div class="line">    <span class="stringliteral">&quot;&quot;&quot;一時的エラーに対するリトライロジックを含む構造解析&quot;&quot;&quot;</span></div>
-<div class="line">    <span class="keywordflow">for</span> attempt <span class="keywordflow">in</span> range(max_retries):</div>
-<div class="line">        <span class="keywordflow">try</span>:</div>
-<div class="line">            response = requests.post(</div>
-<div class="line">                <span class="stringliteral">&#39;http://localhost:5000/&#39;</span>,</div>
-<div class="line">                json=model_data,</div>
-<div class="line">                headers={<span class="stringliteral">&#39;Content-Type&#39;</span>: <span class="stringliteral">&#39;application/json&#39;</span>},</div>
-<div class="line">                timeout=60</div>
-<div class="line">            )</div>
-<div class="line">            </div>
-<div class="line">            <span class="keywordflow">if</span> response.status_code == 200:</div>
-<div class="line">                <span class="keywordflow">return</span> response.json()</div>
-<div class="line">            <span class="keywordflow">elif</span> response.status_code == 400:</div>
-<div class="line">                <span class="comment"># 入力エラーはリトライしない</span></div>
-<div class="line">                error_data = response.json()</div>
-<div class="line">                print(f<span class="stringliteral">&quot;入力エラー（リトライなし）: {error_data[&#39;message&#39;]}&quot;</span>)</div>
-<div class="line">                <span class="keywordflow">return</span> <span class="keywordtype">None</span></div>
-<div class="line">            <span class="keywordflow">elif</span> response.status_code == 500:</div>
-<div class="line">                error_data = response.json()</div>
-<div class="line">                <span class="keywordflow">if</span> attempt &lt; max_retries - 1:</div>
-<div class="line">                    print(f<span class="stringliteral">&quot;サーバーエラー（試行 {attempt + 1}/{max_retries}）: {error_data[&#39;message&#39;]}&quot;</span>)</div>
-<div class="line">                    print(f<span class="stringliteral">&quot;{retry_delay}秒後にリトライします...&quot;</span>)</div>
-<div class="line">                    time.sleep(retry_delay)</div>
-<div class="line">                    retry_delay *= 2  <span class="comment"># 指数バックオフ</span></div>
-<div class="line">                    <span class="keywordflow">continue</span></div>
-<div class="line">                <span class="keywordflow">else</span>:</div>
-<div class="line">                    print(f<span class="stringliteral">&quot;サーバーエラー（最終試行）: {error_data[&#39;message&#39;]}&quot;</span>)</div>
-<div class="line">                    <span class="keywordflow">return</span> <span class="keywordtype">None</span></div>
-<div class="line">                    </div>
-<div class="line">        <span class="keywordflow">except</span> requests.exceptions.Timeout:</div>
-<div class="line">            <span class="keywordflow">if</span> attempt &lt; max_retries - 1:</div>
-<div class="line">                print(f<span class="stringliteral">&quot;タイムアウト（試行 {attempt + 1}/{max_retries}）。リトライします...&quot;</span>)</div>
-<div class="line">                time.sleep(retry_delay)</div>
-<div class="line">                retry_delay *= 2</div>
-<div class="line">                <span class="keywordflow">continue</span></div>
-<div class="line">            <span class="keywordflow">else</span>:</div>
-<div class="line">                print(<span class="stringliteral">&quot;最終タイムアウト。解析に失敗しました。&quot;</span>)</div>
-<div class="line">                <span class="keywordflow">return</span> <span class="keywordtype">None</span></div>
-<div class="line">                </div>
-<div class="line">        <span class="keywordflow">except</span> requests.exceptions.ConnectionError:</div>
-<div class="line">            <span class="keywordflow">if</span> attempt &lt; max_retries - 1:</div>
-<div class="line">                print(f<span class="stringliteral">&quot;接続エラー（試行 {attempt + 1}/{max_retries}）。リトライします...&quot;</span>)</div>
-<div class="line">                time.sleep(retry_delay)</div>
-<div class="line">                retry_delay *= 2</div>
-<div class="line">                <span class="keywordflow">continue</span></div>
-<div class="line">            <span class="keywordflow">else</span>:</div>
-<div class="line">                print(<span class="stringliteral">&quot;最終接続エラー。サービスがダウンしている可能性があります。&quot;</span>)</div>
-<div class="line">                <span class="keywordflow">return</span> <span class="keywordtype">None</span></div>
-<div class="line">    </div>
-<div class="line">    <span class="keywordflow">return</span> <span class="keywordtype">None</span></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md75"></a>
-一般的な問題のトラブルシューティング</h1>
-<h2><a class="anchor" id="autotoc_md76"></a>
-構造不安定性</h2>
-<p><b>問題</b>: "剛性行列の特異性により解析が収束しませんでした"</p>
-<p><b>解決策</b>:</p><ol type="1">
-<li>支点条件を確認<ul>
-<li>構造が適切に拘束されていることを確認</li>
-</ul>
-</li>
-<li>すべての部材が正しく接続されていることを確認</li>
-<li>ゼロまたは非常に小さい断面特性がないか確認</li>
-<li>材料特性が現実的であることを確認</li>
-</ol>
-<div class="fragment"><div class="line"><span class="keyword">def </span>check_structural_stability(model_data):</div>
-<div class="line">    <span class="stringliteral">&quot;&quot;&quot;構造安定性の基本チェック&quot;&quot;&quot;</span></div>
-<div class="line">    issues = []</div>
-<div class="line">    </div>
-<div class="line">    <span class="comment"># 支点があるかチェック</span></div>
-<div class="line">    <span class="keywordflow">if</span> <span class="stringliteral">&#39;fix_node&#39;</span> <span class="keywordflow">not</span> <span class="keywordflow">in</span> model_data <span class="keywordflow">or</span> <span class="keywordflow">not</span> model_data[<span class="stringliteral">&#39;fix_node&#39;</span>]:</div>
-<div class="line">        issues.append(<span class="stringliteral">&quot;支点条件が定義されていません - 構造が不安定な可能性があります&quot;</span>)</div>
-<div class="line">    </div>
-<div class="line">    <span class="comment"># 非常に小さい断面特性をチェック</span></div>
-<div class="line">    <span class="keywordflow">if</span> <span class="stringliteral">&#39;element&#39;</span> <span class="keywordflow">in</span> model_data:</div>
-<div class="line">        <span class="keywordflow">for</span> elem_id, elem <span class="keywordflow">in</span> model_data[<span class="stringliteral">&#39;element&#39;</span>].items():</div>
-<div class="line">            <span class="keywordflow">if</span> <span class="stringliteral">&#39;A&#39;</span> <span class="keywordflow">in</span> elem <span class="keywordflow">and</span> elem[<span class="stringliteral">&#39;A&#39;</span>] &lt; 1e-6:</div>
-<div class="line">                issues.append(f<span class="stringliteral">&quot;要素 {elem_id} の断面積が非常に小さいです: {elem[&#39;A&#39;]}&quot;</span>)</div>
-<div class="line">            <span class="keywordflow">if</span> <span class="stringliteral">&#39;E&#39;</span> <span class="keywordflow">in</span> elem <span class="keywordflow">and</span> elem[<span class="stringliteral">&#39;E&#39;</span>] &lt; 1000:</div>
-<div class="line">                issues.append(f<span class="stringliteral">&quot;要素 {elem_id} のヤング係数が非常に小さいです: {elem[&#39;E&#39;]}&quot;</span>)</div>
-<div class="line">    </div>
-<div class="line">    <span class="keywordflow">return</span> issues</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md77"></a>
-大規模モデルの性能</h2>
-<p><b>問題</b>: 解析に時間がかかりすぎる、またはメモリ不足</p>
-<p><b>解決策</b>:</p><ol type="1">
-<li>大きなリクエストにはモデル圧縮を使用</li>
-<li>可能な場合はモデルを簡略化</li>
-<li>不要な要素分割がないか確認</li>
-<li>プレートには多数の梁要素の代わりにシェル要素の使用を検討</li>
-</ol>
-<h2><a class="anchor" id="autotoc_md78"></a>
-無効な参照</h2>
-<p><b>問題</b>: 存在しない節点、材料などへの参照</p>
-<p><b>解決策</b>:</p><ol type="1">
-<li>リクエスト送信前にすべての参照を検証</li>
-<li>一貫した番号付けスキームを使用</li>
-<li>節点・要素番号のタイプミスをチェック</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md79"></a>
-エラーコードリファレンス</h1>
+<div class="textblock"><p><a class="anchor" id="autotoc_md31"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2endpoints.html">HTTP API</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a></p>
+<p>まず「入力を読み込めない」「構造が不安定」「非線形が収束しない」「結果の読取り・保存に失敗する」のどこで止まったかを確認します。条件が同じままの再試行で解決しない問題もあります。</p>
+<h1><a class="anchor" id="autotoc_md32"></a>
+症状から調べる</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">エラータイプ   </th><th class="markdownTableHeadNone">HTTPコード   </th><th class="markdownTableHeadNone">カテゴリ   </th><th class="markdownTableHeadNone">説明    </th></tr>
+<th class="markdownTableHeadNone">症状   </th><th class="markdownTableHeadNone">最初に確認すること    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">必須データの欠如   </td><td class="markdownTableBodyNone">400   </td><td class="markdownTableBodyNone">入力データエラー   </td><td class="markdownTableBodyNone">入力から必須セクションが欠如    </td></tr>
+<td class="markdownTableBodyNone"><code>No module named fem</code>   </td><td class="markdownTableBodyNone">プロジェクトの環境から実行しているか。<code>uv sync --locked --extra dev</code>後に<code>uv run ...</code>を使う。    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">無効な節点参照   </td><td class="markdownTableBodyNone">400   </td><td class="markdownTableBodyNone">入力データエラー   </td><td class="markdownTableBodyNone">部材が存在しない節点を参照    </td></tr>
+<td class="markdownTableBodyNone">HTTP 400   </td><td class="markdownTableBodyNone"><code>error</code>本文、JSONの階層、必須座標・参照ID・有限値。    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">無効な材料参照   </td><td class="markdownTableBodyNone">400   </td><td class="markdownTableBodyNone">入力データエラー   </td><td class="markdownTableBodyNone">要素が存在しない材料を参照    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">無効な荷重データ   </td><td class="markdownTableBodyNone">400   </td><td class="markdownTableBodyNone">入力データエラー   </td><td class="markdownTableBodyNone">荷重ケースに無効なデータが含まれる    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">特異剛性行列   </td><td class="markdownTableBodyNone">500   </td><td class="markdownTableBodyNone">計算エラー   </td><td class="markdownTableBodyNone">構造が不安定または不適切に拘束    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">数値不安定性   </td><td class="markdownTableBodyNone">500   </td><td class="markdownTableBodyNone">計算エラー   </td><td class="markdownTableBodyNone">数値問題により計算が失敗    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">メモリ割り当てエラー   </td><td class="markdownTableBodyNone">500   </td><td class="markdownTableBodyNone">システムエラー   </td><td class="markdownTableBodyNone">解析に必要なメモリが不足    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">タイムアウトエラー   </td><td class="markdownTableBodyNone">500   </td><td class="markdownTableBodyNone">システムエラー   </td><td class="markdownTableBodyNone">解析が制限時間を超過   </td></tr>
+<td class="markdownTableBodyNone">&lsquo;KeyError: 'z&rsquo;<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; 2Dでも各節点へ</code>z: 0<code>を指定する。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowEven"&gt; &lt;td class="markdownTableBodyNone"&gt;</code>Missing ... case ...<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; 荷重ケースが参照する材料・支持・ばね・材端ケースを用意する。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowOdd"&gt; &lt;td class="markdownTableBodyNone"&gt;</code>Singular stiffness matrix<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; 支持不足、切り離された節点、ゼロ剛性の自由度、材端解放の組合せ。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowEven"&gt; &lt;td class="markdownTableBodyNone"&gt;</code>Conflicting restraint and spring at same DOF<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; 同じ自由度に拘束と支持ばねを重ねていないか。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowOdd"&gt; &lt;td class="markdownTableBodyNone"&gt; HTTP 422／</code>NonlinearConvergenceError<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; 載荷段階・基準荷重、骨格曲線の耐力、支持、ステップ幅。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowEven"&gt; &lt;td class="markdownTableBodyNone"&gt; 面圧を入れても変形しない \ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt;</code>nodes/elements<code>形式か。</code>node<code>形式では明示pressuresを読み込まない。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowOdd"&gt; &lt;td class="markdownTableBodyNone"&gt; 期待した荷重倍率にならない \ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt;</code>rate<code>は現行経路で乗算されない。荷重値または非線形の</code>load_factors<code>を使う。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowEven"&gt; &lt;td class="markdownTableBodyNone"&gt;</code>NotImplementedError<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; 要素・解析の組合せを[対応表](elements.md)で確認する。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowOdd"&gt; &lt;td class="markdownTableBodyNone"&gt;</code>Non-finite analysis result<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; NaN・Infinityを含む結果はHTTP・JSON保存できない。固有値のゼロモード等を確認。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowEven"&gt; &lt;td class="markdownTableBodyNone"&gt; VTK変換中の</code>TypeError<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; 配列を含む要素結果をそのまま渡していないか。[整形例](file-formats.md)を参照。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowOdd"&gt; &lt;td class="markdownTableBodyNone"&gt;</code>KeyError: 'disg'<code>や</code>'case1'<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; 現行結果は</code>node_displacements`等を直接返す。   </td></tr>
 </table>
-<p>追加サポートについては、動作するコードサンプルの<a class="el" href="md_docs_2wiki_2examples.html">使用例</a>ドキュメントと、詳細な入力形式仕様の<a class="el" href="md_docs_2wiki_2data-structures.html">データ構造</a>リファレンスを参照してください。 </p>
+<p>JSONの未知キーや不正な階層の一部は無視されるため、エラーが出ないことだけでは条件が正しく適用されたとは判断できません。荷重・支持を1つずつ追加し、反力と変位で確かめてください。</p>
+<h1><a class="anchor" id="autotoc_md33"></a>
+不安定なモデルを直す</h1>
+<ol type="1">
+<li>梁・シェルなら6つの剛体運動、平面モデルなら対応する面内の剛体運動を抑える支持があるか確認します。</li>
+<li>要素に接続されていない節点や、剛性0の自由度が残っていないか確認します。</li>
+<li>梁の回転を材端で解放した場合、接続節点の回転が他の要素にも支持にもつながらず、不要な自由度として残ることがあります。</li>
+<li>梁・シェルとソリッドを混在させた場合、ソリッドだけの節点に不要な回転自由度がないか確認します。</li>
+<li>断面値・剛域の剛性比・部材長・単位を確認します。</li>
+</ol>
+<p>計算を通すためだけに無関係な節点を固定すると、解析対象そのものが変わります。実際の支持と、モデル化で不要になる自由度を区別して設定します。</p>
+<h1><a class="anchor" id="autotoc_md34"></a>
+非線形の未収束</h1>
+<p><code>NonlinearConvergenceError</code>は次の情報を持ちます。</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">属性   </th><th class="markdownTableHeadNone">意味    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>step</code>   </td><td class="markdownTableBodyNone">失敗した段階番号（1始まり）    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>load_factor</code>   </td><td class="markdownTableBodyNone">失敗した載荷係数    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>displacement</code>   </td><td class="markdownTableBodyNone">最後に収束した変位のコピー。失敗段階の解ではない   </td></tr>
+</table>
+<p>解析失敗後の<code>model.get_results()</code>はNoneです。直前までの低水準スナップショットは<code>model.solver.step_results</code>に残りますが、完了した解析結果として扱わないでください。HTTPの422応答は、これらの途中変位を返しません。</p>
+<p>以下は耐力22 N·mのモデルへ30 N·mを与え、失敗を検出する例です。</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> fem <span class="keyword">import</span> FemModel, BarParameter</div>
+<div class="line"><span class="keyword">from</span> <a class="code hl_namespace" href="namespacefem_1_1nonlinear_1_1nonlinear__solver.html">fem.nonlinear.nonlinear_solver</a> <span class="keyword">import</span> NonlinearConvergenceError</div>
+<div class="line"> </div>
+<div class="line">model = FemModel()</div>
+<div class="line">model.add_node(1, 0, 0, 0)</div>
+<div class="line">model.add_node(2, 2, 0, 0)</div>
+<div class="line">model.add_nonlinear_material(</div>
+<div class="line">    1, <span class="stringliteral">&quot;Capacity example&quot;</span>, E=10000,</div>
+<div class="line">    delta_1=0.001, delta_2=0.004, delta_3=0.010,</div>
+<div class="line">    P_1=10, P_2=16, P_3=22,</div>
+<div class="line">)</div>
+<div class="line">model.material.add_bar_parameter(1, BarParameter(1, 1, 1, 2))</div>
+<div class="line">model.add_nonlinear_bar_element(1, [1, 2], 1, 1, [<span class="stringliteral">&quot;moment_z&quot;</span>], shear_correction=<span class="keyword">False</span>)</div>
+<div class="line">model.add_restraint(1, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>)</div>
+<div class="line">model.add_load(2, mz=30)</div>
+<div class="line">model.analysis_params.update(load_factors=[1], max_iterations=10)</div>
+<div class="line"><span class="keywordflow">try</span>:</div>
+<div class="line">    model.run()</div>
+<div class="line">    <span class="keywordflow">raise</span> AssertionError(<span class="stringliteral">&quot;耐力を超えたモデルは成功しないはずです&quot;</span>)</div>
+<div class="line"><span class="keywordflow">except</span> NonlinearConvergenceError <span class="keyword">as</span> error:</div>
+<div class="line">    <span class="keyword">assert</span> error.step == 1</div>
+<div class="line">    <span class="keyword">assert</span> model.get_results() <span class="keywordflow">is</span> <span class="keywordtype">None</span></div>
+<div class="line">    print(<span class="stringliteral">&quot;失敗段階:&quot;</span>, error.step, <span class="stringliteral">&quot;載荷係数:&quot;</span>, error.load_factor)</div>
+<div class="ttc" id="anamespacefem_1_1nonlinear_1_1nonlinear__solver_html"><div class="ttname"><a href="namespacefem_1_1nonlinear_1_1nonlinear__solver.html">fem.nonlinear.nonlinear_solver</a></div><div class="ttdef"><b>Definition</b> nonlinear_solver.py:1</div></div>
+</div><!-- fragment --><p>対処の順序は次のとおりです。</p>
+<ol type="1">
+<li><code>delta_*</code>が節点変位ではなく、適用成分のひずみ・曲率・ねじり率であることを確認する。</li>
+<li>単位、支持、荷重方向、骨格の耐力と勾配を確認する。</li>
+<li>解が存在する荷重範囲なら、折れ点・除荷・反転付近の<code>load_factors</code>を細かくする。</li>
+<li>収束履歴を見て、必要に応じて<code>max_iterations</code>を調整する。</li>
+</ol>
+<p>耐力を超えて釣合い解がない場合や機構になった場合は、反復回数を増やしても解決しません。許容差を緩めただけの結果を妥当と判断せず、自由節点の釣合いと履歴を確認します。</p>
+<h1><a class="anchor" id="autotoc_md35"></a>
+HTTPステータスの解釈</h1>
+<p>入力検証のValueErrorなどは400、非線形未収束は422、NumPyの線形代数例外は500です。同じ「不安定構造」でも、検出される箇所によってステータスが変わる場合があります。</p>
+<p><code>error_code</code>は<code>invalid_input</code>、<code>nonlinear_nonconvergence</code>、<code>analysis_failure</code>などで、例外によっては付かない場合もあります。共通する<code>error</code>と<code>converged: false</code>を確認します。タイムアウト・通信断はサーバーのエラーJSONを受け取れないこともあります。</p>
+<p>圧縮要求のエラー応答は通常JSONです。成功時のBase64/gzip復号をエラー応答に適用しないでください。<a class="el" href="md_docs_2wiki_2endpoints.html">HTTPの例</a>を参照してください。</p>
+<h1><a class="anchor" id="autotoc_md36"></a>
+問題を再現できる形にする</h1>
+<p>解析種別、入力JSON、期待する値と得られた値、例外またはHTTP応答、Python・依存環境を残します。材料非線形では<code>load_factors</code>と失敗した段階も必要です。結果が大きくずれるときは、元の大規模モデルとともに、問題を保った小さなモデルを作ると原因を追いやすくなります。</p>
+<p>製品の既存テストと保証範囲は<a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/tests/README.md">テストガイド</a>を参照してください。 </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

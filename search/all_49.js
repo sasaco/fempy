@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['大規模モデルの性能_0',['大規模モデルの性能',['../md_docs_2wiki_2error-handling.html#autotoc_md77',1,'']]],
-  ['大規模モデルの最適化_1',['大規模モデルの最適化',['../md_docs_2wiki_2examples.html#autotoc_md108',1,'']]]
+  ['結果にアクセスする_0',['結果にアクセスする',['../md_docs_2wiki_2quick-reference.html#autotoc_md85',1,'']]],
+  ['結果の読み方_1',['結果の読み方',['../md_docs_2wiki_2results.html',1,'']]],
+  ['結果を保存する_2',['4. 結果を保存する',['../md_docs_2wiki_2getting-started.html#autotoc_md59',1,'']]],
+  ['結果json_3',['結果JSON',['../md_docs_2wiki_2file-formats.html#autotoc_md51',1,'']]]
 ];

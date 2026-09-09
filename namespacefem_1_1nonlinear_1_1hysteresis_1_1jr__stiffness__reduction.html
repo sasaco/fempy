@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>FrameWeb: fem.nonlinear.hysteresis.jr_stiffness_reduction 名前空間</title>
+<title>FEMPython: fem.nonlinear.hysteresis.jr_stiffness_reduction 名前空間</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -30,7 +30,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">FrameWeb
+   <div id="projectname">FEMPython
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -109,15 +109,10 @@ $(document).ready(function(){initNavTree('namespacefem_1_1nonlinear_1_1hysteresi
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">詳解</h2>
-<div class="textblock"><pre class="fragment">JR総研剛性低減RC型 履歴モデル
+<div class="textblock"><pre class="fragment">JR stiffness reduction, manual 7.11; phase-3 conventions in the TDD plan.
 
-理論マニュアル「7.11 JR総研剛性低減 RC 型」に基づく実装
-
-特徴:
-- 4折線スケルトンカーブ（ひび割れ、降伏、終局）
-- 剛性低減則（式7.11.1）
-- 6つの履歴ルール（内部ループスタック管理含む）
-- 正負非対称スケルトンカーブ対応
+The scalar deformation is section strain, curvature or twist per length.
+Evaluation traces a monotone trial from the committed point, without mutation.
 </pre> </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

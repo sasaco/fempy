@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>FrameWeb: はじめに</title>
+<title>FEMPython: はじめに：片持ち梁を解析する</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -30,7 +30,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">FrameWeb
+   <div id="projectname">FEMPython
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -95,274 +95,102 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2getting-started.html','
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">はじめに</div></div>
+  <div class="headertitle"><div class="title">はじめに：片持ち梁を解析する</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md109"></a> </p>
-<h1><a class="anchor" id="autotoc_md110"></a>
-🎉 概要</h1>
-<p>**FrameWeb3は、技術的に大成功を収めた次世代FEM解析モジュール**です。2025年6月に完了したクラス構成再編プロジェクトにより、旧実装を上回る高精度解析システムとして完成しています。</p>
-<h1><a class="anchor" id="autotoc_md111"></a>
-🏆 技術的優位性</h1>
-<h2><a class="anchor" id="autotoc_md112"></a>
-📈 劇的な改善実績</h2>
-<ul>
-<li><b>節点数差</b>: 312節点差 → -6節点差（318節点の劇的改善）</li>
-<li><b>精度向上</b>: 新実装が旧実装を上回る高精度メッシュ（66節点 vs 60節点）</li>
-<li><b>安定性</b>: 統合テストによる継続的品質保証</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md113"></a>
-🔧 要素分割機能（完全実装）</h2>
-<ul>
-<li><b>着目点分割</b>: 構造の重要箇所で自動的に要素を分割（11箇所の処理確認済み）</li>
-<li><b>分布荷重分割</b>: 荷重作用位置で精密なメッシュを生成（31個の分布荷重処理）</li>
-<li><b>集中荷重分割</b>: 集中荷重位置での高精度解析（88個の集中荷重処理）</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md114"></a>
-📊 荷重データ処理（完全実装）</h2>
-<ul>
-<li><b>多重荷重ケース</b>: 最大24ケースの同時処理</li>
-<li><b>包括的処理</b>: 分布荷重31個、集中荷重88個の詳細処理</li>
-<li><b>自動新規節点生成</b>: 25個の新規節点を自動生成</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md115"></a>
-🚀 主要機能</h1>
-<h2><a class="anchor" id="autotoc_md116"></a>
-新実装機能</h2>
-<ul>
-<li><b>FemModel</b>: 統合解析インターフェース（次世代高精度エンジン）</li>
-<li><b>自動要素分割</b>: 着目点・分布荷重・集中荷重による高精度メッシュ生成</li>
-<li><b>高精度ソルバー</b>: NumPy基盤の高速計算</li>
-<li><b>統合テスト</b>: 新旧実装の比較による品質保証</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md117"></a>
-従来機能</h2>
-<ul>
-<li><b>2D・3D フレーム解析</b>: 平面および空間構造解析の両方に対応</li>
-<li><b>複数要素タイプ</b>: 梁要素、シェル要素、ソリッド要素</li>
-<li><b>包括的荷重</b>: 節点荷重、要素荷重、温度荷重、強制変位</li>
-<li><b>高度な支点条件</b>: 固定支点、バネ支点、材端条件</li>
-<li><b>RESTful API</b>: 標準的なHTTPインターフェース</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md118"></a>
-アーキテクチャ</h1>
-<h2><a class="anchor" id="autotoc_md119"></a>
-新実装（FemModel）のワークフロー</h2>
-<ol type="1">
-<li><b>モデル読み込み</b>: JSON構造モデルデータの読み込み・検証</li>
-<li><b>要素分割処理</b>: 着目点・分布荷重・集中荷重による自動要素分割<ul>
-<li>着目点による分割: 構造重要箇所の詳細化</li>
-<li>分布荷重による分割: 荷重作用位置での精密メッシュ</li>
-<li>集中荷重による分割: 集中荷重位置での高精度化</li>
-</ul>
-</li>
-<li><b>剛性行列組み立て</b>: 要素行列から全体剛性行列を構築</li>
-<li><b>解析実行</b>: 高精度ソルバーによる変位求解</li>
-<li><b>結果生成</b>: 包括的な結果計算と出力フォーマット</li>
-</ol>
-<h2><a class="anchor" id="autotoc_md120"></a>
-従来API（RESTful）のワークフロー</h2>
-<ol type="1">
-<li><b>入力処理</b>: JSON構造モデルデータの検証と処理</li>
-<li><b>剛性行列組み立て</b>: 要素行列から全体剛性行列を構築</li>
-<li><b>解析実行</b>: 有限要素解析を実行して変位を求解</li>
-<li><b>結果生成</b>: 包括的な結果を計算し、出力形式にフォーマット</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md121"></a>
-クイックスタート</h1>
-<h2><a class="anchor" id="autotoc_md122"></a>
-新実装（FemModel）の使用方法</h2>
-<div class="fragment"><div class="line"><span class="keyword">from</span> src.fem.model <span class="keyword">import</span> FemModel</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># 高精度FEM解析（自動要素分割付き）</span></div>
-<div class="line">model = FemModel()</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># モデル読み込み（自動要素分割実行）</span></div>
-<div class="line">model.load_model(<span class="stringliteral">&quot;path/to/model.json&quot;</span>)</div>
-<div class="line">print(f<span class="stringliteral">&quot;要素分割後の節点数: {model.get_node_count()}節点&quot;</span>)</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># 解析実行</span></div>
-<div class="line">results = model.run(analysis_type=<span class="stringliteral">&quot;static&quot;</span>)</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># 結果取得</span></div>
-<div class="line">displacement = model.get_results()[<span class="stringliteral">&quot;displacement&quot;</span>]</div>
-<div class="line">print(f<span class="stringliteral">&quot;高精度解析結果: {displacement}&quot;</span>)</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># 統合テストによる品質確認</span></div>
-<div class="line"><span class="comment"># python check_integration_test.py</span></div>
-</div><!-- fragment --><ul>
-<li>### 🖼️ VTK形式での出力</li>
-<li><code>python</code></li>
-<li><code>from src.fem.file_io import read_model, write_vtk</code></li>
-<li><code></code></li>
-<li><code># モデルデータの読み込み</code></li>
-<li><code>model_data = read_model("path/to/model.json")</code></li>
-<li><code></code></li>
-<li><code># 解析実行結果の VTK 出力</code></li>
-<li><code>write_vtk(model_data, results, "output.vtk")</code></li>
-<li><code>print("VTKファイル 'output.vtk' を出力しました") +</code></li>
-</ul>
-<h2><a class="anchor" id="autotoc_md123"></a>
-要素分割機能の活用例</h2>
-<div class="fragment"><div class="line"><span class="comment"># 着目点による要素分割</span></div>
-<div class="line">model_data = {</div>
-<div class="line">    <span class="stringliteral">&quot;dimension&quot;</span>: 2,</div>
-<div class="line">    <span class="stringliteral">&quot;node&quot;</span>: {</div>
-<div class="line">        <span class="stringliteral">&quot;1&quot;</span>: {<span class="stringliteral">&quot;x&quot;</span>: 0, <span class="stringliteral">&quot;y&quot;</span>: 0},</div>
-<div class="line">        <span class="stringliteral">&quot;2&quot;</span>: {<span class="stringliteral">&quot;x&quot;</span>: 5, <span class="stringliteral">&quot;y&quot;</span>: 0}</div>
-<div class="line">    },</div>
-<div class="line">    <span class="stringliteral">&quot;member&quot;</span>: {</div>
-<div class="line">        <span class="stringliteral">&quot;1&quot;</span>: {<span class="stringliteral">&quot;ni&quot;</span>: 1, <span class="stringliteral">&quot;nj&quot;</span>: 2, <span class="stringliteral">&quot;e&quot;</span>: 1}</div>
-<div class="line">    },</div>
-<div class="line">    <span class="comment"># 着目点指定（要素1の1.35m地点で分割）</span></div>
-<div class="line">    <span class="stringliteral">&quot;notice_points&quot;</span>: [</div>
-<div class="line">        {<span class="stringliteral">&quot;m&quot;</span>: 1, <span class="stringliteral">&quot;Points&quot;</span>: [1.35]}</div>
-<div class="line">    ],</div>
-<div class="line">    <span class="stringliteral">&quot;element&quot;</span>: {</div>
-<div class="line">        <span class="stringliteral">&quot;1&quot;</span>: {</div>
-<div class="line">            <span class="stringliteral">&quot;1&quot;</span>: {<span class="stringliteral">&quot;E&quot;</span>: 205000000, <span class="stringliteral">&quot;G&quot;</span>: 79000000, <span class="stringliteral">&quot;nu&quot;</span>: 0.3, <span class="stringliteral">&quot;A&quot;</span>: 0.01, <span class="stringliteral">&quot;Iy&quot;</span>: 0.0001}</div>
-<div class="line">        }</div>
-<div class="line">    },</div>
-<div class="line">    <span class="stringliteral">&quot;fix_node&quot;</span>: {</div>
-<div class="line">        <span class="stringliteral">&quot;1&quot;</span>: [{<span class="stringliteral">&quot;n&quot;</span>: <span class="stringliteral">&quot;1&quot;</span>, <span class="stringliteral">&quot;tx&quot;</span>: 1, <span class="stringliteral">&quot;ty&quot;</span>: 1, <span class="stringliteral">&quot;rx&quot;</span>: 1}]</div>
-<div class="line">    },</div>
-<div class="line">    <span class="stringliteral">&quot;load&quot;</span>: {</div>
-<div class="line">        <span class="stringliteral">&quot;case1&quot;</span>: {</div>
-<div class="line">            <span class="stringliteral">&quot;rate&quot;</span>: 1.0,</div>
-<div class="line">            <span class="stringliteral">&quot;symbol&quot;</span>: <span class="stringliteral">&quot;case1&quot;</span>,</div>
-<div class="line">            <span class="stringliteral">&quot;load_node&quot;</span>: [{<span class="stringliteral">&quot;n&quot;</span>: 2, <span class="stringliteral">&quot;ty&quot;</span>: -10}],</div>
-<div class="line">            <span class="comment"># 分布荷重（自動分割対象）</span></div>
-<div class="line">            <span class="stringliteral">&quot;load_member&quot;</span>: [</div>
-<div class="line">                {<span class="stringliteral">&quot;m&quot;</span>: 1, <span class="stringliteral">&quot;mark&quot;</span>: 2, <span class="stringliteral">&quot;L1&quot;</span>: 0, <span class="stringliteral">&quot;L2&quot;</span>: 0, <span class="stringliteral">&quot;P1&quot;</span>: 49, <span class="stringliteral">&quot;P2&quot;</span>: 49}</div>
-<div class="line">            ]</div>
-<div class="line">        }</div>
+<div class="textblock"><p><a class="anchor" id="autotoc_md55"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · 次へ：<a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a></p>
+<p>長さ2 mの梁を左端で固定し、右端を1,000 Nで下向きに押します。右端のたわみと、左端が受け持つ反力を計算します。この例は線形弾性・せん断変形なしで、手計算と比較できます。</p>
+<h1><a class="anchor" id="autotoc_md56"></a>
+1. 実行環境を用意する</h1>
+<p>Python 3.11以上が必要です。リポジトリを取得したディレクトリで、uvを使って依存を揃えます。</p>
+<div class="fragment"><div class="line">uv sync --locked --extra dev</div>
+</div><!-- fragment --><p>以降のPythonコマンドは<code>uv run --locked --extra dev python ...</code>で実行します。別の仮想環境へインストールする場合は、その環境で次を実行できます。こちらは<code>uv.lock</code>による固定ではありません。</p>
+<div class="fragment"><div class="line">python -m pip install -e &quot;.[dev]&quot;</div>
+</div><!-- fragment --><p>インポート名は<code>fem</code>です。リポジトリ内の配置を表す<code>src.fem</code>には依存しません。</p>
+<h1><a class="anchor" id="autotoc_md57"></a>
+2. モデルをJSONで保存する</h1>
+<p>以下をUTF-8の<code>beam.json</code>として保存します。これは省略のない、実行可能な入力です。</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;dimension&quot;: 2,</div>
+<div class="line">  &quot;analysis_type&quot;: &quot;static&quot;,</div>
+<div class="line">  &quot;node&quot;: {</div>
+<div class="line">    &quot;1&quot;: {&quot;x&quot;: 0.0, &quot;y&quot;: 0.0, &quot;z&quot;: 0.0},</div>
+<div class="line">    &quot;2&quot;: {&quot;x&quot;: 2.0, &quot;y&quot;: 0.0, &quot;z&quot;: 0.0}</div>
+<div class="line">  },</div>
+<div class="line">  &quot;member&quot;: {</div>
+<div class="line">    &quot;1&quot;: {&quot;ni&quot;: 1, &quot;nj&quot;: 2, &quot;e&quot;: 1, &quot;cg&quot;: 0, &quot;shear_correction&quot;: false}</div>
+<div class="line">  },</div>
+<div class="line">  &quot;element&quot;: {</div>
+<div class="line">    &quot;1&quot;: {</div>
+<div class="line">      &quot;1&quot;: {&quot;E&quot;: 200000000000.0, &quot;nu&quot;: 0.3, &quot;A&quot;: 0.01, &quot;Iy&quot;: 0.00001, &quot;Iz&quot;: 0.00001, &quot;J&quot;: 0.00002}</div>
 <div class="line">    }</div>
+<div class="line">  },</div>
+<div class="line">  &quot;fix_node&quot;: {</div>
+<div class="line">    &quot;1&quot;: [{&quot;n&quot;: 1, &quot;tx&quot;: 1, &quot;ty&quot;: 1, &quot;tz&quot;: 1, &quot;rx&quot;: 1, &quot;ry&quot;: 1, &quot;rz&quot;: 1}]</div>
+<div class="line">  },</div>
+<div class="line">  &quot;load&quot;: {</div>
+<div class="line">    &quot;tip&quot;: {</div>
+<div class="line">      &quot;element&quot;: 1,</div>
+<div class="line">      &quot;fix_node&quot;: 1,</div>
+<div class="line">      &quot;load_node&quot;: [{&quot;n&quot;: 2, &quot;ty&quot;: -1000.0}]</div>
+<div class="line">    }</div>
+<div class="line">  }</div>
 <div class="line">}</div>
+</div><!-- fragment --><table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">入力   </th><th class="markdownTableHeadNone">この例での意味    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>node</code>   </td><td class="markdownTableBodyNone">左端・右端の節点座標。2Dでも<code>z</code>を省略せず、0とします。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>member</code>   </td><td class="markdownTableBodyNone">節点1から2へ向かう梁。<code>e: 1</code>で材料・断面を参照します。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>element</code>   </td><td class="markdownTableBodyNone">外側の<code>1</code>が材料ケース、内側の<code>1</code>が材料・断面IDです。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>fix_node</code>   </td><td class="markdownTableBodyNone">支持ケース1。節点1の並進・回転を固定します。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>load</code>   </td><td class="markdownTableBodyNone">荷重ケース<code>tip</code>。全体Y方向へ−1,000 Nを与えます。   </td></tr>
+</table>
+<p>ここでは<code>E</code>をN/m²、座標をm、断面積をm²、断面二次モーメントとねじり定数をm⁴で指定しました。<code>dimension: 2</code>の梁モデルはXY平面の解析で、面外の<code>dz, rx, ry</code>を自動拘束します。</p>
+<h1><a class="anchor" id="autotoc_md58"></a>
+3. 解析して結果を読む</h1>
+<p>以下を<code>analyse.py</code>に保存します。<code>beam.json</code>と同じディレクトリから実行してください。</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> isclose</div>
+<div class="line"><span class="keyword">from</span> fem <span class="keyword">import</span> FemModel</div>
 <div class="line"> </div>
 <div class="line">model = FemModel()</div>
-<div class="line">model.load_model_from_dict(model_data)</div>
-<div class="line">results = model.run(analysis_type=<span class="stringliteral">&quot;static&quot;</span>)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md124"></a>
-RESTful API の使用方法</h2>
-<div class="fragment"><div class="line"><span class="keyword">import</span> requests</div>
-<div class="line"><span class="keyword">import</span> json</div>
+<div class="line">model.load_model(<span class="stringliteral">&quot;beam.json&quot;</span>)</div>
+<div class="line">result = model.run()</div>
 <div class="line"> </div>
-<div class="line"><span class="comment"># 構造モデルデータの準備</span></div>
-<div class="line">model_data = {</div>
-<div class="line">    <span class="stringliteral">&quot;dimension&quot;</span>: 2,</div>
-<div class="line">    <span class="stringliteral">&quot;node&quot;</span>: {</div>
-<div class="line">        <span class="stringliteral">&quot;1&quot;</span>: {<span class="stringliteral">&quot;x&quot;</span>: 0, <span class="stringliteral">&quot;y&quot;</span>: 0, <span class="stringliteral">&quot;z&quot;</span>: 0},</div>
-<div class="line">        <span class="stringliteral">&quot;2&quot;</span>: {<span class="stringliteral">&quot;x&quot;</span>: 5, <span class="stringliteral">&quot;y&quot;</span>: 0, <span class="stringliteral">&quot;z&quot;</span>: 0}</div>
-<div class="line">    },</div>
-<div class="line">    <span class="stringliteral">&quot;member&quot;</span>: {</div>
-<div class="line">        <span class="stringliteral">&quot;1&quot;</span>: {<span class="stringliteral">&quot;ni&quot;</span>: 1, <span class="stringliteral">&quot;nj&quot;</span>: 2, <span class="stringliteral">&quot;e&quot;</span>: 1}</div>
-<div class="line">    },</div>
-<div class="line">    <span class="stringliteral">&quot;element&quot;</span>: {</div>
-<div class="line">        <span class="stringliteral">&quot;1&quot;</span>: {</div>
-<div class="line">            <span class="stringliteral">&quot;1&quot;</span>: {</div>
-<div class="line">                <span class="stringliteral">&quot;E&quot;</span>: 205000000,</div>
-<div class="line">                <span class="stringliteral">&quot;G&quot;</span>: 79000000,</div>
-<div class="line">                <span class="stringliteral">&quot;nu&quot;</span>: 0.3,</div>
-<div class="line">                <span class="stringliteral">&quot;Xp&quot;</span>: 1.2e-5,</div>
-<div class="line">                <span class="stringliteral">&quot;A&quot;</span>: 0.01,</div>
-<div class="line">                <span class="stringliteral">&quot;Iy&quot;</span>: 0.0001,</div>
-<div class="line">                <span class="stringliteral">&quot;Iz&quot;</span>: 0.0001,</div>
-<div class="line">                <span class="stringliteral">&quot;J&quot;</span>: 0.0001</div>
-<div class="line">            }</div>
-<div class="line">        }</div>
-<div class="line">    },</div>
-<div class="line">    <span class="stringliteral">&quot;fix_node&quot;</span>: {</div>
-<div class="line">        <span class="stringliteral">&quot;1&quot;</span>: [</div>
-<div class="line">            {<span class="stringliteral">&quot;n&quot;</span>: <span class="stringliteral">&quot;1&quot;</span>, <span class="stringliteral">&quot;tx&quot;</span>: 1, <span class="stringliteral">&quot;ty&quot;</span>: 1, <span class="stringliteral">&quot;tz&quot;</span>: 1, <span class="stringliteral">&quot;rx&quot;</span>: 1, <span class="stringliteral">&quot;ry&quot;</span>: 1, <span class="stringliteral">&quot;rz&quot;</span>: 1}</div>
-<div class="line">        ]</div>
-<div class="line">    },</div>
-<div class="line">    <span class="stringliteral">&quot;load&quot;</span>: {</div>
-<div class="line">        <span class="stringliteral">&quot;case1&quot;</span>: {</div>
-<div class="line">            <span class="stringliteral">&quot;rate&quot;</span>: 1.0,</div>
-<div class="line">            <span class="stringliteral">&quot;symbol&quot;</span>: <span class="stringliteral">&quot;case1&quot;</span>,</div>
-<div class="line">            <span class="stringliteral">&quot;load_node&quot;</span>: [{<span class="stringliteral">&quot;n&quot;</span>: 2, <span class="stringliteral">&quot;ty&quot;</span>: -10}]</div>
-<div class="line">        }</div>
-<div class="line">    }</div>
-<div class="line">}</div>
+<div class="line">tip = result[<span class="stringliteral">&quot;node_displacements&quot;</span>][2]</div>
+<div class="line">support = result[<span class="stringliteral">&quot;reaction_forces&quot;</span>][1]</div>
+<div class="line">print(f<span class="stringliteral">&quot;右端のたわみ: {tip[&#39;dy&#39;] * 1000:.6f} mm&quot;</span>)</div>
+<div class="line">print(f<span class="stringliteral">&quot;左端の鉛直反力: {support[&#39;fy&#39;]:.1f} N&quot;</span>)</div>
+<div class="line">print(f<span class="stringliteral">&quot;左端の反力モーメント: {support[&#39;mz&#39;]:.1f} N m&quot;</span>)</div>
+<div class="line">print(model.get_model_info())</div>
 <div class="line"> </div>
-<div class="line"><span class="comment"># FrameWeb3 APIへのリクエスト送信</span></div>
-<div class="line">response = requests.post(</div>
-<div class="line">    <span class="stringliteral">&#39;http://localhost:5000/&#39;</span>,</div>
-<div class="line">    json=model_data,</div>
-<div class="line">    headers={<span class="stringliteral">&#39;Content-Type&#39;</span>: <span class="stringliteral">&#39;application/json&#39;</span>}</div>
-<div class="line">)</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># 結果の処理</span></div>
-<div class="line"><span class="keywordflow">if</span> response.status_code == 200:</div>
-<div class="line">    results = response.json()</div>
-<div class="line">    print(<span class="stringliteral">&quot;解析が正常に完了しました&quot;</span>)</div>
-<div class="line">    print(f<span class="stringliteral">&quot;節点変位: {results[&#39;case1&#39;][&#39;disg&#39;]}&quot;</span>)</div>
-<div class="line">    print(f<span class="stringliteral">&quot;支点反力: {results[&#39;case1&#39;][&#39;reac&#39;]}&quot;</span>)</div>
-<div class="line"><span class="keywordflow">else</span>:</div>
-<div class="line">    print(f<span class="stringliteral">&quot;エラー: {response.status_code}&quot;</span>)</div>
-<div class="line">    print(response.text)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md125"></a>
-レスポンス構造</h2>
-<p>新実装では高精度メッシュにより、より詳細な解析結果を提供します：</p>
-<div class="fragment"><div class="line">{</div>
-<div class="line">    &quot;case1&quot;: {</div>
-<div class="line">        &quot;disg&quot;: {</div>
-<div class="line">            &quot;1&quot;: {&quot;dx&quot;: 0, &quot;dy&quot;: 0, &quot;dz&quot;: 0, &quot;rx&quot;: 0, &quot;ry&quot;: 0, &quot;rz&quot;: 0},</div>
-<div class="line">            &quot;2&quot;: {&quot;dx&quot;: 0, &quot;dy&quot;: -0.0024, &quot;dz&quot;: 0, &quot;rx&quot;: 0, &quot;ry&quot;: 0, &quot;rz&quot;: 0},</div>
-<div class="line">            &quot;42&quot;: {&quot;dx&quot;: -3.9e-06, &quot;dy&quot;: 1.8e-04, &quot;dz&quot;: 0, &quot;rx&quot;: 0, &quot;ry&quot;: 0, &quot;rz&quot;: 0},</div>
-<div class="line">            &quot;43&quot;: {&quot;dx&quot;: -2.7e-06, &quot;dy&quot;: 1.1e-04, &quot;dz&quot;: 0, &quot;rx&quot;: 0, &quot;ry&quot;: 0, &quot;rz&quot;: 0}</div>
-<div class="line">        },</div>
-<div class="line">        &quot;reac&quot;: {</div>
-<div class="line">            &quot;1&quot;: {&quot;tx&quot;: 0, &quot;ty&quot;: 10, &quot;tz&quot;: 0, &quot;mx&quot;: 0, &quot;my&quot;: 0, &quot;mz&quot;: 0}</div>
-<div class="line">        },</div>
-<div class="line">        &quot;fsec&quot;: {</div>
-<div class="line">            &quot;42&quot;: {&quot;fxi&quot;: 0, &quot;fyi&quot;: 10, &quot;mzi&quot;: 25, &quot;fxj&quot;: 0, &quot;fyj&quot;: -10, &quot;mzj&quot;: 15, &quot;L&quot;: 1.35},</div>
-<div class="line">            &quot;44&quot;: {&quot;fxi&quot;: 0, &quot;fyi&quot;: 10, &quot;mzi&quot;: 15, &quot;fxj&quot;: 0, &quot;fyj&quot;: -10, &quot;mzj&quot;: 25, &quot;L&quot;: 0.25}</div>
-<div class="line">        },</div>
-<div class="line">        &quot;size&quot;: 66</div>
-<div class="line">    }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md126"></a>
-🔍 品質保証</h1>
-<h2><a class="anchor" id="autotoc_md127"></a>
-統合テスト機能</h2>
-<div class="fragment"><div class="line"># 新旧実装の比較テスト</div>
-<div class="line">python check_integration_test.py</div>
-<div class="line"> </div>
-<div class="line"># 出力例:</div>
-<div class="line"># ✅ 新実装の節点数: 66</div>
-<div class="line"># ✅ 旧実装の節点数: 60</div>
-<div class="line"># ✅ 節点数差: -6（新実装が高精度）</div>
-<div class="line"># ✅ 相対誤差: 97.6%（高精度メッシュによる正当な差異）</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md128"></a>
-エラーハンドリング</h1>
-<p>APIは標準的なHTTPステータスコードを使用し、詳細なエラーメッセージを提供します：</p>
+<div class="line"><span class="comment"># 片持ち梁のたわみ P L^3 / (3 E I) と釣合いを確認</span></div>
+<div class="line">expected_dy = -1000 * 2**3 / (3 * 200e9 * 1e-5)</div>
+<div class="line"><span class="keyword">assert</span> isclose(tip[<span class="stringliteral">&quot;dy&quot;</span>], expected_dy, rel_tol=1e-8, abs_tol=1e-12)</div>
+<div class="line"><span class="keyword">assert</span> isclose(support[<span class="stringliteral">&quot;fy&quot;</span>], 1000, rel_tol=1e-8)</div>
+<div class="line"><span class="keyword">assert</span> isclose(support[<span class="stringliteral">&quot;mz&quot;</span>], 2000, rel_tol=1e-8)</div>
+</div><!-- fragment --><div class="fragment"><div class="line">uv run --locked --extra dev python analyse.py</div>
+</div><!-- fragment --><p>読み込み時のログに続いて、次の値を確認できます。</p>
+<div class="fragment"><div class="line">右端のたわみ: -1.333333 mm</div>
+<div class="line">左端の鉛直反力: 1000.0 N</div>
+<div class="line">左端の反力モーメント: 2000.0 N m</div>
+</div><!-- fragment --><p><code>dy</code>はmで返るので、表示時に1,000倍しました。JSON／HTTPでは節点IDが文字列になるため、<code>[2]</code>の代わりに<code>["2"]</code>でアクセスします。梁の端力は<code>result["element_stresses"][1]</code>の<code>i_end</code>と<code>j_end</code>です。<a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a>で成分順序と符号を説明しています。</p>
+<h1><a class="anchor" id="autotoc_md59"></a>
+4. 結果を保存する</h1>
+<p>解析済みの<code>model</code>に対して<code>model.save_results("result.json")</code>を呼ぶと、NumPy配列をJSONで保存できます。モデルの保存は<code>model.save_model("saved-model.json")</code>です。入力の編集用JSONとは形式が変わるので、詳しくは<a class="el" href="md_docs_2wiki_2file-formats.html">ファイル入出力</a>を参照してください。</p>
+<h1><a class="anchor" id="autotoc_md60"></a>
+次に試すこと</h1>
 <ul>
-<li><b>200 OK</b>: 解析が正常に完了</li>
-<li><b>400 Bad Request</b>: 無効な入力データ形式</li>
-<li><b>500 Internal Server Error</b>: 解析計算エラー</li>
+<li>荷重を2倍にして、線形解析の変位・反力も2倍になるか確認する。</li>
+<li><a class="el" href="md_docs_2wiki_2examples.html">実行例</a>で分布荷重、面圧、立体要素、ケースごとの解析を試す。</li>
+<li><a class="el" href="md_docs_2wiki_2nonlinear-analysis.html">材料非線形解析</a>で、剛性が変化する梁と履歴を扱う。</li>
+<li>他のアプリから呼び出す場合は<a class="el" href="md_docs_2wiki_2endpoints.html">HTTP API</a>へ進む。</li>
 </ul>
-<p>エラーレスポンスには問題の診断に役立つ詳細なメッセージが含まれます：</p>
-<div class="fragment"><div class="line">{</div>
-<div class="line">    &quot;error&quot;: &quot;入力データエラー&quot;,</div>
-<div class="line">    &quot;message&quot;: &quot;節点データが不足しています: 節点番号(3)&quot;,</div>
-<div class="line">    &quot;details&quot;: {</div>
-<div class="line">        &quot;node&quot;: 3,</div>
-<div class="line">        &quot;loadCase&quot;: &quot;case1&quot;</div>
-<div class="line">    }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md129"></a>
-🎊 プロジェクト完了</h1>
-<p><b>2025年6月1日: Python FEM解析モジュール クラス構成再編プロジェクトが技術的成功を収めて完了。次世代高精度FEM解析システムとして本格運用開始。</b></p>
-<h1><a class="anchor" id="autotoc_md130"></a>
-次のステップ</h1>
-<ul>
-<li><a class="el" href="md_docs_2wiki_2endpoints.html">APIリファレンス</a> - 詳細なエンドポイントドキュメント</li>
-<li><a class="el" href="md_docs_2wiki_2data-structures.html">データ構造</a> - 要素分割対応の入出力形式リファレンス</li>
-<li><a class="el" href="md_docs_2wiki_2examples.html">使用例</a> - 高精度解析の実用的な使用例</li>
-<li><a class="el" href="md_docs_2wiki_2error-handling.html">エラーハンドリング</a> - 包括的なエラーリファレンス</li>
-<li><a class="el" href="md_docs_2wiki_2workflow.html">解析ワークフロー</a> - 要素分割を含む内部処理ワークフロー </li>
-</ul>
+<p>エラーになった場合は、<a class="el" href="md_docs_2wiki_2error-handling.html">エラーと対処</a>の入力形式・支持条件から確認してください。 </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

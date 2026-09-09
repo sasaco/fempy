@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['クイックスタート_0',['クイックスタート',['../md_docs_2wiki_2getting-started.html#autotoc_md121',1,'クイックスタート'],['../index.html#autotoc_md146',1,'クイックスタート']]],
-  ['クイックリファレンス_1',['クイックリファレンス',['../md_docs_2wiki_2quick-reference.html',1,'']]]
+  ['ソリッドの応力・ひずみ_0',['ソリッドの応力・ひずみ',['../md_docs_2wiki_2results.html#autotoc_md100',1,'']]],
+  ['ソリッド：一次と二次_1',['ソリッド：一次と二次',['../md_docs_2wiki_2elements.html#autotoc_md19',1,'']]]
 ];

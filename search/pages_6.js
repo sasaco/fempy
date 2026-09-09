@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['ドキュメント_0',['FrameWeb3 API ドキュメント',['../index.html',1,'']]]
+  ['クイックリファレンス_0',['クイックリファレンス',['../md_docs_2wiki_2quick-reference.html',1,'']]]
 ];

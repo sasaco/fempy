@@ -1,0 +1,245 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FEMPython: ファイル入出力・VTK</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FEMPython
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('md_docs_2wiki_2file-formats.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">ファイル入出力・VTK</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="autotoc_md47"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2python-api.html">Python API</a></p>
+<p>継続してモデルを扱う場合はJSONを使います。既存データを読み込むために <code>.fem</code> と <code>.fw3</code> の入口もありますが、対応範囲が異なります。</p>
+<h1><a class="anchor" id="autotoc_md48"></a>
+対応形式</h1>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">形式   </th><th class="markdownTableHeadNone">読込   </th><th class="markdownTableHeadNone">書込   </th><th class="markdownTableHeadNone">用途と範囲    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">編集用JSON：<code>node/member/element</code>   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">元の編集形式では保存しない   </td><td class="markdownTableBodyNone">荷重ケース・部材荷重・着目点を含む入力    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">保存用JSON：<code>nodes/elements/materials</code>   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">解析モデルを保存して再読込する    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">結果JSON   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">数値結果の保存・別アプリとの連携    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">V0構造形式 <code>.fem</code>   </td><td class="markdownTableBodyNone">対応範囲あり   </td><td class="markdownTableBodyNone">非対応   </td><td class="markdownTableBodyNone">対応するシェル・ソリッドの既存データ移行    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">独自形式 <code>.fw3</code>   </td><td class="markdownTableBodyNone">部分対応   </td><td class="markdownTableBodyNone">部分対応   </td><td class="markdownTableBodyNone">簡易な旧形式。完全なモデル保存には使わない    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">ASCII VTK   </td><td class="markdownTableBodyNone">読込APIなし   </td><td class="markdownTableBodyNone">制約付き   </td><td class="markdownTableBodyNone">対応セルの変位・整形したスカラー等の可視化   </td></tr>
+</table>
+<h1><a class="anchor" id="autotoc_md49"></a>
+保存して再び解析する</h1>
+<p><a class="el" href="md_docs_2wiki_2getting-started.html">はじめに</a>の<code>beam.json</code>を用意して実行します。</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> isclose</div>
+<div class="line"><span class="keyword">from</span> fem <span class="keyword">import</span> FemModel</div>
+<div class="line"><span class="keyword">from</span> <a class="code hl_namespace" href="namespacefem_1_1file__io.html">fem.file_io</a> <span class="keyword">import</span> read_result</div>
+<div class="line"> </div>
+<div class="line">model = FemModel()</div>
+<div class="line">model.load_model(<span class="stringliteral">&quot;beam.json&quot;</span>)</div>
+<div class="line">before = model.run()</div>
+<div class="line">model.save_model(<span class="stringliteral">&quot;saved-model.json&quot;</span>)</div>
+<div class="line">model.save_results(<span class="stringliteral">&quot;saved-result.json&quot;</span>)</div>
+<div class="line"> </div>
+<div class="line">restored = FemModel()</div>
+<div class="line">restored.load_model(<span class="stringliteral">&quot;saved-model.json&quot;</span>)</div>
+<div class="line">after = restored.run()</div>
+<div class="line"><span class="keyword">assert</span> isclose(after[<span class="stringliteral">&quot;node_displacements&quot;</span>][2][<span class="stringliteral">&quot;dy&quot;</span>], before[<span class="stringliteral">&quot;node_displacements&quot;</span>][2][<span class="stringliteral">&quot;dy&quot;</span>], rel_tol=1e-8)</div>
+<div class="line"> </div>
+<div class="line">saved = read_result(<span class="stringliteral">&quot;saved-result.json&quot;</span>)</div>
+<div class="line"><span class="keyword">assert</span> <span class="stringliteral">&quot;2&quot;</span> <span class="keywordflow">in</span> saved[<span class="stringliteral">&quot;node_displacements&quot;</span>]  <span class="comment"># JSONのIDは文字列</span></div>
+<div class="line">print(saved[<span class="stringliteral">&quot;node_displacements&quot;</span>][<span class="stringliteral">&quot;2&quot;</span>])</div>
+<div class="ttc" id="anamespacefem_1_1file__io_html"><div class="ttname"><a href="namespacefem_1_1file__io.html">fem.file_io</a></div><div class="ttdef"><b>Definition</b> file_io.py:1</div></div>
+</div><!-- fragment --><p>保存するモデルは、ケース選択・分割後の解析モデルです。元の編集用JSONにあったすべての荷重ケースや編集情報を再生成する機能ではありません。元の入力も別に保管してください。</p>
+<p>解析設定を保持したい場合は、保存前に<code>model.analysis_type</code>と<code>model.analysis_params</code>へ設定します。<code>run("static")</code>の引数は、その呼出しに使う指定であり、保存される<code>model.analysis_type</code>を書き換える操作ではありません。</p>
+<p>非線形材料の定義と載荷係数は保存できますが、確定済みの内部履歴状態は保存しません。再読込後は最初から解析します。</p>
+<h1><a class="anchor" id="autotoc_md50"></a>
+保存用JSONの構造</h1>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">キー   </th><th class="markdownTableHeadNone">値の形    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>nodes</code>   </td><td class="markdownTableBodyNone">ID → <code>[x, y, z]</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>elements</code>   </td><td class="markdownTableBodyNone">ID → <code>type, nodes, material_id</code>と要素固有パラメータ    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>materials</code>   </td><td class="markdownTableBodyNone">ID → <code>name, E, nu, density, alpha, shear_modulus</code>など    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>bar_parameters</code>   </td><td class="markdownTableBodyNone">断面ID → <code>area, Iy, Iz, J, kappa_y, kappa_z</code>など    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>nonlinear_materials</code>   </td><td class="markdownTableBodyNone">ID → JR材料。正側名称は<code>delta_1_pos, P_1_pos</code>など    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>boundary_conditions.restraints</code>   </td><td class="markdownTableBodyNone">節点ID → <code>dof, values</code>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>boundary_conditions.loads</code>   </td><td class="markdownTableBodyNone">節点ID → <code>[fx, fy, fz, mx, my, mz]</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>boundary_conditions.spring_supports</code>   </td><td class="markdownTableBodyNone">節点ID → 方向と剛性    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>boundary_conditions.pressures</code>   </td><td class="markdownTableBodyNone"><code>element_id, face, pressure</code>の配列    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>analysis_type, analysis_params</code>   </td><td class="markdownTableBodyNone">解析種別・制御値   </td></tr>
+</table>
+<p>保存される<code>auxiliary_restraint_nodes</code>は、2D化で自動追加した支持節点を区別する情報です。通常は利用者が手で作る必要はありません。</p>
+<p>この形式で線形梁を手書きするときは、<code>elements</code>に<code>section_id</code>を、<code>bar_parameters</code>に対応する断面を指定します。<code>shear_correction</code>も明示してください。部材荷重は要素の<code>line_loads</code>、温度は<code>temperature</code>、分布ばねは<code>foundation</code>、回転解放は<code>releases</code>として保存されます。編集用JSONの<code>load_member/fix_member/joint</code>をそのままこの形式へ移しても処理されません。</p>
+<p><code>materials</code>の<code>k</code>と<code>c</code>は保存する物性欄ですが、現行の公開解析に熱伝導ソルバーがあることを意味しません。直接<code>BoundaryCondition</code>へ追加した汎用分布荷重など、保存対象に含まれない状態もあります。独自の低水準モデルは保存前後の解析条件を比較してください。</p>
+<h1><a class="anchor" id="autotoc_md51"></a>
+結果JSON</h1>
+<p><code>save_results()</code>、<code>write_result()</code>、HTTPの結果変換はNumPy配列を配列へ、IDキーを文字列へ変換します。NaN・Infinityを含む結果は保存・送信できません。</p>
+<p><code>read_result()</code>や<code>load_results()</code>はJSONをそのまま読むため、文字列キーやリストを整数キー・NumPy配列へ復元しません。読込後は<code>model.get_results()["node_displacements"]["2"]</code>のようにアクセスします。数値比較が必要なら配列を<code>numpy.asarray()</code>で変換してください。</p>
+<h1><a class="anchor" id="autotoc_md52"></a>
+V0の構造ファイル &lt;tt&gt;.fem&lt;/tt&gt;</h1>
+<p>空白区切りのレコード形式です。現行リーダーは未対応行を黙って捨てず、行番号付きの入力エラーにします。</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">レコード   </th><th class="markdownTableHeadNone">主な内容    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>Node</code>   </td><td class="markdownTableBodyNone">ID、x、y、z    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>Material</code>   </td><td class="markdownTableBodyNone">ID、E、nu、G、密度、熱伝導率、比熱    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>ShellParameter</code>   </td><td class="markdownTableBodyNone">ID、厚さ    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>TriElement1 / QuadElement1</code>   </td><td class="markdownTableBodyNone">ID、材料ID、厚さID、節点ID列    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>TetraElement1 / WedgeElement1 / HexaElement1</code>   </td><td class="markdownTableBodyNone">ID、材料ID、一次要素の節点ID列    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>TetraElement2 / WedgeElement2 / HexaElement2</code>   </td><td class="markdownTableBodyNone">ID、材料ID、二次要素の節点ID列    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>Restraint</code>   </td><td class="markdownTableBodyNone">節点ID、各自由度の「拘束フラグ・指定変位」の組。3または6成分    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>Load</code>   </td><td class="markdownTableBodyNone">節点ID、力3成分、必要ならモーメント3成分    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>Pressure</code>   </td><td class="markdownTableBodyNone">シェルID、F1/F2、圧力   </td></tr>
+</table>
+<p>現行リーダーは梁用のV0レコード、特殊座標系、熱解析レコードなどの全機能を移植したものではありません。<code>docs/v0</code>内にサンプルがあることだけでは、現在の読込・解析対応を意味しません。詳細は<a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/v0_io.py">V0リーダー</a>と<a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/tests/io/test_source_input.py">入力テスト</a>を参照してください。</p>
+<h1><a class="anchor" id="autotoc_md53"></a>
+独自形式 &lt;tt&gt;.fw3&lt;/tt&gt;</h1>
+<p><code>*NODES</code>、<code>*ELEMENTS</code>、<code>*RESTRAINTS</code>、<code>*LOADS</code>などのセクション形式です。現行読込は材料・断面情報を完全に復元せず、書き出した<code>*PRESSURES</code>も読込側が処理しません。これだけで解析条件を保った保存・再読込はできません。新しい作業の保存にはJSONを使ってください。</p>
+<h1><a class="anchor" id="autotoc_md54"></a>
+VTKで変位と端力を可視化する</h1>
+<p>VTKライターは現行の要素・結果形式をすべて扱えるわけではありません。<code>shell</code>、<code>nonlinear_bar</code>、<code>tetra2/wedge2/hexa2</code>などはセル種別の対応がなく、セルタイプ0になります。通常の<code>shell</code>を含む解析を、そのまま完全なVTK出力として利用しないでください。</p>
+<p>また、梁の<code>i_end/j_end</code>やソリッドの積分点応力は配列を含むため、<code>write_vtk()</code>へ結果を丸ごと渡すと変換に失敗する場合があります。次は対応する<code>bar</code>モデルに限定し、端力を要素ごとのスカラーへ明示的に変換した例です。</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> pathlib <span class="keyword">import</span> Path</div>
+<div class="line"><span class="keyword">from</span> fem <span class="keyword">import</span> FemModel</div>
+<div class="line"><span class="keyword">from</span> <a class="code hl_namespace" href="namespacefem_1_1file__io.html">fem.file_io</a> <span class="keyword">import</span> write_vtk</div>
+<div class="line"> </div>
+<div class="line">model = FemModel()</div>
+<div class="line">model.load_model(<span class="stringliteral">&quot;beam.json&quot;</span>)</div>
+<div class="line">result = model.run()</div>
+<div class="line">vtk_result = {</div>
+<div class="line">    <span class="stringliteral">&quot;node_displacements&quot;</span>: result[<span class="stringliteral">&quot;node_displacements&quot;</span>],</div>
+<div class="line">    <span class="stringliteral">&quot;element_stresses&quot;</span>: {</div>
+<div class="line">        eid: {<span class="stringliteral">&quot;axial_i&quot;</span>: float(force[<span class="stringliteral">&quot;i_end&quot;</span>][0]),</div>
+<div class="line">              <span class="stringliteral">&quot;moment_z_i&quot;</span>: float(force[<span class="stringliteral">&quot;i_end&quot;</span>][5])}</div>
+<div class="line">        <span class="keywordflow">for</span> eid, force <span class="keywordflow">in</span> result[<span class="stringliteral">&quot;element_stresses&quot;</span>].items()</div>
+<div class="line">    },</div>
+<div class="line">}</div>
+<div class="line">write_vtk({<span class="stringliteral">&quot;mesh&quot;</span>: model.mesh}, vtk_result, <span class="stringliteral">&quot;beam.vtk&quot;</span>)</div>
+<div class="line">text = Path(<span class="stringliteral">&quot;beam.vtk&quot;</span>).read_text(encoding=<span class="stringliteral">&quot;utf-8&quot;</span>)</div>
+<div class="line"><span class="keyword">assert</span> <span class="stringliteral">&quot;CELL_TYPES 1\n3\n&quot;</span> <span class="keywordflow">in</span> text</div>
+<div class="line"><span class="keyword">assert</span> <span class="stringliteral">&quot;VECTORS displacement float&quot;</span> <span class="keywordflow">in</span> text</div>
+<div class="line"><span class="keyword">assert</span> <span class="stringliteral">&quot;SCALARS stress_moment_z_i float 1&quot;</span> <span class="keywordflow">in</span> text</div>
+<div class="line">print(<span class="stringliteral">&quot;beam.vtk を保存しました&quot;</span>)</div>
+</div><!-- fragment --><p>このファイルには元のメッシュ座標と変位ベクトルが入ります。ParaViewなどで<code>displacement</code>を変形表示に使えます。ライターが付ける<code>stress_</code>という接頭辞にかかわらず、例の<code>stress_axial_i</code>はN、<code>stress_moment_z_i</code>はN·mの端力です。材料応力ではありません。</p>
+<p>この制約を避けて新しい要素を可視化したい場合は、まず<a class="el" href="md_docs_2wiki_2results.html">結果JSON</a>を取り出し、要素種別・テンソル・積分点の対応を保った変換を別途用意する必要があります。 </p>
+</div></div><!-- contents -->
+</div><!-- PageDoc -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

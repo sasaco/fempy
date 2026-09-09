@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['メモリ割り当てエラー_0',['メモリ割り当てエラー',['../md_docs_2wiki_2error-handling.html#autotoc_md70',1,'']]],
-  ['メモリ管理（高精度対応）_1',['メモリ管理（高精度対応）',['../md_docs_2wiki_2workflow.html#autotoc_md240',1,'']]]
+  ['単位と座標_0',['単位と座標',['../md_docs_2wiki_2data-structures.html#autotoc_md1',1,'']]],
+  ['単位・符号の要点_1',['単位・符号の要点',['../md_docs_2wiki_2quick-reference.html#autotoc_md86',1,'']]]
 ];

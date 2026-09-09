@@ -50,8 +50,7 @@ var annotated_dup =
         [ "Output_BeamForce", "classapp_1_1result_1_1Output__BeamForce.html", null ],
         [ "Output_Disp", "classapp_1_1result_1_1Output__Disp.html", null ],
         [ "Output_Reaction", "classapp_1_1result_1_1Output__Reaction.html", null ],
-        [ "Output_Result", "classapp_1_1result_1_1Output__Result.html", null ],
-        [ "Output_ShellForce", "classapp_1_1result_1_1Output__ShellForce.html", null ]
+        [ "Output_Result", "classapp_1_1result_1_1Output__Result.html", null ]
       ] ]
     ] ],
     [ "fem", "namespacefem.html", [
@@ -64,6 +63,9 @@ var annotated_dup =
         [ "Pressure", "classfem_1_1boundary__condition_1_1Pressure.html", "classfem_1_1boundary__condition_1_1Pressure" ],
         [ "Restraint", "classfem_1_1boundary__condition_1_1Restraint.html", "classfem_1_1boundary__condition_1_1Restraint" ],
         [ "Temperature", "classfem_1_1boundary__condition_1_1Temperature.html", "classfem_1_1boundary__condition_1_1Temperature" ]
+      ] ],
+      [ "dof", "namespacefem_1_1dof.html", [
+        [ "DofLayout", "classfem_1_1dof_1_1DofLayout.html", null ]
       ] ],
       [ "elements", "namespacefem_1_1elements.html", [
         [ "advanced_element", "namespacefem_1_1elements_1_1advanced__element.html", [
@@ -80,8 +82,14 @@ var annotated_dup =
         [ "base_element", "namespacefem_1_1elements_1_1base__element.html", [
           [ "BaseElement", "classfem_1_1elements_1_1base__element_1_1BaseElement.html", "classfem_1_1elements_1_1base__element_1_1BaseElement" ]
         ] ],
+        [ "loaded_bar_element", "namespacefem_1_1elements_1_1loaded__bar__element.html", [
+          [ "LoadedBarElement", "classfem_1_1elements_1_1loaded__bar__element_1_1LoadedBarElement.html", "classfem_1_1elements_1_1loaded__bar__element_1_1LoadedBarElement" ]
+        ] ],
         [ "nonlinear_bar_element", "namespacefem_1_1elements_1_1nonlinear__bar__element.html", [
           [ "NonlinearBarElement", "classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html", "classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement" ]
+        ] ],
+        [ "quadratic_solid", "namespacefem_1_1elements_1_1quadratic__solid.html", [
+          [ "QuadraticSolidElement", "classfem_1_1elements_1_1quadratic__solid_1_1QuadraticSolidElement.html", "classfem_1_1elements_1_1quadratic__solid_1_1QuadraticSolidElement" ]
         ] ],
         [ "shell_element", "namespacefem_1_1elements_1_1shell__element.html", [
           [ "ShellElement", "classfem_1_1elements_1_1shell__element_1_1ShellElement.html", "classfem_1_1elements_1_1shell__element_1_1ShellElement" ]
@@ -93,6 +101,9 @@ var annotated_dup =
           [ "TetraElement", "classfem_1_1elements_1_1solid__element_1_1TetraElement.html", "classfem_1_1elements_1_1solid__element_1_1TetraElement" ],
           [ "WedgeElement", "classfem_1_1elements_1_1solid__element_1_1WedgeElement.html", "classfem_1_1elements_1_1solid__element_1_1WedgeElement" ]
         ] ]
+      ] ],
+      [ "equilibrium", "namespacefem_1_1equilibrium.html", [
+        [ "NonlinearConvergenceError", "classfem_1_1equilibrium_1_1NonlinearConvergenceError.html", null ]
       ] ],
       [ "error_log", null, [
         [ "FrameCritical", "classfem_1_1error__log_1_1FrameCritical.html", null ],
@@ -154,15 +165,16 @@ var annotated_dup =
         [ "hysteresis", "namespacefem_1_1nonlinear_1_1hysteresis.html", [
           [ "base_hysteresis", "namespacefem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis.html", [
             [ "BaseHysteresis", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1BaseHysteresis.html", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1BaseHysteresis" ],
+            [ "HysteresisSegment", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisSegment.html", null ],
             [ "HysteresisState", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState" ]
           ] ],
           [ "jr_stiffness_reduction", "namespacefem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction.html", [
             [ "JRStiffnessReductionModel", "classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel.html", "classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel" ],
-            [ "JRStiffnessReductionParams", "classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionParams.html", "classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionParams" ]
+            [ "JRStiffnessReductionParams", "classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionParams.html", null ]
           ] ]
         ] ],
         [ "nonlinear_solver", "namespacefem_1_1nonlinear_1_1nonlinear__solver.html", [
-          [ "NonlinearSolver", "classfem_1_1nonlinear_1_1nonlinear__solver_1_1NonlinearSolver.html", "classfem_1_1nonlinear_1_1nonlinear__solver_1_1NonlinearSolver" ]
+          [ "NonlinearSolver", "classfem_1_1nonlinear_1_1nonlinear__solver_1_1NonlinearSolver.html", null ]
         ] ]
       ] ],
       [ "result_processor", "namespacefem_1_1result__processor.html", [

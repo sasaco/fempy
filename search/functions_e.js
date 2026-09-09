@@ -1,12 +1,16 @@
 var searchData=
 [
-  ['read_5fmodel_0',['read_model',['../namespacefem_1_1file__io.html#aaf4b451226733b7da601b75f9da9c438',1,'fem::file_io']]],
-  ['read_5fresult_1',['read_result',['../namespacefem_1_1file__io.html#aca6e236275d362ee5e4cacaa5af915fc',1,'fem::file_io']]],
-  ['reset_2',['reset',['../classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html#a320b8752cc790778b51ea44738abcf64',1,'fem::nonlinear::hysteresis::base_hysteresis::HysteresisState']]],
-  ['reset_5fstates_3',['reset_states',['../classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#a53d925da213a3b8dff2350e4ed485991',1,'fem::elements::nonlinear_bar_element::NonlinearBarElement']]],
-  ['rollback_5fstate_4',['rollback_state',['../classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#abc90dcbb9180fa270c4c1100bb5390b3',1,'fem::elements::nonlinear_bar_element::NonlinearBarElement']]],
-  ['rotate_5',['rotate',['../classfem_1_1strain__stress_1_1Strain.html#a32463134455662651fe3f0a459dee888',1,'fem.strain_stress.Strain.rotate()'],['../classfem_1_1strain__stress_1_1Stress.html#ad06bad00dd79ba05c7fd783f2f2be244',1,'fem.strain_stress.Stress.rotate()']]],
-  ['run_6',['run',['../classfem_1_1model_1_1FemModel.html#a456ab3e0a15734fa9923d1ef58798c4e',1,'fem::model::FemModel']]],
-  ['run_5fmodal_5fanalysis_7',['run_modal_analysis',['../classfem_1_1model_1_1FemModel.html#ac4aa8410a0e1d2176ede420d6bfa71bd',1,'fem::model::FemModel']]],
-  ['run_5fstatic_5fanalysis_8',['run_static_analysis',['../classfem_1_1model_1_1FemModel.html#a92a10097233e0ee689672515dee3225c',1,'fem::model::FemModel']]]
+  ['save_5fmodel_0',['save_model',['../classfem_1_1model_1_1FemModel.html#a0a5953091537ceb824bedbd8e5693b01',1,'fem::model::FemModel']]],
+  ['save_5fresults_1',['save_results',['../classfem_1_1model_1_1FemModel.html#a867b6228bb788faf25cada3861ec29df',1,'fem::model::FemModel']]],
+  ['set_5fhysteresis_5fmodel_2',['set_hysteresis_model',['../classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#a99222d531282bccb81e1d08e11875afa',1,'fem::elements::nonlinear_bar_element::NonlinearBarElement']]],
+  ['set_5fmaterial_5fproperties_3',['set_material_properties',['../classfem_1_1elements_1_1advanced__element_1_1WedgeElement.html#a4589a8455b2fa19e10b03d1baf98d2e9',1,'fem.elements.advanced_element.WedgeElement.set_material_properties()'],['../classfem_1_1elements_1_1bar__element_1_1BEBarElement.html#a48f6aa92205967d5305908a907228af5',1,'fem.elements.bar_element.BEBarElement.set_material_properties()'],['../classfem_1_1elements_1_1bar__element_1_1TBarElement.html#aee34f5f29fcaf681c4339c315815a738',1,'fem.elements.bar_element.TBarElement.set_material_properties()'],['../classfem_1_1elements_1_1shell__element_1_1ShellElement.html#a0f67fa561f3808909247cc95033785af',1,'fem.elements.shell_element.ShellElement.set_material_properties()'],['../classfem_1_1elements_1_1solid__element_1_1TetraElement.html#a48d79ddc083bc893389fe8af22969c49',1,'fem.elements.solid_element.TetraElement.set_material_properties()'],['../classfem_1_1elements_1_1solid__element_1_1HexaElement.html#ac04ced0538348c2faa3ddcb08e442984',1,'fem.elements.solid_element.HexaElement.set_material_properties()']]],
+  ['set_5fnode_5fcoordinates_4',['set_node_coordinates',['../classfem_1_1elements_1_1base__element_1_1BaseElement.html#adff74f5107c5040a1f57533206968fec',1,'fem.elements.base_element.BaseElement.set_node_coordinates()'],['../classfem_1_1elements_1_1loaded__bar__element_1_1LoadedBarElement.html#a49b3dd14191ca487a0b23604048a328f',1,'fem.elements.loaded_bar_element.LoadedBarElement.set_node_coordinates()'],['../classfem_1_1elements_1_1bar__element_1_1BarElement.html#aa3e85e3d473cf027dc4e4c072130abbe',1,'fem.elements.bar_element.BarElement.set_node_coordinates()']]],
+  ['solve_5',['solve',['../classfem_1_1solver_1_1Solver.html#a1adec2243e3b8ce44f97e7c0d6750338',1,'fem.solver.Solver.solve()'],['../namespacefem_1_1decimal__bvp.html#a2d346eea7b0d26f26031063efca345c9',1,'fem.decimal_bvp.solve()']]],
+  ['solve_5fdirect_5fsystem_6',['solve_direct_system',['../namespacefem_1_1equilibrium.html#a460874644f1bfa5dfade063e1cfa6c2e',1,'fem::equilibrium']]],
+  ['solve_5flinear_5fsystem_7',['solve_linear_system',['../classfem_1_1solver_1_1Solver.html#a9171b95906f305a0f5c83635a915ca4b',1,'fem::solver::Solver']]],
+  ['solve_5fnewton_5fsystem_8',['solve_newton_system',['../namespacefem_1_1equilibrium.html#a60c18d77ad76b417eb985f617b96cac4',1,'fem::equilibrium']]],
+  ['solve_5fnonlinear_9',['solve_nonlinear',['../classfem_1_1solver_1_1Solver.html#ae561424f880fd6ca71c2c768c53c779d',1,'fem::solver::Solver']]],
+  ['sparse_5fsolve_10',['sparse_solve',['../namespacefem_1_1linear__precision.html#a7dcacea0c56951675281d71ed226d4f9',1,'fem::linear_precision']]],
+  ['strain_5fpart_11',['strain_part',['../namespacefem_1_1strain__stress.html#abb5d7b007a4d1ead08c6944461756588',1,'fem::strain_stress']]],
+  ['strain_5fstress_12',['strain_stress',['../namespacefem_1_1strain__stress.html#ac193cf897c0482e22f47a8d4f547dbb3',1,'fem::strain_stress']]]
 ];

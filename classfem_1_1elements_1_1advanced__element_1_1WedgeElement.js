@@ -1,6 +1,7 @@
 var classfem_1_1elements_1_1advanced__element_1_1WedgeElement =
 [
     [ "__init__", "classfem_1_1elements_1_1advanced__element_1_1WedgeElement.html#ae0c75f53d1b095efd2ac0059cde6d6cc", null ],
+    [ "calculate_stress_strain", "classfem_1_1elements_1_1advanced__element_1_1WedgeElement.html#ab57e0501c744c3118266618022329643", null ],
     [ "get_dof_per_node", "classfem_1_1elements_1_1advanced__element_1_1WedgeElement.html#a0d8d320ec6c5c94c333203ceaee988b4", null ],
     [ "get_gauss_points", "classfem_1_1elements_1_1advanced__element_1_1WedgeElement.html#ae02152ae662bd2cd8f5fce936cd50468", null ],
     [ "get_mass_matrix", "classfem_1_1elements_1_1advanced__element_1_1WedgeElement.html#a250a5f7d87a81d3e33d94f2c3d8221c4", null ],

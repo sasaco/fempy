@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>FrameWeb: クイックリファレンス</title>
+<title>FEMPython: クイックリファレンス</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -30,7 +30,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">FrameWeb
+   <div id="projectname">FEMPython
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -98,437 +98,128 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2quick-reference.html','
   <div class="headertitle"><div class="title">クイックリファレンス</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md154"></a> </p>
-<h1><a class="anchor" id="autotoc_md155"></a>
-🎉 新実装（FemModel）高精度解析</h1>
-<p>**FrameWeb3は、技術的に大成功を収めた次世代FEM解析モジュール**として完成しています。</p>
-<h2><a class="anchor" id="autotoc_md156"></a>
-🚀 基本的な使用方法（新実装）</h2>
-<div class="fragment"><div class="line"><span class="keyword">from</span> src.fem.model <span class="keyword">import</span> FemModel</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># 高精度FEM解析（自動要素分割付き）</span></div>
-<div class="line">model = FemModel()</div>
-<div class="line">model.load_model(<span class="stringliteral">&quot;path/to/model.json&quot;</span>)</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># 自動要素分割実行</span></div>
-<div class="line">results = model.run(analysis_type=<span class="stringliteral">&quot;static&quot;</span>)</div>
-<div class="line">displacement = model.get_results()[<span class="stringliteral">&quot;displacement&quot;</span>]</div>
-<div class="line">print(f<span class="stringliteral">&quot;解析完了: {len(displacement)}節点の高精度メッシュ&quot;</span>)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md157"></a>
-🔧 要素分割機能チートシート</h2>
-<h3><a class="anchor" id="autotoc_md158"></a>
-着目点による要素分割</h3>
-<div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;notice_points&quot;: [</div>
-<div class="line">    {&quot;m&quot;: 要素ID, &quot;Points&quot;: [分割位置1, 分割位置2, ...]}</div>
-<div class="line">  ]</div>
-<div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md159"></a>
-分布荷重による自動分割</h3>
-<div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;load&quot;: {</div>
-<div class="line">    &quot;case1&quot;: {</div>
-<div class="line">      &quot;load_member&quot;: [</div>
-<div class="line">        {&quot;m&quot;: 要素ID, &quot;mark&quot;: 2, &quot;L1&quot;: 開始位置, &quot;L2&quot;: 終了位置, &quot;P1&quot;: 荷重値, &quot;P2&quot;: 荷重値}</div>
-<div class="line">      ]</div>
-<div class="line">    }</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md160"></a>
-集中荷重による自動分割</h3>
-<div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;load&quot;: {</div>
-<div class="line">    &quot;case1&quot;: {</div>
-<div class="line">      &quot;load_member&quot;: [</div>
-<div class="line">        {&quot;m&quot;: 要素ID, &quot;mark&quot;: 1, &quot;L1&quot;: 荷重位置, &quot;P1&quot;: 荷重値}</div>
-<div class="line">      ]</div>
-<div class="line">    }</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md161"></a>
-📊 技術的優位性</h2>
+<div class="textblock"><p><a class="anchor" id="autotoc_md81"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2python-api.html">Python API</a> · <a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a></p>
+<p>日常的に使う指定とアクセス方法をまとめています。初回は<a class="el" href="md_docs_2wiki_2getting-started.html">片持ち梁の例</a>から始めてください。</p>
+<h1><a class="anchor" id="autotoc_md82"></a>
+解析を選ぶ</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">項目   </th><th class="markdownTableHeadNone">新実装   </th><th class="markdownTableHeadNone">旧実装   </th><th class="markdownTableHeadNone">改善    </th></tr>
+<th class="markdownTableHeadNone">目的   </th><th class="markdownTableHeadNone">Pythonでの指定    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">節点数   </td><td class="markdownTableBodyNone">66節点   </td><td class="markdownTableBodyNone">60節点   </td><td class="markdownTableBodyNone">+6節点（高精度）    </td></tr>
+<td class="markdownTableBodyNone">線形静解析   </td><td class="markdownTableBodyNone"><code>model.run("static")</code>    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">要素分割   </td><td class="markdownTableBodyNone">自動実行   </td><td class="markdownTableBodyNone">なし   </td><td class="markdownTableBodyNone">革新的機能    </td></tr>
+<td class="markdownTableBodyNone">材料非線形解析   </td><td class="markdownTableBodyNone"><code>model.run("material_nonlinear")</code>    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">荷重処理   </td><td class="markdownTableBodyNone">24ケース   </td><td class="markdownTableBodyNone">基本対応   </td><td class="markdownTableBodyNone">包括的処理    </td></tr>
+<td class="markdownTableBodyNone">入力指定・要素から自動選択   </td><td class="markdownTableBodyNone"><code>model.run()</code>    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">品質保証   </td><td class="markdownTableBodyNone">統合テスト   </td><td class="markdownTableBodyNone">基本テスト   </td><td class="markdownTableBodyNone">継続的保証   </td></tr>
+<td class="markdownTableBodyNone">固有値解析   </td><td class="markdownTableBodyNone"><code>model.analysis_params["n_modes"] = 3</code>の後に<code>model.run("modal")</code>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">任意の非線形載荷順序   </td><td class="markdownTableBodyNone"><code>model.analysis_params["load_factors"] = [0, 0.5, 1, 0, -1]</code>   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md162"></a>
-🔍 統合テスト</h2>
-<div class="fragment"><div class="line"># 新旧実装の品質比較</div>
-<div class="line">python check_integration_test.py</div>
-<div class="line"> </div>
-<div class="line"># 期待される出力:</div>
-<div class="line"># ✅ 新実装の節点数: 66</div>
-<div class="line"># ✅ 旧実装の節点数: 60</div>
-<div class="line"># ✅ 節点数差: -6（新実装が高精度）</div>
-</div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md164"></a>
-材料非線形解析（2026年1月追加）</h1>
-<h2><a class="anchor" id="autotoc_md165"></a>
-JR総研剛性低減RC型モデル</h2>
-<div class="fragment"><div class="line"><span class="keyword">from</span> src.fem <span class="keyword">import</span> FemModel</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># 非線形解析の実行（解析パラメータはJSONで指定）</span></div>
-<div class="line">model = FemModel()</div>
-<div class="line">model.load_model(<span class="stringliteral">&quot;tests/data/snap/beam001.json&quot;</span>)</div>
-<div class="line">results = model.run(analysis_type=<span class="stringliteral">&quot;material_nonlinear&quot;</span>)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md166"></a>
-解析パラメータ（loadセクションで指定）</h2>
-<div class="fragment"><div class="line">&quot;load&quot;: {</div>
-<div class="line">  &quot;1&quot;: {</div>
-<div class="line">    &quot;fix_node&quot;: 1,</div>
-<div class="line">    &quot;fix_member&quot;: 1,</div>
-<div class="line">    &quot;element&quot;: 1,</div>
-<div class="line">    &quot;joint&quot;: 1,</div>
-<div class="line">    &quot;n_load_steps&quot;: 10,      // 荷重増分ステップ数</div>
-<div class="line">    &quot;max_iterations&quot;: 50,    // 最大反復回数</div>
-<div class="line">    &quot;tolerance&quot;: 1e-6,       // 収束判定許容差</div>
-<div class="line">    &quot;n_modes&quot;: 10,           // 固有モード数（modal用）</div>
-<div class="line">    &quot;load_node&quot;: [...]</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md167"></a>
-非線形材料定義（JSON）</h2>
-<div class="fragment"><div class="line">&quot;element&quot;: {</div>
-<div class="line">  &quot;1&quot;: {</div>
-<div class="line">    &quot;2&quot;: {</div>
-<div class="line">      &quot;E&quot;: 26500000,</div>
-<div class="line">      &quot;A&quot;: 1000,</div>
-<div class="line">      &quot;Iz&quot;: 1000,</div>
-<div class="line">      &quot;nonlinear&quot;: {</div>
-<div class="line">        &quot;type&quot;: &quot;jr_stiffness_reduction&quot;,</div>
-<div class="line">        &quot;delta_1&quot;: 1e-05, &quot;delta_2&quot;: 0.0001, &quot;delta_3&quot;: 0.001,</div>
-<div class="line">        &quot;P_1&quot;: 1000.0, &quot;P_2&quot;: 3000.0, &quot;P_3&quot;: 5000.0,</div>
-<div class="line">        &quot;beta&quot;: 0.4,</div>
-<div class="line">        &quot;symmetric&quot;: true,</div>
-<div class="line">        &quot;hysteresis_dofs&quot;: [&quot;moment_z&quot;]</div>
-<div class="line">      }</div>
-<div class="line">    }</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md168"></a>
-4折線スケルトンカーブパラメータ</h2>
+<p><code>static</code>は非線形材料の履歴を使いません。<code>n_load_steps</code>だけでは解析種別は変わりません。固有値解析には<a class="el" href="md_docs_2wiki_2elements.html">対応要素・数値上の制約</a>があります。</p>
+<h1><a class="anchor" id="autotoc_md83"></a>
+入力名の対応</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">パラメータ   </th><th class="markdownTableHeadNone">説明   </th><th class="markdownTableHeadNone">単位    </th></tr>
+<th class="markdownTableHeadNone">内容   </th><th class="markdownTableHeadNone">編集用JSON   </th><th class="markdownTableHeadNone">Python API／保存用JSON    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">delta_1   </td><td class="markdownTableBodyNone">ひび割れ変位   </td><td class="markdownTableBodyNone">m    </td></tr>
+<td class="markdownTableBodyNone">節点   </td><td class="markdownTableBodyNone"><code>node: {"1": {"x": 0, "y": 0, "z": 0}}</code>   </td><td class="markdownTableBodyNone"><code>add_node(1, 0, 0, 0)</code>／<code>nodes: {"1": [0, 0, 0]}</code>    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">delta_2   </td><td class="markdownTableBodyNone">降伏変位   </td><td class="markdownTableBodyNone">m    </td></tr>
+<td class="markdownTableBodyNone">材料   </td><td class="markdownTableBodyNone"><code>element[ケースID][材料ID]</code>   </td><td class="markdownTableBodyNone"><code>add_material(...)</code>／<code>materials[材料ID]</code>    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">delta_3   </td><td class="markdownTableBodyNone">終局変位   </td><td class="markdownTableBodyNone">m    </td></tr>
+<td class="markdownTableBodyNone">梁の断面積   </td><td class="markdownTableBodyNone"><code>A</code>   </td><td class="markdownTableBodyNone"><code>BarParameter.area</code>    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">P_1   </td><td class="markdownTableBodyNone">ひび割れ荷重   </td><td class="markdownTableBodyNone">N    </td></tr>
+<td class="markdownTableBodyNone">Gの明示値   </td><td class="markdownTableBodyNone"><code>G</code>   </td><td class="markdownTableBodyNone"><code>shear_modulus</code>    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">P_2   </td><td class="markdownTableBodyNone">降伏荷重   </td><td class="markdownTableBodyNone">N    </td></tr>
+<td class="markdownTableBodyNone">ポアソン比   </td><td class="markdownTableBodyNone"><code>nu</code>   </td><td class="markdownTableBodyNone"><code>nu</code>    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">P_3   </td><td class="markdownTableBodyNone">終局荷重   </td><td class="markdownTableBodyNone">N    </td></tr>
+<td class="markdownTableBodyNone">線膨張係数   </td><td class="markdownTableBodyNone"><code>Xp</code>   </td><td class="markdownTableBodyNone"><code>alpha</code>    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">beta   </td><td class="markdownTableBodyNone">剛性低減係数   </td><td class="markdownTableBodyNone">-   </td></tr>
+<td class="markdownTableBodyNone">密度   </td><td class="markdownTableBodyNone"><code>den</code>   </td><td class="markdownTableBodyNone"><code>density</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">梁の回転角（度）   </td><td class="markdownTableBodyNone">部材の数値<code>cg</code>   </td><td class="markdownTableBodyNone">要素の<code>angle</code>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">節点荷重の力   </td><td class="markdownTableBodyNone"><code>tx, ty, tz</code>   </td><td class="markdownTableBodyNone"><code>fx, fy, fz</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">節点荷重のモーメント   </td><td class="markdownTableBodyNone"><code>rx, ry, rz</code>   </td><td class="markdownTableBodyNone"><code>mx, my, mz</code>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">非線形骨格の正側   </td><td class="markdownTableBodyNone"><code>delta_1, P_1</code>など   </td><td class="markdownTableBodyNone">構築APIは同名。保存用<code>nonlinear_materials</code>は<code>delta_1_pos, P_1_pos</code>など   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md169"></a>
-非線形適用自由度（hysteresis_dofs）</h2>
+<h1><a class="anchor" id="autotoc_md84"></a>
+支持・荷重</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">値   </th><th class="markdownTableHeadNone">説明    </th></tr>
+<th class="markdownTableHeadNone">指定   </th><th class="markdownTableHeadNone">意味    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>"axial"</code>   </td><td class="markdownTableBodyNone">軸力（N）    </td></tr>
+<td class="markdownTableBodyNone"><code>fix_node</code>の0   </td><td class="markdownTableBodyNone">自由    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>"moment_y"</code>   </td><td class="markdownTableBodyNone">Y軸周り曲げモーメント    </td></tr>
+<td class="markdownTableBodyNone"><code>fix_node</code>の1   </td><td class="markdownTableBodyNone">0変位・0回転で拘束    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>"moment_z"</code>   </td><td class="markdownTableBodyNone">Z軸周り曲げモーメント    </td></tr>
+<td class="markdownTableBodyNone"><code>fix_node</code>の0・1以外   </td><td class="markdownTableBodyNone">絶対値を支持ばね剛性として使用    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>"torsion"</code>   </td><td class="markdownTableBodyNone">ねじりモーメント   </td></tr>
+<td class="markdownTableBodyNone">明示<code>restraints</code>の<code>dof, values</code>   </td><td class="markdownTableBodyNone">強制変位・回転。順序は<code>dx,dy,dz,rx,ry,rz</code>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>joint</code>の0／1   </td><td class="markdownTableBodyNone">回転を解放／接続。軸名は<code>xi,yi,zi,xj,yj,zj</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>load_member.mark=1</code>   </td><td class="markdownTableBodyNone">部材途中の集中力    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>mark=11</code>   </td><td class="markdownTableBodyNone">部材途中の集中モーメント    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>mark=2</code>   </td><td class="markdownTableBodyNone">分布荷重。全長なら<code>L1=0,L2=0</code>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>mark=9</code>   </td><td class="markdownTableBodyNone">梁の一様温度変化。<code>P1</code>に指定    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>mark=0</code>   </td><td class="markdownTableBodyNone">無効行    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>direction=x,y,z</code>   </td><td class="markdownTableBodyNone">梁局所座標の方向    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>direction=gx,gy,gz</code>   </td><td class="markdownTableBodyNone">全体座標の方向    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">シェル<code>F1</code>の正圧   </td><td class="markdownTableBodyNone">節点順序の法線と逆方向へ作用   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md170"></a>
-解析タイプ</h2>
+<p>分布荷重の通常のL2はj端からの距離です。負のL2は載荷幅です。集中荷重のL1・L2はどちらもi端からの距離です。支持の特殊な値・入力形式ごとの違いは<a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a>で確認してください。</p>
+<h1><a class="anchor" id="autotoc_md85"></a>
+結果にアクセスする</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">タイプ   </th><th class="markdownTableHeadNone">説明    </th></tr>
+<th class="markdownTableHeadNone">内容   </th><th class="markdownTableHeadNone">Pythonでの例    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>"static"</code>   </td><td class="markdownTableBodyNone">線形静的解析    </td></tr>
+<td class="markdownTableBodyNone">節点2のY変位   </td><td class="markdownTableBodyNone"><code>result["node_displacements"][2]["dy"]</code>    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>"material_nonlinear"</code>   </td><td class="markdownTableBodyNone">材料非線形解析（Newton-Raphson法）   </td></tr>
+<td class="markdownTableBodyNone">節点1のY反力   </td><td class="markdownTableBodyNone"><code>result["reaction_forces"][1]["fy"]</code>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">梁7のj端曲げモーメントMz   </td><td class="markdownTableBodyNone"><code>result["element_stresses"][7]["j_end"][5]</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">非線形梁7の中央曲率κz   </td><td class="markdownTableBodyNone"><code>result["curvature"][7]["z"]</code>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">最後の非線形載荷係数   </td><td class="markdownTableBodyNone"><code>result["step_results"][-1]["lambda"]</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">シェル20の上面平均応力   </td><td class="markdownTableBodyNone"><code>result["shell_results"][20]["raw_result"]["elemStress1"]</code>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">ソリッド8の積分点応力   </td><td class="markdownTableBodyNone"><code>result["element_stresses"][8]["stress"]</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">節点数   </td><td class="markdownTableBodyNone"><code>model.get_model_info()["n_nodes"]</code>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">結果保存   </td><td class="markdownTableBodyNone"><code>model.save_results("result.json")</code>   </td></tr>
 </table>
-<hr  />
-<h1><a class="anchor" id="autotoc_md172"></a>
-基本的な使用方法（従来API）</h1>
-<h2><a class="anchor" id="autotoc_md173"></a>
-最小限の2Dフレーム解析</h2>
-<div class="fragment"><div class="line"><span class="keyword">import</span> requests</div>
-<div class="line"> </div>
-<div class="line">model_data = {</div>
-<div class="line">    <span class="stringliteral">&quot;dimension&quot;</span>: 2,</div>
-<div class="line">    <span class="stringliteral">&quot;node&quot;</span>: {<span class="stringliteral">&quot;1&quot;</span>: {<span class="stringliteral">&quot;x&quot;</span>: 0, <span class="stringliteral">&quot;y&quot;</span>: 0}, <span class="stringliteral">&quot;2&quot;</span>: {<span class="stringliteral">&quot;x&quot;</span>: 5, <span class="stringliteral">&quot;y&quot;</span>: 0}},</div>
-<div class="line">    <span class="stringliteral">&quot;member&quot;</span>: {<span class="stringliteral">&quot;1&quot;</span>: {<span class="stringliteral">&quot;ni&quot;</span>: 1, <span class="stringliteral">&quot;nj&quot;</span>: 2, <span class="stringliteral">&quot;e&quot;</span>: 1}},</div>
-<div class="line">    <span class="stringliteral">&quot;element&quot;</span>: {<span class="stringliteral">&quot;1&quot;</span>: {<span class="stringliteral">&quot;1&quot;</span>: {<span class="stringliteral">&quot;E&quot;</span>: 205000000, <span class="stringliteral">&quot;G&quot;</span>: 79000000, <span class="stringliteral">&quot;nu&quot;</span>: 0.3, <span class="stringliteral">&quot;Xp&quot;</span>: 1.2e-5, <span class="stringliteral">&quot;A&quot;</span>: 0.01, <span class="stringliteral">&quot;Iy&quot;</span>: 0.0001, <span class="stringliteral">&quot;Iz&quot;</span>: 0.0001, <span class="stringliteral">&quot;J&quot;</span>: 0.0001}}},</div>
-<div class="line">    <span class="stringliteral">&quot;fix_node&quot;</span>: {<span class="stringliteral">&quot;1&quot;</span>: [{<span class="stringliteral">&quot;n&quot;</span>: <span class="stringliteral">&quot;1&quot;</span>, <span class="stringliteral">&quot;tx&quot;</span>: 1, <span class="stringliteral">&quot;ty&quot;</span>: 1, <span class="stringliteral">&quot;tz&quot;</span>: 0, <span class="stringliteral">&quot;rx&quot;</span>: 1, <span class="stringliteral">&quot;ry&quot;</span>: 1, <span class="stringliteral">&quot;rz&quot;</span>: 1}]},</div>
-<div class="line">    <span class="stringliteral">&quot;load&quot;</span>: {<span class="stringliteral">&quot;case1&quot;</span>: {<span class="stringliteral">&quot;rate&quot;</span>: 1.0, <span class="stringliteral">&quot;symbol&quot;</span>: <span class="stringliteral">&quot;case1&quot;</span>, <span class="stringliteral">&quot;load_node&quot;</span>: [{<span class="stringliteral">&quot;n&quot;</span>: 2, <span class="stringliteral">&quot;ty&quot;</span>: -10}]}},</div>
-<div class="line">    <span class="comment"># 🎯 着目点による要素分割（新機能）</span></div>
-<div class="line">    <span class="stringliteral">&quot;notice_points&quot;</span>: [{<span class="stringliteral">&quot;m&quot;</span>: 1, <span class="stringliteral">&quot;Points&quot;</span>: [1.35]}]</div>
-<div class="line">}</div>
-<div class="line"> </div>
-<div class="line">response = requests.post(<span class="stringliteral">&#39;http://localhost:5000/&#39;</span>, json=model_data)</div>
-<div class="line">results = response.json()</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md174"></a>
-データ構造チートシート</h1>
-<h2><a class="anchor" id="autotoc_md175"></a>
-節点定義</h2>
-<div class="fragment"><div class="line">&quot;node&quot;: {</div>
-<div class="line">  &quot;節点ID&quot;: {&quot;x&quot;: X座標, &quot;y&quot;: Y座標, &quot;z&quot;: Z座標}</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md176"></a>
-部材定義</h2>
-<div class="fragment"><div class="line">&quot;member&quot;: {</div>
-<div class="line">  &quot;部材ID&quot;: {&quot;ni&quot;: 始点節点ID, &quot;nj&quot;: 終点節点ID, &quot;e&quot;: 要素ID}</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md177"></a>
-材料・断面特性</h2>
-<div class="fragment"><div class="line">&quot;element&quot;: {</div>
-<div class="line">  &quot;要素ID&quot;: {</div>
-<div class="line">    &quot;E&quot;: ヤング係数,</div>
-<div class="line">    &quot;G&quot;: せん断弾性係数,</div>
-<div class="line">    &quot;A&quot;: 断面積,</div>
-<div class="line">    &quot;Iy&quot;: Y軸回り断面二次モーメント,</div>
-<div class="line">    &quot;Iz&quot;: Z軸回り断面二次モーメント,</div>
-<div class="line">    &quot;J&quot;: ねじり定数</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md178"></a>
-支点条件</h2>
-<div class="fragment"><div class="line">&quot;fix_node&quot;: {</div>
-<div class="line">  &quot;支点ケースID&quot;: {</div>
-<div class="line">    &quot;節点ID&quot;: {</div>
-<div class="line">      &quot;x&quot;: 0, // 0=自由, 1=拘束, &gt;1000=バネ定数</div>
-<div class="line">      &quot;y&quot;: 1,</div>
-<div class="line">      &quot;z&quot;: 0,</div>
-<div class="line">      &quot;rx&quot;: 0,</div>
-<div class="line">      &quot;ry&quot;: 1,</div>
-<div class="line">      &quot;rz&quot;: 0</div>
-<div class="line">    }</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md179"></a>
-🆕 荷重定義（要素分割対応）</h2>
-<div class="fragment"><div class="line">&quot;load&quot;: {</div>
-<div class="line">  &quot;荷重ケースID&quot;: {</div>
-<div class="line">    &quot;rate&quot;: 1.0,</div>
-<div class="line">    &quot;symbol&quot;: &quot;DL&quot;,</div>
-<div class="line">    &quot;load_node&quot;: [</div>
-<div class="line">      {&quot;n&quot;: 節点ID, &quot;tx&quot;: 0, &quot;ty&quot;: -10, &quot;tz&quot;: 0, &quot;mx&quot;: 0, &quot;my&quot;: 0, &quot;mz&quot;: 0}</div>
-<div class="line">    ],</div>
-<div class="line">    &quot;load_member&quot;: [</div>
-<div class="line">      // 分布荷重（自動分割対象）</div>
-<div class="line">      {&quot;m&quot;: 部材ID, &quot;mark&quot;: 2, &quot;direction&quot;: &quot;gy&quot;, &quot;p1&quot;: -20, &quot;p2&quot;: -20, &quot;L1&quot;: 0, &quot;L2&quot;: 8},</div>
-<div class="line">      // 集中荷重（自動分割対象）</div>
-<div class="line">      {&quot;m&quot;: 部材ID, &quot;mark&quot;: 1, &quot;direction&quot;: &quot;gy&quot;, &quot;L1&quot;: 2.5, &quot;P1&quot;: 100}</div>
-<div class="line">    ]</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md180"></a>
-🆕 着目点定義（要素分割）</h2>
-<div class="fragment"><div class="line">&quot;notice_points&quot;: [</div>
-<div class="line">  {</div>
-<div class="line">    &quot;m&quot;: 要素ID, // 分割対象要素</div>
-<div class="line">    &quot;Points&quot;: [1.35, 2.5] // 分割位置（要素i端からの距離）</div>
-<div class="line">  }</div>
-<div class="line">]</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md181"></a>
-一般的な支点条件</h1>
-<h2><a class="anchor" id="autotoc_md182"></a>
-固定支点</h2>
-<div class="fragment"><div class="line">{&quot;x&quot;: 1, &quot;y&quot;: 1, &quot;z&quot;: 1, &quot;rx&quot;: 1, &quot;ry&quot;: 1, &quot;rz&quot;: 1}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md183"></a>
-ピン支点</h2>
-<div class="fragment"><div class="line">{&quot;x&quot;: 1, &quot;y&quot;: 1, &quot;z&quot;: 1, &quot;rx&quot;: 0, &quot;ry&quot;: 0, &quot;rz&quot;: 0}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md184"></a>
-ローラー支点（Y方向のみ拘束）</h2>
-<div class="fragment"><div class="line">{&quot;x&quot;: 0, &quot;y&quot;: 1, &quot;z&quot;: 0, &quot;rx&quot;: 0, &quot;ry&quot;: 0, &quot;rz&quot;: 0}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md185"></a>
-🆕 バネ支点（新実装対応）</h2>
-<div class="fragment"><div class="line">{&quot;x&quot;: 0, &quot;y&quot;: 61902, &quot;z&quot;: 0, &quot;rx&quot;: 0, &quot;ry&quot;: 0, &quot;rz&quot;: 0} // y=61902 はバネ定数（kN/m）</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md186"></a>
-荷重方向指定</h1>
-<h2><a class="anchor" id="autotoc_md187"></a>
-全体座標系</h2>
+<p>HTTP／結果JSONではIDを<code>["2"]</code>などの文字列にします。反力は支持成分だけを返すため、存在する成分を確認してください。</p>
+<h1><a class="anchor" id="autotoc_md86"></a>
+単位・符号の要点</h1>
 <ul>
-<li><code>"gx"</code>: 全体X方向</li>
-<li><code>"gy"</code>: 全体Y方向</li>
-<li><code>"gz"</code>: 全体Z方向</li>
+<li>全体で整合した単位を使います。N・m系なら変位はm、応力はN/m²。表示だけをmmにするなら1,000倍します。</li>
+<li>梁端力は局所<code>[N,Vy,Vz,T,My,Mz]</code>、節点抵抗力の符号です。</li>
+<li>非線形の<code>delta_*</code>は軸ひずみ・中央曲率・ねじり率です。節点変位ではありません。</li>
+<li>シェル<code>raw_result</code>のせん断ひずみは<code>γ/2</code>、ソリッドの<code>strain</code>は<code>γ</code>です。</li>
+<li>編集用JSONでG省略の梁は、せん断変形を無視します。</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md188"></a>
-要素局所座標系</h2>
+<h1><a class="anchor" id="autotoc_md87"></a>
+困ったとき</h1>
+<p>HTTP 400は入力、422は非線形未収束、500は内部計算・結果処理などを示します。詳細は<a class="el" href="md_docs_2wiki_2error-handling.html">エラーと対処</a>へ進んでください。複数荷重ケース、圧縮転送、VTKは次のガイドに実行例があります。</p>
 <ul>
-<li><code>"x"</code>: 要素局所x方向（部材軸方向）</li>
-<li><code>"y"</code>: 要素局所y方向</li>
-<li><code>"z"</code>: 要素局所z方向</li>
+<li><a class="el" href="md_docs_2wiki_2examples.html">複数ケースと各種解析の例</a></li>
+<li><a class="el" href="md_docs_2wiki_2endpoints.html">HTTPの実際の入出力・互換圧縮</a></li>
+<li><a class="el" href="md_docs_2wiki_2file-formats.html">JSON保存とVTKの対応範囲</a> </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md189"></a>
-🆕 荷重マーク（要素分割対応）</h2>
-<ul>
-<li><code>mark: 1</code>: 集中荷重（自動分割対象）</li>
-<li><code>mark: 2</code>: 分布荷重（自動分割対象）</li>
-<li><code>mark: 11</code>: 集中荷重（分割対象外）</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md190"></a>
-典型的な材料特性</h1>
-<h2><a class="anchor" id="autotoc_md191"></a>
-鋼材（SS400）</h2>
-<div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;E&quot;: 205000000, // kN/m²</div>
-<div class="line">  &quot;G&quot;: 79000000, // kN/m²</div>
-<div class="line">  &quot;poi&quot;: 0.3</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md192"></a>
-コンクリート（Fc=24）</h2>
-<div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;E&quot;: 25000000, // kN/m²</div>
-<div class="line">  &quot;G&quot;: 10400000, // kN/m²</div>
-<div class="line">  &quot;poi&quot;: 0.2</div>
-<div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md193"></a>
-🆕 新実装エラーハンドリング</h1>
-<div class="fragment"><div class="line"><span class="keyword">from</span> src.fem.model <span class="keyword">import</span> FemModel</div>
-<div class="line"> </div>
-<div class="line"><span class="keywordflow">try</span>:</div>
-<div class="line">    model = FemModel()</div>
-<div class="line">    model.load_model(<span class="stringliteral">&quot;model.json&quot;</span>)</div>
-<div class="line">    </div>
-<div class="line">    <span class="comment"># 要素分割情報の確認</span></div>
-<div class="line">    print(f<span class="stringliteral">&quot;節点数: {model.get_node_count()}&quot;</span>)</div>
-<div class="line">    print(f<span class="stringliteral">&quot;要素数: {model.get_element_count()}&quot;</span>)</div>
-<div class="line">    </div>
-<div class="line">    results = model.run(analysis_type=<span class="stringliteral">&quot;static&quot;</span>)</div>
-<div class="line"><span class="keywordflow">except</span> FileNotFoundError:</div>
-<div class="line">    print(<span class="stringliteral">&quot;モデルファイルが見つかりません&quot;</span>)</div>
-<div class="line"><span class="keywordflow">except</span> ValueError <span class="keyword">as</span> e:</div>
-<div class="line">    print(f<span class="stringliteral">&quot;データ形式エラー: {e}&quot;</span>)</div>
-<div class="line"><span class="keywordflow">except</span> np.linalg.LinAlgError:</div>
-<div class="line">    print(<span class="stringliteral">&quot;行列計算エラー: 不安定構造の可能性&quot;</span>)</div>
-<div class="line"><span class="keywordflow">except</span> Exception <span class="keyword">as</span> e:</div>
-<div class="line">    print(f<span class="stringliteral">&quot;予期しないエラー: {e}&quot;</span>)</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md194"></a>
-従来APIエラーハンドリング</h1>
-<div class="fragment"><div class="line"><span class="keywordflow">try</span>:</div>
-<div class="line">    response = requests.post(<span class="stringliteral">&#39;http://localhost:5000/&#39;</span>, json=model_data, timeout=30)</div>
-<div class="line">    <span class="keywordflow">if</span> response.status_code == 200:</div>
-<div class="line">        results = response.json()</div>
-<div class="line">        <span class="comment"># 成功処理</span></div>
-<div class="line">    <span class="keywordflow">elif</span> response.status_code == 400:</div>
-<div class="line">        error = response.json()</div>
-<div class="line">        print(f<span class="stringliteral">&quot;入力エラー: {error[&#39;message&#39;]}&quot;</span>)</div>
-<div class="line">    <span class="keywordflow">elif</span> response.status_code == 500:</div>
-<div class="line">        error = response.json()</div>
-<div class="line">        print(f<span class="stringliteral">&quot;計算エラー: {error[&#39;message&#39;]}&quot;</span>)</div>
-<div class="line"><span class="keywordflow">except</span> requests.exceptions.Timeout:</div>
-<div class="line">    print(<span class="stringliteral">&quot;タイムアウトエラー&quot;</span>)</div>
-<div class="line"><span class="keywordflow">except</span> requests.exceptions.ConnectionError:</div>
-<div class="line">    print(<span class="stringliteral">&quot;接続エラー&quot;</span>)</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md195"></a>
-結果データアクセス</h1>
-<h2><a class="anchor" id="autotoc_md196"></a>
-🆕 新実装（FemModel）</h2>
-<div class="fragment"><div class="line"><span class="comment"># 高精度解析結果</span></div>
-<div class="line">results = model.get_results()</div>
-<div class="line">displacement = results[<span class="stringliteral">&quot;displacement&quot;</span>]  <span class="comment"># 節点変位（66節点の詳細結果）</span></div>
-<div class="line"> </div>
-<div class="line"><span class="keywordflow">for</span> node_id, disp <span class="keywordflow">in</span> displacement.items():</div>
-<div class="line">    dx = disp.get(<span class="stringliteral">&#39;dx&#39;</span>, 0)  <span class="comment"># X方向変位</span></div>
-<div class="line">    dy = disp.get(<span class="stringliteral">&#39;dy&#39;</span>, 0)  <span class="comment"># Y方向変位</span></div>
-<div class="line">    print(f<span class="stringliteral">&quot;節点{node_id}: dx={dx:.6e}, dy={dy:.6e}&quot;</span>)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md197"></a>
-従来API</h2>
-<div class="fragment"><div class="line">results = response.json()</div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># 節点変位</span></div>
-<div class="line">displacement = results[<span class="stringliteral">&#39;荷重ケースID&#39;</span>][<span class="stringliteral">&#39;disg&#39;</span>][<span class="stringliteral">&#39;節点ID&#39;</span>]</div>
-<div class="line">dx = displacement[<span class="stringliteral">&#39;dx&#39;</span>]  <span class="comment"># X方向変位</span></div>
-<div class="line">dy = displacement[<span class="stringliteral">&#39;dy&#39;</span>]  <span class="comment"># Y方向変位</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># 支点反力</span></div>
-<div class="line">reaction = results[<span class="stringliteral">&#39;荷重ケースID&#39;</span>][<span class="stringliteral">&#39;reac&#39;</span>][<span class="stringliteral">&#39;節点ID&#39;</span>]</div>
-<div class="line">fx = reaction[<span class="stringliteral">&#39;tx&#39;</span>]  <span class="comment"># X方向反力</span></div>
-<div class="line">fy = reaction[<span class="stringliteral">&#39;ty&#39;</span>]  <span class="comment"># Y方向反力</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment"># 部材断面力</span></div>
-<div class="line">section_force = results[<span class="stringliteral">&#39;荷重ケースID&#39;</span>][<span class="stringliteral">&#39;fsec&#39;</span>][<span class="stringliteral">&#39;部材ID&#39;</span>][<span class="stringliteral">&#39;断面ID&#39;</span>]</div>
-<div class="line">axial = section_force[<span class="stringliteral">&#39;fxi&#39;</span>]  <span class="comment"># 軸力</span></div>
-<div class="line">shear = section_force[<span class="stringliteral">&#39;fyi&#39;</span>]  <span class="comment"># せん断力</span></div>
-<div class="line">moment = section_force[<span class="stringliteral">&#39;mzi&#39;</span>]  <span class="comment"># 曲げモーメント</span></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md198"></a>
-単位系</h1>
-<table class="markdownTable">
-<tr class="markdownTableHead">
-<th class="markdownTableHeadNone">項目   </th><th class="markdownTableHeadNone">単位    </th></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">長さ   </td><td class="markdownTableBodyNone">m    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">力   </td><td class="markdownTableBodyNone">kN    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">モーメント   </td><td class="markdownTableBodyNone">kNm    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">応力   </td><td class="markdownTableBodyNone">kN/m²    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">変位   </td><td class="markdownTableBodyNone">mm    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">回転角   </td><td class="markdownTableBodyNone">rad    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">バネ定数   </td><td class="markdownTableBodyNone">kN/m, kNm/rad   </td></tr>
-</table>
-<h1><a class="anchor" id="autotoc_md199"></a>
-🆕 新実装の特殊機能</h1>
-<h2><a class="anchor" id="autotoc_md200"></a>
-L2負値処理（分布荷重）</h2>
-<div class="fragment"><div class="line">// L2が負値の場合、荷重幅→j端からの距離に自動変換</div>
-<div class="line">{&quot;m&quot;: 1, &quot;mark&quot;: 2, &quot;L1&quot;: 0, &quot;L2&quot;: -2.0, &quot;P1&quot;: 50, &quot;P2&quot;: 50}</div>
-<div class="line">// 要素長6mの場合、L2=-2.0 → j端から2.0m = i端から4.0m</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md201"></a>
-重複節点の自動処理</h2>
-<ul>
-<li>座標ベースの重複チェック（許容誤差: 1e-6）</li>
-<li>自動的な節点番号の再割り当て</li>
-<li>メッシュ品質の自動保証</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md202"></a>
-よくある問題と解決法</h1>
-<h2><a class="anchor" id="autotoc_md203"></a>
-🆕 要素分割関連</h2>
-<ul>
-<li><b>分割位置エラー</b>: 0 &lt; 位置 &lt; 要素長 の範囲内で指定</li>
-<li><b>重複分割点</b>: 同一位置の複数指定は自動的に統合</li>
-<li><b>節点番号競合</b>: 新規節点は自動的に適切な番号を割り当て</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md204"></a>
-不安定構造</h2>
-<ul>
-<li>支点条件を確認</li>
-<li>部材の接続を確認</li>
-<li>材端条件を確認</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md205"></a>
-数値エラー</h2>
-<ul>
-<li>単位系の統一</li>
-<li>極端に小さい/大きい値の回避</li>
-<li>材料特性の妥当性確認</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md206"></a>
-性能問題</h2>
-<ul>
-<li>大規模モデルでは圧縮使用</li>
-<li>不要な精度設定の回避</li>
-<li>バッチ処理の活用</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md207"></a>
-🎊 プロジェクト完了</h1>
-<p><b>2025年6月1日: Python FEM解析モジュール クラス構成再編プロジェクトが技術的成功を収めて完了。次世代高精度FEM解析システムとして本格運用開始。</b> </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

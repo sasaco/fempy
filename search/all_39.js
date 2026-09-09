@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['使用例_0',['使用例',['../md_docs_2wiki_2examples.html',1,'']]]
+  ['応答曲率_0',['応答曲率',['../md_docs_2wiki_2results.html#autotoc_md96',1,'']]]
 ];

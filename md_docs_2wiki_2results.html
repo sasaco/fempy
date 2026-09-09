@@ -1,0 +1,302 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FEMPython: 結果の読み方</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FEMPython
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('md_docs_2wiki_2results.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">結果の読み方</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="autotoc_md88"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2nonlinear-analysis.html">材料非線形解析</a></p>
+<p>まず節点変位と支点反力を確認し、次に梁の端力やシェル・ソリッドの応力を読みます。入力と同じ単位系で返り、変位をmm、回転をミリラジアンへ自動変換する処理はありません。</p>
+<h1><a class="anchor" id="autotoc_md89"></a>
+PythonとJSONの違い</h1>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">項目   </th><th class="markdownTableHeadNone"><code>model.run()</code>のPython結果   </th><th class="markdownTableHeadNone">HTTP・保存JSON    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">節点・要素ID   </td><td class="markdownTableBodyNone">整数の辞書キー   </td><td class="markdownTableBodyNone">文字列の辞書キー    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">数値配列   </td><td class="markdownTableBodyNone">NumPy配列を含む   </td><td class="markdownTableBodyNone">JSON配列    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">ケース階層   </td><td class="markdownTableBodyNone">1ケース分の辞書   </td><td class="markdownTableBodyNone">1ケース分のオブジェクト   </td></tr>
+</table>
+<p>Pythonでは<code>result["node_displacements"][2]["dy"]</code>、HTTPでは<code>result["node_displacements"]["2"]["dy"]</code>です。現在のHTTPは<code>case1.disg</code>や<code>case1.fsec</code>という階層を返しません。<code>disg/reac/fsec</code>は参照比較用の別ビューで使われる名称です。</p>
+<h1><a class="anchor" id="autotoc_md90"></a>
+線形静解析の主な項目</h1>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">キー   </th><th class="markdownTableHeadNone">内容    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>analysis_type</code>   </td><td class="markdownTableBodyNone"><code>static</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>node_displacements</code>   </td><td class="markdownTableBodyNone">節点IDごとの変位・回転。通常の利用ではこの辞書を使う。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>reaction_forces</code>   </td><td class="markdownTableBodyNone">支持節点・支持成分の反力。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>element_stresses</code>   </td><td class="markdownTableBodyNone">梁では端力、シェル・ソリッドでは応力・ひずみ。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>displacement</code>   </td><td class="markdownTableBodyNone">全自由度を並べた配列。節点数を表す配列ではない。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>displacement_correction</code>   </td><td class="markdownTableBodyNone">静解析の微小な変位補正。詳細は後述。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>shell_results</code>   </td><td class="markdownTableBodyNone">シェルがある場合の両面・合力・エネルギー。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>legacy_shell_results</code>   </td><td class="markdownTableBodyNone">シェルの旧比較形式。通常は<code>shell_results</code>を使う。   </td></tr>
+</table>
+<p>数値計算の経路によって、<code>precise_end_forces</code>、<code>interpolated_displacements</code>、<code>constitutive_element_stresses</code>、<code>force_recovery</code>が追加されることがあります。固定された出力キー集合を仮定せず、必要な項目を読み取ってください。</p>
+<p>線形結果には非線形用の<code>step_results</code>や<code>curvature</code>を追加しません。また、線形の成功結果に<code>converged</code>キーはありません。</p>
+<h1><a class="anchor" id="autotoc_md91"></a>
+節点変位と支点反力</h1>
+<div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;node_displacements&quot;: {</div>
+<div class="line">    &quot;2&quot;: {&quot;dx&quot;: 0.0, &quot;dy&quot;: -0.0013333333333333333, &quot;dz&quot;: 0.0,</div>
+<div class="line">          &quot;rx&quot;: 0.0, &quot;ry&quot;: 0.0, &quot;rz&quot;: -0.001}</div>
+<div class="line">  },</div>
+<div class="line">  &quot;reaction_forces&quot;: {</div>
+<div class="line">    &quot;1&quot;: {&quot;fx&quot;: 0.0, &quot;fy&quot;: 1000.0, &quot;fz&quot;: 0.0,</div>
+<div class="line">          &quot;mx&quot;: 0.0, &quot;my&quot;: 0.0, &quot;mz&quot;: 2000.0}</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>これは<a class="el" href="md_docs_2wiki_2getting-started.html">最初の片持ち梁</a>の結果の一部です。変位は全体XYZ方向、回転は全体XYZ軸まわりです。反力は構造物に作用する向きで、支持ばねの成分では<code>−k u</code>です。</p>
+<p>反力辞書は、拘束・ばねがある成分だけを返します。たとえばX方向だけのばねなら<code>fx</code>だけの場合があります。2D化で自動追加した補助支持の節点は、反力一覧から除外されます。</p>
+<p>全変位配列は節点IDの昇順に並び、梁・シェルを含むモデルでは1節点6成分、対応するソリッドだけなら3成分です。内部と線形の節点変位辞書は6キーを持ち、3DOFモデルの回転は0です。非線形のFemModel／HTTP互換出力では、3DOFモデルを<code>dx, dy, dz</code>の3キーに射影します。</p>
+<h1><a class="anchor" id="autotoc_md92"></a>
+梁の端力</h1>
+<p><code>element_stresses</code>という名前ですが、梁に対して返るのは応力ではなく**断面の力・モーメント**です。</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;element_stresses&quot;: {</div>
+<div class="line">    &quot;1&quot;: {</div>
+<div class="line">      &quot;i_end&quot;: [0.0, 1000.0, 0.0, 0.0, 0.0, 2000.0],</div>
+<div class="line">      &quot;j_end&quot;: [0.0, -1000.0, 0.0, 0.0, 0.0, 0.0]</div>
+<div class="line">    }</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>各配列の順序は<code>[N, Vy, Vz, T, My, Mz]</code>です。**要素局所座標での節点抵抗力の符号**を使います。軸引張を受ける梁では、i端のNが負、j端のNが正になります。断面力図で両端の引張を正表示するための符号変換は適用していません。</p>
+<p>分布荷重や温度荷重を持つ線形梁の端力は、それらの荷重項を含めて計算します。単に弾性剛性と変位を掛け直した値で置き換えないでください。任意断面の材料応力を得るには、断面形状に応じた換算・後処理が別途必要です。</p>
+<h2><a class="anchor" id="autotoc_md93"></a>
+分割前の部材との対応</h2>
+<p>結果のキーは分割後の解析要素IDです。Pythonでは<code>model.mesh.elements</code>で、<code>original_id</code>、<code>member_start</code>、<code>member_end</code>、<code>nodes</code>などのメタデータを確認できます。元の部材IDと端からの位置を使って結果を整理してください。旧形式のシェル・ソリッドには元のIDを表す<code>shell_id</code>・<code>solid_id</code>が保持されます。</p>
+<h2><a class="anchor" id="autotoc_md94"></a>
+釣合いによる端力回復</h2>
+<p>線形梁で自由端から静力学的に力を決められる枝は、釣合いから端力を回復する場合があります。</p>
+<ul>
+<li><code>element_stresses</code>：利用者向けの回復後の端力。</li>
+<li><code>constitutive_element_stresses</code>：回復前の構成則による結果。</li>
+<li><code>force_recovery</code>：<code>method: "free_branch_equilibrium"</code>と対象要素ID。</li>
+</ul>
+<p>分布ばね、非線形要素、シェル、閉路を越えて力を決める処理ではありません。構成則との不一致が許容範囲を超えればエラーにします。非線形解析に含まれる線形梁では、段階ごとの結果にも適用されます。</p>
+<h1><a class="anchor" id="autotoc_md95"></a>
+材料非線形の段階結果</h1>
+<p>最終結果には<code>converged: true</code>、<code>step_results</code>、<code>convergence_history</code>、<code>curvature</code>が加わります。最後の載荷段階の状態が最終結果であり、途中の最大値ではありません。</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone"><code>step_results</code>内のキー   </th><th class="markdownTableHeadNone">意味    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>step</code>   </td><td class="markdownTableBodyNone">1始まりの段階番号。載荷係数0を指定した場合も1段階として数える。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>lambda</code>   </td><td class="markdownTableBodyNone">その段階の基準荷重・強制変位に対する倍率。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>displacement</code>、<code>node_displacements</code>   </td><td class="markdownTableBodyNone">その段階で収束した変位。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>reaction_forces</code>   </td><td class="markdownTableBodyNone">その段階の支点・ばね反力。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>element_stresses</code>   </td><td class="markdownTableBodyNone">梁の確定端力。ソリッドの段階応力配列はここには追加されない。    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>curvature</code>   </td><td class="markdownTableBodyNone">非線形梁の中央断面全曲率。    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>converged</code>、<code>iterations</code>   </td><td class="markdownTableBodyNone">収束したことと、その段階の反復数。   </td></tr>
+</table>
+<p>シェルを含むモデルでは、<code>shell_results</code>と<code>legacy_shell_results</code>を各段階にも追加します。未収束の段階を<code>converged: false</code>として保存しながら最後まで進める仕様ではありません。未収束時は解析を停止して例外・HTTP 422を返します。</p>
+<h2><a class="anchor" id="autotoc_md96"></a>
+応答曲率</h2>
+<div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;curvature&quot;: {&quot;7&quot;: {&quot;y&quot;: 0.0, &quot;z&quot;: 0.002}}</div>
+<div class="line">}</div>
+</div><!-- fragment --><ul>
+<li><code>y, z</code>は局所軸まわりの**中央断面の全曲率**です。単位は1/L。</li>
+<li>弾性分と塑性分を含みます。増分、最大経験値、塑性曲率だけの値、材端回転角ではありません。</li>
+<li>対象は履歴則を設定した非線形梁です。その梁では非線形化していない曲げ軸も含め、両軸を返します。軸ひずみ・ねじり率はこの項目に含みません。</li>
+<li>除荷してモーメントが0でも、残留曲率を持つ場合があります。</li>
+<li>該当する非線形梁がない非線形解析では空辞書です。静解析にはこの項目がありません。</li>
+<li>分割モデルでは解析要素ごとの値で、元部材の平均や材端別の値ではありません。</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md97"></a>
+収束履歴</h2>
+<p><code>convergence_history</code>はNewton反復ごとの配列です。各記録に<code>step</code>、<code>lambda</code>、<code>iteration</code>、<code>residual_norm</code>、<code>relative_residual</code>、<code>relative_du</code>があります。初回反復の<code>relative_du</code>はnullです。収束判定の詳細は<a class="el" href="md_docs_2wiki_2workflow.html">解析ワークフロー</a>を参照してください。</p>
+<h1><a class="anchor" id="autotoc_md98"></a>
+シェルの結果</h1>
+<p>両面の曲げを含めて読む場合は<code>result["shell_results"][要素ID]</code>を使います。<code>element_stresses</code>側のシェル出力は、局所面内3成分の積分点応力・ひずみで、両面の曲げ応力を表しません。</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone"><code>shell_results</code>内のキー   </th><th class="markdownTableHeadNone">内容    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>node_ids</code>   </td><td class="markdownTableBodyNone">結果配列の節点順序    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>local_basis</code>   </td><td class="markdownTableBodyNone">局所基底。行が局所x、y、法線方向の全体座標成分    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>formulation</code>   </td><td class="markdownTableBodyNone"><code>dkt</code>または<code>mindlin</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>raw_result</code>   </td><td class="markdownTableBodyNone">上下面の節点値・面積平均値。下記参照    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>resultants.membrane</code>   </td><td class="markdownTableBodyNone">局所座標の面内合力<code>[Nx, Ny, Nxy]</code>、F/L    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>resultants.moment</code>   </td><td class="markdownTableBodyNone">局所座標の曲げ合力<code>[Mx, My, Mxy]</code>、F·L/L    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>resultants.shear</code>   </td><td class="markdownTableBodyNone">局所座標の合せん断力<code>[Qx, Qy]</code>、F/L    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>edge_resultants</code>   </td><td class="markdownTableBodyNone">辺ごとの節点ID・外向き法線・両端の等価な合力と偶力。成分は全体座標    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>strain_energy</code>   </td><td class="markdownTableBodyNone">要素全体に体積積分した物理的なひずみエネルギー    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>drilling_energy</code>   </td><td class="markdownTableBodyNone">面内回転を変位場と結び付ける項のエネルギー。物理エネルギーとは分ける    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>transverse_shear_recovery</code>   </td><td class="markdownTableBodyNone">DKTは<code>moment_equilibrium</code>、Mindlinは<code>constitutive</code>   </td></tr>
+</table>
+<p><code>raw_result</code>の接尾辞<code>1</code>は節点順序の法線側（局所z=+t/2）、<code>2</code>は反対側（−t/2）です。</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">名前   </th><th class="markdownTableHeadNone">意味    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>nodeStress1/2</code>、<code>nodeStrain1/2</code>   </td><td class="markdownTableBodyNone">各節点の表面値。配列順は<code>node_ids</code>と一致    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>elemStress1/2</code>、<code>elemStrain1/2</code>   </td><td class="markdownTableBodyNone">面積で重み付けした表面平均    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>nodeEnergy1/2</code>、<code>elemEnergy1/2</code>   </td><td class="markdownTableBodyNone">表面のエネルギー密度。要素全体のエネルギーとは異なる   </td></tr>
+</table>
+<p>応力・ひずみテンソルは**全体座標**の<code>[xx, yy, zz, xy, yz, zx]</code>です。ここでのせん断ひずみはテンソル成分<code>γ/2</code>です。Mindlinの横せん断応力は構成則による値で、表面でせん断応力0となる分布を回復したものではありません。DKTの回復合せん断力は、表面のせん断応力・エネルギーには追加しません。</p>
+<p>互換項目<code>stress</code>の<code>mx/my/mxy/qx/qy</code>という名前は、物理的な曲げ合力を意味しません。応力は<code>raw_result</code>、断面合力は<code>resultants</code>を使ってください。旧シェルの仮想梁断面力は廃止されています。</p>
+<h2><a class="anchor" id="autotoc_md99"></a>
+旧シェル比較形式との違い</h2>
+<p><code>legacy_shell_results</code>は読込順の0始まりキー、工学せん断ひずみγ、積分点の単純平均を使い、<code>strain_energy</code>は上面の平均エネルギー密度です。通常形式の実要素ID、テンソルせん断γ/2、面積平均、体積積分エネルギーとは区別します。下面を上面で置き換えるなど、過去の不具合は再現しません。</p>
+<h1><a class="anchor" id="autotoc_md100"></a>
+ソリッドの応力・ひずみ</h1>
+<p><code>element_stresses[要素ID]</code>の<code>gauss_points</code>、<code>strain</code>、<code>stress</code>を使います。各行は積分点に対応し、節点への外挿や節点平均ではありません。</p>
+<ul>
+<li>応力は全体座標の<code>[σxx, σyy, σzz, τxy, τyz, τzx]</code>。</li>
+<li>ひずみは全体座標の<code>[εxx, εyy, εzz, γxy, γyz, γzx]</code>。</li>
+<li>ソリッドのせん断ひずみは**工学せん断γ**で、シェルの<code>raw_result</code>とは異なります。</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md101"></a>
+固有値解析の結果</h1>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">キー   </th><th class="markdownTableHeadNone">内容    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>eigenvalues</code>   </td><td class="markdownTableBodyNone">固有値ω²    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>eigenvectors</code>   </td><td class="markdownTableBodyNone">列ごとの固有ベクトル    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>frequencies</code>   </td><td class="markdownTableBodyNone">振動数ω/(2π)。整合した秒単位の入力ならHz    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>periods</code>   </td><td class="markdownTableBodyNone">正の振動数に対応する周期    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>modes</code>   </td><td class="markdownTableBodyNone">モードごとの節点変位辞書の配列   </td></tr>
+</table>
+<p>モード形の大きさや全体の符号は、実際の載荷による変位ではありません。正の有限固有値を確認してから読み、<a class="el" href="md_docs_2wiki_2elements.html">固有値解析の制約</a>を考慮してください。非有限値を含む結果はHTTP送信・JSON保存でエラーになります。</p>
+<h1><a class="anchor" id="autotoc_md102"></a>
+静解析の微小補正</h1>
+<p><code>displacement_correction</code>は<code>displacement</code>と同じ順序の微小補正です。大きな剛体移動と小さな変形が混在する場合に、微小な伸び・曲げを失わないよう主値と補正値を分けて保持します。通常の変位表示には<code>node_displacements</code>を使います。</p>
+<p>梁端力・反力の計算では補償演算を使うため、主値と補正値を倍精度で先に足してから端力を再計算すると、重要な補正が消える場合があります。非線形の段階変位・履歴則には、この静解析用補正を追加していません。 </p>
+</div></div><!-- contents -->
+</div><!-- PageDoc -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

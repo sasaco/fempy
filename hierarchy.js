@@ -7,13 +7,16 @@ var hierarchy =
       [ "fem.elements.advanced_element.PyramidElement", "classfem_1_1elements_1_1advanced__element_1_1PyramidElement.html", null ],
       [ "fem.elements.advanced_element.WedgeElement", "classfem_1_1elements_1_1advanced__element_1_1WedgeElement.html", null ],
       [ "fem.elements.bar_element.BarElement", "classfem_1_1elements_1_1bar__element_1_1BarElement.html", [
-        [ "fem.elements.bar_element.BEBarElement", "classfem_1_1elements_1_1bar__element_1_1BEBarElement.html", null ],
+        [ "fem.elements.bar_element.BEBarElement", "classfem_1_1elements_1_1bar__element_1_1BEBarElement.html", [
+          [ "fem.elements.loaded_bar_element.LoadedBarElement", "classfem_1_1elements_1_1loaded__bar__element_1_1LoadedBarElement.html", null ]
+        ] ],
         [ "fem.elements.bar_element.TBarElement", "classfem_1_1elements_1_1bar__element_1_1TBarElement.html", [
           [ "fem.elements.nonlinear_bar_element.NonlinearBarElement", "classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html", null ]
         ] ]
       ] ],
       [ "fem.elements.shell_element.ShellElement", "classfem_1_1elements_1_1shell__element_1_1ShellElement.html", null ],
       [ "fem.elements.solid_element.SolidElementBase", "classfem_1_1elements_1_1solid__element_1_1SolidElementBase.html", [
+        [ "fem.elements.quadratic_solid.QuadraticSolidElement", "classfem_1_1elements_1_1quadratic__solid_1_1QuadraticSolidElement.html", null ],
         [ "fem.elements.solid_element.HexaElement", "classfem_1_1elements_1_1solid__element_1_1HexaElement.html", null ],
         [ "fem.elements.solid_element.TetraElement", "classfem_1_1elements_1_1solid__element_1_1TetraElement.html", null ],
         [ "fem.elements.solid_element.WedgeElement", "classfem_1_1elements_1_1solid__element_1_1WedgeElement.html", null ]
@@ -22,6 +25,7 @@ var hierarchy =
     [ "fem.boundary_condition.BoundaryCondition", "classfem_1_1boundary__condition_1_1BoundaryCondition.html", null ],
     [ "app.components.load.CaseComb", "classapp_1_1components_1_1load_1_1CaseComb.html", null ],
     [ "fem.boundary_condition.DistributedLoad", "classfem_1_1boundary__condition_1_1DistributedLoad.html", null ],
+    [ "fem.dof.DofLayout", "classfem_1_1dof_1_1DofLayout.html", null ],
     [ "Exception", null, [
       [ "app.error_handling.MyException", "classapp_1_1error__handling_1_1MyException.html", [
         [ "app.error_handling.MyCritical", "classapp_1_1error__handling_1_1MyCritical.html", null ],
@@ -76,6 +80,7 @@ var hierarchy =
     ] ],
     [ "fem.model.FemModel", "classfem_1_1model_1_1FemModel.html", null ],
     [ "fem.boundary_condition.HeatTransferBound", "classfem_1_1boundary__condition_1_1HeatTransferBound.html", null ],
+    [ "fem.nonlinear.hysteresis.base_hysteresis.HysteresisSegment", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisSegment.html", null ],
     [ "fem.nonlinear.hysteresis.base_hysteresis.HysteresisState", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html", null ],
     [ "app.inputData.InputData", "classapp_1_1inputData_1_1InputData.html", null ],
     [ "fem.nonlinear.hysteresis.jr_stiffness_reduction.JRStiffnessReductionParams", "classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionParams.html", null ],
@@ -85,16 +90,18 @@ var hierarchy =
     [ "fem.material.MaterialProperty", "classfem_1_1material_1_1MaterialProperty.html", null ],
     [ "fem.mesh.MeshModel", "classfem_1_1mesh_1_1MeshModel.html", null ],
     [ "fem.material.NonlinearMaterialProperty", "classfem_1_1material_1_1NonlinearMaterialProperty.html", null ],
+    [ "fem.nonlinear.nonlinear_solver.NonlinearSolver", "classfem_1_1nonlinear_1_1nonlinear__solver_1_1NonlinearSolver.html", null ],
     [ "fem.boundary_condition.Pressure", "classfem_1_1boundary__condition_1_1Pressure.html", null ],
     [ "fem.boundary_condition.Restraint", "classfem_1_1boundary__condition_1_1Restraint.html", null ],
     [ "fem.result_processor.ResultProcessor", "classfem_1_1result__processor_1_1ResultProcessor.html", null ],
+    [ "RuntimeError", null, [
+      [ "fem.equilibrium.NonlinearConvergenceError", "classfem_1_1equilibrium_1_1NonlinearConvergenceError.html", null ]
+    ] ],
     [ "fem.section.Section", "classfem_1_1section_1_1Section.html", null ],
     [ "fem.material.ShellParameter", "classfem_1_1material_1_1ShellParameter.html", null ],
     [ "app.components.solid.Solid", "classapp_1_1components_1_1solid_1_1Solid.html", null ],
     [ "fem.elements.solid_element.SolidElement", "classfem_1_1elements_1_1solid__element_1_1SolidElement.html", null ],
-    [ "fem.solver.Solver", "classfem_1_1solver_1_1Solver.html", [
-      [ "fem.nonlinear.nonlinear_solver.NonlinearSolver", "classfem_1_1nonlinear_1_1nonlinear__solver_1_1NonlinearSolver.html", null ]
-    ] ],
+    [ "fem.solver.Solver", "classfem_1_1solver_1_1Solver.html", null ],
     [ "fem.stiffness_matrix.StiffnessMatrix", "classfem_1_1stiffness__matrix_1_1StiffnessMatrix.html", null ],
     [ "fem.strain_stress.Strain", "classfem_1_1strain__stress_1_1Strain.html", null ],
     [ "fem.strain_stress.Stress", "classfem_1_1strain__stress_1_1Stress.html", null ],
@@ -120,7 +127,6 @@ var hierarchy =
       [ "app.result.Output_Disp", "classapp_1_1result_1_1Output__Disp.html", null ],
       [ "app.result.Output_Reaction", "classapp_1_1result_1_1Output__Reaction.html", null ],
       [ "app.result.Output_Result", "classapp_1_1result_1_1Output__Result.html", null ],
-      [ "app.result.Output_ShellForce", "classapp_1_1result_1_1Output__ShellForce.html", null ],
       [ "fem.stiffness_matrix.Freedom", "classfem_1_1stiffness__matrix_1_1Freedom.html", null ]
     ] ]
 ];
