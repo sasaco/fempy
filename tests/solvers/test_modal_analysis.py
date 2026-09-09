@@ -1,6 +1,5 @@
 """Modal-analysis contracts for low modes, constraints, and public entry points."""
-from contextlib import redirect_stdout
-import io
+import logging
 
 import numpy as np
 import pytest
@@ -117,22 +116,17 @@ def test_public_modal_wrapper_uses_requested_count_and_restores_configuration(mo
     assert model.analysis_params["n_modes"] == 7
 
 
-def test_v0_modal_element_construction_is_safe_on_cp932_console():
-    output_bytes = io.BytesIO()
-    output = io.TextIOWrapper(output_bytes, encoding="cp932", errors="strict")
-    try:
-        with redirect_stdout(output):
-            model = one_free_x_dof_model(
-                "TriElement1",
-                [[0, 0, 0], [2, 0, 0], [0, 3, 0]],
-                thickness=0.2,
-                formulation="dkt",
-            )
-            model.run_modal_analysis(1)
-        output.flush()
-        assert "V0互換" in output_bytes.getvalue().decode("cp932")
-    finally:
-        output.detach()
+def test_v0_modal_element_construction_uses_controllable_logging(caplog, capsys):
+    with caplog.at_level(logging.DEBUG, logger="fem.model"):
+        model = one_free_x_dof_model(
+            "TriElement1",
+            [[0, 0, 0], [2, 0, 0], [0, 3, 0]],
+            thickness=0.2,
+            formulation="dkt",
+        )
+        model.run_modal_analysis(1)
+    assert capsys.readouterr().out == ""
+    assert any("V0互換" in record.message for record in caplog.records)
 
 
 @pytest.mark.parametrize("invalid", [True, 0, -1, 1.5])

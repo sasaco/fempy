@@ -4,6 +4,7 @@ Direct algebra uses diagonal scaling and compensated refinement; Newton algebra
 uses row-maximum scaling, a rank check and the existing increment residual bound.
 The algebra functions return values without mutating accepted solver state.
 """
+import logging
 import warnings
 from typing import Any, Dict
 import numpy as np
@@ -13,9 +14,20 @@ from .mesh import MeshModel
 from .material import Material
 from .boundary_condition import BoundaryCondition
 from .precision import sparse_product, add_correction
+from .diagnostics import (
+    InputValidationError,
+    NumericalConditionError,
+    StructuralMechanismError,
+)
+
+logger = logging.getLogger(__name__)
 
 class NonlinearConvergenceError(RuntimeError):
     """荷重ステップ失敗。displacementは最後に収束した変位のコピー。"""
+
+    error_code = 'nonlinear_nonconvergence'
+    error_category = 'convergence'
+    http_status = 422
 
     def __init__(self, step: int, load_factor: float, displacement: np.ndarray):
         super().__init__(f'Nonlinear analysis did not converge at step {step} '
@@ -23,28 +35,34 @@ class NonlinearConvergenceError(RuntimeError):
         self.step = step
         self.load_factor = load_factor
         self.displacement = displacement.copy()
+        self.details = {'step': step, 'load_factor': load_factor}
 
 def solve_direct_system(K: csr_matrix, F: np.ndarray, *, precision_floor=0.) -> tuple[np.ndarray, np.ndarray]:
     """Equilibrated direct solve; a mechanism is an error even at zero load."""
     from scipy.sparse.linalg import splu
     K = K.tocsr()
     if not np.all(np.isfinite(K.data)) or not np.all(np.isfinite(F)):
-        raise ValueError('Linear system must be finite')
+        raise InputValidationError('Linear system must be finite')
     diagonal = np.abs(K.diagonal())
     if np.any(diagonal <= 0):
-        raise ValueError('Singular stiffness matrix: zero diagonal')
+        raise StructuralMechanismError(
+            'Singular stiffness matrix: zero diagonal',
+            matrix_dofs=np.flatnonzero(diagonal <= 0).tolist(),
+        )
     scale = 1/np.sqrt(diagonal)
     D = diags(scale)
     equilibrated = (D@K@D).tocsc()
     try:
         lu = splu(equilibrated)
     except RuntimeError as error:
-        raise ValueError('Singular stiffness matrix') from error
+        raise StructuralMechanismError('Singular stiffness matrix') from error
     pivots = np.abs(lu.U.diagonal())
     if np.min(pivots) <= np.finfo(float).eps * K.shape[0] * max(1., np.max(pivots)):
-        raise ValueError('Singular stiffness matrix: numerical rank deficiency')
+        raise NumericalConditionError(
+            'Singular stiffness matrix: numerical rank deficiency'
+        )
     if precision_floor and np.min(pivots) <= precision_floor*np.max(pivots):
-        raise ValueError('Linear frame requires high precision')
+        raise NumericalConditionError('Linear frame requires high precision')
     u = scale*lu.solve(scale*F)
     # Keep the displacement's low part and product rounding errors during
     # refinement. Ordinary K*u cannot resolve small support reactions.
@@ -55,16 +73,19 @@ def solve_direct_system(K: csr_matrix, F: np.ndarray, *, precision_floor=0.) -> 
     residual = sparse_product(K, u, low)-F
     bound = np.linalg.norm(np.abs(equilibrated)@np.abs(u/scale)+np.abs(scale*F), ord=np.inf)
     if not np.all(np.isfinite(u)) or np.linalg.norm(scale*residual, ord=np.inf) > 1e-10*max(bound, np.finfo(float).tiny):
-        raise ValueError('Linear system failed equilibrium check')
+        raise NumericalConditionError('Linear system failed equilibrium check')
     return u, low
 
 def solve_newton_system(K: csr_matrix, R: np.ndarray) -> np.ndarray:
     """対称スケーリング後に直接解法で解く。人工剛性による正則化は行わない。"""
     if not np.all(np.isfinite(K.data)) or not np.all(np.isfinite(R)):
-        raise ValueError('Non-finite Newton equation')
+        raise InputValidationError('Non-finite Newton equation')
     row_scale = np.asarray(abs(K).max(axis=1).toarray()).ravel()
     if np.any(row_scale == 0):
-        raise ValueError('Singular Newton stiffness: zero row')
+        raise StructuralMechanismError(
+            'Singular Newton stiffness: zero row',
+            matrix_dofs=np.flatnonzero(row_scale == 0).tolist(),
+        )
     scaling = 1.0 / np.sqrt(row_scale)
     D = diags(scaling)
     try:
@@ -74,16 +95,16 @@ def solve_newton_system(K: csr_matrix, R: np.ndarray) -> np.ndarray:
             pivots = np.abs(factorization.U.diagonal())
             rank_floor = np.finfo(float).eps * K.shape[0] * np.max(pivots)
             if np.min(pivots) <= rank_floor:
-                raise ValueError('Numerically singular Newton stiffness')
+                raise NumericalConditionError('Numerically singular Newton stiffness')
             scaled_solution = factorization.solve(scaling * R)
     except (MatrixRankWarning, RuntimeError) as error:
-        raise ValueError('Singular Newton stiffness') from error
+        raise StructuralMechanismError('Singular Newton stiffness') from error
     du = scaling * scaled_solution
     if not np.all(np.isfinite(du)):
-        raise ValueError('Non-finite Newton increment')
+        raise NumericalConditionError('Non-finite Newton increment')
     error = np.linalg.norm(K @ du - R, ord=np.inf)
     if error > 1e-8 * max(np.linalg.norm(R, ord=np.inf), 1.0):
-        raise ValueError('Newton equation residual exceeds tolerance')
+        raise NumericalConditionError('Newton equation residual exceeds tolerance')
     return du
 
 def direct_step(self, mesh, boundary, elements, F, factor):
@@ -323,11 +344,10 @@ def newton_iteration(
             'relative_du': relative_du if iteration > 0 else None
         })
 
-        print(f"    Iter {iteration + 1}: |R|/|F| = {relative_residual:.2e}", end='')
+        message = f"Iter {iteration + 1}: |R|/|F| = {relative_residual:.2e}"
         if iteration > 0:
-            print(f", |du|/|u| = {relative_du:.2e}")
-        else:
-            print()
+            message += f", |du|/|u| = {relative_du:.2e}"
+        logger.debug(message)
 
         # 収束判定
         if relative_residual < tol:
@@ -344,7 +364,7 @@ def newton_iteration(
                         self._solve_newton_system(constrained, rhs)
                     except ValueError:
                         return False, u, iteration + 1
-                print(f"    収束しました (iteration = {iteration + 1})")
+                logger.debug("Converged at iteration %d", iteration + 1)
                 self._last_internal_force = F_int.copy()
                 return True, u, iteration + 1
 
@@ -360,7 +380,7 @@ def newton_iteration(
         try:
             du = self._solve_newton_system(K_mod, R_mod)
         except ValueError as e:
-            print(f"    [エラー] 線形ソルバーが失敗: {e}")
+            logger.debug("Newton linear solve failed: %s", e)
             return False, u, iteration + 1
 
         # A reversal starts with the tangent stored at the committed point.
@@ -381,7 +401,7 @@ def newton_iteration(
             return False, u, iteration + 1
 
     # 最大反復数に到達
-    print(f"    最大反復数 ({max_iter}) に到達、収束せず")
+    logger.info("Newton iteration did not converge in %d iterations", max_iter)
     return False, u, max_iter
 
 

@@ -66,6 +66,7 @@ Python APIには`dimension`の設定はありません。この例は3Dの梁と
 | `run(analysis_type=None)` | 解析して辞書を返す。未指定時の選択規則は[解析モード](elements.md)参照。 |
 | `run_static_analysis()` | `run("static")`と同じ。 |
 | `analysis_params` | 解析制御の辞書。載荷係数、反復上限、許容差、モード数を設定。 |
+| `model_metadata` | 座標系と一貫単位系の宣言。既定では単位未指定。 |
 | `get_results()` | 現在の結果。未解析・解析失敗後はNone。 |
 | `get_node_displacement(node_id)` | 解析済み節点変位。存在しなければNone。 |
 | `get_element_stress(elem_id)` | 要素結果。梁では端力。存在しなければNone。 |
@@ -86,6 +87,10 @@ Python APIには`dimension`の設定はありません。この例は3Dの梁と
 ## 状態の管理
 
 `run()`は毎回、要素を作り直して解析状態を初期化します。材料非線形の前回履歴を続行する操作ではありません。モデル読込や再解析が失敗した場合、前回の結果を今回の成功結果として残さないよう`results`を消去します。
+
+解析失敗は`ValueError`／`RuntimeError`互換の診断例外で、`error_code`と確定できた`details`を
+参照できます。分類とログ設定は[エラーと対処](error-handling.md)、成功結果の`metadata`は
+[結果の読み方](results.md)を参照してください。
 
 返値や`get_results()`はアプリで利用する結果です。独立した保管用コピーが必要なら`copy.deepcopy()`またはJSON保存を使ってください。複数ケース・複数ジョブでは、ケースごとに`FemModel`を作ると状態の混同を避けられます。
 

@@ -43,6 +43,8 @@ JSONの未知キーや不正な階層の一部は無視されるため、エラ�
 | `step` | 失敗した段階番号（1始まり） |
 | `load_factor` | 失敗した載荷係数 |
 | `displacement` | 最後に収束した変位のコピー。失敗段階の解ではない |
+| `error_code` | 常に`nonlinear_nonconvergence` |
+| `details` | `step`と`load_factor`を持つ機械可読な辞書 |
 
 解析失敗後の`model.get_results()`はNoneです。直前までの低水準スナップショットは`model.solver.step_results`に残りますが、完了した解析結果として扱わないでください。HTTPの422応答は、これらの途中変位を返しません。
 
@@ -70,6 +72,7 @@ try:
     model.run()
     raise AssertionError("耐力を超えたモデルは成功しないはずです")
 except NonlinearConvergenceError as error:
+    assert error.error_code == "nonlinear_nonconvergence"
     assert error.step == 1
     assert model.get_results() is None
     print("失敗段階:", error.step, "載荷係数:", error.load_factor)
@@ -84,13 +87,51 @@ except NonlinearConvergenceError as error:
 
 耐力を超えて釣合い解がない場合や機構になった場合は、反復回数を増やしても解決しません。許容差を緩めただけの結果を妥当と判断せず、自由節点の釣合いと履歴を確認します。
 
+## Pythonの診断例外
+
+`FemModel.run()`は従来の`ValueError`／`RuntimeError`との互換性を保ちながら、次の機械可読な
+`error_code`を持つ例外を返します。
+
+| `error_code` | 代表例 | Python例外 |
+|---|---|---|
+| `invalid_input` | トポロジ欠落、解析パラメータ不正 | `InputValidationError`（`ValueError`） |
+| `unsupported_analysis` | 未知解析、未対応の要素・解析組合せ | `UnsupportedAnalysisError`または`UnsupportedCapabilityError`（`ValueError`） |
+| `structural_mechanism` | 剛体運動、特異剛性 | `StructuralMechanismError`（`ValueError`） |
+| `numerical_ill_conditioning` | 数値ランク不足、釣合い精度不足 | `NumericalConditionError`（`ValueError`） |
+| `nonlinear_nonconvergence` | Newton反復の未収束 | `NonlinearConvergenceError`（`RuntimeError`） |
+| `modal_nonconvergence` | 固有値ソルバー再試行の未収束 | `ModalConvergenceError`（`RuntimeError`） |
+
+例外の`details`には、確定できる場合だけ`analysis_type`、`issues`内の要素ID、`matrix_dofs`、
+`step`、`load_factor`などが入ります。一般的な特異行列から原因節点を一意に決められない場合は、
+推測した節点・自由度を返しません。入力ファイルの読込そのものや低水準APIでは、従来どおり
+診断属性を持たない`ValueError`が出る場合があります。
+
 ## HTTPステータスの解釈
 
-入力検証のValueErrorなどは400、非線形未収束は422、NumPyの線形代数例外は500です。同じ「不安定構造」でも、検出される箇所によってステータスが変わる場合があります。
+HTTPエラーJSONは常に`error`、`error_code`、`error_category`、`converged: false`を持ちます。
+入力不正と未知解析は400、未対応組合せ・構造機構・数値悪条件・反復未収束は422、
+分類できない内部失敗は500です。`details`は確定した追加情報がある場合だけ付きます。
+同じ`FemModel.run()`の失敗はPython例外とHTTPで同じ`error_code`になります。
 
-`error_code`は`invalid_input`、`nonlinear_nonconvergence`、`analysis_failure`などで、例外によっては付かない場合もあります。共通する`error`と`converged: false`を確認します。タイムアウト・通信断はサーバーのエラーJSONを受け取れないこともあります。
+分類できない後処理の`LinAlgError`などは`analysis_failure`です。タイムアウト・通信断は
+サーバーのエラーJSONを受け取れないこともあります。
 
 圧縮要求のエラー応答は通常JSONです。成功時のBase64/gzip復号をエラー応答に適用しないでください。[HTTPの例](endpoints.md)を参照してください。
+
+## 解析ログを有効にする
+
+ライブラリは解析反復やモデル分割を標準出力へ無条件に書きません。Python標準の`logging`で
+必要な範囲だけ有効にできます。Newton反復は`fem.equilibrium`のDEBUG、未収束通知はINFOです。
+
+```python
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("fem.equilibrium").setLevel(logging.DEBUG)
+```
+
+入力変換は`fem.file_io`、モデル分割は`fem.model`、要素の数値警告は各要素モジュールの
+loggerへ出ます。アプリケーション側でhandler、level、出力先を設定してください。
 
 ## 問題を再現できる形にする
 

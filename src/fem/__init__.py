@@ -42,6 +42,13 @@ from .capabilities import (
     get_capability_registry,
     get_element_capability,
 )
+from .diagnostics import (
+    InputValidationError,
+    ModalConvergenceError,
+    NumericalConditionError,
+    StructuralMechanismError,
+    UnsupportedAnalysisError,
+)
 
 # 注記: 旧実装（FEMCalculation）は2025年6月に削除されました
 # 新実装（FemModel）をご使用ください
@@ -80,5 +87,10 @@ __all__ = [
     'UnsupportedCapabilityError',
     'canonical_element_type',
     'get_capability_registry',
-    'get_element_capability'
+    'get_element_capability',
+    'InputValidationError',
+    'UnsupportedAnalysisError',
+    'StructuralMechanismError',
+    'NumericalConditionError',
+    'ModalConvergenceError',
 ]

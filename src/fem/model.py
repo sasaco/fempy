@@ -4,14 +4,20 @@ JavaScript版のFemDataModelに対応し、新モジュールを統合
 """
 from typing import Dict, Any, List, Optional, Union
 from copy import deepcopy
+import logging
 import numpy as np
 from .mesh import MeshModel
 from .boundary_condition import BoundaryCondition
 from .material import Material, MaterialProperty, ShellParameter, BarParameter, NonlinearMaterialProperty
 from .section import Section
 from .solver import Solver
-from .solver_results import legacy_nonlinear_result
+from .solver_results import (
+    build_result_metadata,
+    legacy_nonlinear_result,
+    normalize_model_metadata,
+)
 from .capabilities import validate_analysis_capabilities
+from .diagnostics import InputValidationError, UnsupportedAnalysisError
 from .nonlinear import NonlinearSolver
 from .nonlinear.hysteresis import JRStiffnessReductionParams
 from .file_io import read_model, write_model, read_result, write_result
@@ -22,6 +28,9 @@ from .elements import (
 from .elements.nonlinear_bar_element import NonlinearBarElement
 from .result_processor import ResultProcessor
 import math
+
+
+logger = logging.getLogger(__name__)
 
 
 class FemModel:
@@ -42,6 +51,7 @@ class FemModel:
             'n_load_steps': 10, 'max_iterations': 50,
             'tolerance': 1e-6, 'n_modes': 10,
         }
+        self.model_metadata = normalize_model_metadata(None)
         self.name: str = "Untitled Model"
         self.description: str = ""
         
@@ -61,6 +71,7 @@ class FemModel:
     def read_json_model(self, model_data: Dict[str, Any]) -> None:
         self.results = None
         self.analysis_type = model_data.get('analysis_type')
+        self.model_metadata = normalize_model_metadata(model_data.get('model_metadata'))
         # データの設定（ここで初期節点数と要素数を記録）
         initial_node_count = len(model_data.get('mesh', MeshModel()).nodes)
         initial_elem_count = len(model_data.get('mesh', MeshModel()).elements)
@@ -84,55 +95,55 @@ class FemModel:
         
         # notice_pointsの処理
         if 'notice_points' in model_data:
-            print(f"着目点による要素分割の前: 節点数={len(self.mesh.nodes)}, 要素数={len(self.mesh.elements)}")
+            logger.info("着目点による要素分割の前: 節点数=%d, 要素数=%d", len(self.mesh.nodes), len(self.mesh.elements))
             self.add_notice_points(model_data['notice_points'])
-            print(f"着目点による要素分割の後: 節点数={len(self.mesh.nodes)}, 要素数={len(self.mesh.elements)}")
+            logger.info("着目点による要素分割の後: 節点数=%d, 要素数=%d", len(self.mesh.nodes), len(self.mesh.elements))
         
         # 分布荷重と集中荷重による要素分割
         if 'load' in model_data:
-            print(f"load_modelメソッド: 荷重データを処理開始")
+            logger.info("load_modelメソッド: 荷重データを処理開始")
             # すべての荷重ケースから荷重データを抽出
             all_loads = self._extract_all_loads(model_data['load'])
             
             # 分布荷重による要素分割
             if all_loads['distributed']:
-                print(f"分布荷重による要素分割の前: 節点数={len(self.mesh.nodes)}, 要素数={len(self.mesh.elements)}")
-                print(f"分布荷重による要素分割: {len(all_loads['distributed'])}個の分布荷重を処理")
+                logger.info("分布荷重による要素分割の前: 節点数=%d, 要素数=%d", len(self.mesh.nodes), len(self.mesh.elements))
+                logger.info("分布荷重による要素分割: %d個の分布荷重を処理", len(all_loads['distributed']))
                 
                 # 具体的な分布荷重データを表示
                 for i, load in enumerate(all_loads['distributed'][:5]):  # 最初の5件のみ表示
-                    print(f"  - 分布荷重{i+1}: 要素{load['element_id']}, L1={load['start_position']}, L2={load['end_position']}")
+                    logger.debug("分布荷重%d: 要素%s, L1=%s, L2=%s", i + 1, load['element_id'], load['start_position'], load['end_position'])
                 if len(all_loads['distributed']) > 5:
-                    print(f"  - ... 他 {len(all_loads['distributed'])-5}個")
+                    logger.debug("ほか %d個の分布荷重", len(all_loads['distributed']) - 5)
                 
                 self._divide_element_by_distributed_loads(all_loads['distributed'])
-                print(f"分布荷重による要素分割の後: 節点数={len(self.mesh.nodes)}, 要素数={len(self.mesh.elements)}")
+                logger.info("分布荷重による要素分割の後: 節点数=%d, 要素数=%d", len(self.mesh.nodes), len(self.mesh.elements))
                 
             # 集中荷重による要素分割
             if all_loads['concentrated']:
-                print(f"集中荷重による要素分割の前: 節点数={len(self.mesh.nodes)}, 要素数={len(self.mesh.elements)}")
-                print(f"集中荷重による要素分割: {len(all_loads['concentrated'])}個の集中荷重を処理")
+                logger.info("集中荷重による要素分割の前: 節点数=%d, 要素数=%d", len(self.mesh.nodes), len(self.mesh.elements))
+                logger.info("集中荷重による要素分割: %d個の集中荷重を処理", len(all_loads['concentrated']))
                 
                 # 具体的な集中荷重データを表示
                 for i, load in enumerate(all_loads['concentrated'][:5]):  # 最初の5件のみ表示
-                    print(f"  - 集中荷重{i+1}: 要素{load['element_id']}, 位置={load['position']}")
+                    logger.debug("集中荷重%d: 要素%s, 位置=%s", i + 1, load['element_id'], load['position'])
                 if len(all_loads['concentrated']) > 5:
-                    print(f"  - ... 他 {len(all_loads['concentrated'])-5}個")
+                    logger.debug("ほか %d個の集中荷重", len(all_loads['concentrated']) - 5)
                 
                 self._divide_element_by_concentrated_loads(all_loads['concentrated'])
-                print(f"集中荷重による要素分割の後: 節点数={len(self.mesh.nodes)}, 要素数={len(self.mesh.elements)}")
+                logger.info("集中荷重による要素分割の後: 節点数=%d, 要素数=%d", len(self.mesh.nodes), len(self.mesh.elements))
             
-            print(f"load_modelメソッド: 荷重データの処理完了（分布荷重・集中荷重の両方有効）")
+            logger.info("load_modelメソッド: 荷重データの処理完了")
         
         # 要素の作成
         self._create_elements()
         
         # 要約情報の出力
-        print(f"\n要素分割のまとめ:")
-        print(f"  - 初期モデル: 節点数={initial_node_count}, 要素数={initial_elem_count}")
-        print(f"  - 最終モデル: 節点数={len(self.mesh.nodes)}, 要素数={len(self.mesh.elements)}")
-        print(f"  - 追加された節点数: {len(self.mesh.nodes) - initial_node_count}")
-        print(f"  - 追加された要素数: {len(self.mesh.elements) - initial_elem_count}")
+        logger.info(
+            "要素分割まとめ: 初期=%d節点/%d要素, 最終=%d節点/%d要素, 追加=%d節点/%d要素",
+            initial_node_count, initial_elem_count, len(self.mesh.nodes), len(self.mesh.elements),
+            len(self.mesh.nodes) - initial_node_count, len(self.mesh.elements) - initial_elem_count,
+        )
         
         # 要素タイプの内訳
         elem_types = {}
@@ -140,9 +151,9 @@ class FemModel:
             elem_type = elem_data['type']
             elem_types[elem_type] = elem_types.get(elem_type, 0) + 1
             
-        print(f"  - 要素タイプの内訳:")
+        logger.info("要素タイプの内訳")
         for elem_type, count in elem_types.items():
-            print(f"    {elem_type}: {count}個")
+            logger.info("%s: %d個", elem_type, count)
 
     
     def save_model(self, file_path: str) -> None:
@@ -158,6 +169,7 @@ class FemModel:
             'section': self.section,
             'analysis_type': self.analysis_type,
             'analysis_params': self.analysis_params,
+            'model_metadata': self.model_metadata,
         }
         write_model(model_data, file_path)
         
@@ -355,6 +367,23 @@ class FemModel:
                                                      if values.get(k,1) == 0]
         
     def run(self, analysis_type: Optional[str] = None) -> Dict[str, Any]:
+        """Run an analysis and expose stable diagnostics for input failures."""
+        self.results = None
+        try:
+            return self._run(analysis_type)
+        except np.linalg.LinAlgError:
+            self.results = None
+            raise
+        except ValueError as error:
+            self.results = None
+            if getattr(error, 'error_code', None):
+                raise
+            raise InputValidationError(str(error)) from error
+        except Exception:
+            self.results = None
+            raise
+
+    def _run(self, analysis_type: Optional[str] = None) -> Dict[str, Any]:
         """解析を実行
 
         Args:
@@ -380,16 +409,20 @@ class FemModel:
             解析結果
         """
         # 再解析が失敗した際に、前回の結果を今回の結果として残さない。
-        self.results = None
         if not self.mesh.elements:
-            raise ValueError('Model must contain structural elements (missing topology)')
+            raise InputValidationError(
+                'Model must contain structural elements (missing topology)'
+            )
         if analysis_type is None:
             analysis_type = self.analysis_type
         if analysis_type is None:
             analysis_type = ('material_nonlinear' if any(e['type'] == 'nonlinear_bar'
                             for e in self.mesh.elements.values()) else 'static')
         if analysis_type not in ('static', 'modal', 'material_nonlinear'):
-            raise ValueError(f'Unknown analysis type: {analysis_type}')
+            raise UnsupportedAnalysisError(
+                f'Unknown analysis type: {analysis_type}',
+                analysis_type=analysis_type,
+            )
         # 要素の作成（要素分割後に再実行が必要なため毎回実行）
         self._create_elements()
 
@@ -428,6 +461,8 @@ class FemModel:
         except Exception:
             self.results = None
             raise
+
+        self.results['metadata'] = build_result_metadata(self, analysis_type)
 
         return self.results
 
@@ -632,7 +667,7 @@ class FemModel:
         # V0要素タイプ名を標準名に変換
         if elem_type in v0_shell_elements:
             elem_type = v0_shell_elements[elem_type]
-            print(f"V0互換: {elem_data['type']} -> {elem_type} (要素ID: {elem_id})")
+            logger.debug(f"V0互換: {elem_data['type']} -> {elem_type} (要素ID: {elem_id})")
         elif elem_type in v0_bar_elements:
             elem_type = v0_bar_elements[elem_type]
         elif elem_type in v0_solid_elements:
@@ -669,18 +704,18 @@ class FemModel:
                 if len(node_ids) != 3:
                     raise ValueError(f"TriElement1 must have exactly 3 nodes, got {len(node_ids)} nodes (element {elem_id})")
                 element = ShellElement(elem_id, node_ids, material_id, thickness)
-                print(f"V0互換: TriElement1作成 (要素ID: {elem_id}, 節点: {node_ids})")
+                logger.debug(f"V0互換: TriElement1作成 (要素ID: {elem_id}, 節点: {node_ids})")
                 
             elif original_type == 'QuadElement1' or original_type == 'ShellElement':
                 # 四角形要素として作成
                 if len(node_ids) != 4:
                     # 3節点の場合は三角形要素として処理
                     if len(node_ids) == 3:
-                        print(f"V0互換: QuadElement1が3節点のため三角形として処理 (要素ID: {elem_id})")
+                        logger.debug(f"V0互換: QuadElement1が3節点のため三角形として処理 (要素ID: {elem_id})")
                     else:
                         raise ValueError(f"QuadElement1 must have 3 or 4 nodes, got {len(node_ids)} nodes (element {elem_id})")
                 element = ShellElement(elem_id, node_ids, material_id, thickness)
-                print(f"V0互換: {original_type}作成 (要素ID: {elem_id}, 節点: {node_ids})")
+                logger.debug(f"V0互換: {original_type}作成 (要素ID: {elem_id}, 節点: {node_ids})")
                 
             else:
                 # 汎用Shell要素として作成（節点数による自動判定）
@@ -1007,19 +1042,19 @@ class FemModel:
             points: 分割点のリスト（要素のi端からの距離）
         """
         if elem_id not in self.mesh.elements:
-            print(f"警告: 分割対象の要素{elem_id}が見つかりません")
+            logger.warning(f"分割対象の要素{elem_id}が見つかりません")
             return
             
         elem_data = self.mesh.elements[elem_id]
         
         # bar要素のみを対象とする
         if elem_data['type'] != 'bar':
-            print(f"警告: 要素{elem_id}はbar要素ではないため分割をスキップします")
+            logger.warning(f"要素{elem_id}はbar要素ではないため分割をスキップします")
             return
             
         node_ids = elem_data['nodes']
         if len(node_ids) != 2:
-            print(f"警告: 要素{elem_id}のノード数が2ではないため分割をスキップします")
+            logger.warning(f"要素{elem_id}のノード数が2ではないため分割をスキップします")
             return
             
         # 要素の両端節点を取得
@@ -1042,10 +1077,10 @@ class FemModel:
         for p in points:
             # 境界値の厳密チェック：開始点・終点近くを除外
             if p <= boundary_tolerance:
-                print(f"🔍 分割点{p:.6f}は開始点に近すぎるため除外（許容誤差: {boundary_tolerance:.6f}）")
+                logger.debug(f"分割点{p:.6f}は開始点に近すぎるため除外（許容誤差: {boundary_tolerance:.6f}）")
                 continue
             if p >= element_length - boundary_tolerance:
-                print(f"🔍 分割点{p:.6f}は終点に近すぎるため除外（要素長: {element_length:.6f}, 許容誤差: {boundary_tolerance:.6f}）")
+                logger.debug(f"分割点{p:.6f}は終点に近すぎるため除外（要素長: {element_length:.6f}, 許容誤差: {boundary_tolerance:.6f}）")
                 continue
             valid_points.append(p)
         
@@ -1057,13 +1092,13 @@ class FemModel:
             for existing_point in sorted_points:
                 if abs(point - existing_point) < tolerance:
                     too_close = True
-                    print(f"🔍 分割点{point:.6f}は既存点{existing_point:.6f}に近すぎるため除外（許容誤差: {tolerance:.6f}）")
+                    logger.debug(f"分割点{point:.6f}は既存点{existing_point:.6f}に近すぎるため除外（許容誤差: {tolerance:.6f}）")
                     break
             if not too_close:
                 sorted_points.append(point)
         
         if not sorted_points:
-            print(f"🔍 要素{elem_id}: 有効な分割位置がないため分割をスキップします")
+            logger.debug(f"要素{elem_id}: 有効な分割位置がないため分割をスキップします")
             return
         
         # 新しい節点IDを生成（既存の最大ID + 1から開始）
@@ -1085,14 +1120,14 @@ class FemModel:
             if existing_node_id is not None:
                 # 既存の節点があればそれを使用
                 new_node_ids.append(existing_node_id)
-                print(f"🔍 分割点{i+1}: 既存節点{existing_node_id}を使用")
+                logger.debug(f"分割点{i+1}: 既存節点{existing_node_id}を使用")
             else:
                 # 新しい節点を追加
                 new_node_id = max_node_id + 1
                 self.mesh.add_node(new_node_id, [new_x, new_y, new_z])
                 new_node_ids.append(new_node_id)
                 max_node_id = new_node_id
-                print(f"🔍 分割点{i+1}: 新規節点{new_node_id}を作成")
+                logger.debug(f"分割点{i+1}: 新規節点{new_node_id}を作成")
         
         # 元の要素を削除
         original_elem_data = self.mesh.elements.pop(elem_id)
@@ -1103,17 +1138,16 @@ class FemModel:
         # V1レベルの安全性チェック：隣接節点の重複確認
         for i in range(len(all_node_ids) - 1):
             if all_node_ids[i] == all_node_ids[i + 1]:
-                print(f"🚨 警告: 隣接節点が重複しています（節点{all_node_ids[i]}）")
-                print(f"  → 要素分割をキャンセルして元の要素を復元します")
+                logger.warning(f"隣接節点が重複しています（節点{all_node_ids[i]}）。要素分割をキャンセルします")
                 # 元の要素を復元
                 self.mesh.elements[elem_id] = original_elem_data
                 return
         
         # デバッグ出力
-        print(f"要素分割: 要素{elem_id}を{len(sorted_points)}個の点で分割、新規節点{len([n for n in new_node_ids if n > max(self.mesh.nodes.keys()) - len(new_node_ids)])}個を追加")
-        print(f"  - 元の要素: 節点{node_ids[0]}→節点{node_ids[1]}, 長さ={element_length:.4f}")
+        logger.debug(f"要素分割: 要素{elem_id}を{len(sorted_points)}個の点で分割、新規節点{len([n for n in new_node_ids if n > max(self.mesh.nodes.keys()) - len(new_node_ids)])}個を追加")
+        logger.debug(f"元の要素: 節点{node_ids[0]}→節点{node_ids[1]}, 長さ={element_length:.4f}")
         for i, point in enumerate(sorted_points):
-            print(f"  - 分割点{i+1}: i端から{point:.4f}, 節点ID={new_node_ids[i]}")
+            logger.debug(f"分割点{i+1}: i端から{point:.4f}, 節点ID={new_node_ids[i]}")
         
         created_elements = []
         for i in range(len(all_node_ids) - 1):
@@ -1141,11 +1175,11 @@ class FemModel:
             created_elements.append(new_elem_id)
             max_elem_id = new_elem_id
             
-        print(f"  - 作成された要素: {created_elements}")
-        print(f"  - 要素分割詳細:")
+        logger.debug(f"作成された要素: {created_elements}")
+        logger.debug("要素分割詳細")
         for elem_id in created_elements:
             elem_data = self.mesh.elements[elem_id]
-            print(f"    要素{elem_id}: 節点{elem_data['nodes']}, material_id={elem_data['material_id']}, section_id={elem_data['section_id']}")
+            logger.debug(f"要素{elem_id}: 節点{elem_data['nodes']}, material_id={elem_data['material_id']}, section_id={elem_data['section_id']}")
     
     def _find_node_by_coordinates(self, x: float, y: float, z: float, 
                                  tolerance: float = 1e-6) -> Optional[int]:
@@ -1170,12 +1204,12 @@ class FemModel:
         Args:
             distributed_loads: 分布荷重データのリスト
         """
-        print(f"🔍 分布荷重分割デバッグ: {len(distributed_loads)}個の分布荷重を処理開始")
+        logger.debug(f"分布荷重分割: {len(distributed_loads)}個の分布荷重を処理開始")
         
         # 要素ごとに分割位置をまとめる
         element_split_positions = {}
         
-        print(f"🔍 対象bar要素数: {len([e for e in self.mesh.elements.values() if e['type'] == 'bar'])}個")
+        logger.debug(f"対象bar要素数: {len([e for e in self.mesh.elements.values() if e['type'] == 'bar'])}個")
         
         # 分布荷重の両端位置を処理（旧実装に完全一致）
         processed_loads = 0
@@ -1190,13 +1224,13 @@ class FemModel:
                           not (dist1 == 0.0 and dist2 == 0.0))
             
             if i < 10 or is_important:  # 最初の10個または重要なケースを詳細表示
-                print(f"🔍 分布荷重{i+1}: 要素{element_id}, L1={dist1}, L2={dist2}")
+                logger.debug(f"分布荷重{i+1}: 要素{element_id}, L1={dist1}, L2={dist2}")
                 if is_important:
-                    print(f"  ⭐ 重要な分布荷重を発見！")
+                    logger.debug("重要な分布荷重を検出")
             
             if element_id is None:
                 if i < 10 or is_important:
-                    print(f"  → スキップ: element_idが無効")
+                    logger.debug("スキップ: element_idが無効")
                 continue
                 
             # 元の要素IDに対応する現在の要素を探す（集中荷重処理と同じロジック）
@@ -1209,11 +1243,11 @@ class FemModel:
                     target_elements.append(current_id)
             
             if i < 10 or is_important:
-                print(f"  → 対応する現在の要素: {target_elements}")
+                logger.debug(f"対応する現在の要素: {target_elements}")
             
             if not target_elements:
                 if i < 10 or is_important:
-                    print(f"  → スキップ: 対応する要素が見つからない")
+                    logger.debug("スキップ: 対応する要素が見つからない")
                 continue
             
             # 各現在の要素を処理
@@ -1236,14 +1270,14 @@ class FemModel:
                 if dist2 < 0:
                     processed_dist2 = element_length - dist1 - abs(dist2)
                     if i < 10 or is_important:
-                        print(f"  → L2負値変換: {dist2} → {processed_dist2}")
+                        logger.debug(f"L2負値変換: {dist2} → {processed_dist2}")
                 
                 # 旧実装と同じ分割条件
                 condition_met = (dist1 >= 0) and (processed_dist2 >= 0) and (dist1 + processed_dist2 < element_length)
                 
                 if i < 10 or is_important:
-                    print(f"  → 要素{current_id} (長さ{element_length:.4f}): 分割条件={condition_met}")
-                    print(f"    詳細: dist1={dist1}, processed_dist2={processed_dist2}, dist1+processed_dist2={dist1+processed_dist2}")
+                    logger.debug(f"要素{current_id} (長さ{element_length:.4f}): 分割条件={condition_met}")
+                    logger.debug(f"詳細: dist1={dist1}, processed_dist2={processed_dist2}, dist1+processed_dist2={dist1+processed_dist2}")
                 
                 if condition_met:
                     # 分割位置のリストに追加
@@ -1254,35 +1288,35 @@ class FemModel:
                     if dist1 > 0:
                         element_split_positions[current_id].add(dist1)
                         if i < 10 or is_important:
-                            print(f"  → 要素{current_id}: L1={dist1}を分割位置に追加")
+                            logger.debug(f"要素{current_id}: L1={dist1}を分割位置に追加")
                         
                     if processed_dist2 > 0:
                         # 旧実装: memTmp.leng - dist2 位置で分割
                         split_pos = element_length - processed_dist2
                         element_split_positions[current_id].add(split_pos)
                         if i < 10 or is_important:
-                            print(f"  → 要素{current_id}: L2変換位置={split_pos}（要素長{element_length} - dist2({processed_dist2})）を分割位置に追加")
+                            logger.debug(f"要素{current_id}: L2変換位置={split_pos}（要素長{element_length} - dist2({processed_dist2})）を分割位置に追加")
                 else:
                     if i < 10 or is_important:
-                        print(f"  → 要素{current_id}: 分割条件不適合")
+                        logger.debug(f"要素{current_id}: 分割条件不適合")
                 
             processed_loads += 1
         
         if len(distributed_loads) > 10:
-            print(f"🔍 ... 他 {len(distributed_loads) - processed_loads}個の分布荷重も処理済み（重要なもののみ詳細表示）")
+            logger.debug(f"ほか {len(distributed_loads) - processed_loads}個の分布荷重も処理済み")
         
-        print(f"🔍 分割対象要素数: {len(element_split_positions)}個")
+        logger.debug(f"分割対象要素数: {len(element_split_positions)}個")
         for elem_id, positions in list(element_split_positions.items())[:3]:
-            print(f"  要素{elem_id}: {sorted(list(positions))}で分割予定")
+            logger.debug(f"要素{elem_id}: {sorted(list(positions))}で分割予定")
         
         # 各要素を一度に分割
         for element_id, positions in element_split_positions.items():
             positions_list = sorted(list(positions))
             if positions_list:
-                print(f"分布荷重による分割: 要素{element_id}を{len(positions_list)}箇所で分割 - {positions_list}")
+                logger.debug(f"分布荷重による分割: 要素{element_id}を{len(positions_list)}箇所で分割 - {positions_list}")
                 self._divide_element_by_points(element_id, positions_list)
             else:
-                print(f"🔍 要素{element_id}: 有効な分割位置がないため分割スキップ")
+                logger.debug(f"要素{element_id}: 有効な分割位置がないため分割スキップ")
 
     def _divide_element_by_concentrated_loads(self, concentrated_loads: List[Dict[str, Any]]) -> None:
         """集中荷重の作用位置で要素を分割する
@@ -1290,7 +1324,7 @@ class FemModel:
         Args:
             concentrated_loads: 集中荷重データのリスト
         """
-        print(f"🔍 集中荷重分割デバッグ: {len(concentrated_loads)}個の集中荷重を処理開始")
+        logger.debug(f"集中荷重分割: {len(concentrated_loads)}個の集中荷重を処理開始")
         
         # 各要素を1回だけ処理するため、要素IDと分割位置のマップを作成
         element_split_positions = {}
@@ -1298,26 +1332,26 @@ class FemModel:
         for i, load in enumerate(concentrated_loads[:5]):  # 最初の5個のみ詳細表示
             # 要素IDの取得
             if 'element_id' not in load:
-                print(f"🔍 集中荷重{i+1}: element_idキーが無い - スキップ")
+                logger.debug(f"集中荷重{i+1}: element_idキーが無い - スキップ")
                 continue
                 
             element_id = load['element_id']
             pos = load.get('position', 0.0)
             
-            print(f"🔍 集中荷重{i+1}: 要素{element_id}, 位置={pos}")
+            logger.debug(f"集中荷重{i+1}: 要素{element_id}, 位置={pos}")
             
             # 同じ要素の分割位置をまとめる
             if element_id not in element_split_positions:
                 element_split_positions[element_id] = []
             element_split_positions[element_id].append(pos)
-            print(f"  → 位置{pos}を要素{element_id}の分割リストに追加")
+            logger.debug(f"位置{pos}を要素{element_id}の分割リストに追加")
         
         if len(concentrated_loads) > 5:
-            print(f"🔍 ... 他 {len(concentrated_loads) - 5}個の集中荷重も同様に処理")
+            logger.debug(f"ほか {len(concentrated_loads) - 5}個の集中荷重も同様に処理")
         
-        print(f"🔍 分割対象要素数: {len(element_split_positions)}個")
+        logger.debug(f"分割対象要素数: {len(element_split_positions)}個")
         for elem_id, positions in list(element_split_positions.items())[:3]:
-            print(f"  要素{elem_id}: {positions}で分割予定")
+            logger.debug(f"要素{elem_id}: {positions}で分割予定")
         
         # 要素ごとに一度に分割
         for element_id, positions in element_split_positions.items():
@@ -1330,27 +1364,27 @@ class FemModel:
                     elem_data.get('member_id') == element_id):
                     target_elements.append(current_id)
             
-            print(f"🔍 要素{element_id}に対応する対象要素: {target_elements}")
+            logger.debug(f"要素{element_id}に対応する対象要素: {target_elements}")
             
             if not target_elements:
-                print(f"警告: 集中荷重の対象部材{element_id}が見つかりません")
+                logger.warning(f"集中荷重の対象部材{element_id}が見つかりません")
                 continue
                 
             # 各要素を処理
             for current_id in target_elements:
                 # 要素が存在しない場合（既に分割されて削除された可能性）
                 if current_id not in self.mesh.elements:
-                    print(f"🔍 要素{current_id}: 既に削除済み - スキップ")
+                    logger.debug(f"要素{current_id}: 既に削除済み - スキップ")
                     continue
                     
                 elem_data = self.mesh.elements[current_id]
                 if elem_data['type'] != 'bar':
-                    print(f"🔍 要素{current_id}: bar要素ではない - スキップ")
+                    logger.debug(f"要素{current_id}: bar要素ではない - スキップ")
                     continue
                     
                 node_ids = elem_data['nodes']
                 if len(node_ids) != 2:
-                    print(f"🔍 要素{current_id}: ノード数が2ではない - スキップ")
+                    logger.debug(f"要素{current_id}: ノード数が2ではない - スキップ")
                     continue
                     
                 # 要素の長さを計算
@@ -1364,13 +1398,13 @@ class FemModel:
                 # この要素内にある分割位置を抽出
                 valid_positions = [p for p in positions if 0 < p < element_length]
                 
-                print(f"🔍 要素{current_id} (長さ{element_length:.4f}): 位置{positions} → 有効位置{valid_positions}")
+                logger.debug(f"要素{current_id} (長さ{element_length:.4f}): 位置{positions} → 有効位置{valid_positions}")
                 
                 if valid_positions:
-                    print(f"集中荷重による分割: 要素{current_id}を{len(valid_positions)}箇所で分割")
+                    logger.debug(f"集中荷重による分割: 要素{current_id}を{len(valid_positions)}箇所で分割")
                     self._divide_element_by_points(current_id, valid_positions)
                 else:
-                    print(f"🔍 要素{current_id}: 有効な分割位置がないため分割スキップ")
+                    logger.debug(f"要素{current_id}: 有効な分割位置がないため分割スキップ")
 
     def _extract_all_loads(self, load_data: Dict[str, Any]) -> Dict[str, List]:
         """すべての荷重ケースから荷重データを抽出
@@ -1384,14 +1418,14 @@ class FemModel:
         distributed_loads = []
         concentrated_loads = []
         
-        print(f"\n荷重データの抽出開始: {len(load_data)}個の荷重ケース")
+        logger.debug(f"荷重データの抽出開始: {len(load_data)}個の荷重ケース")
         
         # 全荷重ケースをループ
         for case_id, case_data in load_data.items():
             if 'load_member' not in case_data:
                 continue
                 
-            print(f"  - 荷重ケース{case_id}を処理中...")
+            logger.debug(f"荷重ケース{case_id}を処理中")
             case_distributed = []
             case_concentrated = []
             
@@ -1430,12 +1464,12 @@ class FemModel:
                         
                         # 詳細なデバッグ出力（最初の10個のみ）
                         if debug_count < 10:
-                            print(f"    🔍 集中荷重分割 要素{element_id}, {key}={position}")
+                            logger.debug(f"集中荷重分割 要素{element_id}, {key}={position}")
                             debug_count += 1
                         
                         if position <= 0:
                             if debug_count <= 10:
-                                print(f"    → 位置={position}≤0のため除外")
+                                logger.debug(f"位置={position}≤0のため除外")
                             continue
                             
                         case_concentrated.append({
@@ -1445,21 +1479,21 @@ class FemModel:
                         })
                         
                         if debug_count <= 10:
-                            print(f"    → 追加: 要素{element_id}, 位置={position}")
+                            logger.debug(f"追加: 要素{element_id}, 位置={position}")
                     
                     # 最初の10個のみ詳細表示
                     if len(case_concentrated) > 10:
                         break
             
             if case_distributed:
-                print(f"    分布荷重: {len(case_distributed)}個を抽出")
+                logger.debug(f"分布荷重: {len(case_distributed)}個を抽出")
                 distributed_loads.extend(case_distributed)
                 
             if case_concentrated:
-                print(f"    集中荷重: {len(case_concentrated)}個を抽出")
+                logger.debug(f"集中荷重: {len(case_concentrated)}個を抽出")
                 concentrated_loads.extend(case_concentrated)
         
-        print(f"荷重データの抽出完了: 分布荷重{len(distributed_loads)}個, 集中荷重{len(concentrated_loads)}個")
+        logger.debug(f"荷重データの抽出完了: 分布荷重{len(distributed_loads)}個, 集中荷重{len(concentrated_loads)}個")
         
         return {
             'distributed': distributed_loads,

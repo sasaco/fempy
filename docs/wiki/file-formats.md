@@ -13,7 +13,7 @@
 | 結果JSON | 対応 | 対応 | 数値結果の保存・別アプリとの連携 |
 | V0構造形式 `.fem` | 対応範囲あり | 非対応 | 対応するシェル・ソリッドの既存データ移行 |
 | 独自形式 `.fw3` | 部分対応 | 部分対応 | 簡易な旧形式。完全なモデル保存には使わない |
-| ASCII VTK | 読込APIなし | 制約付き | 対応セルの変位・整形したスカラー等の可視化 |
+| ASCII VTK | 読込APIなし | 対応 | 対応セルの形状、ID、変位・反力・要素結果の可視化 |
 
 ## 保存して再び解析する
 
@@ -35,9 +35,11 @@ restored = FemModel()
 restored.load_model("saved-model.json")
 after = restored.run()
 assert isclose(after["node_displacements"][2]["dy"], before["node_displacements"][2]["dy"], rel_tol=1e-8)
+assert after["metadata"]["input_sha256"] == before["metadata"]["input_sha256"]
 
 saved = read_result("saved-result.json")
 assert "2" in saved["node_displacements"]  # JSONのIDは文字列
+assert saved["metadata"]["schema_version"] == "1.0"
 print(saved["node_displacements"]["2"])
 ```
 
@@ -61,6 +63,7 @@ print(saved["node_displacements"]["2"])
 | `boundary_conditions.spring_supports` | 節点ID → 方向と剛性 |
 | `boundary_conditions.pressures` | `element_id, face, pressure`の配列 |
 | `analysis_type, analysis_params` | 解析種別・制御値 |
+| `model_metadata` | 座標系と一貫単位系の宣言。旧入力で省略した場合は単位未指定 |
 
 保存される`auxiliary_restraint_nodes`は、2D化で自動追加した支持節点を区別する情報です。通常は利用者が手で作る必要はありません。
 
@@ -70,7 +73,7 @@ print(saved["node_displacements"]["2"])
 
 ## 結果JSON
 
-`save_results()`、`write_result()`、HTTPの結果変換はNumPy配列を配列へ、IDキーを文字列へ変換します。NaN・Infinityを含む結果は保存・送信できません。
+`save_results()`、`write_result()`、HTTPの結果変換はNumPy配列を配列へ、IDキーを文字列へ変換します。NaN・Infinityを含む結果は保存・送信できません。成功結果の`metadata`も通常のJSONとして保存され、`read_result()`で値を保ったまま読み戻せます。
 
 `read_result()`や`load_results()`はJSONをそのまま読むため、文字列キーやリストを整数キー・NumPy配列へ復元しません。読込後は`model.get_results()["node_displacements"]["2"]`のようにアクセスします。数値比較が必要なら配列を`numpy.asarray()`で変換してください。
 
@@ -96,11 +99,13 @@ print(saved["node_displacements"]["2"])
 
 `*NODES`、`*ELEMENTS`、`*RESTRAINTS`、`*LOADS`などのセクション形式です。現行読込は材料・断面情報を完全に復元せず、書き出した`*PRESSURES`も読込側が処理しません。これだけで解析条件を保った保存・再読込はできません。新しい作業の保存にはJSONを使ってください。
 
-## VTKで変位と端力を可視化する
+## VTKで結果を可視化する
 
-VTKライターは現行の要素・結果形式をすべて扱えるわけではありません。`shell`、`nonlinear_bar`、`tetra2/wedge2/hexa2`などはセル種別の対応がなく、セルタイプ0になります。通常の`shell`を含む解析を、そのまま完全なVTK出力として利用しないでください。
+`write_vtk()`はLegacy ASCII VTKの`UNSTRUCTURED_GRID`を書き出します。`bar`、`nonlinear_bar`、3／4節点`shell`、一次・二次の`tetra`／`wedge`／`hexa`に対応します。節点数が要素型と一致しない場合や未対応型は、セルタイプ0や空セルとして保存せず`ValueError`にします。
 
-また、梁の`i_end/j_end`やソリッドの積分点応力は配列を含むため、`write_vtk()`へ結果を丸ごと渡すと変換に失敗する場合があります。次は対応する`bar`モデルに限定し、端力を要素ごとのスカラーへ明示的に変換した例です。
+節点と要素はID順に出力し、元のIDを`node_id`と`element_id`へ保存します。結果辞書の挿入順には依存しません。ある量が一部の節点・要素にだけ定義される場合、対象外・欠損箇所は0ではなく`NaN`です。可視化ソフトでは`NaN`を欠損値として扱ってください。
+
+次は梁の解析結果をそのまま書き出す例です。
 
 <!-- run: beam-vtk -->
 ```python
@@ -111,22 +116,30 @@ from fem.file_io import write_vtk
 model = FemModel()
 model.load_model("beam.json")
 result = model.run()
-vtk_result = {
-    "node_displacements": result["node_displacements"],
-    "element_stresses": {
-        eid: {"axial_i": float(force["i_end"][0]),
-              "moment_z_i": float(force["i_end"][5])}
-        for eid, force in result["element_stresses"].items()
-    },
-}
-write_vtk({"mesh": model.mesh}, vtk_result, "beam.vtk")
+write_vtk({"mesh": model.mesh}, result, "beam.vtk")
 text = Path("beam.vtk").read_text(encoding="utf-8")
 assert "CELL_TYPES 1\n3\n" in text
-assert "VECTORS displacement float" in text
-assert "SCALARS stress_moment_z_i float 1" in text
+assert "VECTORS displacement double" in text
+assert "SCALARS node_id int 1" in text
+assert "SCALARS element_id int 1" in text
+assert "SCALARS section_force_i_mz double 1" in text
 print("beam.vtk を保存しました")
 ```
 
-このファイルには元のメッシュ座標と変位ベクトルが入ります。ParaViewなどで`displacement`を変形表示に使えます。ライターが付ける`stress_`という接頭辞にかかわらず、例の`stress_axial_i`はN、`stress_moment_z_i`はN·mの端力です。材料応力ではありません。
+主な配列は次のとおりです。
 
-この制約を避けて新しい要素を可視化したい場合は、まず[結果JSON](results.md)を取り出し、要素種別・テンソル・積分点の対応を保った変換を別途用意する必要があります。
+| VTK配列 | 位置 | 意味 |
+|---|---|---|
+| `node_id` / `element_id` | 点／セル | 元モデルのID |
+| `displacement` | 点 | 全体座標の並進変位`dx,dy,dz` |
+| `reaction_force` | 点 | 全体座標の反力`fx,fy,fz`。反力が定義されない節点は`NaN` |
+| `section_force_i_*` / `section_force_j_*` | セル | 梁・非線形梁の端力`fx,fy,fz,mx,my,mz` |
+| `shell_stress_surface_1/2` | セル | シェル両面の全体座標応力テンソル |
+| `shell_strain_surface_1/2` | セル | シェル両面の全体座標ひずみテンソル |
+| `shell_membrane_*` / `shell_moment_*` / `shell_shear_*` | セル | シェル局所座標の単位幅当たり断面合力 |
+| `solid_stress_gauss_point_mean` | セル | ソリッド積分点応力の成分別単純平均テンソル |
+| `solid_strain_gauss_point_mean` | セル | ソリッド積分点工学ひずみをテンソルせん断へ直した成分別単純平均 |
+
+ソリッドの`*_gauss_point_mean`は、積分点を体積重み付けした平均、セル中心値、節点外挿値ではありません。積分点ごとの値が必要な評価では[結果JSON](results.md)の`element_stresses`を使ってください。シェルの断面合力は現行の`resultants`であり、廃止した仮想梁シェル断面力ではありません。
+
+二次`tetra2`／`wedge2`／`hexa2`は中間節点を含むVTKセル24／26／25で保存します。`wedge`系の節点順はVTK 9.7のパラメトリック座標に合わせています。VTK 9.7より前の規約を固定したreaderでは三角形面の向きを異なる順へ正規化する場合があります。

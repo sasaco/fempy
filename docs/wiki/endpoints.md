@@ -60,7 +60,7 @@ POSTは編集用`node/member/element`形式と、保存用`nodes/elements/materi
 
 ### 成功時の結果
 
-線形解析では`analysis_type`、`node_displacements`、`reaction_forces`、`element_stresses`などを返します。非線形解析では`converged`、`step_results`、`curvature`、`convergence_history`が加わります。固有値解析では`frequencies`、`periods`、`modes`などになります。
+線形解析では`analysis_type`、`node_displacements`、`reaction_forces`、`element_stresses`などを返します。非線形解析では`converged`、`step_results`、`curvature`、`convergence_history`が加わります。固有値解析では`frequencies`、`periods`、`modes`などになります。すべての成功結果に、製品version、入力SHA-256、解析条件、座標・単位宣言、残差、反復数、警告、高精度経路をまとめた`metadata`が付きます。
 
 JSONのIDは文字列です。`case1.disg/reac/fsec`を返す旧説明とは異なります。単位・符号・任意項目は[結果の読み方](results.md)を参照してください。
 
@@ -106,20 +106,26 @@ print(result["node_displacements"]["2"])
 
 | HTTP | 代表的な`error_code` | 意味 |
 |---:|---|---|
-| 400 | `invalid_input` | JSON形式・値・参照・解析種別などの問題 |
-| 422 | `nonlinear_nonconvergence` | 非線形の指定段階が未収束 |
-| 500 | `analysis_failure` | 線形代数・結果処理の例外 |
-| 500 | キーなしの場合あり | その他の内部例外 |
+| 400 | `invalid_input` | JSON形式・値・参照などの問題 |
+| 400 | `unsupported_analysis` | 未知の解析種別 |
+| 422 | `unsupported_analysis` | 要素・荷重と解析種別の未対応組合せ |
+| 422 | `structural_mechanism` | 剛体運動・特異剛性 |
+| 422 | `numerical_ill_conditioning` | 数値ランク・釣合い精度の問題 |
+| 422 | `nonlinear_nonconvergence` / `modal_nonconvergence` | 反復解法の未収束 |
+| 500 | `analysis_failure` | 分類できない線形代数・結果処理・内部例外 |
 
-エラーの共通項目は`error`と`converged: false`です。例外によって`error_code`がない場合もあります。常に`message/details`を持つ固定形式ではありません。
+エラーの共通項目は`error`、`error_code`、`error_category`、`converged: false`です。
+確定した節点・自由度・要素・失敗段階などがある場合だけ`details`が付きます。
 
 ```json
 {
   "error": "Nonlinear analysis did not converge at step 2 (load factor 0.5)",
   "error_code": "nonlinear_nonconvergence",
+  "error_category": "convergence",
   "converged": false,
   "step": 2,
-  "load_factor": 0.5
+  "load_factor": 0.5,
+  "details": {"step": 2, "load_factor": 0.5}
 }
 ```
 
@@ -143,7 +149,9 @@ except HTTPError as error:
     print(error.code, body["error"])
 ```
 
-特異なモデルが常に500になるとは限りません。入力検証で検出されれば400、非線形の釣合いが成立しなければ422になる場合があります。[エラーと対処](error-handling.md)の手順でモデル条件を確認してください。
+特異な静解析モデルは`structural_mechanism`、非線形反復で同じ状態へ到達した場合は
+`nonlinear_nonconvergence`になることがあります。後者は反復中に機構の原因を確定できないためです。
+[エラーと対処](error-handling.md)の手順でモデル条件を確認してください。
 
 ## 運用上の挙動
 

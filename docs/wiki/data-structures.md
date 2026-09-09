@@ -41,6 +41,7 @@
 | `rigid` | 部材端側の区間へ別材料を割り当てる配列。 |
 | `analysis_type` | `static`、`material_nonlinear`、`modal`。 |
 | `analysis_params` | 解析制御。選択した荷重ケース内の同名設定より優先する。 |
+| `model_metadata` | 保存用JSONで使う座標系・一貫単位系の宣言。編集用旧JSONでは省略可。 |
 | `boundary_conditions` | 強制変位・支持ばねを明示する補助形式。下記参照。 |
 
 `load`は静解析の荷重を与える通常の入口ですが、強制変位だけのモデルや固有値解析では省略できます。支持が不足したモデルは、荷重がゼロでも適切な解析モデルにはなりません。

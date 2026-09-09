@@ -14,6 +14,38 @@
 
 Pythonでは`result["node_displacements"][2]["dy"]`、HTTPでは`result["node_displacements"]["2"]["dy"]`です。現在のHTTPは`case1.disg`や`case1.fsec`という階層を返しません。`disg/reac/fsec`は参照比較用の別ビューで使われる名称です。
 
+## 結果メタデータ
+
+すべての成功結果は`metadata`を持ちます。数値結果の意味と再現条件を追跡するための情報で、
+静解析・材料非線形・固有値解析に共通です。
+
+| キー | 内容 |
+|---|---|
+| `schema_version` | メタデータ形式。現在は`1.0` |
+| `product.name/version` | `FEMPython`と実行時の配布バージョン |
+| `input_sha256` | 実際に使った解析種別を含む正規化モデルJSONのSHA-256 |
+| `analysis.type/parameters` | 解析種別と解析時の制御値 |
+| `coordinate_system` | 現在は全体直交座標`global_cartesian`、軸は`x,y,z` |
+| `units` | 入力と結果に共通する一貫単位系の宣言 |
+| `solver.iterations/step_iterations` | 合計反復数と段階別反復数。モーダルは0と空配列 |
+| `solver.residual_norm/relative_residual` | 最終釣合い残差。モーダルの相対値は最大固有対残差 |
+| `solver.warnings` | 結果へ付記した構造化警告。警告がなければ空配列 |
+| `solver.high_precision` | 線形梁の高精度経路を使ったか |
+
+既定の`units.system`は`consistent_user_defined`です。長さ・力・質量・時間は
+`unspecified`であり、SIと仮定したり自動換算したりしません。たとえばN–mmなら解析前に宣言します。
+
+```python
+model.model_metadata["units"].update(length="mm", force="N")
+result = model.run("static")
+assert result["metadata"]["units"]["length"] == "mm"
+assert result["metadata"]["solver"]["converged"] is True
+```
+
+`input_sha256`は元ファイルの生バイトhashではありません。ケース選択・要素分割後の解析モデル、
+解析条件、座標・単位宣言から作るため、同じ解析入力の保存往復では一致し、荷重や解析条件を
+変えると変わります。`solver.warnings`は結果用の構造化警告であり、ログ出力すべてのコピーではありません。
+
 ## 線形静解析の主な項目
 
 | キー | 内容 |
@@ -29,7 +61,8 @@ Pythonでは`result["node_displacements"][2]["dy"]`、HTTPでは`result["node_di
 
 数値計算の経路によって、`precise_end_forces`、`interpolated_displacements`、`constitutive_element_stresses`、`force_recovery`が追加されることがあります。固定された出力キー集合を仮定せず、必要な項目を読み取ってください。
 
-線形結果には非線形用の`step_results`や`curvature`を追加しません。また、線形の成功結果に`converged`キーはありません。
+線形結果には非線形用の`step_results`や`curvature`を追加しません。また、線形の成功結果の
+トップレベルに`converged`キーはありません。共通の成功状態は`metadata.solver.converged`で確認できます。
 
 ## 節点変位と支点反力
 

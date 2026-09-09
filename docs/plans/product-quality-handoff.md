@@ -1,14 +1,15 @@
 # プロダクト品質ロードマップ引継ぎ
 
-更新日: 2026-09-09
+更新日: 2026-09-10
 
 対象計画: [プロダクト品質の修正ロードマップ](product-quality-roadmap.md)
 
 ## 結論
 
-PQ-00〜03・PQ-05・PQ-07は完了した。PQ-04はユーザー判断で保留し、段階2は未完了のまま維持する。
-段階3「利用時の信頼性」に入り、機械可読な機能対応表と未対応組合せの解析前拒否を実装・検証した。
-次はPQ-06のVTK出力、続いてPQ-08の解析診断と結果メタデータへ進む。
+PQ-00〜03・PQ-05〜08は完了した。PQ-04はユーザー判断で保留し、段階2は未完了のまま維持する。
+段階3「利用時の信頼性」では、機械可読な機能対応表、未対応組合せの解析前拒否、
+検証済みLegacy VTK出力、安定した解析診断と結果メタデータを実装した。次はPQ-09の
+メッシュ誤差と適用範囲へ進む。
 
 ## 今回完了した内容
 
@@ -55,6 +56,32 @@ PQ-00〜03・PQ-05・PQ-07は完了した。PQ-04はユーザー判断で保留�
 
 全1,996件は失敗・skipなしで成功した。詳細: [PQ-07実装報告](../report/product-quality-pq07.md)
 
+### PQ-06: VTK出力
+
+- `shell`、`nonlinear_bar`、`tetra2`、`wedge2`、`hexa2`を含む対応要素を正しいセル型にした。
+- 3／4節点shellを型分けし、二次要素の中間節点順をVTK 9.7のパラメトリック座標と照合した。
+- `node_id`と`element_id`を保存し、非連続ID・混在セル・結果辞書順によらずデータを整列する。
+- 変位、反力、梁端力、シェル両面テンソル／局所断面合力、ソリッドGauss点単純平均を分離した。
+- 欠損値は`NaN`とし、未対応型・不正節点数をセル型0で成功させず明示的に失敗する。
+- `meshio`による7回帰、公式VTK 9.7の二次wedge読戻し、実シェル解析の結果読戻しを確認した。
+
+詳細: [PQ-06実装・検証報告](../report/product-quality-pq06.md)
+
+### PQ-08: 診断と結果メタデータ
+
+- `invalid_input`、`unsupported_analysis`、`structural_mechanism`、
+  `numerical_ill_conditioning`、`nonlinear_nonconvergence`、`modal_nonconvergence`を
+  `ValueError`／`RuntimeError`互換の診断例外として追加した。
+- HTTPエラーを`error`、`error_code`、`error_category`、`converged`、任意の`details`へ統一した。
+- 未対応機能の要素ID、直接確認できた行列自由度、非線形の失敗step／load factorを返す。
+  一般的な特異行列から原因節点を推測しない。
+- 3解析の成功結果にschema／製品version、入力SHA-256、解析条件、座標・一貫単位系、
+  残差、反復数、警告、高精度経路を持つ`metadata`を追加した。
+- `model_metadata`と結果`metadata`のJSON保存往復、入力変更時のhash変更を固定した。
+- `src/fem`内の無条件`print`を標準loggingへ移し、ログレベルで制御できるようにした。
+
+詳細: [PQ-08実装・検証報告](../report/product-quality-pq08.md)
+
 ### PQ-00: clean checkoutの追補
 
 `ebd64ea`単体の全件実行は`1924 passed, 2 failed`だった。2失敗は
@@ -88,15 +115,12 @@ Wikiチェッカーは13ページ、Python 18ブロック、JSON 17ブロック�
 
 ## 共有作業ツリーの注意
 
-PQ-07開始時のHEAD／`origin/main`は`a4392b9`だった。全件試験中に別セッションが面荷重理論READMEを
-`18479e1`としてcommit・pushし、面荷重実装計画を`f17c65d`としてcommitした。現在のHEADは
-`f17c65d`、`origin/main`は`18479e1`である。これらのcommit、
-`docs/面荷重理論/README.md`、`docs/plans/面荷重実装計画.md`は本作業で作成・変更していない。
-
-今回の未コミットPQ-07変更は、機能表・検証モジュール、`FemModel`の事前検証、公開API、生成ツール、
-試験、README／Wiki、ロードマップ／引継ぎ／報告の計12ファイルである。PQ-07のcommit、pushは
-行っていない。次回開始時も`git status --short`と`git diff`を取り直し、他セッションの変更を
-stash、reset、整形、commitしない。
+PQ-06開始時は`main`の`6085418c53f03f200c2c0a34609973ae021e3653`で、作業ツリーはcleanだった。
+以前のPQ-07変更はこのコミットに含まれている。今回のPQ-06変更はVTKライター／変換、独立reader試験、
+開発依存、Wiki、ロードマップ／引継ぎ／報告に限定した。続けてPQ-08の診断、メタデータ、
+logging、試験、利用者文書を同じ作業ツリーへ追加した。commit、pushは行っていない。
+次回開始時も`git status --short`と`git diff`を取り直し、他セッションの変更をstash、reset、整形、
+commitしない。
 
 ## PQ-04実装内容と残る外部接続
 
@@ -132,15 +156,44 @@ GitHub APIで確認できたenvironmentは`github-pages`だけであり、`pypi`
 
 詳細: [PQ-04 CI・PyPI公開経路報告](../report/product-quality-pq04.md)
 
-## 次項目: PQ-06
+## PQ-06最終検証
 
-PQ-04は保留のまま、段階3の次項目としてPQ-06を実施する。`shell`、`nonlinear_bar`、
-`tetra2`、`wedge2`、`hexa2`のVTKセル型0を修正し、三角形／四角形、二次要素の節点順、
-非連続ID、混在セル、セルデータのID対応を独立VTK readerで読み戻す。
-未対応型を空セルとして成功出力せず、現行の物理的なシェル結果を扱う。
+```powershell
+uv run --locked --extra dev pytest --junitxml=tmp/product-quality-pq06-current.xml
+```
 
-PQ-06完了後はPQ-08へ進み、エラーコード、節点／自由度／要素／失敗ステップ、結果メタデータ、
-ログ制御、保存往復を整備する。
+- Python 3.13.11 / pytest 9.0.2 / NumPy 2.4.1 / SciPy 1.17.0 / meshio 5.3.5
+- 2,003成功、失敗0、error 0、skip 0、終了コード0
+- JUnit実測1,083.514秒、pytest表示1,083.53秒（18分03秒）
+- Wiki 13ページ、Python 19ブロック、JSON 17ブロック、実行例18件が成功
+- 公式`vtk==9.7.0`による15節点wedgeの型26・接続・ID読戻しが成功
+
+## PQ-08集中検証
+
+```powershell
+uv run --locked --extra dev pytest tests/io tests/solvers tests/integration/test_model_contracts.py tests/integration/test_beam_precision.py -q
+```
+
+- 関連205成功、失敗0、skip 0、終了コード0
+- 診断・メタデータ固有試験は9成功
+- `rg -n "print\\(" src/fem --glob "*.py"`は該当0件
+
+全件は次で実行した。
+
+```powershell
+uv run --locked --extra dev pytest --junitxml=tmp/product-quality-pq08-current.xml
+```
+
+- Python 3.13.11 / pytest 9.0.2
+- 2,012成功、failure 0、error 0、skip 0、終了コード0
+- JUnit実測1,090.000秒、pytest表示1,090.01秒（18分10秒）
+- Wiki 13ページ、Python 21ブロック、JSON 17ブロック、実行例18件が成功
+
+## 次項目: PQ-09
+
+PQ-04は保留のまま、段階4のPQ-09を実施する。梁・板・ソリッドの非一様変形について、
+複数メッシュで変位・応力・エネルギー誤差と収束率を測り、歪み・アスペクト比・板厚・
+ポアソン比の適用限界を、独立参照解とともに報告する。
 
 ## 維持する品質ルール
 

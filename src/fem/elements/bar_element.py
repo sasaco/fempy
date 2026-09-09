@@ -3,11 +3,15 @@
 JavaScript版のBarElement.jsに対応し、既存のFA_Beam機能を統合
 """
 from typing import Dict, List, Tuple, Optional, Any
+import logging
 import numpy as np
 import math
 from .base_element import BaseElement
 from ..material import Material, BarParameter
 from ..section import BaseSection
+
+
+logger = logging.getLogger(__name__)
 
 
 class BarElement(BaseElement):
@@ -222,7 +226,7 @@ class BEBarElement(BarElement):
                 rho = 2400.0  # コンクリート
             else:
                 rho = 7850.0  # 一般的な金属材料として鋼材を使用
-            print(f"警告: 材料ID{self.material_id}の密度が設定されていません。デフォルト値{rho}を使用します。")
+            logger.warning("材料ID%sの密度が未指定のためデフォルト値%sを使用", self.material_id, rho)
         
         # 集中質量行列（簡略化）
         m = rho * A * L / 2  # 各節点への質量配分
@@ -285,17 +289,13 @@ class TBarElement(BarElement):
         # V1レベルの詳細診断情報
         if L <= 0:
             coords = self.get_element_coordinates()
-            print(f"🚨 ゼロ長要素詳細診断:")
-            print(f"  - 要素ID: {self.element_id}")
-            print(f"  - 節点ID: {self.node_ids}")
-            print(f"  - 計算された長さ: {L}")
-            print(f"  - 節点座標:")
+            logger.error("ゼロ長要素: 要素ID=%s, 節点ID=%s, 長さ=%s", self.element_id, self.node_ids, L)
+            logger.debug("節点座標")
             for i, node_id in enumerate(self.node_ids):
-                print(f"    節点{node_id}: {coords[i]}")
+                logger.debug("節点%s: %s", node_id, coords[i])
             if len(self.node_ids) == 2:
                 vector = coords[1] - coords[0]
-                print(f"  - ベクトル: {vector}")
-                print(f"  - ベクトルノルム: {np.linalg.norm(vector)}")
+                logger.debug("要素ベクトル=%s, ノルム=%s", vector, np.linalg.norm(vector))
                 
             # 節点重複チェック
             if len(self.node_ids) == 2 and self.node_ids[0] == self.node_ids[1]:
@@ -328,10 +328,10 @@ class TBarElement(BarElement):
         # ゼロ除算防止: せん断補正係数の検証
         if self.shear_correction:
             if ky <= 0:
-                print(f"警告: せん断補正係数ky={ky}が無効です。デフォルト値5/6を使用します。")
+                logger.warning("せん断補正係数ky=%sが無効なため5/6を使用", ky)
                 ky = 5.0/6.0
             if kz <= 0:
-                print(f"警告: せん断補正係数kz={kz}が無効です。デフォルト値5/6を使用します。")
+                logger.warning("せん断補正係数kz=%sが無効なため5/6を使用", kz)
                 kz = 5.0/6.0
         
         # せん断変形パラメータの安全な計算
@@ -341,23 +341,23 @@ class TBarElement(BarElement):
             denom_z_calc = ky * G * A * L**2  # Mz bends in local y
             
             if abs(denom_y_calc) < 1e-12:
-                print(f"警告: せん断変形計算でゼロ除算検出 (Y方向)。Bernoulli-Euler梁として処理します。")
+                logger.warning("せん断変形計算でゼロ除算を検出 (Y方向); Bernoulli-Euler梁として処理")
                 phi_y = 0
             else:
                 phi_y = 12 * E * Iy / denom_y_calc
                 
             if abs(denom_z_calc) < 1e-12:
-                print(f"警告: せん断変形計算でゼロ除算検出 (Z方向)。Bernoulli-Euler梁として処理します。")
+                logger.warning("せん断変形計算でゼロ除算を検出 (Z方向); Bernoulli-Euler梁として処理")
                 phi_z = 0
             else:
                 phi_z = 12 * E * Iz / denom_z_calc
                 
             # 無限大・NaN値の検証
             if not np.isfinite(phi_y):
-                print(f"警告: phi_y={phi_y}が無効値です。ゼロに設定します。")
+                logger.warning("phi_y=%sが無効なためゼロに設定", phi_y)
                 phi_y = 0
             if not np.isfinite(phi_z):
-                print(f"警告: phi_z={phi_z}が無効値です。ゼロに設定します。")
+                logger.warning("phi_z=%sが無効なためゼロに設定", phi_z)
                 phi_z = 0
         else:
             phi_y = phi_z = 0
@@ -377,7 +377,7 @@ class TBarElement(BarElement):
         denom_y = 1 + phi_y
         # 分母の安全性再確認
         if abs(denom_y) < 1e-12:
-            print(f"警告: denom_y={denom_y}がゼロに近い値です。デフォルト値1.0を使用します。")
+            logger.warning("denom_y=%sがゼロに近いため1.0を使用", denom_y)
             denom_y = 1.0
             
         Ke[2, 2] = Ke[8, 8] = 12 * E * Iy / (L**3 * denom_y)
@@ -394,7 +394,7 @@ class TBarElement(BarElement):
         denom_z = 1 + phi_z
         # 分母の安全性再確認
         if abs(denom_z) < 1e-12:
-            print(f"警告: denom_z={denom_z}がゼロに近い値です。デフォルト値1.0を使用します。")
+            logger.warning("denom_z=%sがゼロに近いため1.0を使用", denom_z)
             denom_z = 1.0
             
         Ke[1, 1] = Ke[7, 7] = 12 * E * Iz / (L**3 * denom_z)

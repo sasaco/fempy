@@ -1,6 +1,125 @@
 """Accepted snapshots and explicit compatibility projections for static APIs."""
 
 from copy import deepcopy
+import hashlib
+import json
+
+import numpy as np
+
+from ._version import __version__
+
+
+RESULT_SCHEMA_VERSION = "1.0"
+DEFAULT_MODEL_METADATA = {
+    "coordinate_system": {
+        "name": "global_cartesian",
+        "axes": ["x", "y", "z"],
+    },
+    "units": {
+        "system": "consistent_user_defined",
+        "length": "unspecified",
+        "force": "unspecified",
+        "mass": "unspecified",
+        "time": "unspecified",
+    },
+}
+
+
+def normalize_model_metadata(metadata):
+    """Merge user declarations onto the non-SI-assuming public defaults."""
+    result = deepcopy(DEFAULT_MODEL_METADATA)
+    if metadata:
+        if not isinstance(metadata, dict):
+            raise ValueError("model_metadata must be an object")
+        unknown = set(metadata) - set(DEFAULT_MODEL_METADATA)
+        if unknown:
+            raise ValueError(f"Unknown model_metadata fields: {sorted(unknown)}")
+        for key, value in metadata.items():
+            if not isinstance(value, dict):
+                raise ValueError(f"model_metadata.{key} must be an object")
+            result[key].update(deepcopy(value))
+    return result
+
+
+def _effective_analysis_parameters(analysis_type, parameters):
+    names = {
+        "static": (),
+        "modal": ("n_modes",),
+        "material_nonlinear": (
+            "n_load_steps", "max_iterations", "tolerance",
+            "load_factors", "displacement_control",
+        ),
+    }[analysis_type]
+    return {
+        name: deepcopy(parameters[name])
+        for name in names
+        if name in parameters and parameters[name] is not None
+    }
+
+
+def build_result_metadata(model, analysis_type):
+    """Build deterministic provenance and final solver diagnostics."""
+    from .file_io import model_to_jsonable
+
+    declarations = normalize_model_metadata(model.model_metadata)
+    model_data = {
+        "mesh": model.mesh,
+        "boundary": model.boundary,
+        "material": model.material,
+        "section": model.section,
+        "analysis_type": analysis_type,
+        "analysis_params": model.analysis_params,
+        "model_metadata": declarations,
+    }
+    canonical = json.dumps(
+        model_to_jsonable(model_data), sort_keys=True, separators=(",", ":"),
+        ensure_ascii=False, allow_nan=False,
+    ).encode("utf-8")
+
+    solver = model.solver
+    history = solver.convergence_history
+    step_iterations = [int(step.get("iterations", 0)) for step in solver.step_results]
+    residual_norm = relative_residual = None
+    if history:
+        residual_norm = float(history[-1]["residual_norm"])
+        relative_residual = float(history[-1]["relative_residual"])
+    elif analysis_type == "static" and solver.displacement is not None:
+        applied = solver.load_factor * solver.load_vector
+        residual = solver._equilibrium_residual(
+            solver._last_internal_force - applied,
+            solver.displacement,
+            model.boundary,
+            solver.layout.stride,
+        )
+        residual_norm = float(np.linalg.norm(residual))
+        free_load = solver._apply_bc_to_residual(
+            applied, model.boundary, solver.layout.stride
+        )
+        relative_residual = residual_norm / max(float(np.linalg.norm(free_load)), 1.0)
+    elif analysis_type == "modal" and model.results.get("eigenpair_residuals"):
+        relative_residual = float(max(model.results["eigenpair_residuals"]))
+
+    return {
+        "schema_version": RESULT_SCHEMA_VERSION,
+        "product": {"name": "FEMPython", "version": __version__},
+        "input_sha256": hashlib.sha256(canonical).hexdigest(),
+        "analysis": {
+            "type": analysis_type,
+            "parameters": _effective_analysis_parameters(
+                analysis_type, model.analysis_params
+            ),
+        },
+        **declarations,
+        "solver": {
+            "converged": True,
+            "iterations": sum(step_iterations),
+            "step_iterations": step_iterations,
+            "residual_norm": residual_norm,
+            "relative_residual": relative_residual,
+            "warnings": deepcopy(solver.analysis_warnings),
+            "high_precision": solver.precise_end_forces is not None,
+        },
+    }
 
 
 def snapshot(solver, mesh, boundary, elements, solution, force, step, factor, nonlinear):

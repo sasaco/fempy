@@ -31,6 +31,7 @@ from app.error_handling import MyError, MyCritical
 from fem.model import FemModel
 from fem.file_io import _read_json_model, read_model
 from fem.file_io import result_to_jsonable
+from fem.diagnostics import InputValidationError, diagnostic_payload
 from fem.nonlinear.nonlinear_solver import NonlinearConvergenceError
 from werkzeug.exceptions import BadRequest, UnsupportedMediaType
 
@@ -115,22 +116,20 @@ def FEMPython(request):
         return (response, 200, headers)
     
     # 以下、エラー処理
-    except NonlinearConvergenceError as e:
-        return (json.dumps({'error': str(e), 'error_code': 'nonlinear_nonconvergence',
-                            'converged': False, 'step': e.step,
-                            'load_factor': e.load_factor}), 422, headers)
-    except np.linalg.LinAlgError:
-        return (json.dumps({'error': 'Analysis or result processing failed',
-                            'error_code': 'analysis_failure', 'converged': False}), 500, headers)
-    except (ValueError, KeyError, TypeError, BadRequest, UnsupportedMediaType) as e:
-        return (json.dumps({'error': str(e), 'error_code': 'invalid_input',
-                            'converged': False}), 400, headers)
     except MyCritical as e:  # システム起因と思われる例外
-        return (json.dumps({'error': e.fixed_msg, 'converged': False}, ensure_ascii=False), 500, headers)
+        payload, status = diagnostic_payload(e)
+        payload['error'] = e.fixed_msg
+        return (json.dumps(payload, ensure_ascii=False), status, headers)
     except MyError as e:  # ユーザー起因と思われる例外
-        return (json.dumps({'error': e.output_msg(), 'converged': False}, ensure_ascii=False), 400, headers)
+        wrapped = InputValidationError(e.output_msg())
+        payload, status = diagnostic_payload(wrapped)
+        return (json.dumps(payload, ensure_ascii=False), status, headers)
+    except (BadRequest, UnsupportedMediaType) as e:
+        payload, status = diagnostic_payload(InputValidationError(str(e)))
+        return (json.dumps(payload, ensure_ascii=False), status, headers)
     except Exception as e:  # その他の予期せぬエラー
-        return (json.dumps({'error': "予期せぬエラーが発生しました。", 'converged': False}, ensure_ascii=False), 500, headers)
+        payload, status = diagnostic_payload(e)
+        return (json.dumps(payload, ensure_ascii=False), status, headers)
     # endregion
 
 

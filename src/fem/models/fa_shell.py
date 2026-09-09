@@ -1,6 +1,10 @@
+import logging
 import numpy as np
 from error_log import FrameCritical, fLogger
 from models.fa_node import FA_Node
+
+
+logger = logging.getLogger(__name__)
 
 
 # (注)
@@ -47,10 +51,10 @@ class FA_Shell:
         self.iMat = iMat
         
         if isinstance(iThick, list):
-            print(f"警告: iThickがリスト型として渡されました。0に設定します。")
+            logger.warning("iThickがリスト型のため0に設定")
             self.iThick = 0
         elif not isinstance(iThick, int):
-            print(f"警告: iThickが整数型ではありません ({type(iThick)})。0に設定します。")
+            logger.warning("iThickが整数型ではないため0に設定: %s", type(iThick))
             self.iThick = 0
         else:
             self.iThick = iThick
@@ -85,7 +89,7 @@ class FA_Shell:
             norm_c = np.linalg.norm(c)
             
             if norm_c < 1e-10:
-                print(f"警告: シェル要素の法線ベクトル計算で数値的に不安定な状態が検出されました (norm={norm_c})")
+                logger.warning("シェル要素の法線ベクトル計算が数値的に不安定: norm=%s", norm_c)
                 z_coords = [self.get_coordinate(i)[2] for i in range(3)]
                 z_diff = max(z_coords) - min(z_coords)
                 
@@ -116,7 +120,7 @@ class FA_Shell:
             norm_c = np.linalg.norm(c)
             
             if norm_c < 1e-10:
-                print(f"警告: シェル要素の法線ベクトル計算で数値的に不安定な状態が検出されました (norm={norm_c})")
+                logger.warning("シェル要素の法線ベクトル計算が数値的に不安定: norm=%s", norm_c)
                 z_coords = [self.get_coordinate(i)[2] for i in range(4)]
                 z_diff = max(z_coords) - min(z_coords)
                 

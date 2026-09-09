@@ -16,6 +16,13 @@ from tests.support.serialization import wire
 pytestmark = pytest.mark.integration
 
 
+def without_input_hash(result):
+    """Compare responses while retaining each route's truthful input provenance."""
+    comparable = wire(result)
+    comparable["metadata"]["input_sha256"] = "<route-specific>"
+    return comparable
+
+
 @pytest.mark.material_nonlinear
 def test_python_json_file_http_equivalence(tmp_path):
     data = axial_json()
@@ -29,8 +36,9 @@ def test_python_json_file_http_equivalence(tmp_path):
     results.append(json.loads(response.data))
     for r in results:
         assert_axial(r)
-        assert_dict_almost_equal(wire(r), wire(results[0]))
-        assert wire(r) == wire(results[0])  # same input route: exact numerical identity
+        assert_dict_almost_equal(without_input_hash(r), without_input_hash(results[0]))
+        # Construction routes intentionally retain distinct input provenance.
+        assert without_input_hash(r) == without_input_hash(results[0])
 
 
 @pytest.mark.material_nonlinear
@@ -52,8 +60,8 @@ def test_python_json_and_http_use_saved_jr_k4_displacement_history():
         assert result["node_displacements"]["30"]["dy"] == pytest.approx(0.040)
         assert result["node_displacements"]["30"]["rz"] == pytest.approx(0.040)
         assert result["reaction_forces"]["10"]["mz"] == pytest.approx(-12.0)
-    assert_dict_almost_equal(results[1], results[0])
-    assert_dict_almost_equal(results[2], results[0])
+    assert_dict_almost_equal(without_input_hash(results[1]), without_input_hash(results[0]))
+    assert_dict_almost_equal(without_input_hash(results[2]), without_input_hash(results[0]))
 
 
 @pytest.mark.material_nonlinear

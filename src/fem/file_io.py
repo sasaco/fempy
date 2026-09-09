@@ -3,6 +3,7 @@ FEM解析のファイル入出力モジュール
 JavaScript版のFileIO機能に対応
 """
 import json
+import logging
 import os
 from typing import Dict, Any, Optional, List
 import numpy as np
@@ -11,6 +12,9 @@ from .mesh import MeshModel
 from .boundary_condition import BoundaryCondition
 from .material import Material, MaterialProperty, ShellParameter, BarParameter, NonlinearMaterialProperty
 from .section import Section, CircleSection, RectSection, ISection, TubeSection
+
+
+logger = logging.getLogger(__name__)
 
 
 def read_model(file_path: str) -> Dict[str, Any]:
@@ -52,6 +56,7 @@ def _read_json_model(data: Dict[str, Any]) -> Dict[str, Any]:
         'section': Section(),
         'analysis_type': data.get('analysis_type'),
         'analysis_params': data.get('analysis_params', {}),
+        'model_metadata': data.get('model_metadata', {}),
     }
     
     # 旧形式のチェック（nodeセクションがある場合）
@@ -370,9 +375,12 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                             'hysteresis_dofs': hysteresis_dofs
                         }
 
-                        print(f"非線形材料を読み込みました: material_id={material_id}, "
-                              f"P=({P_1}, {P_2}, {P_3}), delta=({delta_1}, {delta_2}, {delta_3}), "
-                              f"hysteresis_dofs={hysteresis_dofs}")
+                        logger.info(
+                            "非線形材料: material_id=%s, P=(%s, %s, %s), "
+                            "delta=(%s, %s, %s), hysteresis_dofs=%s",
+                            material_id, P_1, P_2, P_3, delta_1, delta_2, delta_3,
+                            hysteresis_dofs,
+                        )
 
     # 非線形材料を使用するmemberの要素タイプを'nonlinear_bar'に変更
     for member_info in nonlinear_member_info:
@@ -387,8 +395,10 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 elem_data['section_id'] = material_id
                 elem_data['hysteresis_dofs'] = nonlinear_materials[material_id]['hysteresis_dofs']
                 # Preserve an explicit per-member shear choice.
-                print(f"要素{member_id}を非線形要素に変換: material_id={material_id}, "
-                      f"hysteresis_dofs={elem_data['hysteresis_dofs']}")
+                logger.info(
+                    "要素%sを非線形要素に変換: material_id=%s, hysteresis_dofs=%s",
+                    member_id, material_id, elem_data['hysteresis_dofs'],
+                )
     
     # デフォルト材料を追加（材料が一つも読み込まれなかった場合）
     if len(model_data['material'].materials) == 0:
@@ -521,7 +531,7 @@ def _read_fw3_model(lines: list[str]) -> Dict[str, Any]:
                 if elem_type in ['TriElement1', 'QuadElement1', 'ShellElement']:
                     # Shell要素の場合、デフォルト厚さを設定
                     model_data['mesh'].add_element(elem_id, elem_type, node_ids, 1, thickness=0.01)
-                    print(f"✅ V0互換: {elem_type}要素を読み込み (ID: {elem_id}, 節点: {node_ids})")
+                    logger.info("V0互換: %s要素を読み込み (ID: %s, 節点: %s)", elem_type, elem_id, node_ids)
                 elif elem_type in ['BarElement', 'BeamElement', 'TrussElement']:
                     # Bar要素の場合
                     model_data['mesh'].add_element(elem_id, elem_type, node_ids, 1)
@@ -573,9 +583,13 @@ def write_model(model_data: Dict[str, Any], file_path: str) -> None:
         raise ValueError(f"Unsupported file format: {ext}")
 
 
-def _write_json_model(model_data: Dict[str, Any], file_path: str) -> None:
-    """JSONフォーマットでモデルを書き込む"""
-    output_data = {k: model_data[k] for k in ('analysis_type', 'analysis_params') if k in model_data}
+def model_to_jsonable(model_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Return the canonical JSON model representation used for files and hashes."""
+    output_data = {
+        k: model_data[k]
+        for k in ('analysis_type', 'analysis_params', 'model_metadata')
+        if k in model_data
+    }
     
     # メッシュデータ
     mesh = model_data.get('mesh')
@@ -643,8 +657,14 @@ def _write_json_model(model_data: Dict[str, Any], file_path: str) -> None:
                 for pressure in boundary.pressures
             ]
             
+    return result_to_jsonable(output_data)
+
+
+def _write_json_model(model_data: Dict[str, Any], file_path: str) -> None:
+    """JSONフォーマットでモデルを書き込む"""
+    output_data = model_to_jsonable(model_data)
     with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump(output_data, f, indent=2, ensure_ascii=False)
+        json.dump(output_data, f, indent=2, ensure_ascii=False, allow_nan=False)
 
 
 def _write_fw3_model(model_data: Dict[str, Any], file_path: str) -> None:
@@ -751,22 +771,150 @@ def write_result(result_data: Dict[str, Any], file_path: str) -> None:
         json.dump(output_data, f, indent=2, ensure_ascii=False, allow_nan=False)
 
 
+def _vtk_lookup(values: Dict[int, Any], item_id: int):
+    if item_id in values:
+        return values[item_id]
+    return values.get(str(item_id))
+
+
+def _vtk_vector(value: Any, names: tuple[str, str, str], label: str) -> np.ndarray:
+    if isinstance(value, dict):
+        if not all(name in value for name in names):
+            raise ValueError(f"{label} requires {names}")
+        result = np.array([value[name] for name in names], dtype=float)
+    else:
+        result = np.asarray(value, dtype=float)[:3]
+    if result.shape != (3,) or np.isinf(result).any():
+        raise ValueError(f"{label} requires three numeric values without infinity")
+    return result
+
+
+def _vtk_symmetric_tensor(value: Any, label: str, *, engineering_shear: bool = False) -> np.ndarray:
+    components = np.asarray(value, dtype=float)
+    if components.shape != (6,) or np.isinf(components).any():
+        raise ValueError(f"{label} requires [xx, yy, zz, xy, yz, zx]")
+    xx, yy, zz, xy, yz, zx = components
+    if engineering_shear:
+        xy, yz, zx = xy / 2, yz / 2, zx / 2
+    return np.array([[xx, xy, zx], [xy, yy, yz], [zx, yz, zz]])
+
+
+def _vtk_point_data(nodes: Dict[int, Any], result_data: Dict[str, Any]) -> Dict[str, Dict[int, Any]]:
+    output: Dict[str, Dict[int, Any]] = {"node_id": {node_id: node_id for node_id in nodes}}
+    specifications = (
+        ("node_displacements", "displacement", ("dx", "dy", "dz")),
+        ("reaction_forces", "reaction_force", ("fx", "fy", "fz")),
+    )
+    for source_name, vtk_name, components in specifications:
+        source = result_data.get(source_name)
+        if not source:
+            continue
+        output[vtk_name] = {}
+        for node_id in nodes:
+            value = _vtk_lookup(source, node_id)
+            output[vtk_name][node_id] = (
+                np.full(3, np.nan) if value is None
+                else _vtk_vector(value, components, f"{source_name}[{node_id}]")
+            )
+    return output
+
+
+def _vtk_cell_data(elements: Dict[int, Any], result_data: Dict[str, Any]) -> Dict[str, Dict[int, Any]]:
+    element_ids = list(elements)
+    output: Dict[str, Dict[int, Any]] = {
+        "element_id": {element_id: element_id for element_id in element_ids}
+    }
+
+    def scalar_field(name: str):
+        return output.setdefault(name, {element_id: np.nan for element_id in element_ids})
+
+    def tensor_field(name: str):
+        return output.setdefault(name, {element_id: np.full((3, 3), np.nan) for element_id in element_ids})
+
+    stresses = result_data.get("element_stresses") or {}
+    force_names = ("fx", "fy", "fz", "mx", "my", "mz")
+    solid_types = {"tetra", "tetra2", "wedge", "wedge2", "hexa", "hexa2"}
+    for element_id in element_ids:
+        value = _vtk_lookup(stresses, element_id)
+        if value is None:
+            continue
+        element_type = str(elements[element_id].get("type", "")).lower()
+        if isinstance(value, dict) and ("i_end" in value or "j_end" in value):
+            for end in ("i", "j"):
+                forces = np.asarray(value.get(f"{end}_end"), dtype=float)
+                if forces.shape != (6,) or not np.isfinite(forces).all():
+                    raise ValueError(f"element_stresses[{element_id}].{end}_end requires six finite values")
+                for component, number in zip(force_names, forces):
+                    scalar_field(f"section_force_{end}_{component}")[element_id] = number
+            continue
+        if isinstance(value, dict) and element_type in solid_types and "stress" in value:
+            stress = np.asarray(value["stress"], dtype=float)
+            if stress.ndim != 2 or stress.shape[1] != 6 or not np.isfinite(stress).all():
+                raise ValueError(f"element_stresses[{element_id}].stress requires finite Gauss-point rows of six")
+            tensor_field("solid_stress_gauss_point_mean")[element_id] = _vtk_symmetric_tensor(
+                stress.mean(axis=0), f"element_stresses[{element_id}].stress"
+            )
+            if "strain" in value:
+                strain = np.asarray(value["strain"], dtype=float)
+                if strain.ndim != 2 or strain.shape[1] != 6 or not np.isfinite(strain).all():
+                    raise ValueError(f"element_stresses[{element_id}].strain requires finite Gauss-point rows of six")
+                tensor_field("solid_strain_gauss_point_mean")[element_id] = _vtk_symmetric_tensor(
+                    strain.mean(axis=0), f"element_stresses[{element_id}].strain", engineering_shear=True
+                )
+            continue
+        if isinstance(value, dict):
+            tensor_keys = ("xx", "yy", "zz", "xy", "yz", "zx")
+            if all(key in value for key in tensor_keys):
+                tensor_field("stress")[element_id] = _vtk_symmetric_tensor(
+                    [value[key] for key in tensor_keys], f"element_stresses[{element_id}]"
+                )
+                continue
+            for component, number in value.items():
+                if np.asarray(number).shape == () and np.issubdtype(np.asarray(number).dtype, np.number):
+                    scalar_field(f"stress_{component}")[element_id] = float(number)
+        elif np.asarray(value).shape == ():
+            scalar_field("stress")[element_id] = float(value)
+
+    shells = result_data.get("shell_results") or {}
+    resultant_names = {
+        "membrane": ("nx", "ny", "nxy"),
+        "moment": ("mx", "my", "mxy"),
+        "shear": ("qx", "qy"),
+    }
+    for element_id in element_ids:
+        shell = _vtk_lookup(shells, element_id)
+        if shell is None:
+            continue
+        resultants = shell.get("resultants", {})
+        for family, components in resultant_names.items():
+            values = np.asarray(resultants.get(family), dtype=float)
+            if values.shape != (len(components),) or not np.isfinite(values).all():
+                raise ValueError(f"shell_results[{element_id}].resultants.{family} has invalid values")
+            for component, number in zip(components, values):
+                scalar_field(f"shell_{family}_{component}")[element_id] = number
+        raw = shell.get("raw_result", {})
+        for source, name in (
+            ("elemStress1", "shell_stress_surface_1"),
+            ("elemStress2", "shell_stress_surface_2"),
+            ("elemStrain1", "shell_strain_surface_1"),
+            ("elemStrain2", "shell_strain_surface_2"),
+        ):
+            tensor_field(name)[element_id] = _vtk_symmetric_tensor(
+                raw.get(source), f"shell_results[{element_id}].raw_result.{source}"
+            )
+    return output
+
+
 def write_vtk(model_data: Dict[str, Any], result_data: Dict[str, Any], file_path: str) -> None:
-    """VTK形式で解析結果を出力する"""
+    """Write supported mesh and named result quantities as Legacy ASCII VTK."""
     from .vtk_writer import VTKWriter
-    mesh = model_data.get('mesh')
+
+    mesh = model_data.get("mesh")
     if mesh is None:
         raise ValueError("model_dataにmeshが含まれていません")
-    nodes = mesh.nodes
-    elements = mesh.elements
-    writer = VTKWriter(file_path)
-    writer.write_header()
-    writer.write_points(nodes)
-    writer.write_cells(elements)
-    # 節点変位の出力
-    node_disp = result_data.get('node_displacements', {})
-    writer.write_point_data({'displacement': node_disp})
-    # 要素応力の出力
-    elem_stress = result_data.get('element_stresses', {})
-    writer.write_cell_data({'stress': elem_stress})
-    writer.write_footer()
+    with VTKWriter(file_path) as writer:
+        writer.write_header()
+        writer.write_points(mesh.nodes)
+        writer.write_cells(mesh.elements)
+        writer.write_point_data(_vtk_point_data(mesh.nodes, result_data))
+        writer.write_cell_data(_vtk_cell_data(mesh.elements, result_data))

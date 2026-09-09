@@ -1,3 +1,4 @@
+import logging
 import math
 import numpy as np
 from scipy.sparse import coo_matrix, csr_matrix
@@ -14,6 +15,9 @@ from .models.fa_thickness import FA_Thickness
 from .models.fa_support import FA_Support
 from .models.fa_spring import FA_Spring
 from .models.fa_joint import FA_Joint, get_BeamJoint
+
+
+logger = logging.getLogger(__name__)
 
 
 # 三角形1次要素の節点のξ,η座標
@@ -542,7 +546,7 @@ class StiffnessMatrix:
         if isinstance(shell.iThick, int):
             thick_index = shell.iThick
         else:
-            print(f"WARNING: shell.iThick is not an integer: {type(shell.iThick)}")
+            logger.warning("shell.iThick is not an integer: %s", type(shell.iThick))
             thick_index = 0
             
         mat = self.materials[shell.iMat]

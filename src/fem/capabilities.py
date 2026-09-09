@@ -15,9 +15,17 @@ _VALID_STATUSES = frozenset({"verified", "implemented", "unsupported"})
 class UnsupportedCapabilityError(ValueError):
     """A model requests a capability declared unsupported by the registry."""
 
+    error_code = "unsupported_analysis"
+    error_category = "unsupported"
+    http_status = 422
+
     def __init__(self, analysis_type: str, issues: list[dict[str, Any]]):
         self.analysis_type = analysis_type
         self.issues = tuple(deepcopy(issues))
+        self.details = {
+            "analysis_type": analysis_type,
+            "issues": deepcopy(issues),
+        }
         grouped: dict[tuple[str, str, str, str], list[int]] = defaultdict(list)
         for issue in issues:
             key = (

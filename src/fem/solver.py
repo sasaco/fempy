@@ -12,6 +12,7 @@ from .mesh import MeshModel
 from .boundary_condition import BoundaryCondition
 from .material import Material
 from .dof import DofLayout
+from .diagnostics import ModalConvergenceError, UnsupportedAnalysisError
 from .equilibrium import (
     NonlinearConvergenceError, direct_step, displacement_control_iteration,
     newton_iteration, solve_direct_system, solve_newton_system,
@@ -48,6 +49,7 @@ class Solver:
         self.precise_end_forces = None
         self.precise_reactions = None
         self.interpolated_displacements = {}
+        self.analysis_warnings = []
 
     def _set_dof_layout(self, mesh: MeshModel) -> None:
         signature = (tuple(sorted(mesh.nodes)), tuple(
@@ -330,7 +332,10 @@ class Solver:
         """
         self._reset_analysis_state()
         if analysis_type not in ('static', 'material_nonlinear'):
-            raise ValueError(f'Unknown static analysis type: {analysis_type}')
+            raise UnsupportedAnalysisError(
+                f'Unknown static analysis type: {analysis_type}',
+                analysis_type=analysis_type,
+            )
         nonlinear = analysis_type == 'material_nonlinear'
         if nonlinear:
             for name, value in [('n_steps', n_steps), ('max_iter', max_iter)]:
@@ -518,8 +523,9 @@ class Solver:
                         reduced_stiffness, k=n_modes, M=reduced_mass,
                         sigma=0.0, which='LM', maxiter=5000, tol=1e-9)
                 except (ArpackNoConvergence, RuntimeError, ValueError) as retry_error:
-                    raise RuntimeError(
-                        f'Modal analysis did not converge for {n_modes} requested modes') \
+                    raise ModalConvergenceError(
+                        f'Modal analysis did not converge for {n_modes} requested modes',
+                        analysis_type='modal', requested_modes=n_modes) \
                         from retry_error
 
         order = np.argsort(eigenvalues)[:n_modes]
