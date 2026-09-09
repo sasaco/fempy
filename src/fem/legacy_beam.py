@@ -104,6 +104,36 @@ def prepare_members(data, model_data):
                 continue  # Disabled editor row, even when stale values remain.
             else:
                 raise ValueError(f'Unsupported member load mark {mark}')
+        section = model_data['material'].get_bar_parameter(original['section_id'])
+        if section is not None and all(getattr(section, name) == 0 for name in ('area', 'Iy', 'Iz', 'J')):
+            # A load-transfer member has no internal displacement unknowns.
+            # Integrate its actual loading directly onto the ORIGINAL endpoints.
+            if rigid or any(str(s['m']) == mid for s in springs):
+                raise ValueError('Load-transfer members cannot have rigid zones or foundations')
+            from .elements.loaded_bar_element import LoadedBarElement
+            transfer = LoadedBarElement(int(mid), [ni, nj], original['material_id'],
+                                        original['section_id'], float(member.get('cg') or 0))
+            transfer.set_node_coordinates(mesh.nodes)
+            endpoint = np.zeros((2, 6))
+            for a, b, load in distributed:
+                transfer.line_load[:] = 0.
+                transfer.set_line_load(load.get('direction', 'y'),
+                                       [float(load.get('P1', 0)), float(load.get('P2', 0))])
+                q0, q1 = transfer.line_load.T
+                total = (b-a)*(q0+q1)/2
+                first = a*total+(b-a)**2*(q0+2*q1)/6
+                endpoint[0, :4] += total-first/length
+                endpoint[1, :4] += first/length
+            for p, value, direction, mark in points:
+                transfer.line_load[:] = 0.
+                transfer.set_line_load(direction, [value, value])
+                vector = transfer.line_load[:3, 0]
+                offset = 0 if mark == 1 else 3
+                endpoint[0, offset:offset+3] += (1-p/length)*vector
+                endpoint[1, offset:offset+3] += p/length*vector
+            original.update(transfer_load=endpoint.ravel().tolist(), original_id=int(mid),
+                            member_start=0., member_end=length, shear_correction=False)
+            continue
         # The same physical point may arise through different floating-point
         # expressions (L-Jlength vs notice point). Never create a zero segment.
         unique = []
@@ -159,11 +189,15 @@ def prepare_members(data, model_data):
             props = copy.deepcopy(original)
             mat_id = props['material_id']
             for zone in rigid:
-                if b <= float(zone.get('Ilength', 0)) or a >= length-float(zone.get('Jlength', 0)):
+                # Classify against the same coalesced boundaries used to split
+                # the member. An equivalent notice coordinate may be a few
+                # ulps below L-Jlength; that must not erase the end rigid zone.
+                if b <= snap(float(zone.get('Ilength', 0))) or a >= snap(length-float(zone.get('Jlength', 0))):
                     mat_id = int(zone['e'])
             props.update(nodes=[coordinates[a], coordinates[b]], material_id=mat_id, section_id=mat_id,
                          shear_correction=legacy_shear_correction(data, mat_id, member),
                          original_id=int(mid), member_start=a, member_end=b,
+                         member_nodes=[ni, nj],
                          releases=[i for i in releases if (i < 6 and a == 0) or (i >= 6 and b == length)],
                          foundation=foundation.tolist(), line_loads=[], temperature=thermal)
             for left, right, load in distributed:

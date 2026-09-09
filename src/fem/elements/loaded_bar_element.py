@@ -119,6 +119,7 @@ class LoadedBarElement(BEBarElement):
         self.line_load = np.zeros((4, 2))
         self.temperature_strain = 0.
         self.load_factor = 1.
+        self.transfer_load = np.zeros(12)
         self._cache = None
 
     def set_node_coordinates(self, coordinates):
@@ -145,6 +146,15 @@ class LoadedBarElement(BEBarElement):
         m = self.material.materials[self.material_id]
         p = self.bar_param
         k, f = np.zeros((12, 12)), np.zeros(12)
+        if all(getattr(p, name) == 0 for name in ('area', 'Iy', 'Iz', 'J')):
+            if np.any(self.foundation):
+                raise ValueError('Load-transfer members cannot have foundations')
+            f = self.transfer_load.copy()
+            q0, q1 = self.line_load.T
+            f[:4] += self.length*(2*q0+q1)/6
+            f[6:10] += self.length*(q0+2*q1)/6
+            self._cache = k, f
+            return self._cache
         modes = [(0, [0, 6], m.E*p.area, False, [1, 1]),
                  (1, [1, 5, 7, 11], m.E*p.Iz, True, [1, 1, 1, 1]),
                  (2, [2, 4, 8, 10], m.E*p.Iy, True, [1, -1, 1, -1]),

@@ -16,7 +16,7 @@
     {
       "id": "bar/2D_Sample01",
       "file": "bar/2D_Sample01.json",
-      "sha256": "bcead6bd52dc2d52f9f67103db6f1d80d3c303d105e9f2058f9b57d8f4ceb6c3",
+      "sha256": "61bbe4d176ba8ad6273deb77a5b8c47a647923fba217334161f039b7d96be0a4",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -60,7 +60,7 @@
     {
       "id": "bar/2D_Sample02",
       "file": "bar/2D_Sample02.json",
-      "sha256": "1460554aee2223a89e6b46e447639112cc08a1d4e3fcf3224944532193be5bdd",
+      "sha256": "453b49b9fd49b4e9194562f16cab3ebeadb50900adc28e49b789b9282dc708db",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -102,7 +102,7 @@
     {
       "id": "bar/2D_Sample03",
       "file": "bar/2D_Sample03.json",
-      "sha256": "a0f239d7d0692dabe46e301a1c0622544d77c552373760c6903a10d547c1f17a",
+      "sha256": "ce900b53e7c1eee4b3bd16fd9b2e1cc42b58ba3f047f7ee09b29bcf8671626c4",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -154,7 +154,7 @@
     {
       "id": "bar/2D_Sample04",
       "file": "bar/2D_Sample04.json",
-      "sha256": "aaa943ec97e6ce1d9cac78db8145b87225e11437c9fd2722aa2df69e2e8f4381",
+      "sha256": "0403ff6155ce37e32ee7b8444ac3d24cce367a909bb77570986e5b4c7db15e5b",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -184,7 +184,7 @@
     {
       "id": "bar/2D_Sample05",
       "file": "bar/2D_Sample05.json",
-      "sha256": "8d294b4fd294d398410c81c6a183c0272a34f77d3473989a24e441ccd732945c",
+      "sha256": "1f545399ebb214325e848d7e04ca11d6d8700d69f59a73c65e2b9f1789710dae",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -223,7 +223,7 @@
     {
       "id": "bar/2D_Sample06",
       "file": "bar/2D_Sample06.json",
-      "sha256": "aac6fb54c1095149aea04b735aa049664890a6d05a086cbeccbbfbbe2c98ceca",
+      "sha256": "44a160efeaa9181c09d7ffbfcace864d7a417ae57f0f29aa529e15e8b74c9dc6",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -252,7 +252,7 @@
     {
       "id": "bar/2D_Sample07",
       "file": "bar/2D_Sample07.json",
-      "sha256": "694e58949e67903502503f7927990708dd9d1846fc0425bb1f366fef33fde40d",
+      "sha256": "0767828ccc94696143fab2a4a278264ebef5715a4acad2f5ad423e6c5579bdcd",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -290,7 +290,7 @@
     {
       "id": "bar/2D_Sample08",
       "file": "bar/2D_Sample08.json",
-      "sha256": "88d727114277899be4e9a0c7f0d9f8ab43ec3b231c2560c7a95d2e82ab7e14a0",
+      "sha256": "e05a8a992162b46f35d03bc89eea582c56d098c8ae2ffe1710bf02adc55fd23b",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -314,7 +314,7 @@
     {
       "id": "bar/2D_Sample09",
       "file": "bar/2D_Sample09.json",
-      "sha256": "f29cd25078654fb703aeffc5c17e0f9581686bd1e31a9dfec3044ac11f835508",
+      "sha256": "3c7aeefb5d9e68b413d0cbcec358e73037d9914b7bdac2847535b9bb3511a52b",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -343,7 +343,7 @@
     {
       "id": "bar/2D_Sample10",
       "file": "bar/2D_Sample10.json",
-      "sha256": "1460554aee2223a89e6b46e447639112cc08a1d4e3fcf3224944532193be5bdd",
+      "sha256": "453b49b9fd49b4e9194562f16cab3ebeadb50900adc28e49b789b9282dc708db",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -385,7 +385,7 @@
     {
       "id": "bar/2D_Sample11",
       "file": "bar/2D_Sample11.json",
-      "sha256": "6f80599b17c008f9f2f75a58e5f1b6eb358224bfb5fccc94726240a0f22da7c9",
+      "sha256": "87fe83481170480465b3f5898c652ba525fd0ca3e6ef10f0c459a548633c868f",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -429,7 +429,7 @@
     {
       "id": "bar/2D_Sample13",
       "file": "bar/2D_Sample13.json",
-      "sha256": "a664c44d3d12526deb08d5a864ca119ef4d6b4e0108c71489ee90330dd4b40ee",
+      "sha256": "78a1369e382c9268a6af02f92283f390df45e30ef63cb60fd8bc846b6d9edd66",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -510,7 +510,7 @@
     {
       "id": "bar/3D_Sample02",
       "file": "bar/3D_Sample02.json",
-      "sha256": "d8dec329a4c615c8e2c866650bd39ed640d22230d804e59b023f8c115c96690f",
+      "sha256": "141985d80cb45a4c46db0335afb4363af848f92508c9fc42e7c45d95efa11427",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -540,7 +540,7 @@
     {
       "id": "bar/3D_Sample03",
       "file": "bar/3D_Sample03.json",
-      "sha256": "3202a05eac9b46ab53d0c885a8284ef0bc6f26a71584bb367ed26de2fb0184d2",
+      "sha256": "01a739280263375de701d38649a1e80526896651d47669e02e7f209ccce19c33",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -594,7 +594,7 @@
     {
       "id": "bar/3D_Sample04",
       "file": "bar/3D_Sample04.json",
-      "sha256": "43fc78c06f8d4e37d485cfaae9d7b434a814f01b560864d5eb3ce1161bd97c6a",
+      "sha256": "035e785654778f5eaa781c7197f6a7379101f18988dcf540562c95c5ac98308f",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -635,7 +635,7 @@
     {
       "id": "bar/3D_Sample05",
       "file": "bar/3D_Sample05.json",
-      "sha256": "1d084c1d858e309343966bca06addeb5da400dca9e45749b10a66469e5a4c5a6",
+      "sha256": "b278fe94ebab2f1ed459af5ee1d0e8cfd5062011d41fd3f6051d3e359c3e9929",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -660,7 +660,7 @@
     {
       "id": "bar/3D_Sample06",
       "file": "bar/3D_Sample06.json",
-      "sha256": "8ec0a5d5d447e456c165d60016856b467d9e6fcd8ba17991b126bcf84f6ef982",
+      "sha256": "ddeb2829fdae0887bb0273bcad23b1433b8b501f754533ef2c5775c08db4313c",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -681,7 +681,7 @@
     {
       "id": "bar/3D_Sample07",
       "file": "bar/3D_Sample07.json",
-      "sha256": "d5b169acb4988f21d50cc379f53e0fa86d6e728e6689edc55723cc2b12669592",
+      "sha256": "2a5dcdb68762e1515099d59b678553b23faae22103e230893d01a78b5c3a8734",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -703,7 +703,7 @@
     {
       "id": "bar/3D_Sample08",
       "file": "bar/3D_Sample08.json",
-      "sha256": "e70e5ac23b6707073f96299601a12fea09009156e8fcd498e456e1f2e641e2b7",
+      "sha256": "4eb1d9dfbb161beb17e1f38f765bfc3334bedbf417875478e59e1e30ea8f5b0f",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -728,7 +728,7 @@
     {
       "id": "bar/3D_Sample09",
       "file": "bar/3D_Sample09.json",
-      "sha256": "8f35b5b0537befe566c7613c114295108a342503e80516a10ff06f2053fa1f8d",
+      "sha256": "66aa1fb838920f37f976387767c50e55580e692f14976e770b3dfae7589f1c93",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -756,7 +756,7 @@
     {
       "id": "bar/3D_Sample10",
       "file": "bar/3D_Sample10.json",
-      "sha256": "a11e00f8fa244351bb31f79ad6ae7b4a59cdc424e18c5ac9c88f3ec2481258e3",
+      "sha256": "9eef16bfc802862c13be94b23e087185cb2adb578d9df890fb0c110f1922fc19",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -785,7 +785,7 @@
     {
       "id": "shell/3D_Sample01",
       "file": "shell/3D_Sample01.json",
-      "sha256": "fdeadecae9def0ce86c26253ed3f31ed8ba8808bddfe1c0d37b3c6514c9ff0e8",
+      "sha256": "4aba9a914f28b2fb4f615fac57aa41aee3697d44e747869ca59b587d0ba7cbba",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -806,7 +806,7 @@
     {
       "id": "shell/shellBeamQuad1",
       "file": "shell/shellBeamQuad1.json",
-      "sha256": "ee617c5aa11bfd48641cd3ecad29c850e92a6a092d76db3dd6510aaba03eca70",
+      "sha256": "5da3d75d8c60ecbc39df571b2f632f41a2922ba171a3dcb06f62527177384294",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -836,7 +836,7 @@
     {
       "id": "shell/shellBeamTri1",
       "file": "shell/shellBeamTri1.json",
-      "sha256": "b83b14e84e3bfb717f93bf424e8746afa5a01f7c33069ca72c9b79114cb66a4d",
+      "sha256": "e9682aa897271fdfb02b281f80ec9990e712693cf21bb07fab9b8c4f8c06e0ae",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -885,7 +885,7 @@
     {
       "id": "shell/shellQuad1",
       "file": "shell/shellQuad1.json",
-      "sha256": "e1308c17531eb20a45097eedc64de7ba3015c2e2378948694fd6f78171fdb143",
+      "sha256": "2077e63359149ab9cc097f197353d8d33d85d4d2bea5aae313ff85fca6f6a573",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -915,7 +915,7 @@
     {
       "id": "shell/shellQuad1_t1",
       "file": "shell/shellQuad1_t1.json",
-      "sha256": "8315e6d3372b3fcbd2b12f62a7b6d78fd2a314c854baac0e09ca3652c7634cb5",
+      "sha256": "57038990aa37ae7ac40e9183d1c5e5c64d1c534bdd8eb7aab3ed35cc1c141102",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -945,7 +945,7 @@
     {
       "id": "shell/shellQuad1_t2",
       "file": "shell/shellQuad1_t2.json",
-      "sha256": "6d642e41a2b665fb94b90850baead66fdb3f24754fea9c86f0b6a7ea4853e289",
+      "sha256": "9f2f7e257ac7ba40869e67fb3e1b741b06ce3c7d214e045731e386b4d373f8f8",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -975,7 +975,7 @@
     {
       "id": "shell/shellRibQuad1",
       "file": "shell/shellRibQuad1.json",
-      "sha256": "4e4eae7f5d5a1d8259569b5aaec9bedd0b4ba691f96a675b07b90c52eba67552",
+      "sha256": "a032e3488541a0cdb7849f4c954ef091ba93260da44dfe98d8d1903c4e22c607",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1005,7 +1005,7 @@
     {
       "id": "shell/shellRibTri1",
       "file": "shell/shellRibTri1.json",
-      "sha256": "9297095c5819e6d3daf717d7c0218c3099bb748cfbf3094db74549e68d614b04",
+      "sha256": "51d57072dc0b3505bb8574d566ca94fa485bdee751008bd62b3e1b0b04ae31c6",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1035,7 +1035,7 @@
     {
       "id": "shell/shellTensTorQuad1",
       "file": "shell/shellTensTorQuad1.json",
-      "sha256": "032c3a700052742599eccfbb13949ef4cfc0ae28255d8d5702a2c10e468c7d4e",
+      "sha256": "cd7f5173c4d046280ee7b2118905ef555ae5c86b01f960e0f5b3cf8bd60ce402",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1065,7 +1065,7 @@
     {
       "id": "shell/shellTensTorTri1",
       "file": "shell/shellTensTorTri1.json",
-      "sha256": "b7c161aa2cbd94cf2fc1ba795849c07756cec3fc689f18a2859ae2447eeb462b",
+      "sha256": "97624b57d530facb624ce2ba6d96f7076855e43ce7bad1b043dcff7b5e5d42c0",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1095,7 +1095,7 @@
     {
       "id": "shell/shellThickBeamQuad1",
       "file": "shell/shellThickBeamQuad1.json",
-      "sha256": "ead76369d9065fd56943c412f076e889aeb38bf4d5a84635f4ebe39c21543ac5",
+      "sha256": "d10b737f7cf6d2903f9fedf8e7ac5ee8e4c84f85591223710511379224f02d17",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1125,7 +1125,7 @@
     {
       "id": "shell/shellThickBeamTri1",
       "file": "shell/shellThickBeamTri1.json",
-      "sha256": "4105d48e95418810b61554517288bffe683998f2e2536771146d693d6a1744c9",
+      "sha256": "77fcdcaadcc90ba2a80fdc6fb45f5654809514428cae28c6cf51218985eecad5",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1155,7 +1155,7 @@
     {
       "id": "shell/shellTri1",
       "file": "shell/shellTri1.json",
-      "sha256": "ac12584c5170571c8df4cf21aa70c26b0d5f9c90daa71b903b43f6f5ad5e2a46",
+      "sha256": "1d14ecd0ece588bbfa43fa70da320628862f59837f7978bc2a809721ee95f173",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [

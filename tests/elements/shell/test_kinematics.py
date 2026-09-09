@@ -98,6 +98,20 @@ def test_quad_constant_bending_energy_has_no_shear_locking(axis, thickness):
     assert u.ravel() @ e.get_stiffness_matrix() @ u.ravel() / 2 == pytest.approx(energy, rel=1e-10)
 
 
+@pytest.mark.parametrize('thickness',[2e-5,2e-6])
+def test_quad_rounding_tail_preserves_very_thin_plate_bending(thickness):
+    from decimal import Decimal as D,localcontext
+    e,coords=shell(4);e.thickness=thickness
+    u=np.zeros((4,6));u[:,2]=-.5*coords[:,0]**2;u[:,4]=coords[:,0]
+    high,low=e.get_stiffness_matrix_parts()
+    with localcontext() as ctx:
+        ctx.prec=60
+        values=list(map(lambda v:D.from_float(float(v)),u.ravel()))
+        energy=sum(values[i]*(D.from_float(float(high[i,j]))+D.from_float(float(low[i,j])))*values[j] for i in range(24) for j in range(24))/2
+        expected=D(6)*1000*D.from_float(thickness)**3/(24*(1-D('.25')**2))
+        assert abs(energy-expected)<abs(expected)*D('1e-12')
+
+
 from tests.support.builders.linear_elements import shell as linear_shell
 
 

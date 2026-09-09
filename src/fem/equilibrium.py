@@ -24,7 +24,7 @@ class NonlinearConvergenceError(RuntimeError):
         self.load_factor = load_factor
         self.displacement = displacement.copy()
 
-def solve_direct_system(K: csr_matrix, F: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def solve_direct_system(K: csr_matrix, F: np.ndarray, *, precision_floor=0.) -> tuple[np.ndarray, np.ndarray]:
     """Equilibrated direct solve; a mechanism is an error even at zero load."""
     from scipy.sparse.linalg import splu
     K = K.tocsr()
@@ -43,6 +43,8 @@ def solve_direct_system(K: csr_matrix, F: np.ndarray) -> tuple[np.ndarray, np.nd
     pivots = np.abs(lu.U.diagonal())
     if np.min(pivots) <= np.finfo(float).eps * K.shape[0] * max(1., np.max(pivots)):
         raise ValueError('Singular stiffness matrix: numerical rank deficiency')
+    if precision_floor and np.min(pivots) <= precision_floor*np.max(pivots):
+        raise ValueError('Linear frame requires high precision')
     u = scale*lu.solve(scale*F)
     # Keep the displacement's low part and product rounding errors during
     # refinement. Ordinary K*u cannot resolve small support reactions.
@@ -85,8 +87,56 @@ def solve_newton_system(K: csr_matrix, R: np.ndarray) -> np.ndarray:
     return du
 
 def direct_step(self, mesh, boundary, elements, F, factor):
+    self.precise_end_forces = None
+    self.precise_reactions = None
+    try:
+        return _direct_step(self, mesh, boundary, elements, F, factor)
+    except ValueError as error:
+        from .elements.loaded_bar_element import LoadedBarElement
+        if not all(isinstance(e, LoadedBarElement) for e in elements.values()):
+            raise
+        if str(error) not in ('Singular stiffness matrix: numerical rank deficiency',
+                              'Singular stiffness matrix',
+                              'Linear frame requires high precision',
+                              'Linear frame failed constitutive equilibrium refinement'):
+            raise
+        from .linear_precision import solve_precise_frame
+        from .axial_interpolation import generated_point_basis, interpolate_output
+        K_mod,F_mod=self.apply_boundary_conditions(self.assembled_stiffness,F,boundary,self.layout.stride,load_factor=factor)
+        empty=np.asarray(abs(K_mod).sum(axis=1)).ravel()==0
+        absent=empty & (np.arange(len(F_mod))%self.layout.stride>=3) & (F_mod==0)
+        basis,records=generated_point_basis(self,mesh,boundary,elements,F_mod,absent)
+        u,low,internal,forces,reactions=solve_precise_frame(self,mesh,boundary,elements,F,factor,basis,absent)
+        # Retain the constitutive actions evaluated before rounding displacement
+        # to two floats. Recomputing K*u here would lose the recovered digits.
+        self.precise_end_forces=forces
+        self.precise_reactions=reactions
+        self.interpolated_displacements=records
+        interpolate_output(self,u,low,records)
+        return u,internal,low,1
+
+
+def _direct_step(self, mesh, boundary, elements, F, factor):
     """One structural solve, retaining the existing compensated refinements."""
     K = self.assembled_stiffness
+    from .elements.loaded_bar_element import LoadedBarElement
+    # A conservative precision selector, not a second definition of singularity.
+    # Reserve ten relative digits in the scaled factorization. The pivot ratio
+    # is only an inexpensive warning estimate; high precision still verifies
+    # rank and equilibrium independently, without adding stiffness.
+    precision_floor = np.finfo(float).eps / 1e-10 if all(
+        isinstance(e, LoadedBarElement) for e in elements.values()) else 0.
+    if precision_floor:
+        for element in elements.values():
+            mat = element.material.materials[element.material_id]
+            p = element.bar_param
+            rigidities = (mat.E*p.area, mat.E*p.Iz, mat.E*p.Iy, mat.G*p.J)
+            for mode, (spring, rigidity) in enumerate(zip(element.foundation, rigidities)):
+                power = 4 if mode in (1, 2) else 2
+                if spring and rigidity and spring*element.length**power/rigidity < precision_floor:
+                    # A local foundation term can disappear even if other
+                    # members keep the assembled system well conditioned.
+                    raise ValueError('Linear frame requires high precision')
     # 境界条件の適用
     stride = self.layout.stride
     K_mod, F_mod = self.apply_boundary_conditions(K, F, boundary, stride, load_factor=factor)
@@ -98,19 +148,38 @@ def direct_step(self, mesh, boundary, elements, F, factor):
     empty = np.asarray(np.abs(K_mod).sum(axis=1)).ravel() == 0
     absent = empty & (np.arange(len(F_mod)) % stride >= 3) & (F_mod == 0)
     active = np.flatnonzero(~absent)
-    if np.any(absent):
+    from .axial_interpolation import generated_point_basis, interpolate_output
+    basis, interpolated = generated_point_basis(self, mesh, boundary, elements, F_mod, absent)
+    self.interpolated_displacements = interpolated
+    if basis is not None:
+        reduced, reduced_low = solve_direct_system(basis.T@K_mod@basis, basis.T@F_mod, precision_floor=precision_floor)
+        u, low = basis@reduced, basis@reduced_low
+    elif np.any(absent):
         u = np.zeros(len(F_mod))
-        u[active], active_low = solve_direct_system(K_mod[active][:, active], F_mod[active])
+        u[active], active_low = solve_direct_system(K_mod[active][:, active], F_mod[active], precision_floor=precision_floor)
         low = np.zeros_like(u)
         low[active] = active_low
     else:
-        u, low = solve_direct_system(K_mod, F_mod)
+        u, low = solve_direct_system(K_mod, F_mod, precision_floor=precision_floor)
 
-    correction, internal = _refine_beam_equilibrium(self, mesh, boundary, elements, K_mod, F, u, low, absent)
+    correction, internal = _refine_beam_equilibrium(self, mesh, boundary, elements, K_mod, F, u, low, absent, basis)
+    if precision_floor:
+        for _,element,indices in self.layout.elements(elements):
+            k,load=element._local_system()
+            transform=element.get_transformation_matrix(12)
+            magnitude=np.abs(k)@(np.abs(transform@u[indices])+np.abs(transform@correction[indices]))
+            magnitude+=np.abs(element.load_factor*load)
+            end=element.calculate_forces(u[indices],displacement_correction=correction[indices])
+            action=np.r_[end['i_end'],end['j_end']]
+            if np.any(np.finfo(float).eps*magnitude > 1e-12+1e-10*np.abs(action)):
+                # Small actions formed by cancellation deserve extra digits
+                # even when the assembled matrix itself is well conditioned.
+                raise ValueError('Linear frame requires high precision')
+    interpolate_output(self, u, correction, interpolated)
 
     return u, internal, correction, 1
 
-def _refine_beam_equilibrium(self, mesh, boundary, elements, constrained_k, loads, u, low, absent):
+def _refine_beam_equilibrium(self, mesh, boundary, elements, constrained_k, loads, u, low, absent, basis=None):
     """Refine linear frames with element forces and two-part displacements.
 
     The assembled matrix is only the correction operator. Its large
@@ -126,6 +195,11 @@ def _refine_beam_equilibrium(self, mesh, boundary, elements, constrained_k, load
         return low, sparse_product(self.assembled_stiffness, u, low)
     prescribed, springs = self._get_boundary_dofs(boundary, len(u), 6)
     free = np.array([i for i in range(len(u)) if i not in prescribed and not absent[i]], dtype=int)
+    if basis is not None:
+        basis = basis.tolil()
+        basis[list(prescribed), :] = 0.
+        basis = basis.tocsr()
+        basis = basis[:, np.flatnonzero(np.asarray(abs(basis).sum(axis=0)).ravel())]
     indices = {key: ix for key, _, ix in self.layout.elements(elements)}
     lu = None
     for iteration in range(16):
@@ -141,15 +215,19 @@ def _refine_beam_equilibrium(self, mesh, boundary, elements, constrained_k, load
         residual = loads-internal
         for dof, stiffness in springs.items():
             residual[dof] = fsum([residual[dof], -stiffness*u[dof], -stiffness*low[dof]])
-        if not len(free) or np.max(np.abs(residual[free])) <= 1e-11*force_scale:
+        projected = residual[free] if basis is None else basis.T@residual
+        if not len(projected) or np.max(np.abs(projected)) <= 1e-11*force_scale:
             return low, internal
         if lu is None:
-            k = constrained_k[free][:, free]
+            k = constrained_k[free][:, free] if basis is None else basis.T@constrained_k@basis
             scale = 1/np.sqrt(np.abs(k.diagonal()))
             lu = splu((diags(scale)@k@diags(scale)).tocsc())
-        delta = scale*lu.solve(scale*residual[free])
+        delta = scale*lu.solve(scale*projected)
         # Error-free TwoSum retains the part rounded off by u += delta.
-        u[free], low[free] = add_correction(u[free], low[free], delta)
+        if basis is None:
+            u[free], low[free] = add_correction(u[free], low[free], delta)
+        else:
+            u[:], low[:] = add_correction(u, low, basis@delta)
     raise ValueError('Linear frame failed constitutive equilibrium refinement')
 
 def _refine_stiffness_parts(self, boundary, constrained_k, loads, u, low, absent):

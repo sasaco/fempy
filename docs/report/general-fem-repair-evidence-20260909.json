@@ -1,0 +1,922 @@
+{
+  "base_commit": "cc79e3cb3437e63c57c62501a171875c7b8173a2",
+  "working_tree": true,
+  "test_command": "uv run --locked --extra dev python -m pytest tests -q --tb=short --junitxml=tmp/test-results/general-fem-final.xml",
+  "raw_pytest_exit_code": 1,
+  "total": 1886,
+  "passed": 1863,
+  "failed": 23,
+  "errors": 0,
+  "skipped": 0,
+  "seconds": 1155.921,
+  "test_seconds_by_group": {
+    "elements": 0.5430000000000003,
+    "harness": 7.585000000000002,
+    "integration": 36.24200000000004,
+    "io": 6.770000000000002,
+    "materials": 0.17200000000000004,
+    "postprocess": 0.18800000000000008,
+    "regression": 453.46599999999995,
+    "solvers": 0.22100000000000006,
+    "validation": 647.8749999999994
+  },
+  "slowest_cases": [
+    {
+      "id": "tests.validation.test_shell_variational::test_saved_shell_reference_matches_independent_variational_solution[shellTri1]",
+      "seconds": 24.167
+    },
+    {
+      "id": "tests.validation.test_shell_variational::test_saved_shell_reference_matches_independent_variational_solution[shellQuad1_t2]",
+      "seconds": 23.003
+    },
+    {
+      "id": "tests.validation.test_shell_variational::test_saved_shell_reference_matches_independent_variational_solution[shellQuad1_t1]",
+      "seconds": 22.589
+    },
+    {
+      "id": "tests.validation.test_shell_variational::test_saved_shell_reference_matches_independent_variational_solution[shellQuad1]",
+      "seconds": 21.817
+    },
+    {
+      "id": "tests.regression.test_structural_samples::test_saved_sample_case[bar/3D_Sample02:1]",
+      "seconds": 21.182
+    },
+    {
+      "id": "tests.regression.test_structural_samples::test_saved_sample_case[bar/3D_Sample02:3]",
+      "seconds": 20.093
+    },
+    {
+      "id": "tests.regression.test_structural_samples::test_saved_sample_case[bar/3D_Sample02:4]",
+      "seconds": 20.004
+    },
+    {
+      "id": "tests.regression.test_structural_samples::test_saved_sample_case[bar/3D_Sample02:8]",
+      "seconds": 19.975
+    },
+    {
+      "id": "tests.regression.test_structural_samples::test_saved_sample_case[bar/3D_Sample02:13]",
+      "seconds": 19.917
+    },
+    {
+      "id": "tests.regression.test_structural_samples::test_saved_sample_case[bar/3D_Sample02:9]",
+      "seconds": 19.898
+    }
+  ],
+  "original_total": 1508,
+  "original_passed": 1200,
+  "original_failed": 308,
+  "resolved_count": 285,
+  "added_tests": 378,
+  "resolved_ids": [
+    "bar/2D_Sample01:1",
+    "bar/2D_Sample01:10",
+    "bar/2D_Sample01:11",
+    "bar/2D_Sample01:12",
+    "bar/2D_Sample01:13",
+    "bar/2D_Sample01:14",
+    "bar/2D_Sample01:15",
+    "bar/2D_Sample01:16",
+    "bar/2D_Sample01:17",
+    "bar/2D_Sample01:18",
+    "bar/2D_Sample01:19",
+    "bar/2D_Sample01:2",
+    "bar/2D_Sample01:20",
+    "bar/2D_Sample01:21",
+    "bar/2D_Sample01:22",
+    "bar/2D_Sample01:23",
+    "bar/2D_Sample01:24",
+    "bar/2D_Sample01:25",
+    "bar/2D_Sample01:26",
+    "bar/2D_Sample01:3",
+    "bar/2D_Sample01:6",
+    "bar/2D_Sample01:7",
+    "bar/2D_Sample01:8",
+    "bar/2D_Sample01:9",
+    "bar/2D_Sample02:1",
+    "bar/2D_Sample02:10",
+    "bar/2D_Sample02:11",
+    "bar/2D_Sample02:12",
+    "bar/2D_Sample02:13",
+    "bar/2D_Sample02:14",
+    "bar/2D_Sample02:15",
+    "bar/2D_Sample02:16",
+    "bar/2D_Sample02:17",
+    "bar/2D_Sample02:18",
+    "bar/2D_Sample02:19",
+    "bar/2D_Sample02:2",
+    "bar/2D_Sample02:20",
+    "bar/2D_Sample02:21",
+    "bar/2D_Sample02:22",
+    "bar/2D_Sample02:23",
+    "bar/2D_Sample02:24",
+    "bar/2D_Sample02:3",
+    "bar/2D_Sample02:6",
+    "bar/2D_Sample02:7",
+    "bar/2D_Sample02:8",
+    "bar/2D_Sample02:9",
+    "bar/2D_Sample03:1",
+    "bar/2D_Sample03:10",
+    "bar/2D_Sample03:11",
+    "bar/2D_Sample03:12",
+    "bar/2D_Sample03:13",
+    "bar/2D_Sample03:14",
+    "bar/2D_Sample03:15",
+    "bar/2D_Sample03:16",
+    "bar/2D_Sample03:17",
+    "bar/2D_Sample03:18",
+    "bar/2D_Sample03:19",
+    "bar/2D_Sample03:2",
+    "bar/2D_Sample03:20",
+    "bar/2D_Sample03:21",
+    "bar/2D_Sample03:22",
+    "bar/2D_Sample03:23",
+    "bar/2D_Sample03:24",
+    "bar/2D_Sample03:25",
+    "bar/2D_Sample03:26",
+    "bar/2D_Sample03:27",
+    "bar/2D_Sample03:28",
+    "bar/2D_Sample03:29",
+    "bar/2D_Sample03:3",
+    "bar/2D_Sample03:30",
+    "bar/2D_Sample03:31",
+    "bar/2D_Sample03:32",
+    "bar/2D_Sample03:33",
+    "bar/2D_Sample03:34",
+    "bar/2D_Sample03:6",
+    "bar/2D_Sample03:7",
+    "bar/2D_Sample03:8",
+    "bar/2D_Sample03:9",
+    "bar/2D_Sample04:1",
+    "bar/2D_Sample04:10",
+    "bar/2D_Sample04:2",
+    "bar/2D_Sample04:3",
+    "bar/2D_Sample04:4",
+    "bar/2D_Sample04:5",
+    "bar/2D_Sample04:6",
+    "bar/2D_Sample04:7",
+    "bar/2D_Sample04:8",
+    "bar/2D_Sample04:9",
+    "bar/2D_Sample05:1",
+    "bar/2D_Sample05:10",
+    "bar/2D_Sample05:11",
+    "bar/2D_Sample05:12",
+    "bar/2D_Sample05:13",
+    "bar/2D_Sample05:14",
+    "bar/2D_Sample05:15",
+    "bar/2D_Sample05:16",
+    "bar/2D_Sample05:17",
+    "bar/2D_Sample05:18",
+    "bar/2D_Sample05:19",
+    "bar/2D_Sample05:2",
+    "bar/2D_Sample05:3",
+    "bar/2D_Sample05:4",
+    "bar/2D_Sample05:5",
+    "bar/2D_Sample05:6",
+    "bar/2D_Sample05:7",
+    "bar/2D_Sample05:8",
+    "bar/2D_Sample05:9",
+    "bar/2D_Sample06:1",
+    "bar/2D_Sample06:2",
+    "bar/2D_Sample06:3",
+    "bar/2D_Sample06:4",
+    "bar/2D_Sample06:5",
+    "bar/2D_Sample06:6",
+    "bar/2D_Sample06:7",
+    "bar/2D_Sample06:8",
+    "bar/2D_Sample06:9",
+    "bar/2D_Sample07:1",
+    "bar/2D_Sample07:10",
+    "bar/2D_Sample07:11",
+    "bar/2D_Sample07:12",
+    "bar/2D_Sample07:13",
+    "bar/2D_Sample07:14",
+    "bar/2D_Sample07:15",
+    "bar/2D_Sample07:16",
+    "bar/2D_Sample07:17",
+    "bar/2D_Sample07:18",
+    "bar/2D_Sample07:19",
+    "bar/2D_Sample07:2",
+    "bar/2D_Sample07:3",
+    "bar/2D_Sample07:4",
+    "bar/2D_Sample07:6",
+    "bar/2D_Sample07:7",
+    "bar/2D_Sample07:8",
+    "bar/2D_Sample07:9",
+    "bar/2D_Sample08:1",
+    "bar/2D_Sample08:2",
+    "bar/2D_Sample08:3",
+    "bar/2D_Sample08:4",
+    "bar/2D_Sample09:1",
+    "bar/2D_Sample09:2",
+    "bar/2D_Sample09:3",
+    "bar/2D_Sample09:4",
+    "bar/2D_Sample09:5",
+    "bar/2D_Sample09:6",
+    "bar/2D_Sample09:7",
+    "bar/2D_Sample09:8",
+    "bar/2D_Sample09:9",
+    "bar/2D_Sample10:1",
+    "bar/2D_Sample10:10",
+    "bar/2D_Sample10:11",
+    "bar/2D_Sample10:12",
+    "bar/2D_Sample10:13",
+    "bar/2D_Sample10:14",
+    "bar/2D_Sample10:15",
+    "bar/2D_Sample10:16",
+    "bar/2D_Sample10:17",
+    "bar/2D_Sample10:18",
+    "bar/2D_Sample10:19",
+    "bar/2D_Sample10:2",
+    "bar/2D_Sample10:20",
+    "bar/2D_Sample10:21",
+    "bar/2D_Sample10:22",
+    "bar/2D_Sample10:23",
+    "bar/2D_Sample10:24",
+    "bar/2D_Sample10:3",
+    "bar/2D_Sample10:6",
+    "bar/2D_Sample10:7",
+    "bar/2D_Sample10:8",
+    "bar/2D_Sample10:9",
+    "bar/2D_Sample11:1",
+    "bar/2D_Sample11:2",
+    "bar/2D_Sample11:3",
+    "bar/2D_Sample13:1",
+    "bar/2D_Sample13:10",
+    "bar/2D_Sample13:11",
+    "bar/2D_Sample13:12",
+    "bar/2D_Sample13:13",
+    "bar/2D_Sample13:15",
+    "bar/2D_Sample13:17",
+    "bar/2D_Sample13:19",
+    "bar/2D_Sample13:2",
+    "bar/2D_Sample13:3",
+    "bar/2D_Sample13:4",
+    "bar/2D_Sample13:5",
+    "bar/2D_Sample13:6",
+    "bar/2D_Sample13:7",
+    "bar/2D_Sample13:8",
+    "bar/2D_Sample13:9",
+    "bar/3D_Sample02:1",
+    "bar/3D_Sample02:10",
+    "bar/3D_Sample02:11",
+    "bar/3D_Sample02:13",
+    "bar/3D_Sample02:17",
+    "bar/3D_Sample02:3",
+    "bar/3D_Sample02:4",
+    "bar/3D_Sample02:8",
+    "bar/3D_Sample02:9",
+    "bar/3D_Sample03:1",
+    "bar/3D_Sample03:10",
+    "bar/3D_Sample03:11",
+    "bar/3D_Sample03:13",
+    "bar/3D_Sample03:14",
+    "bar/3D_Sample03:15",
+    "bar/3D_Sample03:16",
+    "bar/3D_Sample03:17",
+    "bar/3D_Sample03:18",
+    "bar/3D_Sample03:19",
+    "bar/3D_Sample03:2",
+    "bar/3D_Sample03:20",
+    "bar/3D_Sample03:21",
+    "bar/3D_Sample03:22",
+    "bar/3D_Sample03:23",
+    "bar/3D_Sample03:24",
+    "bar/3D_Sample03:25",
+    "bar/3D_Sample03:26",
+    "bar/3D_Sample03:27",
+    "bar/3D_Sample03:28",
+    "bar/3D_Sample03:29",
+    "bar/3D_Sample03:3",
+    "bar/3D_Sample03:30",
+    "bar/3D_Sample03:31",
+    "bar/3D_Sample03:32",
+    "bar/3D_Sample03:33",
+    "bar/3D_Sample03:34",
+    "bar/3D_Sample03:4",
+    "bar/3D_Sample03:5",
+    "bar/3D_Sample03:6",
+    "bar/3D_Sample03:7",
+    "bar/3D_Sample03:8",
+    "bar/3D_Sample03:9",
+    "bar/3D_Sample04:1",
+    "bar/3D_Sample04:10",
+    "bar/3D_Sample04:11",
+    "bar/3D_Sample04:12",
+    "bar/3D_Sample04:13",
+    "bar/3D_Sample04:14",
+    "bar/3D_Sample04:15",
+    "bar/3D_Sample04:16",
+    "bar/3D_Sample04:17",
+    "bar/3D_Sample04:18",
+    "bar/3D_Sample04:19",
+    "bar/3D_Sample04:2",
+    "bar/3D_Sample04:20",
+    "bar/3D_Sample04:3",
+    "bar/3D_Sample04:4",
+    "bar/3D_Sample04:5",
+    "bar/3D_Sample04:6",
+    "bar/3D_Sample04:7",
+    "bar/3D_Sample04:8",
+    "bar/3D_Sample04:9",
+    "bar/3D_Sample05:1",
+    "bar/3D_Sample05:2",
+    "bar/3D_Sample05:3",
+    "bar/3D_Sample05:4",
+    "bar/3D_Sample06:1",
+    "bar/3D_Sample07:1",
+    "bar/3D_Sample08:1",
+    "bar/3D_Sample08:2",
+    "bar/3D_Sample08:3",
+    "bar/3D_Sample08:4",
+    "bar/3D_Sample08:5",
+    "bar/3D_Sample09:1",
+    "bar/3D_Sample09:2",
+    "bar/3D_Sample09:3",
+    "bar/3D_Sample09:4",
+    "bar/3D_Sample09:5",
+    "bar/3D_Sample09:6",
+    "bar/3D_Sample09:7",
+    "bar/3D_Sample09:8",
+    "bar/3D_Sample10:6",
+    "bar/3D_Sample10:7",
+    "bar/3D_Sample10:9",
+    "shell/3D_Sample01:1",
+    "shell/shellBeamQuad1:1",
+    "shell/shellBeamTri1:1",
+    "shell/shellQuad1:1",
+    "shell/shellQuad1_t1:1",
+    "shell/shellQuad1_t2:1",
+    "shell/shellRibQuad1:1",
+    "shell/shellRibTri1:1",
+    "shell/shellTensTorQuad1:1",
+    "shell/shellTensTorTri1:1",
+    "shell/shellThickBeamQuad1:1",
+    "shell/shellThickBeamTri1:1",
+    "shell/shellTri1:1"
+  ],
+  "new_failure_ids": [],
+  "unresolved": {
+    "bar/3D_Sample01:1": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:2": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:3": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:4": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:5": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:6": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:7": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:8": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:9": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:10": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:11": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:12": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:13": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:14": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:15": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:16": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:17": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:18": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:19": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:20": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:21": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:22": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    },
+    "bar/3D_Sample01:23": {
+      "kind": "ValueError",
+      "message": "Singular stiffness matrix: high-precision rank deficiency"
+    }
+  },
+  "previous_causes_of_unresolved": {
+    "bar/3D_Sample01:1": {
+      "kind": "ValueError",
+      "message": "A loaded or supported beam mode requires positive rigidity"
+    },
+    "bar/3D_Sample01:2": {
+      "kind": "ValueError",
+      "message": "A loaded or supported beam mode requires positive rigidity"
+    },
+    "bar/3D_Sample01:3": {
+      "kind": "ValueError",
+      "message": "A loaded or supported beam mode requires positive rigidity"
+    },
+    "bar/3D_Sample01:4": {
+      "kind": "reference_mismatch",
+      "count": 695,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:5": {
+      "kind": "reference_mismatch",
+      "count": 694,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:6": {
+      "kind": "reference_mismatch",
+      "count": 693,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:7": {
+      "kind": "reference_mismatch",
+      "count": 693,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:8": {
+      "kind": "reference_mismatch",
+      "count": 675,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:9": {
+      "kind": "reference_mismatch",
+      "count": 702,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:10": {
+      "kind": "reference_mismatch",
+      "count": 675,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:11": {
+      "kind": "reference_mismatch",
+      "count": 699,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:12": {
+      "kind": "reference_mismatch",
+      "count": 688,
+      "fields": [
+        "disg",
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:13": {
+      "kind": "reference_mismatch",
+      "count": 688,
+      "fields": [
+        "disg",
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:14": {
+      "kind": "reference_mismatch",
+      "count": 674,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:15": {
+      "kind": "reference_mismatch",
+      "count": 674,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:16": {
+      "kind": "reference_mismatch",
+      "count": 704,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:17": {
+      "kind": "reference_mismatch",
+      "count": 701,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:18": {
+      "kind": "reference_mismatch",
+      "count": 701,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:19": {
+      "kind": "reference_mismatch",
+      "count": 701,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:20": {
+      "kind": "reference_mismatch",
+      "count": 706,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:21": {
+      "kind": "reference_mismatch",
+      "count": 706,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:22": {
+      "kind": "reference_mismatch",
+      "count": 705,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    },
+    "bar/3D_Sample01:23": {
+      "kind": "reference_mismatch",
+      "count": 705,
+      "fields": [
+        "fsec",
+        "reac"
+      ]
+    }
+  },
+  "baseline_review": "All resolved cases retain strict regression tests. Remaining23 cases are the same support-deficient input; changes from old mismatches/float errors to high-precision rank rejection are reviewed. No new failure accepted.",
+  "previous_baseline_sha256": "b069d3b7d7f323807c41f5323ae628023f1952cdbe240723db3f3cefa83acc5b",
+  "support_review": {
+    "sample": "tests/data/bar/3D_Sample01.json",
+    "sample_sha256": "c14301bb946df3e7b600225ebef902aa40cc0b052cd41f47590db8c4924a61e1",
+    "rigid_constraint_rank": 5,
+    "required_rank": 6,
+    "null_motion": "For every node, tx=-y, ty=x, tz=0, rx=ry=0, rz=1 (rotation about z through node1 at origin). All specified support displacements are zero; no foundation exists.",
+    "support_rows": {
+      "1": [
+        {
+          "row": 1,
+          "n": "1",
+          "tx": 1,
+          "ty": 1,
+          "tz": 216000,
+          "rx": 0,
+          "ry": 0,
+          "rz": 0
+        },
+        {
+          "row": 2,
+          "n": "13",
+          "tx": 0,
+          "ty": 0,
+          "tz": 216000,
+          "rx": 0,
+          "ry": 0,
+          "rz": 0
+        },
+        {
+          "row": 3,
+          "n": "53",
+          "tx": 0,
+          "ty": 0,
+          "tz": 216000,
+          "rx": 0,
+          "ry": 0,
+          "rz": 0
+        },
+        {
+          "row": 4,
+          "n": "65",
+          "tx": 0,
+          "ty": 0,
+          "tz": 216000,
+          "rx": 0,
+          "ry": 0,
+          "rz": 0
+        }
+      ]
+    },
+    "user_decision_pending": true
+  },
+  "input_preservation": [
+    {
+      "sample": "tests/data/bar/2D_Sample01.json",
+      "input_identical": true,
+      "original_sha256": "bcead6bd52dc2d52f9f67103db6f1d80d3c303d105e9f2058f9b57d8f4ceb6c3",
+      "current_sha256": "61bbe4d176ba8ad6273deb77a5b8c47a647923fba217334161f039b7d96be0a4"
+    },
+    {
+      "sample": "tests/data/bar/2D_Sample02.json",
+      "input_identical": true,
+      "original_sha256": "1460554aee2223a89e6b46e447639112cc08a1d4e3fcf3224944532193be5bdd",
+      "current_sha256": "453b49b9fd49b4e9194562f16cab3ebeadb50900adc28e49b789b9282dc708db"
+    },
+    {
+      "sample": "tests/data/bar/2D_Sample04.json",
+      "input_identical": true,
+      "original_sha256": "aaa943ec97e6ce1d9cac78db8145b87225e11437c9fd2722aa2df69e2e8f4381",
+      "current_sha256": "0403ff6155ce37e32ee7b8444ac3d24cce367a909bb77570986e5b4c7db15e5b"
+    },
+    {
+      "sample": "tests/data/bar/2D_Sample05.json",
+      "input_identical": true,
+      "original_sha256": "8d294b4fd294d398410c81c6a183c0272a34f77d3473989a24e441ccd732945c",
+      "current_sha256": "1f545399ebb214325e848d7e04ca11d6d8700d69f59a73c65e2b9f1789710dae"
+    },
+    {
+      "sample": "tests/data/bar/2D_Sample10.json",
+      "input_identical": true,
+      "original_sha256": "1460554aee2223a89e6b46e447639112cc08a1d4e3fcf3224944532193be5bdd",
+      "current_sha256": "453b49b9fd49b4e9194562f16cab3ebeadb50900adc28e49b789b9282dc708db"
+    },
+    {
+      "sample": "tests/data/bar/2D_Sample03.json",
+      "input_identical": true,
+      "original_sha256": "a0f239d7d0692dabe46e301a1c0622544d77c552373760c6903a10d547c1f17a",
+      "current_sha256": "ce900b53e7c1eee4b3bd16fd9b2e1cc42b58ba3f047f7ee09b29bcf8671626c4"
+    },
+    {
+      "sample": "tests/data/bar/2D_Sample06.json",
+      "input_identical": true,
+      "original_sha256": "aac6fb54c1095149aea04b735aa049664890a6d05a086cbeccbbfbbe2c98ceca",
+      "current_sha256": "44a160efeaa9181c09d7ffbfcace864d7a417ae57f0f29aa529e15e8b74c9dc6"
+    },
+    {
+      "sample": "tests/data/bar/2D_Sample07.json",
+      "input_identical": true,
+      "original_sha256": "694e58949e67903502503f7927990708dd9d1846fc0425bb1f366fef33fde40d",
+      "current_sha256": "0767828ccc94696143fab2a4a278264ebef5715a4acad2f5ad423e6c5579bdcd"
+    },
+    {
+      "sample": "tests/data/bar/2D_Sample08.json",
+      "input_identical": true,
+      "original_sha256": "88d727114277899be4e9a0c7f0d9f8ab43ec3b231c2560c7a95d2e82ab7e14a0",
+      "current_sha256": "e05a8a992162b46f35d03bc89eea582c56d098c8ae2ffe1710bf02adc55fd23b"
+    },
+    {
+      "sample": "tests/data/bar/2D_Sample09.json",
+      "input_identical": true,
+      "original_sha256": "f29cd25078654fb703aeffc5c17e0f9581686bd1e31a9dfec3044ac11f835508",
+      "current_sha256": "3c7aeefb5d9e68b413d0cbcec358e73037d9914b7bdac2847535b9bb3511a52b"
+    },
+    {
+      "sample": "tests/data/bar/2D_Sample11.json",
+      "input_identical": true,
+      "original_sha256": "6f80599b17c008f9f2f75a58e5f1b6eb358224bfb5fccc94726240a0f22da7c9",
+      "current_sha256": "87fe83481170480465b3f5898c652ba525fd0ca3e6ef10f0c459a548633c868f"
+    },
+    {
+      "sample": "tests/data/bar/2D_Sample13.json",
+      "input_identical": true,
+      "original_sha256": "a664c44d3d12526deb08d5a864ca119ef4d6b4e0108c71489ee90330dd4b40ee",
+      "current_sha256": "78a1369e382c9268a6af02f92283f390df45e30ef63cb60fd8bc846b6d9edd66"
+    },
+    {
+      "sample": "tests/data/shell/shellTri1.json",
+      "input_identical": true,
+      "original_sha256": "ac12584c5170571c8df4cf21aa70c26b0d5f9c90daa71b903b43f6f5ad5e2a46",
+      "current_sha256": "1d14ecd0ece588bbfa43fa70da320628862f59837f7978bc2a809721ee95f173"
+    },
+    {
+      "sample": "tests/data/shell/shellBeamQuad1.json",
+      "input_identical": true,
+      "original_sha256": "ee617c5aa11bfd48641cd3ecad29c850e92a6a092d76db3dd6510aaba03eca70",
+      "current_sha256": "5da3d75d8c60ecbc39df571b2f632f41a2922ba171a3dcb06f62527177384294"
+    },
+    {
+      "sample": "tests/data/shell/shellQuad1.json",
+      "input_identical": true,
+      "original_sha256": "e1308c17531eb20a45097eedc64de7ba3015c2e2378948694fd6f78171fdb143",
+      "current_sha256": "2077e63359149ab9cc097f197353d8d33d85d4d2bea5aae313ff85fca6f6a573"
+    },
+    {
+      "sample": "tests/data/shell/shellQuad1_t1.json",
+      "input_identical": true,
+      "original_sha256": "8315e6d3372b3fcbd2b12f62a7b6d78fd2a314c854baac0e09ca3652c7634cb5",
+      "current_sha256": "57038990aa37ae7ac40e9183d1c5e5c64d1c534bdd8eb7aab3ed35cc1c141102"
+    },
+    {
+      "sample": "tests/data/shell/shellQuad1_t2.json",
+      "input_identical": true,
+      "original_sha256": "6d642e41a2b665fb94b90850baead66fdb3f24754fea9c86f0b6a7ea4853e289",
+      "current_sha256": "9f2f7e257ac7ba40869e67fb3e1b741b06ce3c7d214e045731e386b4d373f8f8"
+    },
+    {
+      "sample": "tests/data/shell/shellRibQuad1.json",
+      "input_identical": true,
+      "original_sha256": "4e4eae7f5d5a1d8259569b5aaec9bedd0b4ba691f96a675b07b90c52eba67552",
+      "current_sha256": "a032e3488541a0cdb7849f4c954ef091ba93260da44dfe98d8d1903c4e22c607"
+    },
+    {
+      "sample": "tests/data/shell/shellTensTorQuad1.json",
+      "input_identical": true,
+      "original_sha256": "032c3a700052742599eccfbb13949ef4cfc0ae28255d8d5702a2c10e468c7d4e",
+      "current_sha256": "cd7f5173c4d046280ee7b2118905ef555ae5c86b01f960e0f5b3cf8bd60ce402"
+    },
+    {
+      "sample": "tests/data/shell/shellThickBeamQuad1.json",
+      "input_identical": true,
+      "original_sha256": "ead76369d9065fd56943c412f076e889aeb38bf4d5a84635f4ebe39c21543ac5",
+      "current_sha256": "d10b737f7cf6d2903f9fedf8e7ac5ee8e4c84f85591223710511379224f02d17"
+    },
+    {
+      "sample": "tests/data/bar/3D_Sample02.json",
+      "input_identical": true,
+      "original_sha256": "d8dec329a4c615c8e2c866650bd39ed640d22230d804e59b023f8c115c96690f",
+      "current_sha256": "141985d80cb45a4c46db0335afb4363af848f92508c9fc42e7c45d95efa11427"
+    },
+    {
+      "sample": "tests/data/bar/3D_Sample04.json",
+      "input_identical": true,
+      "original_sha256": "43fc78c06f8d4e37d485cfaae9d7b434a814f01b560864d5eb3ce1161bd97c6a",
+      "current_sha256": "035e785654778f5eaa781c7197f6a7379101f18988dcf540562c95c5ac98308f"
+    },
+    {
+      "sample": "tests/data/bar/3D_Sample05.json",
+      "input_identical": true,
+      "original_sha256": "1d084c1d858e309343966bca06addeb5da400dca9e45749b10a66469e5a4c5a6",
+      "current_sha256": "b278fe94ebab2f1ed459af5ee1d0e8cfd5062011d41fd3f6051d3e359c3e9929"
+    },
+    {
+      "sample": "tests/data/bar/3D_Sample07.json",
+      "input_identical": true,
+      "original_sha256": "d5b169acb4988f21d50cc379f53e0fa86d6e728e6689edc55723cc2b12669592",
+      "current_sha256": "2a5dcdb68762e1515099d59b678553b23faae22103e230893d01a78b5c3a8734"
+    },
+    {
+      "sample": "tests/data/bar/3D_Sample08.json",
+      "input_identical": true,
+      "original_sha256": "e70e5ac23b6707073f96299601a12fea09009156e8fcd498e456e1f2e641e2b7",
+      "current_sha256": "4eb1d9dfbb161beb17e1f38f765bfc3334bedbf417875478e59e1e30ea8f5b0f"
+    },
+    {
+      "sample": "tests/data/bar/3D_Sample09.json",
+      "input_identical": true,
+      "original_sha256": "8f35b5b0537befe566c7613c114295108a342503e80516a10ff06f2053fa1f8d",
+      "current_sha256": "66aa1fb838920f37f976387767c50e55580e692f14976e770b3dfae7589f1c93"
+    },
+    {
+      "sample": "tests/data/bar/3D_Sample10.json",
+      "input_identical": true,
+      "original_sha256": "a11e00f8fa244351bb31f79ad6ae7b4a59cdc424e18c5ac9c88f3ec2481258e3",
+      "current_sha256": "9eef16bfc802862c13be94b23e087185cb2adb578d9df890fb0c110f1922fc19"
+    },
+    {
+      "sample": "tests/data/bar/3D_Sample06.json",
+      "input_identical": true,
+      "original_sha256": "8ec0a5d5d447e456c165d60016856b467d9e6fcd8ba17991b126bcf84f6ef982",
+      "current_sha256": "ddeb2829fdae0887bb0273bcad23b1433b8b501f754533ef2c5775c08db4313c"
+    },
+    {
+      "sample": "tests/data/shell/3D_Sample01.json",
+      "input_identical": true,
+      "original_sha256": "fdeadecae9def0ce86c26253ed3f31ed8ba8808bddfe1c0d37b3c6514c9ff0e8",
+      "current_sha256": "4aba9a914f28b2fb4f615fac57aa41aee3697d44e747869ca59b587d0ba7cbba"
+    },
+    {
+      "sample": "tests/data/bar/3D_Sample03.json",
+      "input_identical": true,
+      "original_sha256": "3202a05eac9b46ab53d0c885a8284ef0bc6f26a71584bb367ed26de2fb0184d2",
+      "current_sha256": "01a739280263375de701d38649a1e80526896651d47669e02e7f209ccce19c33"
+    },
+    {
+      "sample": "tests/data/shell/shellRibTri1.json",
+      "input_identical": true,
+      "original_sha256": "9297095c5819e6d3daf717d7c0218c3099bb748cfbf3094db74549e68d614b04",
+      "current_sha256": "51d57072dc0b3505bb8574d566ca94fa485bdee751008bd62b3e1b0b04ae31c6"
+    },
+    {
+      "sample": "tests/data/shell/shellTensTorTri1.json",
+      "input_identical": true,
+      "original_sha256": "b7c161aa2cbd94cf2fc1ba795849c07756cec3fc689f18a2859ae2447eeb462b",
+      "current_sha256": "97624b57d530facb624ce2ba6d96f7076855e43ce7bad1b043dcff7b5e5d42c0"
+    },
+    {
+      "sample": "tests/data/shell/shellBeamTri1.json",
+      "input_identical": true,
+      "original_sha256": "b83b14e84e3bfb717f93bf424e8746afa5a01f7c33069ca72c9b79114cb66a4d",
+      "current_sha256": "e9682aa897271fdfb02b281f80ec9990e712693cf21bb07fab9b8c4f8c06e0ae"
+    },
+    {
+      "sample": "tests/data/shell/shellThickBeamTri1.json",
+      "input_identical": true,
+      "original_sha256": "4105d48e95418810b61554517288bffe683998f2e2536771146d693d6a1744c9",
+      "current_sha256": "77fcdcaadcc90ba2a80fdc6fb45f5654809514428cae28c6cf51218985eecad5"
+    }
+  ],
+  "verification_files": {
+    "tmp/test-results/general-fem-final.xml": "862a2ace4150989190a75ffb358aed33b3a5b03311e68422ac40f2207e1fdc91",
+    "tmp/test-results/general-fem-final.log": "42c5bd163395b3f6b67badc5e122dd4037701caf30ef508e8ba8a140076837db",
+    "tmp/test-results/material-final.log": "1405114027104f414d0776fc3d1d4c1e400a156fb313df0d7bad86769dc2ffde",
+    "tmp/test-results/harness-after-baseline.xml": "b8d8eb3320f758a6e8e828495b046165a134301f9e58575a5ae7548c1c6c67ed",
+    "tmp/test-results/general-fem-final-audit/baseline-comparison.json": "514282780ee06404004740304001e15d3f7d1c52f535e07f3d45e17c0e1a77ee",
+    "tmp/test-results/material-collection-final.log": "c96ac988d92ea1c96c0c1e312773316f880161ea3cf83ea7736f5ede967271c6"
+  },
+  "reference_proofs": {
+    "docs/report/general-fem-plane-reference-repair.json": "05713fbc25060d2cf7d4ef4eb6203aee771cc671f4b2ecf1f69a9afdd3c77ca9",
+    "docs/report/general-fem-shell-reference-repairs.json": "6c786f825f733709c0cf2668996c5bb51d821dc07f1f71cd63399ac3f13d94ca",
+    "docs/report/general-fem-space-reference-repairs.json": "457508ea81db70780768bd0937c48dc53cc4d8fc3f613e0212adcfef7b528e39",
+    "docs/report/general-fem-triangle-reference-repairs.json": "f1f94fed4dcab25931e0e09cf0226935a42ec112ff60b7ff4c295fe51af30d7e"
+  },
+  "material_nonlinear": {
+    "passed": 857,
+    "failed": 0,
+    "deselected": 1023,
+    "seconds": 52.64,
+    "separate_run_before_two_extra_shell_and_four_provenance_tests": true
+  },
+  "static_checks": {
+    "new_python_files": 21,
+    "new_file_ruff_E9_F_findings": 0,
+    "changed_python_files": 10,
+    "new_findings_against_HEAD": 0,
+    "preexisting_findings": 16,
+    "git_diff_check_exit": 0
+  },
+  "baseline_verification": {
+    "matches": true,
+    "post_update_harness_passed": 70,
+    "raw_full_suite_still_fails": true
+  }
+}

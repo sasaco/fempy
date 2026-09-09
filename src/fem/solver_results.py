@@ -7,6 +7,8 @@ def snapshot(solver, mesh, boundary, elements, solution, force, step, factor, no
     u, internal, correction, iterations = solution
     reaction = internal - force
     if not nonlinear:
+        if getattr(solver,'precise_reactions',None) is not None:
+            reaction=solver.precise_reactions.copy()
         _, springs = solver._get_boundary_dofs(boundary, len(u), solver.layout.stride)
         # Preserve the direct solve's compensated spring reaction convention.
         for dof, stiffness in springs.items():
@@ -22,6 +24,10 @@ def snapshot(solver, mesh, boundary, elements, solution, force, step, factor, no
         result['curvature'] = solver._element_curvatures(elements, u, solver.layout.stride)
     elif correction is not None:
         result['displacement_correction'] = correction.copy()
+        if getattr(solver, 'interpolated_displacements', {}):
+            result['interpolated_displacements'] = deepcopy(solver.interpolated_displacements)
+        if getattr(solver, 'precise_end_forces', None) is not None:
+            result['precise_end_forces'] = deepcopy(solver.precise_end_forces)
     return deepcopy(result)
 
 
@@ -36,7 +42,8 @@ def final_result(solver, nonlinear):
                       convergence_history=deepcopy(solver.convergence_history),
                       analysis_type='material_nonlinear')
     else:
-        keys = ('displacement', 'node_displacements', 'reaction_forces', 'displacement_correction')
+        keys = ('displacement', 'node_displacements', 'reaction_forces', 'displacement_correction',
+                'interpolated_displacements', 'precise_end_forces')
         result = {key: last[key] for key in keys if key in last}
     return result
 

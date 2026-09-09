@@ -1,0 +1,114 @@
+[
+  {
+    "sample": "tests/data/shell/shellRibTri1.json",
+    "original_sha256": "9297095c5819e6d3daf717d7c0218c3099bb748cfbf3094db74549e68d614b04",
+    "after_sha256": "51d57072dc0b3505bb8574d566ca94fa485bdee751008bd62b3e1b0b04ae31c6",
+    "input_bytes_sha256": "9a95427f7dc377208f5e76c8ef8c69f60ceaab54e07a273dd079034d5a61ab2e",
+    "reason": "Stale embedded results disagree with original-input independent DKT solve; all required fields retained.",
+    "source_reference": {
+      "hashes": {
+        "docs/v0/lib/three.min.js": "5e6f662b2af38b2729e69ea3412f888daa7232346a2a22bc2752febb1d3c90a5",
+        "docs/v0/lib/numeric-1.2.6.min.js": "44a5a73caaf91e43449fc1b8609e9284bfec12087644f68d229ffe530d4c15da",
+        "docs/v0/src/FemMain.js": "3bb9a700a98e21362c98594bc2ea9c728a40068100ffe6b491e82b5b1e2fbaed",
+        "docs/v0/src/FemDataModel.js": "79187fe3753b08686145dbd35dfabde6fa840049096b4db602cd4da7a133adea",
+        "docs/v0/src/Element.js": "88aed6303a8a0faaf0bfc3e0beeddf1c5530d8e21af4d09e86e0d0a0c1402965",
+        "docs/v0/src/Material.js": "533a7aadeab0c160d82637cd7023564d52f9637876aea23a88a1983b3faf9743",
+        "docs/v0/src/ElementBorder.js": "ccc96f2dde8f28ae69f6344e512b044340c73f8e08aa9e2e571b1cd6dabe6a29",
+        "docs/v0/src/ShellElement.js": "578037294de57bed100c2892a071ae11fe976e2f30fecb4a57140b007b04046f",
+        "tests/support/oracles/source_triangle_spin.cjs": "9b3f73db17d8dcdb7875625d5e52eeae7ff1d599dceb267e5b1b1146297720d7",
+        "tests/support/oracles/source_triangle_spin.py": "504792ad7d69a6ca08f4090567caafc0026d61aedb50786c88c370b0fd406482",
+        "tests/support/oracles/source_solid.py": "8a4f3abde130d257bed61d010225ce90ac605ba0bcdec5d1ebb54890ef438798",
+        "docs/v0/testdata/shell/shellRibTri1.out": "3e225db371293bfd3f8788ecdbc3d771a30ce1f2a2932b470acbdd409d81689b",
+        "tests/support/oracles/triangle_sample.py": "b8dad6ffcaace2a3bfa3a43df28738a3fcddd260f122f3425d5e7d5f3c62416d"
+      },
+      "maximum_free_force_residual": 7.81122629759299e-13,
+      "method": "Original DKT membrane/bending operators plus G*t/1000 rotation/spin constraint; independent equilibrated solve and two-surface tensor integration",
+      "input_echo_sha256": "00df31f0d6e36284e327f0af8db924e0f926cf3bf80664ba99829ab8eae6b07d",
+      "input_equivalence": "all nodes, element topology, E/nu/G, thickness, restraints and nodal loads"
+    }
+  },
+  {
+    "sample": "tests/data/shell/shellTensTorTri1.json",
+    "original_sha256": "b7c161aa2cbd94cf2fc1ba795849c07756cec3fc689f18a2859ae2447eeb462b",
+    "after_sha256": "97624b57d530facb624ce2ba6d96f7076855e43ce7bad1b043dcff7b5e5d42c0",
+    "input_bytes_sha256": "da6707b4d69cb22455959f6337882385390e4e408725112c3f252cb0ed490d05",
+    "reason": "Stale embedded results disagree with original-input independent DKT solve; all required fields retained.",
+    "source_reference": {
+      "hashes": {
+        "docs/v0/lib/three.min.js": "5e6f662b2af38b2729e69ea3412f888daa7232346a2a22bc2752febb1d3c90a5",
+        "docs/v0/lib/numeric-1.2.6.min.js": "44a5a73caaf91e43449fc1b8609e9284bfec12087644f68d229ffe530d4c15da",
+        "docs/v0/src/FemMain.js": "3bb9a700a98e21362c98594bc2ea9c728a40068100ffe6b491e82b5b1e2fbaed",
+        "docs/v0/src/FemDataModel.js": "79187fe3753b08686145dbd35dfabde6fa840049096b4db602cd4da7a133adea",
+        "docs/v0/src/Element.js": "88aed6303a8a0faaf0bfc3e0beeddf1c5530d8e21af4d09e86e0d0a0c1402965",
+        "docs/v0/src/Material.js": "533a7aadeab0c160d82637cd7023564d52f9637876aea23a88a1983b3faf9743",
+        "docs/v0/src/ElementBorder.js": "ccc96f2dde8f28ae69f6344e512b044340c73f8e08aa9e2e571b1cd6dabe6a29",
+        "docs/v0/src/ShellElement.js": "578037294de57bed100c2892a071ae11fe976e2f30fecb4a57140b007b04046f",
+        "tests/support/oracles/source_triangle_spin.cjs": "9b3f73db17d8dcdb7875625d5e52eeae7ff1d599dceb267e5b1b1146297720d7",
+        "tests/support/oracles/source_triangle_spin.py": "504792ad7d69a6ca08f4090567caafc0026d61aedb50786c88c370b0fd406482",
+        "tests/support/oracles/source_solid.py": "8a4f3abde130d257bed61d010225ce90ac605ba0bcdec5d1ebb54890ef438798",
+        "docs/v0/testdata/shell/shellTensTorTri1.out": "31fe064bef6c786a594c71f5ba05511c8d0180c6c902ef0c185ee40a67883ccb",
+        "tests/support/oracles/triangle_sample.py": "b8dad6ffcaace2a3bfa3a43df28738a3fcddd260f122f3425d5e7d5f3c62416d"
+      },
+      "maximum_free_force_residual": 1.0837709136836813e-14,
+      "method": "Original DKT membrane/bending operators plus G*t/1000 rotation/spin constraint; independent equilibrated solve and two-surface tensor integration",
+      "input_echo_sha256": "6a527d7da58293d1e870ae124910f83b5ca43004f3c8ff67d96d581d64b0b18d",
+      "input_equivalence": "all nodes, element topology, E/nu/G, thickness, restraints and nodal loads"
+    }
+  },
+  {
+    "sample": "tests/data/shell/shellBeamTri1.json",
+    "original_sha256": "b83b14e84e3bfb717f93bf424e8746afa5a01f7c33069ca72c9b79114cb66a4d",
+    "after_sha256": "e9682aa897271fdfb02b281f80ec9990e712693cf21bb07fab9b8c4f8c06e0ae",
+    "input_bytes_sha256": "4d56e7aebd67357c98e8c97c84b4d2e73eedb060239f977098c75e1459b88694",
+    "reason": "Stale embedded results disagree with original-input independent DKT solve; all required fields retained.",
+    "source_reference": {
+      "hashes": {
+        "docs/v0/lib/three.min.js": "5e6f662b2af38b2729e69ea3412f888daa7232346a2a22bc2752febb1d3c90a5",
+        "docs/v0/lib/numeric-1.2.6.min.js": "44a5a73caaf91e43449fc1b8609e9284bfec12087644f68d229ffe530d4c15da",
+        "docs/v0/src/FemMain.js": "3bb9a700a98e21362c98594bc2ea9c728a40068100ffe6b491e82b5b1e2fbaed",
+        "docs/v0/src/FemDataModel.js": "79187fe3753b08686145dbd35dfabde6fa840049096b4db602cd4da7a133adea",
+        "docs/v0/src/Element.js": "88aed6303a8a0faaf0bfc3e0beeddf1c5530d8e21af4d09e86e0d0a0c1402965",
+        "docs/v0/src/Material.js": "533a7aadeab0c160d82637cd7023564d52f9637876aea23a88a1983b3faf9743",
+        "docs/v0/src/ElementBorder.js": "ccc96f2dde8f28ae69f6344e512b044340c73f8e08aa9e2e571b1cd6dabe6a29",
+        "docs/v0/src/ShellElement.js": "578037294de57bed100c2892a071ae11fe976e2f30fecb4a57140b007b04046f",
+        "tests/support/oracles/source_triangle.cjs": "8c2c23db1ea6f325aae4e6f01959d2f257a5a6023ed6263753ea42efe9ac8b45",
+        "tests/support/oracles/source_triangle.py": "4b3c1cbcce08872e9f5ff5e469a5e0d48f7ae968f2e126589866e18507f7cfdd",
+        "tests/support/oracles/source_solid.py": "8a4f3abde130d257bed61d010225ce90ac605ba0bcdec5d1ebb54890ef438798",
+        "docs/v0/testdata/shell/shellBeamTri1.out": "e322ce176ac830a55a18b53dc94904c2a27fecf0e02441cbfbc966e5ad92053b",
+        "tests/support/oracles/triangle_sample.py": "b8dad6ffcaace2a3bfa3a43df28738a3fcddd260f122f3425d5e7d5f3c62416d"
+      },
+      "maximum_free_force_residual": 1.4529126581042147e-23,
+      "method": "Original original source DKT stiffness/strain operators; independent equilibrated solve and two-surface tensor integration",
+      "input_echo_sha256": "748490a310bfa5e0878730ca8a038ced7ddd4111453b3b7bafd2bd3059a9c3d4",
+      "input_equivalence": "all nodes, element topology, E/nu/G, thickness, restraints and nodal loads"
+    }
+  },
+  {
+    "sample": "tests/data/shell/shellThickBeamTri1.json",
+    "original_sha256": "4105d48e95418810b61554517288bffe683998f2e2536771146d693d6a1744c9",
+    "after_sha256": "77fcdcaadcc90ba2a80fdc6fb45f5654809514428cae28c6cf51218985eecad5",
+    "input_bytes_sha256": "58e42e2116480e7eb2cb5aab303665b3380d01a5307b3a37a75b045d5054275e",
+    "reason": "Stale embedded results disagree with original-input independent DKT solve; all required fields retained.",
+    "source_reference": {
+      "hashes": {
+        "docs/v0/lib/three.min.js": "5e6f662b2af38b2729e69ea3412f888daa7232346a2a22bc2752febb1d3c90a5",
+        "docs/v0/lib/numeric-1.2.6.min.js": "44a5a73caaf91e43449fc1b8609e9284bfec12087644f68d229ffe530d4c15da",
+        "docs/v0/src/FemMain.js": "3bb9a700a98e21362c98594bc2ea9c728a40068100ffe6b491e82b5b1e2fbaed",
+        "docs/v0/src/FemDataModel.js": "79187fe3753b08686145dbd35dfabde6fa840049096b4db602cd4da7a133adea",
+        "docs/v0/src/Element.js": "88aed6303a8a0faaf0bfc3e0beeddf1c5530d8e21af4d09e86e0d0a0c1402965",
+        "docs/v0/src/Material.js": "533a7aadeab0c160d82637cd7023564d52f9637876aea23a88a1983b3faf9743",
+        "docs/v0/src/ElementBorder.js": "ccc96f2dde8f28ae69f6344e512b044340c73f8e08aa9e2e571b1cd6dabe6a29",
+        "docs/v0/src/ShellElement.js": "578037294de57bed100c2892a071ae11fe976e2f30fecb4a57140b007b04046f",
+        "tests/support/oracles/source_triangle.cjs": "8c2c23db1ea6f325aae4e6f01959d2f257a5a6023ed6263753ea42efe9ac8b45",
+        "tests/support/oracles/source_triangle.py": "4b3c1cbcce08872e9f5ff5e469a5e0d48f7ae968f2e126589866e18507f7cfdd",
+        "tests/support/oracles/source_solid.py": "8a4f3abde130d257bed61d010225ce90ac605ba0bcdec5d1ebb54890ef438798",
+        "docs/v0/testdata/shell/shellThickBeamTri1.out": "918255c5c120f085551c74174cec4a9e0233602eda53b1187ae20ea9e347a5b4",
+        "tests/support/oracles/triangle_sample.py": "b8dad6ffcaace2a3bfa3a43df28738a3fcddd260f122f3425d5e7d5f3c62416d"
+      },
+      "maximum_free_force_residual": 4.803051370186353e-23,
+      "method": "Original original source DKT stiffness/strain operators; independent equilibrated solve and two-surface tensor integration",
+      "input_echo_sha256": "f8e597e1f36b512a34905ea8ce1f0628022dc169f8b2c3c72515055931cc2954",
+      "input_equivalence": "all nodes, element topology, E/nu/G, thickness, restraints and nodal loads"
+    }
+  }
+]

@@ -41,6 +41,9 @@ class Solver:
         self.step_results = []
         self._last_internal_force = None
         self.load_factor = 0.0
+        self.precise_end_forces = None
+        self.precise_reactions = None
+        self.interpolated_displacements = {}
 
     def _set_dof_layout(self, mesh: MeshModel) -> None:
         signature = (tuple(sorted(mesh.nodes)), tuple(

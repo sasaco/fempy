@@ -88,8 +88,9 @@ def main():
         exit_code = run.returncode
     baseline = json.loads((ROOT / "tests/regression/known_failures.json").read_text(encoding="utf8"))
     issues = compare_results(report, baseline) if report.exists() else ["JUnit report missing"]
-    if exit_code is not None and exit_code != 1:
-        issues.append(f"Unexpected raw pytest exit code: {exit_code}; current baseline requires 1")
+    expected_exit = 1 if baseline['failures'] else 0
+    if exit_code is not None and exit_code != expected_exit:
+        issues.append(f"Unexpected raw pytest exit code: {exit_code}; current baseline requires {expected_exit}")
     record = dict(
         raw_pytest_exit_code=exit_code,
         report=str(report),
@@ -114,7 +115,7 @@ def main():
         json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf8"
     )
     print(
-        "Known failure baseline matches (complete suite still has 308 failures)"
+        f"Known failure baseline matches (complete suite has {len(baseline['failures'])} failures)"
         if not issues
         else "\n".join(issues)
     )

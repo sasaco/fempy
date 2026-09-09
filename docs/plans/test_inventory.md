@@ -1,34 +1,36 @@
 # 現行テスト台帳
 
-2026-09-09。48 ファイル・266 関数定義・1,508 展開ケース。材料非線形の検証範囲は 857 ケース。応答曲率出力の37ケースに加え、共通ソルバー契約の21ケースを追加。関数数とパラメータ展開数を混同しない。
+2026-09-09。55 ファイル・311 関数定義・1,886 展開ケース。材料非線形の検証範囲は857ケース。一般FEMの修復で、荷重配分・軸力部材の分割・精度保持と独立参照の検証を追加。関数数とパラメータ展開数を混同しない。
 
 [項目表](test_items.md) / [実行方法](../../tests/README.md) / [移行・統合記録](../report/test-reorganization.md)。整理前の全 264 関数・112 ファイルの移管先と hash は [機械可読な移行記録](../report/test-reorganization-evidence.json) にある。
 
 | ファイル | 関数 | ケース | 主区分 |
 |---|---:|---:|---|
-| [solvers/test_unification.py](../../tests/solvers/test_unification.py) | 16 | 21 | unit |
 | [elements/beam/test_elastic.py](../../tests/elements/beam/test_elastic.py) | 6 | 11 | unit |
 | [elements/beam/test_foundation.py](../../tests/elements/beam/test_foundation.py) | 3 | 6 | unit |
 | [elements/beam/test_kinematics.py](../../tests/elements/beam/test_kinematics.py) | 3 | 15 | unit |
 | [elements/beam/test_nonlinear_section.py](../../tests/elements/beam/test_nonlinear_section.py) | 8 | 33 | unit |
 | [elements/beam/test_precision.py](../../tests/elements/beam/test_precision.py) | 4 | 8 | unit |
 | [elements/shell/test_dkt.py](../../tests/elements/shell/test_dkt.py) | 3 | 14 | unit |
-| [elements/shell/test_kinematics.py](../../tests/elements/shell/test_kinematics.py) | 14 | 42 | unit |
+| [elements/shell/test_kinematics.py](../../tests/elements/shell/test_kinematics.py) | 15 | 44 | unit |
 | [elements/shell/test_pressure.py](../../tests/elements/shell/test_pressure.py) | 3 | 22 | unit |
 | [elements/solid/test_linear.py](../../tests/elements/solid/test_linear.py) | 7 | 18 | unit |
 | [elements/solid/test_quadratic.py](../../tests/elements/solid/test_quadratic.py) | 3 | 9 | unit |
 | [elements/test_base.py](../../tests/elements/test_base.py) | 7 | 9 | unit |
 | [harness/test_comparison.py](../../tests/harness/test_comparison.py) | 2 | 2 | unit |
+| [harness/test_general_fem_repairs.py](../../tests/harness/test_general_fem_repairs.py) | 1 | 4 | unit |
 | [harness/test_sample_runner.py](../../tests/harness/test_sample_runner.py) | 5 | 14 | unit |
 | [harness/test_source_repairs.py](../../tests/harness/test_source_repairs.py) | 7 | 37 | unit |
 | [harness/test_suite_contracts.py](../../tests/harness/test_suite_contracts.py) | 6 | 13 | unit |
+| [integration/test_axial_subdivision.py](../../tests/integration/test_axial_subdivision.py) | 4 | 9 | integration |
 | [integration/test_beam_foundation.py](../../tests/integration/test_beam_foundation.py) | 2 | 2 | integration |
-| [integration/test_beam_precision.py](../../tests/integration/test_beam_precision.py) | 2 | 5 | integration |
+| [integration/test_beam_precision.py](../../tests/integration/test_beam_precision.py) | 10 | 16 | integration |
 | [integration/test_beam_solutions.py](../../tests/integration/test_beam_solutions.py) | 3 | 14 | integration |
 | [integration/test_curvature_output.py](../../tests/integration/test_curvature_output.py) | 7 | 31 | integration |
 | [integration/test_input_routes.py](../../tests/integration/test_input_routes.py) | 3 | 3 | integration |
 | [integration/test_jr_beam_history.py](../../tests/integration/test_jr_beam_history.py) | 3 | 21 | integration |
 | [integration/test_linear_beam.py](../../tests/integration/test_linear_beam.py) | 12 | 17 | integration |
+| [integration/test_load_transfer.py](../../tests/integration/test_load_transfer.py) | 3 | 22 | integration |
 | [integration/test_model_contracts.py](../../tests/integration/test_model_contracts.py) | 3 | 5 | integration |
 | [integration/test_nonlinear_convergence.py](../../tests/integration/test_nonlinear_convergence.py) | 2 | 8 | integration |
 | [integration/test_nonlinear_reference.py](../../tests/integration/test_nonlinear_reference.py) | 8 | 423 | integration |
@@ -50,10 +52,15 @@
 | [solvers/test_boundary_conditions.py](../../tests/solvers/test_boundary_conditions.py) | 6 | 6 | unit |
 | [solvers/test_linear.py](../../tests/solvers/test_linear.py) | 3 | 5 | unit |
 | [solvers/test_nonlinear.py](../../tests/solvers/test_nonlinear.py) | 9 | 15 | unit |
+| [solvers/test_unification.py](../../tests/solvers/test_unification.py) | 16 | 21 | unit |
+| [validation/test_plane_frame_series.py](../../tests/validation/test_plane_frame_series.py) | 8 | 197 | oracle |
 | [validation/test_provenance.py](../../tests/validation/test_provenance.py) | 6 | 13 | oracle |
+| [validation/test_shell_variational.py](../../tests/validation/test_shell_variational.py) | 5 | 16 | oracle |
 | [validation/test_solid_sources.py](../../tests/validation/test_solid_sources.py) | 3 | 9 | oracle |
 | [validation/test_source_solid_reference.py](../../tests/validation/test_source_solid_reference.py) | 7 | 16 | oracle |
+| [validation/test_space_frame_series.py](../../tests/validation/test_space_frame_series.py) | 10 | 105 | oracle |
 | [validation/test_stored_references.py](../../tests/validation/test_stored_references.py) | 6 | 10 | oracle |
+| [validation/test_triangle_sample_references.py](../../tests/validation/test_triangle_sample_references.py) | 5 | 12 | oracle |
 
 ## 各ファイルが所有する検証
 
@@ -63,12 +70,12 @@ elements/beam / elastic contracts.
 
 | 検証関数 | 展開ケース |
 |---|---:|
-| `test_axial_stiffness_and_end_forces` | 1 |
-| `test_invalid_node_count` | 1 |
-| `test_mass_matrix` | 1 |
-| `test_rotated_stiffness_is_symmetric` | 1 |
 | `test_elastic_limit_matches_closed_form_matrix` | 6 |
 | `test_bernoulli_euler_force_output_uses_right_handed_moments` | 1 |
+| `test_invalid_node_count` | 0 |
+| `test_axial_stiffness_and_end_forces` | 0 |
+| `test_mass_matrix` | 0 |
+| `test_rotated_stiffness_is_symmetric` | 0 |
 
 ### elements/beam/test_foundation.py
 
@@ -139,6 +146,7 @@ elements/shell / kinematics contracts.
 | `test_shell_has_exactly_six_physical_rigid_zero_modes` | 2 |
 | `test_drill_spin_constraint_has_independent_constant_field_energy` | 2 |
 | `test_quad_constant_bending_energy_has_no_shear_locking` | 6 |
+| `test_quad_rounding_tail_preserves_very_thin_plate_bending` | 2 |
 | `test_initialization` | 2 |
 | `test_shape_functions` | 2 |
 | `test_shape_derivatives` | 2 |
@@ -187,13 +195,13 @@ elements / base contracts.
 
 | 検証関数 | 展開ケース |
 |---|---:|
-| `test_get_element_length` | 1 |
-| `test_get_jacobian` | 1 |
-| `test_initialization` | 1 |
-| `test_invalid_input` | 1 |
-| `test_nonexistent_node` | 1 |
-| `test_set_node_coordinates` | 1 |
 | `test_unimplemented_geometry_contract` | 3 |
+| `test_initialization` | 0 |
+| `test_invalid_input` | 0 |
+| `test_set_node_coordinates` | 0 |
+| `test_nonexistent_node` | 0 |
+| `test_get_element_length` | 0 |
+| `test_get_jacobian` | 0 |
 
 ### harness/test_comparison.py
 
@@ -203,6 +211,14 @@ harness / comparison contracts.
 |---|---:|
 | `test_comparator_rejects_missing_extra_wrong_sign_and_number` | 1 |
 | `test_legacy_cut_signs_and_labels_have_independent_physical_values` | 1 |
+
+### harness/test_general_fem_repairs.py
+
+修復参照・入力保持・独立計算ソースのハッシュを照合する。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_repaired_reference_input_and_source_hashes_are_current` | 4 |
 
 ### harness/test_sample_runner.py
 
@@ -243,6 +259,17 @@ Prevent collection drift, reference contamination and baseline masking.
 | `test_public_model_and_http_import_the_same_classes` | 1 |
 | `test_baseline_gate_rejects_collection_and_outcome_changes` | 6 |
 
+### integration/test_axial_subdivision.py
+
+軸力部材の生成点・荷重方向・補間出力と構造節点の機構の区別。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_axial_solution_is_invariant_under_subdivision_and_rotation` | 6 |
+| `test_axial_subdivision_does_not_hide_a_transverse_point_load` | 1 |
+| `test_original_axial_endpoint_mechanism_is_still_rejected` | 1 |
+| `test_transverse_interpolation_is_explicit_and_does_not_create_reaction` | 1 |
+
 ### integration/test_beam_foundation.py
 
 integration / beam foundation contracts.
@@ -258,6 +285,14 @@ integration / beam precision contracts.
 
 | 検証関数 | 展開ケース |
 |---|---:|
+| `test_extremely_short_segment_preserves_cantilever_solution` | 2 |
+| `test_precise_frame_keeps_a_weak_support_spring_and_balanced_member_load` | 1 |
+| `test_high_precision_does_not_regularize_an_unrestrained_rigid_rotation` | 1 |
+| `test_stiff_beam_on_weak_foundation_preserves_rigid_translation` | 2 |
+| `test_precise_snapshots_are_cleared_before_reusing_model` | 1 |
+| `test_rigid_end_uses_the_coalesced_notice_boundary` | 2 |
+| `test_precise_tiny_axial_load_survives_thermal_force_postprocessing` | 1 |
+| `test_short_oblique_child_keeps_the_original_member_axis` | 1 |
 | `test_public_axial_force_survives_prescribed_rigid_translation` | 3 |
 | `test_short_segment_sample_reaches_constitutive_equilibrium` | 2 |
 
@@ -323,6 +358,16 @@ integration / linear beam contracts.
 | `test_fully_released_unloaded_rotation_is_absent_not_stabilized` | 1 |
 | `test_split_roundoff_and_other_case_subdivisions_keep_loads_separate` | 1 |
 | `test_temperature_load_free_expansion_and_restrained_force` | 2 |
+
+### integration/test_load_transfer.py
+
+剛性ゼロの荷重配分専用部材の合力・一次モーメント・座標変換と構造の機構拒否。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_transfer_conserves_force_and_first_moment` | 20 |
+| `test_transfer_rotates_local_load_and_preserves_point_couple` | 1 |
+| `test_transfer_does_not_support_an_unrestrained_structure` | 1 |
 
 ### integration/test_model_contracts.py
 
@@ -424,14 +469,14 @@ io / pressure contracts.
 
 | 検証関数 | 展開ケース |
 |---|---:|
-| `test_boundary_condition_clear` | 1 |
-| `test_boundary_condition_pressure_management` | 1 |
-| `test_pressure_class_creation` | 1 |
-| `test_pressure_class_string_representation` | 1 |
-| `test_multiple_pressure_loads` | 1 |
-| `test_pressure_file_io_roundtrip` | 1 |
-| `test_shell_with_pressure_load_fem` | 1 |
-| `test_shell_with_pressure_load_json` | 1 |
+| `test_pressure_class_creation` | 0 |
+| `test_pressure_class_string_representation` | 0 |
+| `test_boundary_condition_pressure_management` | 0 |
+| `test_boundary_condition_clear` | 0 |
+| `test_shell_with_pressure_load_json` | 0 |
+| `test_shell_with_pressure_load_fem` | 0 |
+| `test_multiple_pressure_loads` | 0 |
+| `test_pressure_file_io_roundtrip` | 0 |
 
 ### io/test_source_input.py
 
@@ -586,6 +631,44 @@ solvers / nonlinear contracts.
 | `test_failed_second_step_restores_first_converged_state` | 1 |
 | `test_invalid_controls_rejected_before_analysis` | 7 |
 
+### solvers/test_unification.py
+
+共通静解析フロー・独立解・互換境界の契約。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_common_entry_obeys_axial_hand_solution` | 2 |
+| `test_static_does_not_enter_newton` | 1 |
+| `test_one_step_nonlinear_still_iterates_to_independent_cubic_root` | 1 |
+| `test_failed_step_restores_load_factor_force_and_allows_reuse` | 1 |
+| `test_model_uses_common_solver_and_final_snapshots_are_independent` | 1 |
+| `test_legacy_solve_dispatches_to_nonlinear_and_exposes_shared_state` | 1 |
+| `test_newton_linear_algebra_does_not_replace_accepted_displacement` | 1 |
+| `test_internal_six_key_format_and_legacy_three_key_projection` | 1 |
+| `test_assembly_layout_does_not_depend_on_load_assembly` | 1 |
+| `test_modal_still_solves_generalized_eigenproblem` | 1 |
+| `test_same_material_elements_restart_history_after_failure_and_type_switch` | 1 |
+| `test_snapshot_reads_once_and_callback_mutation_cannot_change_results` | 1 |
+| `test_shared_spring_and_prescribed_displacement_balance` | 4 |
+| `test_legacy_callback_error_leaves_accepted_step_and_stops` | 1 |
+| `test_invalid_reanalysis_does_not_expose_previous_solver_state` | 1 |
+| `test_mixed_element_widths_share_layout_after_three_dof_analysis` | 2 |
+
+### validation/test_plane_frame_series.py
+
+独立したスカラー級数による平面梁の解析解・荷重・地盤ばね・剛域と、188保存ケースの全必須量。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_series_cantilever_tip_force` | 1 |
+| `test_series_uniform_foundation_rigid_translation` | 1 |
+| `test_series_free_thermal_expansion` | 1 |
+| `test_series_interior_point_force` | 1 |
+| `test_series_endpoint_member_force_matches_nodal_force` | 2 |
+| `test_series_piecewise_rigidity_matches_compliance_integral` | 2 |
+| `test_series_axial_only_member_preserves_axial_solution` | 1 |
+| `test_saved_plane_frame_reference_matches_independent_series` | 188 |
+
 ### validation/test_provenance.py
 
 validation / provenance contracts.
@@ -598,6 +681,18 @@ validation / provenance contracts.
 | `test_source_audit_detects_input_change_instead_of_trusting_same_file_name` | 1 |
 | `test_stale_notice_record_does_not_stop_the_numerical_audit` | 1 |
 | `test_selected_material_case_and_rounded_geometry_are_reported` | 1 |
+
+### validation/test_shell_variational.py
+
+独立した変分式による三角形／四角形シェルの膜・曲げ・せん断・回転整合と、8保存モデル。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_independent_shell_six_rigid_modes` | 2 |
+| `test_independent_shell_constant_membrane_energy` | 2 |
+| `test_independent_shell_constant_curvature_and_surface_signs` | 2 |
+| `test_independent_shell_drilling_energy_is_separate` | 2 |
+| `test_saved_shell_reference_matches_independent_variational_solution` | 8 |
 
 ### validation/test_solid_sources.py
 
@@ -623,6 +718,23 @@ validation / source solid reference contracts.
 | `test_original_source_rejects_partial_output_without_echo` | 1 |
 | `test_refined_source_solves_load_not_inaccurate_output_displacement` | 6 |
 
+### validation/test_space_frame_series.py
+
+立体梁の独立式、荷重方向・ねじり・支持不足・剛域、および梁／シェル混在を含む91保存ケース。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_spatial_series_cantilever_compliance` | 6 |
+| `test_spatial_series_interior_bending_couple` | 1 |
+| `test_spatial_series_uniform_temperature` | 1 |
+| `test_spatial_reference_rejects_an_unrestrained_global_rotation` | 1 |
+| `test_spatial_load_transfer_uses_endpoint_statics` | 1 |
+| `test_spatial_uniform_foundation_rigid_translation` | 1 |
+| `test_spatial_released_uniform_beam_matches_simple_support_solution` | 1 |
+| `test_spatial_long_foundation_preserves_uniform_translation` | 1 |
+| `test_spatial_couple_at_material_interface_matches_compliance_integral` | 1 |
+| `test_saved_spatial_reference_matches_independent_series` | 91 |
+
 ### validation/test_stored_references.py
 
 validation / stored references contracts.
@@ -636,26 +748,14 @@ validation / stored references contracts.
 | `test_tri1_conditions_match_the_original_fem` | 1 |
 | `test_all_tri1_outputs_match_original_operators_without_production_imports` | 1 |
 
+### validation/test_triangle_sample_references.py
 
-### solvers/test_unification.py
-
-共通静解析フロー・独立解・互換境界の契約。
+元のDKT演算子と独立した回転整合エネルギー、4保存モデル、原資料との入力同一性と改変拒否。
 
 | 検証関数 | 展開ケース |
 |---|---:|
-| test_common_entry_obeys_axial_hand_solution | 2 |
-| test_static_does_not_enter_newton | 1 |
-| test_one_step_nonlinear_still_iterates_to_independent_cubic_root | 1 |
-| test_failed_step_restores_load_factor_force_and_allows_reuse | 1 |
-| test_model_uses_common_solver_and_final_snapshots_are_independent | 1 |
-| test_legacy_solve_dispatches_to_nonlinear_and_exposes_shared_state | 1 |
-| test_newton_linear_algebra_does_not_replace_accepted_displacement | 1 |
-| test_internal_six_key_format_and_legacy_three_key_projection | 1 |
-| test_assembly_layout_does_not_depend_on_load_assembly | 1 |
-| test_modal_still_solves_generalized_eigenproblem | 1 |
-| test_same_material_elements_restart_history_after_failure_and_type_switch | 1 |
-| test_snapshot_reads_once_and_callback_mutation_cannot_change_results | 1 |
-| test_shared_spring_and_prescribed_displacement_balance | 4 |
-| test_legacy_callback_error_leaves_accepted_step_and_stops | 1 |
-| test_invalid_reanalysis_does_not_expose_previous_solver_state | 1 |
-| test_mixed_element_widths_share_layout_after_three_dof_analysis | 2 |
+| `test_saved_triangle_sample_uses_independent_source_reference` | 4 |
+| `test_triangle_source_identity_rejects_changed_input` | 5 |
+| `test_independent_spin_operator_has_six_physical_rigid_modes` | 1 |
+| `test_independent_spin_operator_constant_membrane_energy` | 1 |
+| `test_independent_spin_operator_relative_rotation_energy` | 1 |

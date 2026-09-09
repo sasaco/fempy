@@ -737,6 +737,7 @@ class FemModel:
             
         element.set_node_coordinates(self.mesh.nodes)
         if hasattr(element, 'set_line_load'):
+            element.transfer_load = np.asarray(elem_data.get('transfer_load', np.zeros(12)), dtype=float)
             for load in elem_data.get('line_loads', []):
                 element.set_line_load(load['direction'], load['values'])
             element.temperature_strain = (self.material.materials[material_id].alpha or 0.) * elem_data.get('temperature', 0.)
@@ -790,6 +791,8 @@ class FemModel:
                     if self.results.get('analysis_type') == 'material_nonlinear':
                         element_stresses[elem_id] = deepcopy(
                             self.results['step_results'][-1]['element_stresses'][elem_id])
+                    elif 'precise_end_forces' in self.results:
+                        element_stresses[elem_id] = deepcopy(self.results['precise_end_forces'][elem_id])
                     elif (self.results.get('analysis_type') == 'static' and
                             isinstance(element, NonlinearBarElement)):
                         # Explicit static analysis uses the reference elastic
@@ -847,6 +850,12 @@ class FemModel:
             factor = snapshot.get('lambda', 1.)
             loads = {n: factor*total[start:start+stride] for n, start in node_offsets.items()}
             raw = snapshot['element_stresses']
+            if 'precise_end_forces' in snapshot:
+                # These actions already satisfy the reassembled 70-digit
+                # equations. Float load peeling can destroy tiny thermal or
+                # short-segment forces that this solve deliberately retained.
+                snapshot['constitutive_element_stresses'] = deepcopy(raw)
+                continue
             forces, ids = recover_free_branches(self.mesh.nodes, self.elements, raw,
                                                 loads, blocked, factor, tolerance)
             if not ids:

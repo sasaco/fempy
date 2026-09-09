@@ -261,7 +261,7 @@ class ShellElement(BaseElement):
         Drilling uses the work-conjugate rotation/spin constraint with a
         dimensionless penalty of 1e-3. No springs to ground or diagonal shifts.
         """
-        if self.formulation == 'dkt':
+        if self.formulation == 'dkt' or self.n_nodes == 4:
             return self.get_stiffness_matrix_parts()[0].copy()
         coords, basis = self._local_frame()
         t = self.thickness
@@ -290,11 +290,14 @@ class ShellElement(BaseElement):
         return (stiffness+stiffness.T)/2
 
     def get_stiffness_matrix_parts(self):
-        if self.formulation != 'dkt':
+        if self.formulation != 'dkt' and self.n_nodes != 4:
             high = self.get_stiffness_matrix()
             return high, np.zeros_like(high)
         from decimal import Decimal as D, localcontext
-        from .dkt_precision import stiffness_parts
+        if self.n_nodes == 4:
+            from .quad_precision import stiffness_parts
+        else:
+            from .dkt_precision import stiffness_parts
         self._local_frame()  # Keep the same planar/degenerate input checks.
         if not np.isfinite(self.thickness) or self.thickness <= 0:
             raise ValueError('Shell thickness must be finite and positive')

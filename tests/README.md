@@ -16,6 +16,8 @@ uv run --locked --extra dev python -m tools.validation.check_test_results
 
 通常の全件実行には既知の一般 FEM 失敗があり、pytest は終了コード 1 を返す。最後のコマンドは全件を実行し、保存サンプルの失敗 ID・数値不一致件数・例外理由を [既知失敗](regression/known_failures.json) と照合する。新規失敗、別の失敗理由、skip、収集不足、解消した失敗を検出すると照合も失敗する。解消時は原因を確認して基準を更新する。照合成功を全テスト成功と呼ばない。
 
+2026-09-09の修復後は1,886件中1,863成功・23失敗。残る23件は `bar/3D_Sample01` の支持不足で、拘束条件の意図を確認中。元の308失敗から285件を解消した。[修復内容と検証記録](../docs/report/general-fem-repair-20260909.md)を参照。
+
 ログ、JUnit、生の pytest 終了コード、環境、入力 hash は `tmp/test-results/` に残る。[CI](../.github/workflows/tests.yml) は材料非線形の成功と全件の基準一致を別 job で確認し、生の結果を artifact に保存する。
 
 ## 追加先

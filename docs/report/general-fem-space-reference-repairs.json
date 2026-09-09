@@ -1,0 +1,273 @@
+{
+  "tests/data/bar/3D_Sample02.json": {
+    "sample": "tests/data/bar/3D_Sample02.json",
+    "original_sha256": "d8dec329a4c615c8e2c866650bd39ed640d22230d804e59b023f8c115c96690f",
+    "after_sha256": "141985d80cb45a4c46db0335afb4363af848f92508c9fc42e7c45d95efa11427",
+    "input_bytes_sha256": "a530e443fb159583edda044e4e3d1b2c9954e51ed3f1199b2cb0be69728ffd9c",
+    "cases": [
+      "1",
+      "3",
+      "4",
+      "8",
+      "9",
+      "10",
+      "11",
+      "13",
+      "17"
+    ],
+    "source_method": "65-digit scalar axial/bending/torsion ODEs; original-node spatial assembly; sparse float preconditioner with high-precision equation residual <1e-35; six global rigid modes constrained; piecewise-material condensation and explicit endpoint load transfer",
+    "sources": {
+      "tests/support/oracles/space_frame_series.py": "0a6ce922c5809e375e25cb85b3c81085caa7e81f02335175a15d64bab0457a18",
+      "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
+      "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
+      "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805"
+    },
+    "verification": "14 independent closed-form/invalid-support cases; all required quantities compared; no tolerance relaxation",
+    "product_imports": false,
+    "old_response_values_used": false
+  },
+  "tests/data/bar/3D_Sample04.json": {
+    "sample": "tests/data/bar/3D_Sample04.json",
+    "original_sha256": "43fc78c06f8d4e37d485cfaae9d7b434a814f01b560864d5eb3ce1161bd97c6a",
+    "after_sha256": "035e785654778f5eaa781c7197f6a7379101f18988dcf540562c95c5ac98308f",
+    "input_bytes_sha256": "101b0200438bbb55eba9bb29501ea9c5c67bfbc0efce3c523f8404fac68f56a2",
+    "cases": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17",
+      "18",
+      "19",
+      "20"
+    ],
+    "source_method": "65-digit scalar axial/bending/torsion ODEs; original-node spatial assembly; sparse float preconditioner with high-precision equation residual <1e-35; six global rigid modes constrained; piecewise-material condensation and explicit endpoint load transfer",
+    "sources": {
+      "tests/support/oracles/space_frame_series.py": "0a6ce922c5809e375e25cb85b3c81085caa7e81f02335175a15d64bab0457a18",
+      "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
+      "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
+      "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805"
+    },
+    "verification": "14 independent closed-form/invalid-support cases; all required quantities compared; no tolerance relaxation",
+    "product_imports": false,
+    "old_response_values_used": false
+  },
+  "tests/data/bar/3D_Sample05.json": {
+    "sample": "tests/data/bar/3D_Sample05.json",
+    "original_sha256": "1d084c1d858e309343966bca06addeb5da400dca9e45749b10a66469e5a4c5a6",
+    "after_sha256": "b278fe94ebab2f1ed459af5ee1d0e8cfd5062011d41fd3f6051d3e359c3e9929",
+    "input_bytes_sha256": "8e904ed976ad73ffc248c79ec2e70e2971493b767e7b3c21c042a2d0879c6eb4",
+    "cases": [
+      "1",
+      "2",
+      "3",
+      "4"
+    ],
+    "source_method": "65-digit scalar axial/bending/torsion ODEs; original-node spatial assembly; sparse float preconditioner with high-precision equation residual <1e-35; six global rigid modes constrained; piecewise-material condensation and explicit endpoint load transfer",
+    "sources": {
+      "tests/support/oracles/space_frame_series.py": "0a6ce922c5809e375e25cb85b3c81085caa7e81f02335175a15d64bab0457a18",
+      "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
+      "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
+      "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805"
+    },
+    "verification": "14 independent closed-form/invalid-support cases; all required quantities compared; no tolerance relaxation",
+    "product_imports": false,
+    "old_response_values_used": false
+  },
+  "tests/data/bar/3D_Sample07.json": {
+    "sample": "tests/data/bar/3D_Sample07.json",
+    "original_sha256": "d5b169acb4988f21d50cc379f53e0fa86d6e728e6689edc55723cc2b12669592",
+    "after_sha256": "2a5dcdb68762e1515099d59b678553b23faae22103e230893d01a78b5c3a8734",
+    "input_bytes_sha256": "a2f5e309da35b1a1b5f0add5e6524527b58cec989c810da3b00f32dd15594789",
+    "cases": [
+      "1"
+    ],
+    "source_method": "65-digit scalar axial/bending/torsion ODEs; original-node spatial assembly; sparse float preconditioner with high-precision equation residual <1e-35; six global rigid modes constrained; piecewise-material condensation and explicit endpoint load transfer",
+    "sources": {
+      "tests/support/oracles/space_frame_series.py": "0a6ce922c5809e375e25cb85b3c81085caa7e81f02335175a15d64bab0457a18",
+      "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
+      "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
+      "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805"
+    },
+    "verification": "14 independent closed-form/invalid-support cases; all required quantities compared; no tolerance relaxation",
+    "product_imports": false,
+    "old_response_values_used": false
+  },
+  "tests/data/bar/3D_Sample08.json": {
+    "sample": "tests/data/bar/3D_Sample08.json",
+    "original_sha256": "e70e5ac23b6707073f96299601a12fea09009156e8fcd498e456e1f2e641e2b7",
+    "after_sha256": "4eb1d9dfbb161beb17e1f38f765bfc3334bedbf417875478e59e1e30ea8f5b0f",
+    "input_bytes_sha256": "102c60e0f71658b0d41bd38441a93faa4397a9f88b918921c24f1461d038a354",
+    "cases": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "source_method": "65-digit scalar axial/bending/torsion ODEs; original-node spatial assembly; sparse float preconditioner with high-precision equation residual <1e-35; six global rigid modes constrained; piecewise-material condensation and explicit endpoint load transfer",
+    "sources": {
+      "tests/support/oracles/space_frame_series.py": "0a6ce922c5809e375e25cb85b3c81085caa7e81f02335175a15d64bab0457a18",
+      "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
+      "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
+      "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805"
+    },
+    "verification": "14 independent closed-form/invalid-support cases; all required quantities compared; no tolerance relaxation",
+    "product_imports": false,
+    "old_response_values_used": false
+  },
+  "tests/data/bar/3D_Sample09.json": {
+    "sample": "tests/data/bar/3D_Sample09.json",
+    "original_sha256": "8f35b5b0537befe566c7613c114295108a342503e80516a10ff06f2053fa1f8d",
+    "after_sha256": "66aa1fb838920f37f976387767c50e55580e692f14976e770b3dfae7589f1c93",
+    "input_bytes_sha256": "36a7802009b1fd73b9da5fb0d3702adce5ad4de4590d714a28bd432637e7d2a5",
+    "cases": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "source_method": "65-digit scalar axial/bending/torsion ODEs; original-node spatial assembly; sparse float preconditioner with high-precision equation residual <1e-35; six global rigid modes constrained; piecewise-material condensation and explicit endpoint load transfer",
+    "sources": {
+      "tests/support/oracles/space_frame_series.py": "0a6ce922c5809e375e25cb85b3c81085caa7e81f02335175a15d64bab0457a18",
+      "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
+      "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
+      "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805"
+    },
+    "verification": "14 independent closed-form/invalid-support cases; all required quantities compared; no tolerance relaxation",
+    "product_imports": false,
+    "old_response_values_used": false
+  },
+  "tests/data/bar/3D_Sample10.json": {
+    "sample": "tests/data/bar/3D_Sample10.json",
+    "original_sha256": "a11e00f8fa244351bb31f79ad6ae7b4a59cdc424e18c5ac9c88f3ec2481258e3",
+    "after_sha256": "9eef16bfc802862c13be94b23e087185cb2adb578d9df890fb0c110f1922fc19",
+    "input_bytes_sha256": "78b846ef60a387f007e993399850020d1f4293905721c26cb02c8aa11f6b185b",
+    "cases": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9"
+    ],
+    "source_method": "65-digit scalar axial/bending/torsion ODEs; original-node spatial assembly; sparse float preconditioner with high-precision equation residual <1e-35; six global rigid modes constrained; piecewise-material condensation and explicit endpoint load transfer",
+    "sources": {
+      "tests/support/oracles/space_frame_series.py": "0a6ce922c5809e375e25cb85b3c81085caa7e81f02335175a15d64bab0457a18",
+      "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
+      "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
+      "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805"
+    },
+    "verification": "14 independent closed-form/invalid-support cases; all required quantities compared; no tolerance relaxation",
+    "product_imports": false,
+    "old_response_values_used": false
+  },
+  "tests/data/bar/3D_Sample06.json": {
+    "sample": "tests/data/bar/3D_Sample06.json",
+    "original_sha256": "8ec0a5d5d447e456c165d60016856b467d9e6fcd8ba17991b126bcf84f6ef982",
+    "after_sha256": "ddeb2829fdae0887bb0273bcad23b1433b8b501f754533ef2c5775c08db4313c",
+    "input_bytes_sha256": "88deb9a5a2020ac30e081ec6d95055972d4dcdbdf8c34bb9ca703bd6173dbf62",
+    "cases": [
+      "1"
+    ],
+    "source_method": "65-digit scalar axial/bending/torsion ODEs; original-node spatial assembly; sparse float preconditioner with high-precision equation residual <1e-35; six global rigid modes constrained; piecewise-material condensation and explicit endpoint load transfer",
+    "sources": {
+      "tests/support/oracles/space_frame_series.py": "0a6ce922c5809e375e25cb85b3c81085caa7e81f02335175a15d64bab0457a18",
+      "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
+      "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
+      "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805"
+    },
+    "verification": "14 independent closed-form/invalid-support cases; all required quantities compared; no tolerance relaxation",
+    "product_imports": false,
+    "old_response_values_used": false
+  },
+  "tests/data/shell/3D_Sample01.json": {
+    "sample": "tests/data/shell/3D_Sample01.json",
+    "original_sha256": "fdeadecae9def0ce86c26253ed3f31ed8ba8808bddfe1c0d37b3c6514c9ff0e8",
+    "after_sha256": "4aba9a914f28b2fb4f615fac57aa41aee3697d44e747869ca59b587d0ba7cbba",
+    "input_bytes_sha256": "01e28376521ccc4ac4b534d4b8cd93315f53e2a63d8c2fd3491fbc498d83de84",
+    "cases": [
+      "1"
+    ],
+    "source_method": "65-digit scalar axial/bending/torsion ODEs; original-node spatial assembly; sparse float preconditioner with high-precision equation residual <1e-35; six global rigid modes constrained; piecewise-material condensation and explicit endpoint load transfer",
+    "sources": {
+      "tests/support/oracles/space_frame_series.py": "0a6ce922c5809e375e25cb85b3c81085caa7e81f02335175a15d64bab0457a18",
+      "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
+      "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
+      "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805"
+    },
+    "verification": "14 independent closed-form/invalid-support cases; all required quantities compared; no tolerance relaxation",
+    "product_imports": false,
+    "old_response_values_used": false
+  },
+  "tests/data/bar/3D_Sample03.json": {
+    "sample": "tests/data/bar/3D_Sample03.json",
+    "original_sha256": "3202a05eac9b46ab53d0c885a8284ef0bc6f26a71584bb367ed26de2fb0184d2",
+    "after_sha256": "01a739280263375de701d38649a1e80526896651d47669e02e7f209ccce19c33",
+    "input_bytes_sha256": "936f5b8e8902520df2370f5018b5c2f96ad08101e6cd42772b1d61d16ccd5257",
+    "cases": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17",
+      "18",
+      "19",
+      "20",
+      "21",
+      "22",
+      "23",
+      "24",
+      "25",
+      "26",
+      "27",
+      "28",
+      "29",
+      "30",
+      "31",
+      "32",
+      "33",
+      "34"
+    ],
+    "source_method": "65-digit scalar axial/bending/torsion ODEs; original-node spatial assembly; sparse float preconditioner with high-precision equation residual <1e-35; six global rigid modes constrained; piecewise-material condensation and explicit endpoint load transfer",
+    "sources": {
+      "tests/support/oracles/space_frame_series.py": "0a6ce922c5809e375e25cb85b3c81085caa7e81f02335175a15d64bab0457a18",
+      "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
+      "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
+      "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805"
+    },
+    "verification": "14 independent closed-form/invalid-support cases; all required quantities compared; no tolerance relaxation",
+    "product_imports": false,
+    "old_response_values_used": false
+  }
+}
