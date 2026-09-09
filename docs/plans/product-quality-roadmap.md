@@ -3,7 +3,7 @@
 作成日: 2026-09-09<br>
 実装の調査基準: `02e55e5`<br>
 Wikiレビュー基準: `d111a02`<br>
-状態: Wikiの再構成と実行例の検証、PQ-00〜03、PQ-05を完了。CI・適用診断・科学的検証は未完了。
+状態: PQ-00〜03・PQ-05を完了。PQ-04はworkflow実装・ローカル検証済み、外部接続確認待ち。
 
 ## 目的
 
@@ -75,7 +75,7 @@ P2は性能などの継続改善とする。実験資料に依存するPQ-11は�
 | 1: 誤結果の修正 | PQ-01 | P0 | 完了。独立参照、実要素、疎行列再試行を検証 | 研究者・ユーザー | 正しい固有値解析と失敗処理 | PQ-00 |
 | 1: 誤結果の修正 | PQ-02 | P0 | 完了。3/6DOF・混在・非連続IDを検証 | 開発者・ユーザー | 共通DOF管理による公開後処理 | PQ-00 |
 | 2: 配布と導入 | PQ-03 | P1 | 完了。単一バージョン源と隔離wheelを検証 | 開発者 | 一貫したパッケージ・バージョン | PQ-00 |
-| 2: 配布と導入 | PQ-04 | P1 | 未着手 | 開発者 | 検証済み成果物だけを公開するCI | PQ-03。リリース時はPQ-01/02も必須 |
+| 2: 配布と導入 | PQ-04 | P1 | 実装済み。単一artifact経路を検証、外部接続確認待ち | 開発者 | 検証済み成果物だけを公開するCI | PQ-03。リリース時はPQ-01/02も必須 |
 | 2: 配布と導入 | PQ-05 | P1 | 完了。README・公開URL・隔離wheel例を検証 | ユーザー | 実行できる導入例・正確な品質説明 | PQ-03、PQ-07の仕様 |
 | 3: 利用時の信頼性 | PQ-06 | P1 | 制約と梁例を文書化、実装は未着手 | ユーザー | 検証済みVTK出力 | PQ-02、PQ-07の対応表 |
 | 3: 利用時の信頼性 | PQ-07 | P1 | 人向け対応表は完了、事前拒否は未着手 | 研究者・ユーザー | 機能対応表・未対応組合せの事前拒否 | PQ-00。PQ-01と併せて更新 |
@@ -201,6 +201,23 @@ HTTPはwheel外のリポジトリ／コンテナ入口とし、旧`main.FrameWeb
 対応を宣言するPython/OSをCIで確認するか、宣言する範囲を検証済みの範囲に合わせる。
 
 ### PQ-04: 検証と公開の接続
+
+実装進捗（2026-09-09）: `tests.yml`を通常CIとリリースの双方から呼べる検証workflowとし、
+同じコミットからwheelとsdistを一度だけ作る。commit、version、ファイル名、SHA-256を
+manifestへ固定し、Windowsでの全件・材料非線形・Wiki検証と、Ubuntu／Windows、
+Python 3.11〜3.13でのartifact再照合・隔離wheel解析がすべて成功した場合だけ、呼出元へ
+artifact情報を返す。`publish-pypi.yml`は`v<version>`タグだけで発火し、検証workflow成功後に
+同じartifactをPyPI Trusted Publishingで公開する。OIDC権限は公開jobだけに限定した。
+詳細は[PQ-04 CI・PyPI公開経路報告](../report/product-quality-pq04.md)を参照する。
+
+PQ-04全件実行時の共有作業ツリーでは全1,982件が成功し、失敗0、skip 0、終了コード0だった。
+CIで独立結果を残す材料非線形集合も902件が成功した。新規のworkflow契約・provenance試験3件、
+Wiki実行例18件、actionlint 1.7.12、隔離wheel解析も成功した。
+
+PyPIには既に別内容の1.0.2が存在するため、現行1.0.2の公開は明示的に失敗する。
+実リリースでは未使用versionへ更新した同一コミットを再検証する。今回、GitHub上のworkflow実行、
+タグ作成、PyPI公開は行っていない。GitHubに`pypi` environmentがまだないため、workflowを
+commit・pushし、GitHub／PyPIのTrusted Publisherを設定して非公開検証runを確認するまで未完了とする。
 
 対象: [テストCI](../../.github/workflows/tests.yml)、[公開CI](../../.github/workflows/publish-pypi.yml)。
 
