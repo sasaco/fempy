@@ -927,13 +927,17 @@ class FemModel:
             解析結果
         """
         # n_modes パラメータを一時的に設定
-        original_n_modes = getattr(self, '_n_modes', 10)
-        self._n_modes = n_modes
+        missing = object()
+        original_n_modes = self.analysis_params.get('n_modes', missing)
+        self.analysis_params['n_modes'] = n_modes
         
         try:
             result = self.run('modal')
         finally:
-            self._n_modes = original_n_modes
+            if original_n_modes is missing:
+                self.analysis_params.pop('n_modes', None)
+            else:
+                self.analysis_params['n_modes'] = original_n_modes
             
         return result
         

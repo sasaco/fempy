@@ -2,10 +2,10 @@
   {
     "sample": "tests/data/shell/shellTri1.json",
     "original_sha256": "ac12584c5170571c8df4cf21aa70c26b0d5f9c90daa71b903b43f6f5ad5e2a46",
-    "after_sha256": "1d14ecd0ece588bbfa43fa70da320628862f59837f7978bc2a809721ee95f173",
-    "input_bytes_sha256": "dd962136d968f526986c9f9ab1c1207b352262da9c3096e41aacd9f41b496b38",
+    "after_sha256": "646952e7d2639c635df60ec7c95160ace7f00920f32ed74cc934d23a233be0e1",
+    "input_bytes_sha256": "441f0a496b2dc3cfae91d981db83fe56abb75cda76d23ce0d7188b610860d365",
     "source_input": "docs/v0/testdata/shell/shellTri1.out",
-    "source_input_sha256": "394b5526ec63728beafc0e7f48da820b52fceb98d62db8a2074736d1f7a5a059",
+    "source_input_sha256": "60d2eb91f6d5344df770ccf3d050ba560b42767ac8418a8d2a06f623a4f3974f",
     "method": "65-digit variational shell: Hermite-edge DKT or edge-midpoint covariant MITC4 shear, membrane/bending/rotation-spin energies; independently solved and both surface tensors evaluated before float conversion",
     "sources": {
       "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805",
@@ -13,19 +13,20 @@
       "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
       "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
       "tests/support/oracles/triangle_sample.py": "b8dad6ffcaace2a3bfa3a43df28738a3fcddd260f122f3425d5e7d5f3c62416d",
-      "tests/support/provenance.py": "3974a5ecf30ee6799fd77e9f63a75ae5ca6a7b2e5739d3bae27b5c1d6b4d1d01"
+      "tests/support/provenance.py": "1337b89db380a44cec96165bdeb23eee025349033d2b6aef2c8621024ca6d45d"
     },
     "verification": "Eight independent rigid-mode/constant membrane/curvature/drilling energy cases; source input equality; free equation residual <1e-35; all required output quantities retained",
     "product_imports": false,
-    "old_response_values_used": false
+    "old_response_values_used": false,
+    "hash_policy": "sha256_utf8_lf"
   },
   {
     "sample": "tests/data/shell/shellBeamQuad1.json",
     "original_sha256": "ee617c5aa11bfd48641cd3ecad29c850e92a6a092d76db3dd6510aaba03eca70",
-    "after_sha256": "5da3d75d8c60ecbc39df571b2f632f41a2922ba171a3dcb06f62527177384294",
-    "input_bytes_sha256": "c0958600e3fcb2879c10c02998d5aebc67eecf6a2a77c31dd3bd63ca25f60784",
+    "after_sha256": "f678b8750259508500448a44d1745727675b7ff022c7d7f7726999105691b5f5",
+    "input_bytes_sha256": "76d60c2adccda405998ad49e229e04a838085537335802ed466ea8ec88f935df",
     "source_input": "docs/v0/testdata/shell/shellBeamQuad1.out",
-    "source_input_sha256": "5839c357638ca98ae584f79ef94db2168957c544b344e4889e343cd5f2a79bd2",
+    "source_input_sha256": "14b21515c17864aae3d1ca4190315e89bcbb1da1fe17f5e65d570567c6d6589a",
     "method": "65-digit variational shell: Hermite-edge DKT or edge-midpoint covariant MITC4 shear, membrane/bending/rotation-spin energies; independently solved and both surface tensors evaluated before float conversion",
     "sources": {
       "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805",
@@ -33,19 +34,20 @@
       "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
       "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
       "tests/support/oracles/triangle_sample.py": "b8dad6ffcaace2a3bfa3a43df28738a3fcddd260f122f3425d5e7d5f3c62416d",
-      "tests/support/provenance.py": "3974a5ecf30ee6799fd77e9f63a75ae5ca6a7b2e5739d3bae27b5c1d6b4d1d01"
+      "tests/support/provenance.py": "1337b89db380a44cec96165bdeb23eee025349033d2b6aef2c8621024ca6d45d"
     },
     "verification": "Eight independent rigid-mode/constant membrane/curvature/drilling energy cases; source input equality; free equation residual <1e-35; all required output quantities retained",
     "product_imports": false,
-    "old_response_values_used": false
+    "old_response_values_used": false,
+    "hash_policy": "sha256_utf8_lf"
   },
   {
     "sample": "tests/data/shell/shellQuad1.json",
     "original_sha256": "e1308c17531eb20a45097eedc64de7ba3015c2e2378948694fd6f78171fdb143",
-    "after_sha256": "2077e63359149ab9cc097f197353d8d33d85d4d2bea5aae313ff85fca6f6a573",
-    "input_bytes_sha256": "13d2212b57e3695f7fb4c3a06fe32b8451c74613a5f6c7b5f654cfb362818284",
+    "after_sha256": "aec1921f39dcb5336ff6d1d960bfeacebf5cd05a4273d8d4667e3b722dc33222",
+    "input_bytes_sha256": "7ceaa3c43279f4d51e0053ade3248b60475a6267626129adf216573cd19eaa0b",
     "source_input": "docs/v0/testdata/shell/shellQuad1.out",
-    "source_input_sha256": "1564b24a1f0386fde507bc62fad0a7e49d055a1c52786bfa56d13133942f51c9",
+    "source_input_sha256": "da2fa4c7e8c3d2a1081d162f3545574c31feadabd71843ddef7d17084609a4dc",
     "method": "65-digit variational shell: Hermite-edge DKT or edge-midpoint covariant MITC4 shear, membrane/bending/rotation-spin energies; independently solved and both surface tensors evaluated before float conversion",
     "sources": {
       "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805",
@@ -53,19 +55,20 @@
       "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
       "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
       "tests/support/oracles/triangle_sample.py": "b8dad6ffcaace2a3bfa3a43df28738a3fcddd260f122f3425d5e7d5f3c62416d",
-      "tests/support/provenance.py": "3974a5ecf30ee6799fd77e9f63a75ae5ca6a7b2e5739d3bae27b5c1d6b4d1d01"
+      "tests/support/provenance.py": "1337b89db380a44cec96165bdeb23eee025349033d2b6aef2c8621024ca6d45d"
     },
     "verification": "Eight independent rigid-mode/constant membrane/curvature/drilling energy cases; source input equality; free equation residual <1e-35; all required output quantities retained",
     "product_imports": false,
-    "old_response_values_used": false
+    "old_response_values_used": false,
+    "hash_policy": "sha256_utf8_lf"
   },
   {
     "sample": "tests/data/shell/shellQuad1_t1.json",
     "original_sha256": "8315e6d3372b3fcbd2b12f62a7b6d78fd2a314c854baac0e09ca3652c7634cb5",
-    "after_sha256": "57038990aa37ae7ac40e9183d1c5e5c64d1c534bdd8eb7aab3ed35cc1c141102",
-    "input_bytes_sha256": "39a2a8e5f824892b6bbb2d5c3e7af61568997232da981ff583e5c910b4c17853",
+    "after_sha256": "ba8cae8c672214f0f36625e91bd7ae1aea5e8ac0ec2cd734568030a04c7260b9",
+    "input_bytes_sha256": "41edaf8154568ae201b61adb82f219f248a277cdc6243b87b1add904fa5e2801",
     "source_input": "docs/v0/testdata/shell/shellQuad1_t1.out",
-    "source_input_sha256": "df33949c70017cf2e46548bd7db27fb1367c6d1b84edb17e4526833292dfebb0",
+    "source_input_sha256": "c539d31e6018377e934af5a45f6b1c3829db870bb44111e327ce90b1469049ac",
     "method": "65-digit variational shell: Hermite-edge DKT or edge-midpoint covariant MITC4 shear, membrane/bending/rotation-spin energies; independently solved and both surface tensors evaluated before float conversion",
     "sources": {
       "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805",
@@ -73,19 +76,20 @@
       "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
       "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
       "tests/support/oracles/triangle_sample.py": "b8dad6ffcaace2a3bfa3a43df28738a3fcddd260f122f3425d5e7d5f3c62416d",
-      "tests/support/provenance.py": "3974a5ecf30ee6799fd77e9f63a75ae5ca6a7b2e5739d3bae27b5c1d6b4d1d01"
+      "tests/support/provenance.py": "1337b89db380a44cec96165bdeb23eee025349033d2b6aef2c8621024ca6d45d"
     },
     "verification": "Eight independent rigid-mode/constant membrane/curvature/drilling energy cases; source input equality; free equation residual <1e-35; all required output quantities retained",
     "product_imports": false,
-    "old_response_values_used": false
+    "old_response_values_used": false,
+    "hash_policy": "sha256_utf8_lf"
   },
   {
     "sample": "tests/data/shell/shellQuad1_t2.json",
     "original_sha256": "6d642e41a2b665fb94b90850baead66fdb3f24754fea9c86f0b6a7ea4853e289",
-    "after_sha256": "9f2f7e257ac7ba40869e67fb3e1b741b06ce3c7d214e045731e386b4d373f8f8",
-    "input_bytes_sha256": "bb9ad3ea082c016accdd0f923ba32ab24d2cc40f2efc74660ca55cb4923fa00b",
+    "after_sha256": "d042063486d0bb187a6ca364dd3b25df732aca8a1bebf3c136cfa6dfb7c7c261",
+    "input_bytes_sha256": "f68af0b4cb52dcc3bcf435798c230691db38aa156821391efbf37a806ceb8123",
     "source_input": "docs/v0/testdata/shell/shellQuad1_t2.out",
-    "source_input_sha256": "864f97270a633957038d72d9354e95ca4f0ac3b5ec4489e99ce251aa3e72a016",
+    "source_input_sha256": "4bd8083745d0bfcb6a6b7d3b4b443884fdf75e86f640e1e40d97c4dda8c69056",
     "method": "65-digit variational shell: Hermite-edge DKT or edge-midpoint covariant MITC4 shear, membrane/bending/rotation-spin energies; independently solved and both surface tensors evaluated before float conversion",
     "sources": {
       "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805",
@@ -93,19 +97,20 @@
       "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
       "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
       "tests/support/oracles/triangle_sample.py": "b8dad6ffcaace2a3bfa3a43df28738a3fcddd260f122f3425d5e7d5f3c62416d",
-      "tests/support/provenance.py": "3974a5ecf30ee6799fd77e9f63a75ae5ca6a7b2e5739d3bae27b5c1d6b4d1d01"
+      "tests/support/provenance.py": "1337b89db380a44cec96165bdeb23eee025349033d2b6aef2c8621024ca6d45d"
     },
     "verification": "Eight independent rigid-mode/constant membrane/curvature/drilling energy cases; source input equality; free equation residual <1e-35; all required output quantities retained",
     "product_imports": false,
-    "old_response_values_used": false
+    "old_response_values_used": false,
+    "hash_policy": "sha256_utf8_lf"
   },
   {
     "sample": "tests/data/shell/shellRibQuad1.json",
     "original_sha256": "4e4eae7f5d5a1d8259569b5aaec9bedd0b4ba691f96a675b07b90c52eba67552",
-    "after_sha256": "a032e3488541a0cdb7849f4c954ef091ba93260da44dfe98d8d1903c4e22c607",
-    "input_bytes_sha256": "308dff87ac433546fb57608e3f9d1a2ac960f32b377f2277a1211b23b2cbefe5",
+    "after_sha256": "573029fd8ddf3a21f9db8073610e1198dea5bf69a14f2e2ebfcb6504266649fb",
+    "input_bytes_sha256": "b2c33720a6e71155c9065cf8fa06026d01523ce17a8526d77d05cfccd1f86360",
     "source_input": "docs/v0/testdata/shell/shellRibQuad1.out",
-    "source_input_sha256": "40d713bc4ff3b4c60f90f3be6416b509678b72f2c3a2cb86ba853d745717f86e",
+    "source_input_sha256": "e5bcd50715acc7569848f058b728d13a1fefbd3f22785350b8e34314331f58aa",
     "method": "65-digit variational shell: Hermite-edge DKT or edge-midpoint covariant MITC4 shear, membrane/bending/rotation-spin energies; independently solved and both surface tensors evaluated before float conversion",
     "sources": {
       "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805",
@@ -113,19 +118,20 @@
       "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
       "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
       "tests/support/oracles/triangle_sample.py": "b8dad6ffcaace2a3bfa3a43df28738a3fcddd260f122f3425d5e7d5f3c62416d",
-      "tests/support/provenance.py": "3974a5ecf30ee6799fd77e9f63a75ae5ca6a7b2e5739d3bae27b5c1d6b4d1d01"
+      "tests/support/provenance.py": "1337b89db380a44cec96165bdeb23eee025349033d2b6aef2c8621024ca6d45d"
     },
     "verification": "Eight independent rigid-mode/constant membrane/curvature/drilling energy cases; source input equality; free equation residual <1e-35; all required output quantities retained",
     "product_imports": false,
-    "old_response_values_used": false
+    "old_response_values_used": false,
+    "hash_policy": "sha256_utf8_lf"
   },
   {
     "sample": "tests/data/shell/shellTensTorQuad1.json",
     "original_sha256": "032c3a700052742599eccfbb13949ef4cfc0ae28255d8d5702a2c10e468c7d4e",
-    "after_sha256": "cd7f5173c4d046280ee7b2118905ef555ae5c86b01f960e0f5b3cf8bd60ce402",
-    "input_bytes_sha256": "a83d4f3de64a236c90e76e4e4670ae3ceffff35d3015060a43bf1fdf0a88dab1",
+    "after_sha256": "ad818ce9f8d91b9f32875523884320c817605618369a78f94d5616a060b7e0c2",
+    "input_bytes_sha256": "20e58ad830faa88b57e58c70b0184b5eff8a1b48cb9c904278d6aee8cb51c331",
     "source_input": "docs/v0/testdata/shell/shellTensTorQuad1.out",
-    "source_input_sha256": "79b0c198ad832faa79086ab8f3ccbdba56316ce4f84db6652bd189038a3de2e3",
+    "source_input_sha256": "17e28efe3a2ba5b08002f8482b99fe1dd4719778cfe87ddf67ac62c2b56e03a5",
     "method": "65-digit variational shell: Hermite-edge DKT or edge-midpoint covariant MITC4 shear, membrane/bending/rotation-spin energies; independently solved and both surface tensors evaluated before float conversion",
     "sources": {
       "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805",
@@ -133,19 +139,20 @@
       "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
       "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
       "tests/support/oracles/triangle_sample.py": "b8dad6ffcaace2a3bfa3a43df28738a3fcddd260f122f3425d5e7d5f3c62416d",
-      "tests/support/provenance.py": "3974a5ecf30ee6799fd77e9f63a75ae5ca6a7b2e5739d3bae27b5c1d6b4d1d01"
+      "tests/support/provenance.py": "1337b89db380a44cec96165bdeb23eee025349033d2b6aef2c8621024ca6d45d"
     },
     "verification": "Eight independent rigid-mode/constant membrane/curvature/drilling energy cases; source input equality; free equation residual <1e-35; all required output quantities retained",
     "product_imports": false,
-    "old_response_values_used": false
+    "old_response_values_used": false,
+    "hash_policy": "sha256_utf8_lf"
   },
   {
     "sample": "tests/data/shell/shellThickBeamQuad1.json",
     "original_sha256": "ead76369d9065fd56943c412f076e889aeb38bf4d5a84635f4ebe39c21543ac5",
-    "after_sha256": "d10b737f7cf6d2903f9fedf8e7ac5ee8e4c84f85591223710511379224f02d17",
-    "input_bytes_sha256": "f1880a6f6f8e25d2b9c42f2687930dd8b53a7e83dfe6fea6716bf79364f264d4",
+    "after_sha256": "56bd1ed975e7e95c0dfa619f0c9b82c192195bbeaadbfd9e7fc4f3216269b354",
+    "input_bytes_sha256": "73c56f45a8704c018aebf89df3462d94eb0c0110ef43db4f6f6ff2047de94ec9",
     "source_input": "docs/v0/testdata/shell/shellThickBeamQuad1.out",
-    "source_input_sha256": "3b932c9cc2053f95b05566c0c28855621a833651cc470d7b0e669adc7d684917",
+    "source_input_sha256": "d3a0b195ffca72a8d6c8057cc9b478a5ec4f74b5859d8408508139085e4b33eb",
     "method": "65-digit variational shell: Hermite-edge DKT or edge-midpoint covariant MITC4 shear, membrane/bending/rotation-spin energies; independently solved and both surface tensors evaluated before float conversion",
     "sources": {
       "tests/support/oracles/shell_variational.py": "d799762187dfb5fe27dc261e275a979c331f2a262977078f5e1a6a39889a2805",
@@ -153,10 +160,11 @@
       "tests/support/oracles/plane_frame_series.py": "493d0d0a26c20682df3dfdae21889cf04fb527a611a9cb16d9899ee6b30c275d",
       "tests/support/oracles/piecewise_series.py": "5a1d1f57708b26a5b0cf3694b411ca0d07e69b24afd517043073b6085c80e04e",
       "tests/support/oracles/triangle_sample.py": "b8dad6ffcaace2a3bfa3a43df28738a3fcddd260f122f3425d5e7d5f3c62416d",
-      "tests/support/provenance.py": "3974a5ecf30ee6799fd77e9f63a75ae5ca6a7b2e5739d3bae27b5c1d6b4d1d01"
+      "tests/support/provenance.py": "1337b89db380a44cec96165bdeb23eee025349033d2b6aef2c8621024ca6d45d"
     },
     "verification": "Eight independent rigid-mode/constant membrane/curvature/drilling energy cases; source input equality; free equation residual <1e-35; all required output quantities retained",
     "product_imports": false,
-    "old_response_values_used": false
+    "old_response_values_used": false,
+    "hash_policy": "sha256_utf8_lf"
   }
 ]

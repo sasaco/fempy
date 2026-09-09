@@ -709,7 +709,17 @@ def result_to_jsonable(obj):
     if isinstance(obj, np.generic):
         return result_to_jsonable(obj.item())
     if isinstance(obj, dict):
-        return {str(k): result_to_jsonable(v) for k, v in obj.items()}
+        output = {}
+        for key, value in obj.items():
+            if str(key) == 'periods' and isinstance(value, (list, tuple, np.ndarray)):
+                output[str(key)] = [
+                    None if isinstance(item, (float, np.floating)) and not np.isfinite(item)
+                    else result_to_jsonable(item)
+                    for item in value
+                ]
+            else:
+                output[str(key)] = result_to_jsonable(value)
+        return output
     if isinstance(obj, (list, tuple)):
         return [result_to_jsonable(v) for v in obj]
     if isinstance(obj, float) and not np.isfinite(obj):

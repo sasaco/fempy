@@ -16,7 +16,7 @@
     {
       "id": "bar/2D_Sample01",
       "file": "bar/2D_Sample01.json",
-      "sha256": "61bbe4d176ba8ad6273deb77a5b8c47a647923fba217334161f039b7d96be0a4",
+      "sha256": "868f510f7ca12358c92e6c285f37953e6c1434c71f3bd8fdefd9b93148d96238",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -60,7 +60,7 @@
     {
       "id": "bar/2D_Sample02",
       "file": "bar/2D_Sample02.json",
-      "sha256": "453b49b9fd49b4e9194562f16cab3ebeadb50900adc28e49b789b9282dc708db",
+      "sha256": "3e8df68d6a0a5ddf02e9c114b40425541095cfe2055676f25765bda4d031ce34",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -102,7 +102,7 @@
     {
       "id": "bar/2D_Sample03",
       "file": "bar/2D_Sample03.json",
-      "sha256": "ce900b53e7c1eee4b3bd16fd9b2e1cc42b58ba3f047f7ee09b29bcf8671626c4",
+      "sha256": "247389c06610e379ef554726d7519690e24a18a9865636e26d6e016fef31124f",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -154,7 +154,7 @@
     {
       "id": "bar/2D_Sample04",
       "file": "bar/2D_Sample04.json",
-      "sha256": "0403ff6155ce37e32ee7b8444ac3d24cce367a909bb77570986e5b4c7db15e5b",
+      "sha256": "4fbab8aa9b44f0d81c1f46b37ffba62696f3c03e5680d8768f0e28f75314a4b8",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -184,7 +184,7 @@
     {
       "id": "bar/2D_Sample05",
       "file": "bar/2D_Sample05.json",
-      "sha256": "1f545399ebb214325e848d7e04ca11d6d8700d69f59a73c65e2b9f1789710dae",
+      "sha256": "4dfe34c13298d974b58ff97d918c2cbd9acf951d89cc7e45168221bf499b32a5",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -223,7 +223,7 @@
     {
       "id": "bar/2D_Sample06",
       "file": "bar/2D_Sample06.json",
-      "sha256": "44a160efeaa9181c09d7ffbfcace864d7a417ae57f0f29aa529e15e8b74c9dc6",
+      "sha256": "ef89376695bc7354761c884a1de868e81b8fe3a75b81bfcefa896b676fb25f00",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -252,7 +252,7 @@
     {
       "id": "bar/2D_Sample07",
       "file": "bar/2D_Sample07.json",
-      "sha256": "0767828ccc94696143fab2a4a278264ebef5715a4acad2f5ad423e6c5579bdcd",
+      "sha256": "c468025320d4229f978cfaccc432ee16031bb353c48f138bb870fd01815cd264",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -290,7 +290,7 @@
     {
       "id": "bar/2D_Sample08",
       "file": "bar/2D_Sample08.json",
-      "sha256": "e05a8a992162b46f35d03bc89eea582c56d098c8ae2ffe1710bf02adc55fd23b",
+      "sha256": "4aaa6c9e93bcd49d3711c929a6e6027490aa006c4c2df664ab450816f42d07ac",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -314,7 +314,7 @@
     {
       "id": "bar/2D_Sample09",
       "file": "bar/2D_Sample09.json",
-      "sha256": "3c7aeefb5d9e68b413d0cbcec358e73037d9914b7bdac2847535b9bb3511a52b",
+      "sha256": "95e3e2566bf84f3284009e6a30aa728c355234fce4764e906f2afa28ace4b22e",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -343,7 +343,7 @@
     {
       "id": "bar/2D_Sample10",
       "file": "bar/2D_Sample10.json",
-      "sha256": "453b49b9fd49b4e9194562f16cab3ebeadb50900adc28e49b789b9282dc708db",
+      "sha256": "3e8df68d6a0a5ddf02e9c114b40425541095cfe2055676f25765bda4d031ce34",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -385,7 +385,7 @@
     {
       "id": "bar/2D_Sample11",
       "file": "bar/2D_Sample11.json",
-      "sha256": "87fe83481170480465b3f5898c652ba525fd0ca3e6ef10f0c459a548633c868f",
+      "sha256": "e3dc7e52573e3c55ddfb7079100cff91ebd6068319c624f25b1c4d61981e7d64",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -408,7 +408,7 @@
     {
       "id": "bar/2D_Sample12",
       "file": "bar/2D_Sample12.json",
-      "sha256": "2e8e490bcb73ac880ef8cdd3e1037a3b7f08b9a546bfacb3f8e24fd0767b318c",
+      "sha256": "62153834b2d9aa1d6ea2dfcf5473c8290e60f08b3ade8782389a07cf350a1692",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -429,7 +429,7 @@
     {
       "id": "bar/2D_Sample13",
       "file": "bar/2D_Sample13.json",
-      "sha256": "78a1369e382c9268a6af02f92283f390df45e30ef63cb60fd8bc846b6d9edd66",
+      "sha256": "b027dd9e5bff2615c202291d8fdf75d218000e2ae5f57ad9a424e70c0a9ccbda",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -466,7 +466,7 @@
     {
       "id": "bar/3D_Sample01",
       "file": "bar/3D_Sample01.json",
-      "sha256": "d184c488aabcea8de2ff416d7929f3ea3ae5b773adce767c3c681a768646e238",
+      "sha256": "ac7de3ebf226187bc580aeec7778cc7892f1047a4884572177dec26a6c2c8cbc",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -510,7 +510,7 @@
     {
       "id": "bar/3D_Sample02",
       "file": "bar/3D_Sample02.json",
-      "sha256": "141985d80cb45a4c46db0335afb4363af848f92508c9fc42e7c45d95efa11427",
+      "sha256": "d7ca24ad39432cdbe8b429bdf92d7289462afa8a5c9b1d429bcefa6e361fe9c1",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -540,7 +540,7 @@
     {
       "id": "bar/3D_Sample03",
       "file": "bar/3D_Sample03.json",
-      "sha256": "01a739280263375de701d38649a1e80526896651d47669e02e7f209ccce19c33",
+      "sha256": "a5811399d7121d10f75ae6d624b9ce925c601cffbb26b5d83e49cb33b233e52d",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -594,7 +594,7 @@
     {
       "id": "bar/3D_Sample04",
       "file": "bar/3D_Sample04.json",
-      "sha256": "035e785654778f5eaa781c7197f6a7379101f18988dcf540562c95c5ac98308f",
+      "sha256": "8de190f403cfa248c3f8d50a8447217cd8d70c971a73fbcc07d015cff3262110",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -635,7 +635,7 @@
     {
       "id": "bar/3D_Sample05",
       "file": "bar/3D_Sample05.json",
-      "sha256": "b278fe94ebab2f1ed459af5ee1d0e8cfd5062011d41fd3f6051d3e359c3e9929",
+      "sha256": "16d48889ae2e9568e200f01b5dc1318bf16e36e0e58f0948b967974611b4d5f2",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -660,7 +660,7 @@
     {
       "id": "bar/3D_Sample06",
       "file": "bar/3D_Sample06.json",
-      "sha256": "ddeb2829fdae0887bb0273bcad23b1433b8b501f754533ef2c5775c08db4313c",
+      "sha256": "f6b29f3153fd9361ecfefcdab964fe92a52a7a8a695c5bfd32e46224cd59730f",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -681,7 +681,7 @@
     {
       "id": "bar/3D_Sample07",
       "file": "bar/3D_Sample07.json",
-      "sha256": "2a5dcdb68762e1515099d59b678553b23faae22103e230893d01a78b5c3a8734",
+      "sha256": "cb516591234c5ff4afa5e4418a8e7db8f36b067a740d6d79a6084c984a3d7e67",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -703,7 +703,7 @@
     {
       "id": "bar/3D_Sample08",
       "file": "bar/3D_Sample08.json",
-      "sha256": "4eb1d9dfbb161beb17e1f38f765bfc3334bedbf417875478e59e1e30ea8f5b0f",
+      "sha256": "31677e4ad8e5074ba4bbdef0ca7425debcb7ceb379fe0e59a6a911241b5455dc",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -728,7 +728,7 @@
     {
       "id": "bar/3D_Sample09",
       "file": "bar/3D_Sample09.json",
-      "sha256": "66aa1fb838920f37f976387767c50e55580e692f14976e770b3dfae7589f1c93",
+      "sha256": "6e1a65962a7baacb53bb658b48f9931c40fca2265d957ea7cbad6b014c74ff98",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -756,7 +756,7 @@
     {
       "id": "bar/3D_Sample10",
       "file": "bar/3D_Sample10.json",
-      "sha256": "9eef16bfc802862c13be94b23e087185cb2adb578d9df890fb0c110f1922fc19",
+      "sha256": "b5bf3addb262df57fe0870e7ae95edf430819699b70de44de35dc576c31b171c",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -785,7 +785,7 @@
     {
       "id": "shell/3D_Sample01",
       "file": "shell/3D_Sample01.json",
-      "sha256": "4aba9a914f28b2fb4f615fac57aa41aee3697d44e747869ca59b587d0ba7cbba",
+      "sha256": "714adee9599a30431843c448324a140fecf1f764bf2e5dbdeb7b10a7324514f8",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -806,7 +806,7 @@
     {
       "id": "shell/shellBeamQuad1",
       "file": "shell/shellBeamQuad1.json",
-      "sha256": "5da3d75d8c60ecbc39df571b2f632f41a2922ba171a3dcb06f62527177384294",
+      "sha256": "f678b8750259508500448a44d1745727675b7ff022c7d7f7726999105691b5f5",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -816,11 +816,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/shell/shellBeamQuad1.fem",
-          "sha256": "50554e310d18c51894acb6d4f5213b485356367570b718665e53b4b18934c7d3"
+          "sha256": "ed697632e0782c7dfeb196a0a9efc5bc2b28222b7a6fbd2ca1c1a2da26f36b75"
         },
         {
           "path": "docs/v0/testdata/shell/shellBeamQuad1.out",
-          "sha256": "5839c357638ca98ae584f79ef94db2168957c544b344e4889e343cd5f2a79bd2"
+          "sha256": "14b21515c17864aae3d1ca4190315e89bcbb1da1fe17f5e65d570567c6d6589a"
         }
       ],
       "reference_location": "result",
@@ -836,7 +836,7 @@
     {
       "id": "shell/shellBeamTri1",
       "file": "shell/shellBeamTri1.json",
-      "sha256": "e9682aa897271fdfb02b281f80ec9990e712693cf21bb07fab9b8c4f8c06e0ae",
+      "sha256": "da8f37322795c98e606c5a84cc49846738466972cb5d49dc5ec05191a725deb8",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -846,11 +846,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/shell/shellBeamTri1.fem",
-          "sha256": "b4c9b68a9149d016a3248a6413cd629e154d29f39becd598c0766dc45a6ea9b7"
+          "sha256": "b5d1099022a4cebe982efb9c411ca35d3f402a678be420492fbdb7d68dd2e4dc"
         },
         {
           "path": "docs/v0/testdata/shell/shellBeamTri1.out",
-          "sha256": "e322ce176ac830a55a18b53dc94904c2a27fecf0e02441cbfbc966e5ad92053b"
+          "sha256": "92c8467fc9af19fc26500c002f896c4dc9369fa60100210ef89ed88ccd4b5cc5"
         }
       ],
       "reference_location": "result",
@@ -866,7 +866,7 @@
     {
       "id": "shell/shellPressureTest1",
       "file": "shell/shellPressureTest1.json",
-      "sha256": "a26e46e6e420d563354dd53192da0d50bf1275f5e1031c2368a4a7f7e3423544",
+      "sha256": "17552a0f14d29b05029d52bcdf6cd0502d416cbdb68d065d6c8607c3c6010a8d",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -885,7 +885,7 @@
     {
       "id": "shell/shellQuad1",
       "file": "shell/shellQuad1.json",
-      "sha256": "2077e63359149ab9cc097f197353d8d33d85d4d2bea5aae313ff85fca6f6a573",
+      "sha256": "aec1921f39dcb5336ff6d1d960bfeacebf5cd05a4273d8d4667e3b722dc33222",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -895,11 +895,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/shell/shellQuad1.fem",
-          "sha256": "62bd2ff996dd295c59b3b2fd16aa865a1c143c841d68225d54f72fcc7a4e5b0c"
+          "sha256": "e51d608cbd8e0b20c07d28014d813628688854d6c3670a067e189ad907556edd"
         },
         {
           "path": "docs/v0/testdata/shell/shellQuad1.out",
-          "sha256": "1564b24a1f0386fde507bc62fad0a7e49d055a1c52786bfa56d13133942f51c9"
+          "sha256": "da2fa4c7e8c3d2a1081d162f3545574c31feadabd71843ddef7d17084609a4dc"
         }
       ],
       "reference_location": "result",
@@ -915,7 +915,7 @@
     {
       "id": "shell/shellQuad1_t1",
       "file": "shell/shellQuad1_t1.json",
-      "sha256": "57038990aa37ae7ac40e9183d1c5e5c64d1c534bdd8eb7aab3ed35cc1c141102",
+      "sha256": "ba8cae8c672214f0f36625e91bd7ae1aea5e8ac0ec2cd734568030a04c7260b9",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -925,11 +925,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/shell/shellQuad1_t1.fem",
-          "sha256": "70a1e3ccf7a27419e90e42891d4f2cb12000fd6484e10f49bdd755096fc6c230"
+          "sha256": "5629ca4070260c01fabf89e61dbfe74d30949690deb4654a18e56df6bb62fbd7"
         },
         {
           "path": "docs/v0/testdata/shell/shellQuad1_t1.out",
-          "sha256": "df33949c70017cf2e46548bd7db27fb1367c6d1b84edb17e4526833292dfebb0"
+          "sha256": "c539d31e6018377e934af5a45f6b1c3829db870bb44111e327ce90b1469049ac"
         }
       ],
       "reference_location": "result",
@@ -945,7 +945,7 @@
     {
       "id": "shell/shellQuad1_t2",
       "file": "shell/shellQuad1_t2.json",
-      "sha256": "9f2f7e257ac7ba40869e67fb3e1b741b06ce3c7d214e045731e386b4d373f8f8",
+      "sha256": "d042063486d0bb187a6ca364dd3b25df732aca8a1bebf3c136cfa6dfb7c7c261",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -955,11 +955,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/shell/shellQuad1_t2.fem",
-          "sha256": "bd8b400d624bf3a5ee87c0edbb3bf8ecc7c7d95d5e7b5afe8acb00b31385fbfd"
+          "sha256": "1e3a1b03849fc8e888df9b04f79f5c04d21c74ac34392ebc37c3bcad2de5ec1c"
         },
         {
           "path": "docs/v0/testdata/shell/shellQuad1_t2.out",
-          "sha256": "864f97270a633957038d72d9354e95ca4f0ac3b5ec4489e99ce251aa3e72a016"
+          "sha256": "4bd8083745d0bfcb6a6b7d3b4b443884fdf75e86f640e1e40d97c4dda8c69056"
         }
       ],
       "reference_location": "result",
@@ -975,7 +975,7 @@
     {
       "id": "shell/shellRibQuad1",
       "file": "shell/shellRibQuad1.json",
-      "sha256": "a032e3488541a0cdb7849f4c954ef091ba93260da44dfe98d8d1903c4e22c607",
+      "sha256": "573029fd8ddf3a21f9db8073610e1198dea5bf69a14f2e2ebfcb6504266649fb",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -985,11 +985,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/shell/shellRibQuad1.fem",
-          "sha256": "c36f434da863883203831e52046447cefe6bc201b2d1e05c25845106286bc7f6"
+          "sha256": "e1c0bdd6c6518c3cf77f38bf2910f7312916070df18e54e77cda3accb94934a4"
         },
         {
           "path": "docs/v0/testdata/shell/shellRibQuad1.out",
-          "sha256": "40d713bc4ff3b4c60f90f3be6416b509678b72f2c3a2cb86ba853d745717f86e"
+          "sha256": "e5bcd50715acc7569848f058b728d13a1fefbd3f22785350b8e34314331f58aa"
         }
       ],
       "reference_location": "result",
@@ -1005,7 +1005,7 @@
     {
       "id": "shell/shellRibTri1",
       "file": "shell/shellRibTri1.json",
-      "sha256": "51d57072dc0b3505bb8574d566ca94fa485bdee751008bd62b3e1b0b04ae31c6",
+      "sha256": "15d36851400b91275fd3fb8f9ad46ac6620aa203069fe3b1c7a76d0442211a20",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1015,11 +1015,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/shell/shellRibTri1.fem",
-          "sha256": "b6f352a1a415752ed5932df5b17da5a4408bf49758032b6180b22f9a9c8381a8"
+          "sha256": "86045bd8676a85797c40cf22103e47b16d3d1eaf9a7ed1b6cf125ac93df03fc2"
         },
         {
           "path": "docs/v0/testdata/shell/shellRibTri1.out",
-          "sha256": "3e225db371293bfd3f8788ecdbc3d771a30ce1f2a2932b470acbdd409d81689b"
+          "sha256": "6e946106a65c4db0d0be329fd8f4dc6d1af6a8da145075d686f7764c0e1b4061"
         }
       ],
       "reference_location": "result",
@@ -1035,7 +1035,7 @@
     {
       "id": "shell/shellTensTorQuad1",
       "file": "shell/shellTensTorQuad1.json",
-      "sha256": "cd7f5173c4d046280ee7b2118905ef555ae5c86b01f960e0f5b3cf8bd60ce402",
+      "sha256": "ad818ce9f8d91b9f32875523884320c817605618369a78f94d5616a060b7e0c2",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1045,11 +1045,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/shell/shellTensTorQuad1.fem",
-          "sha256": "ebf078e303feeb7b401fab5155471eeb8acc6e05361c8fa4ef58be034608e98c"
+          "sha256": "a800eb41fb28cd95b829aaf37c79f903675af9bf5583ad839cb730687f81f21d"
         },
         {
           "path": "docs/v0/testdata/shell/shellTensTorQuad1.out",
-          "sha256": "79b0c198ad832faa79086ab8f3ccbdba56316ce4f84db6652bd189038a3de2e3"
+          "sha256": "17e28efe3a2ba5b08002f8482b99fe1dd4719778cfe87ddf67ac62c2b56e03a5"
         }
       ],
       "reference_location": "result",
@@ -1065,7 +1065,7 @@
     {
       "id": "shell/shellTensTorTri1",
       "file": "shell/shellTensTorTri1.json",
-      "sha256": "97624b57d530facb624ce2ba6d96f7076855e43ce7bad1b043dcff7b5e5d42c0",
+      "sha256": "84eff1b416cafbf1b2670fe8df11e65a3090c8ef7747f5ea807b5181cedf0a4d",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1075,11 +1075,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/shell/shellTensTorTri1.fem",
-          "sha256": "8290eafd2c618ef9c422f820d3377b9cdcb2798037baab07a695e3e0fe6ff48a"
+          "sha256": "73ac9330263ce680c9820a234a21c2268afd9f629562657bcfcb83e024bcc63d"
         },
         {
           "path": "docs/v0/testdata/shell/shellTensTorTri1.out",
-          "sha256": "31fe064bef6c786a594c71f5ba05511c8d0180c6c902ef0c185ee40a67883ccb"
+          "sha256": "90e4ab728c9b35ae4dd3c8a7b0e235738ae2d8c3a01c23d0d94d73c14355d5d4"
         }
       ],
       "reference_location": "result",
@@ -1095,7 +1095,7 @@
     {
       "id": "shell/shellThickBeamQuad1",
       "file": "shell/shellThickBeamQuad1.json",
-      "sha256": "d10b737f7cf6d2903f9fedf8e7ac5ee8e4c84f85591223710511379224f02d17",
+      "sha256": "56bd1ed975e7e95c0dfa619f0c9b82c192195bbeaadbfd9e7fc4f3216269b354",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1105,11 +1105,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/shell/shellThickBeamQuad1.fem",
-          "sha256": "e29d858d4e6ae45dfe1709fee85ceddca4464cd5dd4ed9ae3a4d725c9ac45307"
+          "sha256": "e469761a2e5ddf5dac4d31aeacb9a284627c41b996a4fda8aa9feb600687c232"
         },
         {
           "path": "docs/v0/testdata/shell/shellThickBeamQuad1.out",
-          "sha256": "3b932c9cc2053f95b05566c0c28855621a833651cc470d7b0e669adc7d684917"
+          "sha256": "d3a0b195ffca72a8d6c8057cc9b478a5ec4f74b5859d8408508139085e4b33eb"
         }
       ],
       "reference_location": "result",
@@ -1125,7 +1125,7 @@
     {
       "id": "shell/shellThickBeamTri1",
       "file": "shell/shellThickBeamTri1.json",
-      "sha256": "77fcdcaadcc90ba2a80fdc6fb45f5654809514428cae28c6cf51218985eecad5",
+      "sha256": "d70d5f4d63fe7c63b5bc7eebee33a0630791cbe0d58d0d183e02809e67c016f7",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1135,11 +1135,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/shell/shellThickBeamTri1.fem",
-          "sha256": "9869421866a1f82e59b04f5ad79fcb0e3988a481cc20f59f85e77c0b5ec7da87"
+          "sha256": "2ca7188c9c4c7072172db44a04ce85dd5768f3e5c8ae13c1733e239fdbf97576"
         },
         {
           "path": "docs/v0/testdata/shell/shellThickBeamTri1.out",
-          "sha256": "918255c5c120f085551c74174cec4a9e0233602eda53b1187ae20ea9e347a5b4"
+          "sha256": "8c70d53bc14df3b1443ffd92804f4e16929764cd7c4212d610001ea80d2a6b1c"
         }
       ],
       "reference_location": "result",
@@ -1155,7 +1155,7 @@
     {
       "id": "shell/shellTri1",
       "file": "shell/shellTri1.json",
-      "sha256": "1d14ecd0ece588bbfa43fa70da320628862f59837f7978bc2a809721ee95f173",
+      "sha256": "646952e7d2639c635df60ec7c95160ace7f00920f32ed74cc934d23a233be0e1",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1165,11 +1165,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/shell/shellTri1.fem",
-          "sha256": "79674b93096a825973b561f235e6403a2486b63eb8f472f528633d74e5247db0"
+          "sha256": "4c24e39bdca016f853c9af1bd241f4aabdce0a14f025e2455c55f2cfedf649f7"
         },
         {
           "path": "docs/v0/testdata/shell/shellTri1.out",
-          "sha256": "394b5526ec63728beafc0e7f48da820b52fceb98d62db8a2074736d1f7a5a059"
+          "sha256": "60d2eb91f6d5344df770ccf3d050ba560b42767ac8418a8d2a06f623a4f3974f"
         }
       ],
       "reference_location": "result",
@@ -1185,7 +1185,7 @@
     {
       "id": "bend/sampleBendHexa1",
       "file": "bend/sampleBendHexa1.json",
-      "sha256": "858af6aaed49b547b31c8ceb3423c2625d620ffca9418403745ac4f0ca05a999",
+      "sha256": "5834e49c9e3b6a90e5fb0e764cd0b3c7a9eb5a175db10c10b3d94f892ea53f55",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1195,11 +1195,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/bend/sampleBendHexa1.fem",
-          "sha256": "aee064ff03a86ae15585d307fd0bf3053099294504f0680508ac1b17f44739b0"
+          "sha256": "58b81b4ad9d6ee5a59cc4c65b59162b59afe02c04ea1b65e988a7b7b0b1f4ae6"
         },
         {
           "path": "docs/v0/testdata/bend/sampleBendHexa1.out",
-          "sha256": "9679967490cba4933442b5e1b58a1f61df233e9c8e543b4f2270b73d48a4761f"
+          "sha256": "797c681a0cbef62fb5c1349e4a9fcbbb1d688deaa29e605221cbca84c50791d6"
         }
       ],
       "reference_location": "result",
@@ -1213,7 +1213,7 @@
     {
       "id": "bend/sampleBendHexa2",
       "file": "bend/sampleBendHexa2.json",
-      "sha256": "edce272e278b63997aeae9a7418e238a5dc321435c149d22b66160175a8264ca",
+      "sha256": "e353fb557ec99e2dfad90bccac5d3c6388e42aa87aeae75561b2700ec04f930d",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1223,11 +1223,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/bend/sampleBendHexa2.fem",
-          "sha256": "458b01f53928fb1d8bd9c9b1ea49797a73a1edd3601d89c87e8db58ee246566a"
+          "sha256": "839109b2c66ef89c8f644bc0b5eacc470996ecfa01bf426f6cb49096b9e4d1ae"
         },
         {
           "path": "docs/v0/testdata/bend/sampleBendHexa2.out",
-          "sha256": "27f05878b755d0db6dca8d0911b1d29aaef94b994b713f176f3ad8ab7e28f1f4"
+          "sha256": "95c99695bf647f824b1b0232371e8b40c793b522d7aad632c865c760d3c43fe1"
         }
       ],
       "reference_location": "result",
@@ -1241,7 +1241,7 @@
     {
       "id": "bend/sampleBendTetra1",
       "file": "bend/sampleBendTetra1.json",
-      "sha256": "f066e5fb4630b3fd248e431fb8c5346d2c45ccc2835a5311693fab599533110c",
+      "sha256": "f293cad192ac4868705e605df6a3b291ea1dd7aab4a3f4f0da985d0e6308ef36",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1251,11 +1251,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/bend/sampleBendTetra1.fem",
-          "sha256": "c27e8c496dfb09cb50ab261869bd212c325086ad67f668c82f57e835bd1608a6"
+          "sha256": "47fc076bde3d60d637aa2f3cb3473f14c730066a317367bade8d4de5cc2f8ff1"
         },
         {
           "path": "docs/v0/testdata/bend/sampleBendTetra1.out",
-          "sha256": "09ab58c0baef40ac5cc432ac9a01293899cd9b68b92aeb31200e808580aca887"
+          "sha256": "98ec9a1ffb1538f131b7f29305d7483f7229d8650f3a7855f26d3d90fbd53c14"
         }
       ],
       "reference_location": "result",
@@ -1269,7 +1269,7 @@
     {
       "id": "bend/sampleBendTetra2",
       "file": "bend/sampleBendTetra2.json",
-      "sha256": "9bb154ecf713bd09f93df069543f36ceab2c499aa385c0a3cde1fcb4fc492e1f",
+      "sha256": "4d3a757789e1b46249033e76c7b06b3b7abd59bd9c98cbde7eaabdb786eb30c5",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1279,11 +1279,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/bend/sampleBendTetra2.fem",
-          "sha256": "4ab19ba959dc1531b0599b1bd49fe43cdfe10803fc529aa78708cda7d6a7b1e9"
+          "sha256": "14cae42ab1be64c578e48d19e551bef30331d39346b13bf059b13044907d9030"
         },
         {
           "path": "docs/v0/testdata/bend/sampleBendTetra2.out",
-          "sha256": "3ff17b03882dd19f0cc7e0121e479dbfcf5b8867f69911185ec2d4a88fa97874"
+          "sha256": "b017d12abe78b7479b5e707c4c70755c5f9da22acbcfc323c7c06f1098d70a8d"
         }
       ],
       "reference_location": "result",
@@ -1307,11 +1307,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/bend/sampleBendTri1.fem",
-          "sha256": "ed3f2fc53d2e8121e0039e5df47f07cbb0c127fe7e786da3c19eec6f2f5f29f2"
+          "sha256": "15e0f8326945c109c39c7ec1546504312aba57ea3c2ff074bf8704bf001beab4"
         },
         {
           "path": "docs/v0/testdata/bend/sampleBendTri1.out",
-          "sha256": "a05ebdb4051aee133de31c1e6f7ffbfb1afc99648f11d8aa8edbb399b54c5c67"
+          "sha256": "adaeb42ec68b0f27c757f1f1ef50f23c6cffd239defe38201e829b72017fb867"
         }
       ],
       "reference_location": "result",
@@ -1325,7 +1325,7 @@
     {
       "id": "bend/sampleBendWedge1",
       "file": "bend/sampleBendWedge1.json",
-      "sha256": "f8c597bc7e47b5d8c2607debf8f5a8054a3dfffac54b9067195dc4ea8d0035cc",
+      "sha256": "a68ea6de1f783f2eed88adcd40c6459861fe87c5b322c129533c37915dc019ac",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1335,11 +1335,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/bend/sampleBendWedge1.fem",
-          "sha256": "4947c66d50653eb200ca1ec118a49af46415426ccec9a307184294ba39a307fb"
+          "sha256": "7aa7abe5a3fc7509016c1fca342cb3ea8d07c37c5bd735de656510421b6b8853"
         },
         {
           "path": "docs/v0/testdata/bend/sampleBendWedge1.out",
-          "sha256": "238b8f282b8ccc6b6a47671036830d1071962043fe2068b5eb68dda30f8ddbf4"
+          "sha256": "ad71172d113a3b827e8183eb4b52115118b9f448496f2e4d4ab8cb4d03af4e0e"
         }
       ],
       "reference_location": "result",
@@ -1353,7 +1353,7 @@
     {
       "id": "bend/sampleBendWedge2",
       "file": "bend/sampleBendWedge2.json",
-      "sha256": "d81b6d1a6b69367f2eb9c639d531a6d4e1338598a9e5562e9288aadb04b539ab",
+      "sha256": "8626ec58ece78fe99272873c0afd2eafb728742b1da3dcc13ea0deb9e42cd1d0",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [
@@ -1363,11 +1363,11 @@
       "sources": [
         {
           "path": "docs/v0/testdata/bend/sampleBendWedge2.fem",
-          "sha256": "d543fdb5b5106db7a6c2ccf8c27e69f8bdac8ae664484a42a0897ed67f2dee51"
+          "sha256": "934fa916f51645d4826d4b7d565f4d8346afe48a5dc51e8a0b333385f4eedc7a"
         },
         {
           "path": "docs/v0/testdata/bend/sampleBendWedge2.out",
-          "sha256": "3e7be4f9d6a82bc9a56b60ddf880818c4a1844a258db7e305b3f32c21a6ea68b"
+          "sha256": "44690833af5c772a766cf6865b5d0be9a618069e4285ffb3990258c32dcc3bba"
         }
       ],
       "reference_location": "result",
@@ -1381,7 +1381,7 @@
     {
       "id": "snap/beam001",
       "file": "snap/beam001.json",
-      "sha256": "cfda08f61eb6752f9350c13ba92c73e067b0b9e7db83c3d924257f4819652fdb",
+      "sha256": "4013df775f886dc0cc748b5194c7b153d24de1897c778e30b645917484e054c7",
       "input_format": "structural_json",
       "contract": "cantilever_history",
       "cases": [],
@@ -1499,5 +1499,6 @@
       ],
       "execution": "regression; material_nonlinear; all stored steps"
     }
-  ]
+  ],
+  "hash_policy": "sha256_utf8_lf"
 }

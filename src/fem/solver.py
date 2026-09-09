@@ -5,8 +5,9 @@ JavaScript版のSolver機能に対応
 from typing import Dict, Any, List, Tuple, Optional
 from copy import deepcopy
 import numpy as np
+from scipy.linalg import eigh
 from scipy.sparse import lil_matrix, csr_matrix
-from scipy.sparse.linalg import eigsh
+from scipy.sparse.linalg import ArpackNoConvergence, eigsh
 from .mesh import MeshModel
 from .boundary_condition import BoundaryCondition
 from .material import Material
@@ -365,115 +366,138 @@ class Solver:
     def eigenvalue_analysis(self, mesh: MeshModel, material: Material,
                           boundary: BoundaryCondition, elements: Dict[int, Any],
                           n_modes: int = 10) -> Dict[str, Any]:
-        """固有値解析を実行
-        
-        Args:
-            mesh: メッシュデータ
-            material: 材料データ
-            boundary: 境界条件
-            elements: 要素オブジェクトの辞書
-            n_modes: 求める固有モード数
-            
-        Returns:
-            固有値解析結果の辞書
-        """
+        """Solve the constrained generalized eigenproblem for requested low modes."""
         self._reset_analysis_state()
-        # 剛性行列と質量行列の作成
-        K = self.create_stiffness_matrix(mesh, material, elements)
-        M = self.create_mass_matrix(mesh, material, elements)
-        
-        # 境界条件の適用（質量行列には適用しない）
-        K_mod, _ = self.apply_boundary_conditions(
-            K, np.zeros(K.shape[0]), boundary, self.layout.stride, penalty=True)
-        
-        # モード数の調整（行列サイズの1/3以下に制限）
-        max_modes = min(n_modes, K.shape[0] // 3)
-        if max_modes < 1:
-            max_modes = 1
-            
-        # 固有値問題を解く（ARPACK収束問題対策）
-        try:
-            # まず標準的なパラメータで試行
-            eigenvalues, eigenvectors = eigsh(
-                K_mod, k=max_modes, M=M, 
-                which='SA',  # 最小代数的固有値（剛体モード対応）
-                maxiter=3000,  # 最大反復数を増加
-                tol=1e-9       # 収束判定の緩和
-            )
-            
-        except RuntimeError as e:
-            if "No convergence" in str(e):
-                # 収束しない場合はシフト技術を適用
-                print("ARPACK収束失敗、シフト技術を適用中...")
-                try:
-                    # シフト量を設定（平均対角成分の1%）
-                    avg_diag = np.mean(K_mod.diagonal())
-                    shift = max(1e-6, abs(avg_diag) * 0.01)
-                    
-                    # シフト行列 K_shifted = K + shift * M
-                    K_shifted = K_mod + shift * M
-                    
-                    eigenvalues, eigenvectors = eigsh(
-                        K_shifted, k=max_modes, M=M,
-                        which='SA',
-                        maxiter=5000,  # さらに増加
-                        tol=1e-8
-                    )
-                    
-                    # シフト補正
-                    eigenvalues = eigenvalues - shift
-                    print(f"シフト技術により解析成功 (shift={shift:.2e})")
-                    
-                except RuntimeError as e2:
-                    if "No convergence" in str(e2):
-                        # それでも収束しない場合は少ないモード数で再試行
-                        reduced_modes = max(1, max_modes // 2)
-                        print(f"モード数を{reduced_modes}に減らして再試行...")
-                        
-                        eigenvalues, eigenvectors = eigsh(
-                            K_mod, k=reduced_modes, M=M,
-                            which='LM',  # 最大固有値に変更
-                            maxiter=2000,
-                            tol=1e-7
-                        )
-                        
-                        # 逆順にして最小固有値を模擬
-                        eigenvalues = eigenvalues[::-1]
-                        eigenvectors = eigenvectors[:, ::-1]
-                        print(f"減少モード数({reduced_modes})で解析成功")
-                    else:
-                        raise e2
-            else:
-                raise e
-        
-        # 負の固有値をゼロにクリップ（数値誤差対策）
-        eigenvalues = np.maximum(eigenvalues, 0.0)
-        
-        # 固有円振動数と固有周期の計算
-        omega = np.sqrt(eigenvalues)  # rad/s
-        frequency = omega / (2 * np.pi)  # Hz
-        
-        # ゼロ固有値（剛体モード）の処理
-        valid_indices = eigenvalues > 1e-10  # 極小固有値は除外
-        if np.any(valid_indices):
-            period = np.zeros_like(frequency)
-            period[valid_indices] = 1.0 / frequency[valid_indices]  # s
+        if (isinstance(n_modes, (bool, np.bool_)) or
+                not isinstance(n_modes, (int, np.integer)) or n_modes <= 0):
+            raise ValueError('n_modes must be a positive integer')
+
+        K = self.create_stiffness_matrix(mesh, material, elements).tocsr()
+        M = self.create_mass_matrix(mesh, material, elements).tocsr()
+        if K.shape != M.shape or K.shape[0] == 0:
+            raise ValueError('Stiffness and mass matrices must have the same nonzero shape')
+        if not np.isfinite(K.data).all() or not np.isfinite(M.data).all():
+            raise ValueError('Stiffness and mass matrices must be finite')
+
+        prescribed, springs = self._get_boundary_dofs(
+            boundary, self.layout.size, self.layout.stride)
+        supported_stiffness = lil_matrix(K, copy=True)
+        for dof, stiffness in springs.items():
+            supported_stiffness[dof, dof] += stiffness
+        supported_stiffness = supported_stiffness.tocsr()
+
+        free = np.ones(self.layout.size, dtype=bool)
+        free[list(prescribed)] = False
+        free_dofs = np.flatnonzero(free)
+        if len(free_dofs) == 0:
+            raise ValueError('Modal analysis has no free DOFs after applying restraints')
+
+        reduced_stiffness = supported_stiffness[free_dofs][:, free_dofs].tocsr()
+        reduced_mass = M[free_dofs][:, free_dofs].tocsr()
+        mass_diagonal = np.abs(reduced_mass.diagonal())
+        mass_scale = float(np.max(mass_diagonal, initial=0.0))
+        if mass_scale == 0:
+            raise ValueError('Modal analysis has no mass on any free DOF')
+        mass_tolerance = np.finfo(float).eps * max(1, len(free_dofs)) * mass_scale
+        dynamic = mass_diagonal > mass_tolerance
+        if not np.all(dynamic):
+            massless_rows = reduced_mass[~dynamic]
+            if massless_rows.nnz and np.max(np.abs(massless_rows.data)) > mass_tolerance:
+                raise ValueError('Mass matrix couples nominally massless free DOFs')
+            raise ValueError(
+                'Modal analysis contains massless free DOFs; restrain them or provide inertia')
+
+        available = len(free_dofs)
+        if n_modes > available:
+            raise ValueError(
+                f'Modal analysis requested {n_modes} modes but only {available} are available')
+
+        if n_modes == available:
+            try:
+                eigenvalues, reduced_vectors = eigh(
+                    reduced_stiffness.toarray(), reduced_mass.toarray(), check_finite=True)
+            except np.linalg.LinAlgError as exc:
+                raise ValueError('Reduced mass matrix must be positive definite') from exc
         else:
-            period = np.full_like(frequency, np.inf)
-        
+            try:
+                eigenvalues, reduced_vectors = eigsh(
+                    reduced_stiffness, k=n_modes, M=reduced_mass,
+                    which='SA', maxiter=3000, tol=1e-9)
+            except ArpackNoConvergence:
+                try:
+                    eigenvalues, reduced_vectors = eigsh(
+                        reduced_stiffness, k=n_modes, M=reduced_mass,
+                        sigma=0.0, which='LM', maxiter=5000, tol=1e-9)
+                except (ArpackNoConvergence, RuntimeError, ValueError) as retry_error:
+                    raise RuntimeError(
+                        f'Modal analysis did not converge for {n_modes} requested modes') \
+                        from retry_error
+
+        order = np.argsort(eigenvalues)[:n_modes]
+        eigenvalues = np.asarray(eigenvalues[order], dtype=float)
+        reduced_vectors = np.asarray(reduced_vectors[:, order], dtype=float)
+
+        eigenvalue_scale = (
+            float(np.max(np.abs(reduced_stiffness.diagonal()), initial=0.0)) /
+            mass_scale)
+        zero_tolerance = max(
+            np.finfo(float).eps * available * eigenvalue_scale,
+            1e-14 * eigenvalue_scale)
+        if np.any(eigenvalues < -zero_tolerance):
+            value = float(np.min(eigenvalues))
+            raise ValueError(
+                f'Modal analysis found a significant negative eigenvalue: {value:.6g}')
+        eigenvalues[np.abs(eigenvalues) <= zero_tolerance] = 0.0
+
+        for mode in range(n_modes):
+            vector = reduced_vectors[:, mode]
+            mass_norm_squared = float(vector @ (reduced_mass @ vector))
+            if not np.isfinite(mass_norm_squared) or mass_norm_squared <= 0:
+                raise ValueError('Eigenvector has a nonpositive mass norm')
+            reduced_vectors[:, mode] = vector / np.sqrt(mass_norm_squared)
+
+        eigenvectors = np.zeros((self.layout.size, n_modes))
+        eigenvectors[free_dofs, :] = reduced_vectors
+        for mode in range(n_modes):
+            pivot = int(np.argmax(np.abs(eigenvectors[:, mode])))
+            if eigenvectors[pivot, mode] < 0:
+                eigenvectors[:, mode] *= -1
+                reduced_vectors[:, mode] *= -1
+
+        residuals = []
+        tiny = np.finfo(float).tiny
+        for mode, eigenvalue in enumerate(eigenvalues):
+            vector = reduced_vectors[:, mode]
+            stiffness_action = reduced_stiffness @ vector
+            mass_action = reduced_mass @ vector
+            denominator = (
+                np.linalg.norm(stiffness_action) +
+                abs(eigenvalue) * np.linalg.norm(mass_action))
+            residuals.append(float(
+                np.linalg.norm(stiffness_action - eigenvalue * mass_action) /
+                max(denominator, tiny)))
+        gram = reduced_vectors.T @ (reduced_mass @ reduced_vectors)
+        orthogonality_error = float(np.max(np.abs(gram - np.eye(n_modes))))
+
+        omega = np.sqrt(eigenvalues)
+        frequency = omega / (2 * np.pi)
+        period = np.full_like(frequency, np.inf)
+        positive = eigenvalues > zero_tolerance
+        period[positive] = 1.0 / frequency[positive]
+
         self.eigenvalues = eigenvalues
         self.eigenvectors = eigenvectors
-        
-        results = {
+        return {
+            'n_modes': n_modes,
             'eigenvalues': eigenvalues,
             'eigenvectors': eigenvectors,
             'frequencies': frequency,
             'periods': period,
+            'eigenpair_residuals': residuals,
+            'mass_orthogonality_error': orthogonality_error,
             'modes': self._format_eigenmodes(eigenvectors, mesh)
         }
-            
-        return results
-        
+
     def _format_node_displacements(self, u, mesh):
         """Canonical six-component output; legacy projections live at API edges."""
         self._set_dof_layout(mesh)

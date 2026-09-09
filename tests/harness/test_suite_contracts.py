@@ -1,13 +1,13 @@
 """Prevent collection drift, reference contamination and baseline masking."""
 
 import ast
-import hashlib
 import json
 import xml.etree.ElementTree as ET
 
 import pytest
 
 from tests.support.paths import DATA, ROOT
+from tests.support.provenance import canonical_text_sha256
 from tests.support.samples import registered_samples
 from tools.validation.check_test_results import compare_results, failure_cause
 
@@ -16,6 +16,8 @@ pytestmark = pytest.mark.unit
 
 def test_sample_manifest_covers_all_original_files_cases_and_snapshots():
     samples = registered_samples()
+    manifest = json.loads((DATA / "manifest.json").read_text(encoding="utf8"))
+    assert manifest["hash_policy"] == "sha256_utf8_lf"
     assert len(samples) == 45
     assert len({s["id"] for s in samples}) == len(samples)
     assert {s["file"] for s in samples} == {
@@ -26,7 +28,7 @@ def test_sample_manifest_covers_all_original_files_cases_and_snapshots():
     assert sum(len(s["cases"]) for s in samples) == 323
     for sample in samples:
         path = DATA / sample["file"]
-        assert hashlib.sha256(path.read_bytes()).hexdigest() == sample["sha256"]
+        assert canonical_text_sha256(path) == sample["sha256"]
         data = json.loads(path.read_text(encoding="utf8"))
         if sample["contract"] == "cantilever_history":
             assert sample["steps"] == list(data["result"])
@@ -36,7 +38,7 @@ def test_sample_manifest_covers_all_original_files_cases_and_snapshots():
                 dict.fromkeys([*data.get("load", {}), *data.get("result", {})] or ["1"])
             )
         for source in sample["sources"]:
-            assert hashlib.sha256((ROOT / source["path"]).read_bytes()).hexdigest() == source["sha256"]
+            assert canonical_text_sha256(ROOT / source["path"]) == source["sha256"]
 
 
 def test_test_modules_do_not_import_each_other_or_use_historical_names():

@@ -16,6 +16,17 @@ from tests.support.paths import ROOT
 DOFS = ("dx", "dy", "dz", "rx", "ry", "rz")
 
 
+def canonical_text_bytes(path):
+    """Return repository text bytes with platform-independent LF newlines."""
+    data = Path(path).read_bytes()
+    return data.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+
+
+def canonical_text_sha256(path):
+    """Hash the UTF-8/LF repository representation, independent of checkout EOL."""
+    return hashlib.sha256(canonical_text_bytes(path)).hexdigest()
+
+
 def read_source_records(path):
     path = Path(path).resolve()
     records = {

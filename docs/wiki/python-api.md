@@ -73,7 +73,7 @@ Python APIには`dimension`の設定はありません。この例は3Dの梁と
 | `load_model(path)`、`save_model(path)` | モデルを読込・保存。 |
 | `save_results(path)`、`load_results(path)` | 結果JSONを保存・読込。履歴状態の再開には使わない。 |
 
-固有値解析のモード数は`model.analysis_params["n_modes"]`で指定します。現行の`run_modal_analysis(n_modes=...)`の引数は解析に反映されません。[固有値解析の例](examples.md)の呼び方を使ってください。
+固有値解析のモード数は`model.analysis_params["n_modes"]`で指定して`run("modal")`を呼ぶか、`run_modal_analysis(n_modes=...)`へ直接渡します。後者は呼出し中だけ設定を上書きし、解析後は元の`analysis_params`を復元します。モード数には正の整数を指定してください。[固有値解析の例](examples.md)も参照してください。
 
 `get_node_count()`・`get_element_count()`というメソッドはありません。`model.get_model_info()["n_nodes"]`、または`len(model.mesh.nodes)`を使います。
 

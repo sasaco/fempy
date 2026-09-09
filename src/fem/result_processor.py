@@ -13,6 +13,7 @@ from typing import Dict, List, Any, Optional, Union
 
 # 新しいモジュール構成のインポート
 from .strain_stress import calculate_shell_results, calculate_tetra_strain_stress, calculate_hexa_strain_stress, calculate_wedge_strain_stress
+from .dof import DofLayout
 
 
 class ResultProcessor:
@@ -40,46 +41,26 @@ class ResultProcessor:
         self.shell_results: Dict[int, Dict[str, Any]] = {}
     
     def process_displacement(self, displacement: np.ndarray, mesh: Any) -> Dict[int, Dict[str, float]]:
-        """変位結果を処理して節点ごとの変位辞書を作成
-        
-        Args:
-            displacement: 変位ベクトル
-            mesh: メッシュデータ
-            
-        Returns:
-            節点ID -> 変位成分の辞書
-        """
-        node_displacements = {}
-        
-        # 節点IDのリストを取得
-        node_ids = sorted(mesh.nodes.keys())
-        
-        for i, node_id in enumerate(node_ids):
-            # 各節点は6自由度（dx, dy, dz, rx, ry, rz）
-            base_idx = i * 6
-            
-            if base_idx + 6 <= len(displacement):
-                node_displacements[node_id] = {
-                    "dx": float(displacement[base_idx]),
-                    "dy": float(displacement[base_idx + 1]),
-                    "dz": float(displacement[base_idx + 2]),
-                    "rx": float(displacement[base_idx + 3]),
-                    "ry": float(displacement[base_idx + 4]),
-                    "rz": float(displacement[base_idx + 5])
-                }
-            else:
-                # 不足している場合は0で埋める
-                node_displacements[node_id] = {
-                    "dx": float(displacement[base_idx]) if base_idx < len(displacement) else 0.0,
-                    "dy": float(displacement[base_idx + 1]) if base_idx + 1 < len(displacement) else 0.0,
-                    "dz": float(displacement[base_idx + 2]) if base_idx + 2 < len(displacement) else 0.0,
-                    "rx": float(displacement[base_idx + 3]) if base_idx + 3 < len(displacement) else 0.0,
-                    "ry": float(displacement[base_idx + 4]) if base_idx + 4 < len(displacement) else 0.0,
-                    "rz": float(displacement[base_idx + 5]) if base_idx + 5 < len(displacement) else 0.0
-                }
-                
-        return node_displacements
-    
+        """Format one exact solver-layout displacement vector by node."""
+        layout = DofLayout.from_mesh(mesh)
+        values = np.asarray(displacement, dtype=float)
+        if values.ndim != 1 or len(values) != layout.size:
+            received = len(values) if values.ndim == 1 else values.shape
+            raise ValueError(
+                f'Displacement size mismatch: expected {layout.size}, received {received}')
+        if not np.isfinite(values).all():
+            raise ValueError('Displacements must be finite')
+
+        names = ('dx', 'dy', 'dz', 'rx', 'ry', 'rz')
+        return {
+            node_id: {
+                name: float(values[start + component])
+                if component < layout.stride else 0.0
+                for component, name in enumerate(names)
+            }
+            for node_id, start in layout.node_offsets.items()
+        }
+
     def process_stress(self, elements: Dict[int, Any], displacement: np.ndarray) -> Dict[int, Any]:
         """要素応力を計算
         

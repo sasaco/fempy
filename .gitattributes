@@ -1,0 +1,4 @@
+tests/data/**/*.json text eol=lf
+tests/support/oracles/** text eol=lf
+docs/report/*.json text eol=lf
+docs/v0/** text eol=lf

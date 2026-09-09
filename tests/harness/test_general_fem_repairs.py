@@ -7,6 +7,7 @@ import re
 import pytest
 
 from tests.support.paths import ROOT
+from tests.support.provenance import canonical_text_bytes, canonical_text_sha256
 
 pytestmark = pytest.mark.unit
 
@@ -24,8 +25,9 @@ def test_repaired_reference_input_and_source_hashes_are_current(report):
     document = json.loads((ROOT / "docs/report" / report).read_text(encoding="utf8"))
     records = document.values() if isinstance(document, dict) else document
     for record in records:
-        text = (ROOT / record["sample"]).read_bytes().decode("utf8")
-        assert hashlib.sha256(text.encode("utf8")).hexdigest() == record["after_sha256"]
+        assert record["hash_policy"] == "sha256_utf8_lf"
+        text = canonical_text_bytes(ROOT / record["sample"]).decode("utf8")
+        assert canonical_text_sha256(ROOT / record["sample"]) == record["after_sha256"]
         match = re.search(r'"result"\s*:\s*', text)
         assert match
         _, size = json.JSONDecoder().raw_decode(text[match.end() :])
@@ -42,6 +44,6 @@ def test_repaired_reference_input_and_source_hashes_are_current(report):
             sources[record["source_input"]] = record["source_input_sha256"]
         assert sources
         for path, digest in sources.items():
-            assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == digest, (
+            assert canonical_text_sha256(ROOT / path) == digest, (
                 path
             )
