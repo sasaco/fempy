@@ -466,7 +466,7 @@
     {
       "id": "bar/3D_Sample01",
       "file": "bar/3D_Sample01.json",
-      "sha256": "c14301bb946df3e7b600225ebef902aa40cc0b052cd41f47590db8c4924a61e1",
+      "sha256": "d184c488aabcea8de2ff416d7929f3ea3ae5b773adce767c3c681a768646e238",
       "input_format": "structural_json",
       "contract": "section_cut_cases",
       "cases": [

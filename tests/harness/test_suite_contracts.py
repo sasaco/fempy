@@ -108,6 +108,11 @@ def test_public_model_and_http_import_the_same_classes():
 )
 def test_baseline_gate_rejects_collection_and_outcome_changes(tmp_path, mutation):
     baseline = json.loads((ROOT / "tests/regression/known_failures.json").read_text(encoding="utf8"))
+    if not baseline["failures"]:
+        # Exercise failure transitions even after the real backlog is empty.
+        baseline["failures"] = {
+            "bar/3D_Sample01:1": {"kind": "ValueError", "message": "Synthetic failure"}
+        }
     suite = ET.Element("testsuite")
     cases = {}
     for sample in registered_samples():
@@ -147,3 +152,23 @@ def test_baseline_gate_rejects_collection_and_outcome_changes(tmp_path, mutation
     ET.ElementTree(suite).write(report, encoding="utf8")
     issues = compare_results(report, baseline)
     assert bool(issues) is (mutation is not None)
+
+
+@pytest.mark.parametrize("failed", [False, True])
+def test_empty_baseline_requires_every_sample_to_pass(tmp_path, failed):
+    suite = ET.Element("testsuite")
+    for sample in registered_samples():
+        for case_id in sample["cases"]:
+            case = ET.SubElement(
+                suite, "testcase",
+                classname="tests.regression.test_structural_samples",
+                name=f"test_saved_sample_case[{sample['id']}:{case_id}]",
+            )
+    if failed:
+        ET.SubElement(case, "failure", message="ValueError: New failure")
+    report = tmp_path / "all-green.xml"
+    ET.ElementTree(suite).write(report, encoding="utf8")
+    issues = compare_results(report, {"failures": {}})
+    assert bool(issues) is failed
+    if failed:
+        assert len(issues) == 1 and issues[0].startswith("New failure:")

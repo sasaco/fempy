@@ -1,0 +1,199 @@
+{
+  "base_commit": "7e95ecfaf2635cbc8c41cce83cf97142b765b739",
+  "user_support_changes": [
+    {
+      "node": "13",
+      "field": "tx",
+      "before": 0,
+      "after": 1
+    },
+    {
+      "node": "13",
+      "field": "ty",
+      "before": 0,
+      "after": 1
+    },
+    {
+      "node": "53",
+      "field": "tx",
+      "before": 0,
+      "after": 1
+    },
+    {
+      "node": "53",
+      "field": "ty",
+      "before": 0,
+      "after": 1
+    },
+    {
+      "node": "65",
+      "field": "tx",
+      "before": 0,
+      "after": 1
+    },
+    {
+      "node": "65",
+      "field": "ty",
+      "before": 0,
+      "after": 1
+    }
+  ],
+  "user_input_sha256": "b5fedf8b1c41e43673fb1e8082726f99e8c1eacf57f403861d392f4e91efed49",
+  "after_reference_sha256": "d184c488aabcea8de2ff416d7929f3ea3ae5b773adce767c3c681a768646e238",
+  "preserved_input_bytes_sha256": "c2faeeddbaad79ac10c9b9f87c4e329e55fdac561d1fe87c904921d79c3d2f43",
+  "input_preserved": true,
+  "rigid_support_rank_before": 5,
+  "rigid_support_rank_after": 6,
+  "independent_comparison": {
+    "3D_Sample01/1": {
+      "count": 0,
+      "errors": [],
+      "old_count": 951
+    },
+    "3D_Sample01/2": {
+      "count": 0,
+      "errors": [],
+      "old_count": 918
+    },
+    "3D_Sample01/3": {
+      "count": 0,
+      "errors": [],
+      "old_count": 920
+    },
+    "3D_Sample01/4": {
+      "count": 0,
+      "errors": [],
+      "old_count": 695
+    },
+    "3D_Sample01/5": {
+      "count": 0,
+      "errors": [],
+      "old_count": 694
+    },
+    "3D_Sample01/6": {
+      "count": 0,
+      "errors": [],
+      "old_count": 693
+    },
+    "3D_Sample01/7": {
+      "count": 0,
+      "errors": [],
+      "old_count": 693
+    },
+    "3D_Sample01/8": {
+      "count": 0,
+      "errors": [],
+      "old_count": 675
+    },
+    "3D_Sample01/9": {
+      "count": 0,
+      "errors": [],
+      "old_count": 702
+    },
+    "3D_Sample01/10": {
+      "count": 0,
+      "errors": [],
+      "old_count": 675
+    },
+    "3D_Sample01/11": {
+      "count": 0,
+      "errors": [],
+      "old_count": 699
+    },
+    "3D_Sample01/12": {
+      "count": 0,
+      "errors": [],
+      "old_count": 688
+    },
+    "3D_Sample01/13": {
+      "count": 0,
+      "errors": [],
+      "old_count": 688
+    },
+    "3D_Sample01/14": {
+      "count": 0,
+      "errors": [],
+      "old_count": 674
+    },
+    "3D_Sample01/15": {
+      "count": 0,
+      "errors": [],
+      "old_count": 674
+    },
+    "3D_Sample01/16": {
+      "count": 0,
+      "errors": [],
+      "old_count": 704
+    },
+    "3D_Sample01/17": {
+      "count": 0,
+      "errors": [],
+      "old_count": 701
+    },
+    "3D_Sample01/18": {
+      "count": 0,
+      "errors": [],
+      "old_count": 701
+    },
+    "3D_Sample01/19": {
+      "count": 0,
+      "errors": [],
+      "old_count": 701
+    },
+    "3D_Sample01/20": {
+      "count": 0,
+      "errors": [],
+      "old_count": 706
+    },
+    "3D_Sample01/21": {
+      "count": 0,
+      "errors": [],
+      "old_count": 706
+    },
+    "3D_Sample01/22": {
+      "count": 0,
+      "errors": [],
+      "old_count": 705
+    },
+    "3D_Sample01/23": {
+      "count": 0,
+      "errors": [],
+      "old_count": 705
+    }
+  },
+  "runs": [
+    {
+      "report": "tmp/test-results/support01-verified.xml",
+      "sha256": "40b34cbb6bbdc8a8be7f47e274f44ba9c09759c72770da544bc1089a2220f7ea",
+      "passed": 46,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 20.646
+    },
+    {
+      "report": "tmp/test-results/support01-harness.xml",
+      "sha256": "be5f375d9a587e6760faabe843e39f7a08ea37bc75bf81a34cfe55ab86a92c07",
+      "passed": 72,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 8.169
+    }
+  ],
+  "total_tests_run": 118,
+  "full_suite_rerun": false,
+  "latest_collection": 1911,
+  "previous_full_suite": {
+    "total": 1886,
+    "passed": 1863,
+    "failed": 23,
+    "evidence": "docs/report/general-fem-repair-evidence-20260909.json"
+  },
+  "resolved_remaining_cases": 23,
+  "known_failures": 0,
+  "product_code_changed": false,
+  "git_diff_check_exit": 0,
+  "reference_proof": "docs/report/general-fem-space-reference-repairs.json",
+  "reference_proof_sha256": "e06181e8c13500ffc4fa8a168b9af266ebc12d129b1d41a4a975bf54909df40d"
+}

@@ -9,6 +9,9 @@ from tests.support.oracles.space_frame_series import solve_reference
 from tests.support.paths import ROOT
 
 ORIGINALS = {
+    # User fixed horizontal translations at nodes13/53/65 on2026-09-09.
+    # This is the exact user-edited input, before independent response repair.
+    "3D_Sample01": "b5fedf8b1c41e43673fb1e8082726f99e8c1eacf57f403861d392f4e91efed49",
     "3D_Sample06": "8ec0a5d5d447e456c165d60016856b467d9e6fcd8ba17991b126bcf84f6ef982",
     "shell/3D_Sample01": "fdeadecae9def0ce86c26253ed3f31ed8ba8808bddfe1c0d37b3c6514c9ff0e8",
     "3D_Sample03": "3202a05eac9b46ab53d0c885a8284ef0bc6f26a71584bb367ed26de2fb0184d2",
@@ -59,6 +62,13 @@ def repair(name, write):
         product_imports=False,
         old_response_values_used=False,
     )
+    if name == "3D_Sample01":
+        proof["input_revision"] = {
+            "authority": "User edited fix_node on 2026-09-09",
+            "changes": "Nodes13,53,65: tx=ty=1; all other input fields retained",
+            "before_support_change_sha256": "c14301bb946df3e7b600225ebef902aa40cc0b052cd41f47590db8c4924a61e1",
+            "user_input_sha256": ORIGINALS[name],
+        }
     if write:
         path.write_bytes(output)
         manifest_path = ROOT / "tests/data/manifest.json"

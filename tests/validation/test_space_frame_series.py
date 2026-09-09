@@ -131,7 +131,7 @@ def test_spatial_couple_at_material_interface_matches_compliance_integral():
     assert r["reac"]["1"]["mz"] == pytest.approx(-6, abs=1e-13)
 
 
-SAMPLES = [f"bar/3D_Sample{number:02d}" for number in range(2, 11)] + [
+SAMPLES = [f"bar/3D_Sample{number:02d}" for number in range(1, 11)] + [
     "shell/3D_Sample01"
 ]
 CASES = [

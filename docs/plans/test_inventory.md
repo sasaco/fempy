@@ -1,6 +1,6 @@
 # 現行テスト台帳
 
-2026-09-09。55 ファイル・311 関数定義・1,886 展開ケース。材料非線形の検証範囲は857ケース。一般FEMの修復で、荷重配分・軸力部材の分割・精度保持と独立参照の検証を追加。関数数とパラメータ展開数を混同しない。
+2026-09-09。55 ファイル・312 関数定義・1,911 展開ケース。材料非線形の検証範囲は857ケース。一般FEMの修復で、荷重配分・軸力部材の分割・精度保持と独立参照の検証を追加。関数数とパラメータ展開数を混同しない。
 
 [項目表](test_items.md) / [実行方法](../../tests/README.md) / [移行・統合記録](../report/test-reorganization.md)。整理前の全 264 関数・112 ファイルの移管先と hash は [機械可読な移行記録](../report/test-reorganization-evidence.json) にある。
 
@@ -21,7 +21,7 @@
 | [harness/test_general_fem_repairs.py](../../tests/harness/test_general_fem_repairs.py) | 1 | 4 | unit |
 | [harness/test_sample_runner.py](../../tests/harness/test_sample_runner.py) | 5 | 14 | unit |
 | [harness/test_source_repairs.py](../../tests/harness/test_source_repairs.py) | 7 | 37 | unit |
-| [harness/test_suite_contracts.py](../../tests/harness/test_suite_contracts.py) | 6 | 13 | unit |
+| [harness/test_suite_contracts.py](../../tests/harness/test_suite_contracts.py) | 7 | 15 | unit |
 | [integration/test_axial_subdivision.py](../../tests/integration/test_axial_subdivision.py) | 4 | 9 | integration |
 | [integration/test_beam_foundation.py](../../tests/integration/test_beam_foundation.py) | 2 | 2 | integration |
 | [integration/test_beam_precision.py](../../tests/integration/test_beam_precision.py) | 10 | 16 | integration |
@@ -58,7 +58,7 @@
 | [validation/test_shell_variational.py](../../tests/validation/test_shell_variational.py) | 5 | 16 | oracle |
 | [validation/test_solid_sources.py](../../tests/validation/test_solid_sources.py) | 3 | 9 | oracle |
 | [validation/test_source_solid_reference.py](../../tests/validation/test_source_solid_reference.py) | 7 | 16 | oracle |
-| [validation/test_space_frame_series.py](../../tests/validation/test_space_frame_series.py) | 10 | 105 | oracle |
+| [validation/test_space_frame_series.py](../../tests/validation/test_space_frame_series.py) | 10 | 128 | oracle |
 | [validation/test_stored_references.py](../../tests/validation/test_stored_references.py) | 6 | 10 | oracle |
 | [validation/test_triangle_sample_references.py](../../tests/validation/test_triangle_sample_references.py) | 5 | 12 | oracle |
 
@@ -258,6 +258,7 @@ Prevent collection drift, reference contamination and baseline masking.
 | `test_baseline_classification_keeps_other_failure_causes_visible` | 3 |
 | `test_public_model_and_http_import_the_same_classes` | 1 |
 | `test_baseline_gate_rejects_collection_and_outcome_changes` | 6 |
+| `test_empty_baseline_requires_every_sample_to_pass` | 2 |
 
 ### integration/test_axial_subdivision.py
 
@@ -720,7 +721,7 @@ validation / source solid reference contracts.
 
 ### validation/test_space_frame_series.py
 
-立体梁の独立式、荷重方向・ねじり・支持不足・剛域、および梁／シェル混在を含む91保存ケース。
+立体梁の独立式、荷重方向・ねじり・支持不足・剛域、および梁／シェル混在を含む114保存ケース。
 
 | 検証関数 | 展開ケース |
 |---|---:|
@@ -733,7 +734,7 @@ validation / source solid reference contracts.
 | `test_spatial_released_uniform_beam_matches_simple_support_solution` | 1 |
 | `test_spatial_long_foundation_preserves_uniform_translation` | 1 |
 | `test_spatial_couple_at_material_interface_matches_compliance_integral` | 1 |
-| `test_saved_spatial_reference_matches_independent_series` | 91 |
+| `test_saved_spatial_reference_matches_independent_series` | 114 |
 
 ### validation/test_stored_references.py
 
