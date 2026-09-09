@@ -125,10 +125,10 @@ $(document).ready(function(){initNavTree('classfem_1_1solver_1_1Solver.html','')
 <tr class="separator:a5bdbeb36ddff07d94d94ccfe80a99503"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9171b95906f305a0f5c83635a915ca4b" id="r_a9171b95906f305a0f5c83635a915ca4b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#a9171b95906f305a0f5c83635a915ca4b">solve_linear_system</a> (self, K, F)</td></tr>
 <tr class="separator:a9171b95906f305a0f5c83635a915ca4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae561424f880fd6ca71c2c768c53c779d" id="r_ae561424f880fd6ca71c2c768c53c779d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#ae561424f880fd6ca71c2c768c53c779d">solve_nonlinear</a> (self, mesh, material, boundary, elements, n_steps=DEFAULT_N_STEPS, max_iter=DEFAULT_MAX_ITER, tol=DEFAULT_TOL, callback=None, load_factors=None)</td></tr>
-<tr class="separator:ae561424f880fd6ca71c2c768c53c779d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1adec2243e3b8ce44f97e7c0d6750338" id="r_a1adec2243e3b8ce44f97e7c0d6750338"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#a1adec2243e3b8ce44f97e7c0d6750338">solve</a> (self, <a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a> mesh, <a class="el" href="classfem_1_1material_1_1Material.html">Material</a> material, <a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a> boundary, Dict[int, Any] elements, *analysis_type='static', n_steps=DEFAULT_N_STEPS, max_iter=DEFAULT_MAX_ITER, tol=DEFAULT_TOL, callback=None, load_factors=None)</td></tr>
-<tr class="separator:a1adec2243e3b8ce44f97e7c0d6750338"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a746fafe6bfa959fd7306b288c6f97f2e" id="r_a746fafe6bfa959fd7306b288c6f97f2e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#a746fafe6bfa959fd7306b288c6f97f2e">solve_nonlinear</a> (self, mesh, material, boundary, elements, n_steps=DEFAULT_N_STEPS, max_iter=DEFAULT_MAX_ITER, tol=DEFAULT_TOL, callback=None, load_factors=None, displacement_control=None)</td></tr>
+<tr class="separator:a746fafe6bfa959fd7306b288c6f97f2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad1617bf2434bff2c72270863427ae84a" id="r_ad1617bf2434bff2c72270863427ae84a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#ad1617bf2434bff2c72270863427ae84a">solve</a> (self, <a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a> mesh, <a class="el" href="classfem_1_1material_1_1Material.html">Material</a> material, <a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a> boundary, Dict[int, Any] elements, *analysis_type='static', n_steps=DEFAULT_N_STEPS, max_iter=DEFAULT_MAX_ITER, tol=DEFAULT_TOL, callback=None, load_factors=None, displacement_control=None)</td></tr>
+<tr class="separator:ad1617bf2434bff2c72270863427ae84a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad0181bb95698ef4590b88956fa2887c5" id="r_ad0181bb95698ef4590b88956fa2887c5"><td class="memItemLeft" align="right" valign="top">Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#ad0181bb95698ef4590b88956fa2887c5">eigenvalue_analysis</a> (self, <a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a> mesh, <a class="el" href="classfem_1_1material_1_1Material.html">Material</a> material, <a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a> boundary, Dict[int, Any] elements, int n_modes=10)</td></tr>
 <tr class="separator:ad0181bb95698ef4590b88956fa2887c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -207,9 +207,14 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>_node_dof_start</b> (s
 <tr class="separator:a3960eaaf845c4d9d89606c8e3876b0c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1d439d2204ebef1f73dbd92bda8b150e" id="r_a1d439d2204ebef1f73dbd92bda8b150e"><td class="memItemLeft" align="right" valign="top">Tuple[Dict[int, float], Dict[int, float]]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#a1d439d2204ebef1f73dbd92bda8b150e">_get_boundary_dofs</a> (self, <a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a> boundary, int n_dof, int max_dof_per_node)</td></tr>
 <tr class="separator:a1d439d2204ebef1f73dbd92bda8b150e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9af2088d4bac5d885f53c8e23b356518" id="r_a9af2088d4bac5d885f53c8e23b356518"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#a9af2088d4bac5d885f53c8e23b356518">_prepare_displacement_control</a> (self, control, boundary, n_steps)</td></tr>
+<tr class="separator:a9af2088d4bac5d885f53c8e23b356518"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a476cd1290a8f39083049f9cad000a026" id="r_a476cd1290a8f39083049f9cad000a026"><td class="memItemLeft" align="right" valign="top"><a id="a476cd1290a8f39083049f9cad000a026" name="a476cd1290a8f39083049f9cad000a026"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>_newton_raphson_iteration</b> (self, *args, **kwargs)</td></tr>
 <tr class="separator:a476cd1290a8f39083049f9cad000a026"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb33dfe9cb4ce800da447495423cafd5" id="r_afb33dfe9cb4ce800da447495423cafd5"><td class="memItemLeft" align="right" valign="top"><a id="afb33dfe9cb4ce800da447495423cafd5" name="afb33dfe9cb4ce800da447495423cafd5"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>_displacement_control_iteration</b> (self, *args, **kwargs)</td></tr>
+<tr class="separator:afb33dfe9cb4ce800da447495423cafd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57718b57749a8f8523de0eaf6eea5992" id="r_a57718b57749a8f8523de0eaf6eea5992"><td class="memItemLeft" align="right" valign="top"><a id="a57718b57749a8f8523de0eaf6eea5992" name="a57718b57749a8f8523de0eaf6eea5992"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>_legacy_callback_snapshot</b> (self, accepted)</td></tr>
 <tr class="separator:a57718b57749a8f8523de0eaf6eea5992"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -594,6 +599,54 @@ Returns:
 <pre class="fragment">固定/強制変位と支持ばねを区別する。値&gt;1000の旧入力仕様を保持。</pre> 
 </div>
 </div>
+<a id="a9af2088d4bac5d885f53c8e23b356518" name="a9af2088d4bac5d885f53c8e23b356518"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9af2088d4bac5d885f53c8e23b356518">&#9670;&#160;</a></span>_prepare_displacement_control()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">fem.solver.Solver._prepare_displacement_control </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>control</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>boundary</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>n_steps</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Validate public displacement-control input and resolve its global DOF.</pre> 
+</div>
+</div>
 <a id="a5bdbeb36ddff07d94d94ccfe80a99503" name="a5bdbeb36ddff07d94d94ccfe80a99503"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5bdbeb36ddff07d94d94ccfe80a99503">&#9670;&#160;</a></span>apply_boundary_conditions()</h2>
 
@@ -760,22 +813,11 @@ Returns:
         </tr>
       </table>
 </div><div class="memdoc">
-<pre class="fragment">固有値解析を実行
-
-Args:
-    mesh: メッシュデータ
-    material: 材料データ
-    boundary: 境界条件
-    elements: 要素オブジェクトの辞書
-    n_modes: 求める固有モード数
-    
-Returns:
-    固有値解析結果の辞書
-</pre> 
+<pre class="fragment">Solve the constrained generalized eigenproblem for requested low modes.</pre> 
 </div>
 </div>
-<a id="a1adec2243e3b8ce44f97e7c0d6750338" name="a1adec2243e3b8ce44f97e7c0d6750338"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1adec2243e3b8ce44f97e7c0d6750338">&#9670;&#160;</a></span>solve()</h2>
+<a id="ad1617bf2434bff2c72270863427ae84a" name="ad1617bf2434bff2c72270863427ae84a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1617bf2434bff2c72270863427ae84a">&#9670;&#160;</a></span>solve()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -844,7 +886,13 @@ Returns:
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>load_factors</em> = <code>None</code>&#160;</td>
+          <td class="paramname"><em>load_factors</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>displacement_control</em> = <code>None</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -896,8 +944,8 @@ a new analysis; elements implementing reset_states start fresh history.
 <pre class="fragment">Legacy stateful boundary around pure compensated direct algebra.</pre> 
 </div>
 </div>
-<a id="ae561424f880fd6ca71c2c768c53c779d" name="ae561424f880fd6ca71c2c768c53c779d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae561424f880fd6ca71c2c768c53c779d">&#9670;&#160;</a></span>solve_nonlinear()</h2>
+<a id="a746fafe6bfa959fd7306b288c6f97f2e" name="a746fafe6bfa959fd7306b288c6f97f2e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a746fafe6bfa959fd7306b288c6f97f2e">&#9670;&#160;</a></span>solve_nonlinear()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -960,7 +1008,13 @@ a new analysis; elements implementing reset_states start fresh history.
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>load_factors</em> = <code>None</code>&#160;</td>
+          <td class="paramname"><em>load_factors</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>displacement_control</em> = <code>None</code>&#160;</td>
         </tr>
         <tr>
           <td></td>

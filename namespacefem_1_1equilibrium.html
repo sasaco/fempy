@@ -126,6 +126,8 @@ $(document).ready(function(){initNavTree('namespacefem_1_1equilibrium.html','');
 <tr class="separator:aa136b0dbe322557fe287470d4718bedb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0156a09e92b6114f4983ec904ada78b3" id="r_a0156a09e92b6114f4983ec904ada78b3"><td class="memItemLeft" align="right" valign="top">tuple&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacefem_1_1equilibrium.html#a0156a09e92b6114f4983ec904ada78b3">newton_iteration</a> (self, <a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a> mesh, <a class="el" href="classfem_1_1material_1_1Material.html">Material</a> material, <a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a> boundary, Dict[int, Any] elements, np.ndarray u_init, np.ndarray F_ext, int max_iter, float tol, int max_dof_per_node, float load_factor=1.0)</td></tr>
 <tr class="separator:a0156a09e92b6114f4983ec904ada78b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeffc0d2628ef61637625d41af3aaed50" id="r_aeffc0d2628ef61637625d41af3aaed50"><td class="memItemLeft" align="right" valign="top">tuple&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacefem_1_1equilibrium.html#aeffc0d2628ef61637625d41af3aaed50">displacement_control_iteration</a> (self, <a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a> mesh, <a class="el" href="classfem_1_1material_1_1Material.html">Material</a> material, <a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a> boundary, Dict[int, Any] elements, np.ndarray u_init, np.ndarray load_pattern, int control_dof, float target, float initial_load_factor, int max_iter, float tol, int max_dof_per_node)</td></tr>
+<tr class="separator:aeffc0d2628ef61637625d41af3aaed50"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 変数</h2></td></tr>
@@ -298,6 +300,105 @@ The algebra functions return values without mutating accepted solver state.
 The assembled matrix is only the correction operator. Its large
 diagonal terms can lose the short member's small deformation, so the
 residual is evaluated from the constitutive element kinematics.
+</pre> 
+</div>
+</div>
+<a id="aeffc0d2628ef61637625d41af3aaed50" name="aeffc0d2628ef61637625d41af3aaed50"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeffc0d2628ef61637625d41af3aaed50">&#9670;&#160;</a></span>displacement_control_iteration()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> tuple fem.equilibrium.displacement_control_iteration </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a>&#160;</td>
+          <td class="paramname"><em>mesh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1material_1_1Material.html">Material</a>&#160;</td>
+          <td class="paramname"><em>material</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a>&#160;</td>
+          <td class="paramname"><em>boundary</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[int, Any]&#160;</td>
+          <td class="paramname"><em>elements</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>u_init</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">np.ndarray&#160;</td>
+          <td class="paramname"><em>load_pattern</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>control_dof</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>target</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>initial_load_factor</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>max_iter</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>max_dof_per_node</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Solve equilibrium with one displacement constraint and unknown lambda.
+
+The Newton system is ``[K, -P; c.T, 0] [du, dlambda] = [R, g]``.
+It remains regular at a simple load limit point and permits a negative
+structural tangent. Snap-back still requires arc-length control.
 </pre> 
 </div>
 </div>

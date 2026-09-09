@@ -140,6 +140,12 @@ $(document).ready(function(){initNavTree('classfem_1_1material_1_1NonlinearMater
 <tr class="memitem:ad6fcb3240e0429e5fa17d3ab092f1236" id="r_ad6fcb3240e0429e5fa17d3ab092f1236"><td class="memItemLeft" align="right" valign="top"><a id="ad6fcb3240e0429e5fa17d3ab092f1236" name="ad6fcb3240e0429e5fa17d3ab092f1236"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>P_3_neg</b></td></tr>
 <tr class="separator:ad6fcb3240e0429e5fa17d3ab092f1236"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac99e1bb99e67bbda18cf7f0a8a894607" id="r_ac99e1bb99e67bbda18cf7f0a8a894607"><td class="memItemLeft" align="right" valign="top"><a id="ac99e1bb99e67bbda18cf7f0a8a894607" name="ac99e1bb99e67bbda18cf7f0a8a894607"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>delta_4_neg</b></td></tr>
+<tr class="separator:ac99e1bb99e67bbda18cf7f0a8a894607"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab098acab6360a09e677a50c92a6ec9c3" id="r_ab098acab6360a09e677a50c92a6ec9c3"><td class="memItemLeft" align="right" valign="top"><a id="ab098acab6360a09e677a50c92a6ec9c3" name="ab098acab6360a09e677a50c92a6ec9c3"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>P_4_neg</b></td></tr>
+<tr class="separator:ab098acab6360a09e677a50c92a6ec9c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:addc7750652c59ed97459632185f0e949" id="r_addc7750652c59ed97459632185f0e949"><td class="memItemLeft" align="right" valign="top"><a id="addc7750652c59ed97459632185f0e949" name="addc7750652c59ed97459632185f0e949"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>K_min</b></td></tr>
 <tr class="separator:addc7750652c59ed97459632185f0e949"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -200,6 +206,18 @@ Optional&#160;</td><td class="memItemRight" valign="bottom"><b>K_min</b> = None<
 <tr class="memitem:a4ac64bb9956cf1830ed047b20ca79d2c" id="r_a4ac64bb9956cf1830ed047b20ca79d2c"><td class="memItemLeft" align="right" valign="top"><a id="a4ac64bb9956cf1830ed047b20ca79d2c" name="a4ac64bb9956cf1830ed047b20ca79d2c"></a>
 Optional&#160;</td><td class="memItemRight" valign="bottom"><b>density</b> = None</td></tr>
 <tr class="separator:a4ac64bb9956cf1830ed047b20ca79d2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3eddff85b370805edcee3353f24d1fe" id="r_ad3eddff85b370805edcee3353f24d1fe"><td class="memItemLeft" align="right" valign="top"><a id="ad3eddff85b370805edcee3353f24d1fe" name="ad3eddff85b370805edcee3353f24d1fe"></a>
+Optional&#160;</td><td class="memItemRight" valign="bottom"><b>delta_4_pos</b> = None</td></tr>
+<tr class="separator:ad3eddff85b370805edcee3353f24d1fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec5e88c85db8b923a9e3fbb2a170406a" id="r_aec5e88c85db8b923a9e3fbb2a170406a"><td class="memItemLeft" align="right" valign="top"><a id="aec5e88c85db8b923a9e3fbb2a170406a" name="aec5e88c85db8b923a9e3fbb2a170406a"></a>
+Optional&#160;</td><td class="memItemRight" valign="bottom"><b>P_4_pos</b> = None</td></tr>
+<tr class="separator:aec5e88c85db8b923a9e3fbb2a170406a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd0ca8cfecedda884b0f1f1a3114ca2f" id="r_abd0ca8cfecedda884b0f1f1a3114ca2f"><td class="memItemLeft" align="right" valign="top"><a id="abd0ca8cfecedda884b0f1f1a3114ca2f" name="abd0ca8cfecedda884b0f1f1a3114ca2f"></a>
+Optional&#160;</td><td class="memItemRight" valign="bottom"><b>delta_4_neg</b> = None</td></tr>
+<tr class="separator:abd0ca8cfecedda884b0f1f1a3114ca2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e2d728a6f04e6d9c7fca0b2c3d8bf5b" id="r_a7e2d728a6f04e6d9c7fca0b2c3d8bf5b"><td class="memItemLeft" align="right" valign="top"><a id="a7e2d728a6f04e6d9c7fca0b2c3d8bf5b" name="a7e2d728a6f04e6d9c7fca0b2c3d8bf5b"></a>
+Optional&#160;</td><td class="memItemRight" valign="bottom"><b>P_4_neg</b> = None</td></tr>
+<tr class="separator:a7e2d728a6f04e6d9c7fca0b2c3d8bf5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">詳解</h2>
 <div class="textblock"><pre class="fragment">非線形材料物性（JR総研剛性低減RC型用）
@@ -215,8 +233,9 @@ Attributes:
     name: 材料名
     E: 初期ヤング率
     nu: ポアソン比
-    delta_1_pos〜P_3_pos: 正側スケルトンカーブパラメータ
-    delta_1_neg〜P_3_neg: 負側スケルトンカーブパラメータ（省略時は正側と同じ）
+    delta_1_pos〜P_3_pos: 正側の第1〜3骨格点
+    delta_4_pos, P_4_pos: 正側の第4勾配を定める参照点（両方省略可）
+    delta_1_neg〜P_4_neg: 負側パラメータ（省略時は正側と同じ）
     beta: 剛性低減係数
     K_min: 戻り剛性下限値
     density: 密度

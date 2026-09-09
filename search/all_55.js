@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['静解析の微小補正_0',['静解析の微小補正',['../md_docs_2wiki_2results.html#autotoc_md102',1,'']]]
+  ['釣合いによる端力回復_0',['釣合いによる端力回復',['../md_docs_2wiki_2results.html#autotoc_md95',1,'']]]
 ];

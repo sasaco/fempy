@@ -22,7 +22,7 @@ var classfem_1_1model_1_1FemModel =
     [ "add_material", "classfem_1_1model_1_1FemModel.html#aaee5ea92acd13cacf86599fb671cce1c", null ],
     [ "add_node", "classfem_1_1model_1_1FemModel.html#ae96e159998c76358f94f34d5c9695856", null ],
     [ "add_nonlinear_bar_element", "classfem_1_1model_1_1FemModel.html#ae2fa386e77757ea0f8f7af6db3cc6451", null ],
-    [ "add_nonlinear_material", "classfem_1_1model_1_1FemModel.html#aaf9a51456d1fb6dbc4adcc05673852d2", null ],
+    [ "add_nonlinear_material", "classfem_1_1model_1_1FemModel.html#ae7092bbfd5d39510886e87e9b9f010b9", null ],
     [ "add_notice_points", "classfem_1_1model_1_1FemModel.html#a0f84b66fb8c69f013946d5ccccbe846f", null ],
     [ "add_restraint", "classfem_1_1model_1_1FemModel.html#afe56c38fe7e2998f9bcb3ee2a279d62d", null ],
     [ "add_spring_support", "classfem_1_1model_1_1FemModel.html#a91a3f6d7f13a28062f23fbdf4d66d7de", null ],

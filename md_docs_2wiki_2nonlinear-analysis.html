@@ -109,7 +109,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2nonlinear-analysis.html
 <li>せん断柔性は基準弾性から定まり、材料履歴に合わせてせん断剛性を低減するモデルではありません。</li>
 <li>線形梁、シェル、ソリッドを同じ解析に含めても、それらの材料は線形のままです。</li>
 </ul>
-<p>塑性分布が一様でない部材では、要素分割による結果の変化を確認してください。有限回転、集中塑性ヒンジ、任意の軟化、破断、弧長法、時刻歴の動的応答は対象外です。数学的な検証と実験・外部JR実装との較正は別で、外部との同条件較正は未実施です。<a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/docs/report/material-nonlinear-closure.md">検証の適用範囲</a>も参照してください。</p>
+<p>塑性分布が一様でない部材では、要素分割による結果の変化を確認してください。有限回転、集中塑性ヒンジ、K4以外の任意形状の軟化、破断、弧長法、時刻歴の動的応答は対象外です。数学的な検証と実験・外部JR実装との較正は別で、外部との同条件較正は未実施です。<a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/docs/report/material-nonlinear-closure.md">検証の適用範囲</a>も参照してください。</p>
 <h1><a class="anchor" id="autotoc_md69"></a>
 入力するのは断面の関係</h1>
 <p><code>delta_1, delta_2, delta_3</code>という名前でも、節点の絶対変位や集中ヒンジの回転を入れる欄ではありません。</p>
@@ -138,6 +138,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2nonlinear-analysis.html
 <div class="line">          &quot;type&quot;: &quot;jr_stiffness_reduction&quot;,</div>
 <div class="line">          &quot;delta_1&quot;: 0.001, &quot;delta_2&quot;: 0.004, &quot;delta_3&quot;: 0.010,</div>
 <div class="line">          &quot;P_1&quot;: 10.0, &quot;P_2&quot;: 16.0, &quot;P_3&quot;: 22.0,</div>
+<div class="line">          &quot;delta_4&quot;: 0.018, &quot;P_4&quot;: 14.0,</div>
 <div class="line">          &quot;beta&quot;: 0.4, &quot;symmetric&quot;: true,</div>
 <div class="line">          &quot;hysteresis_dofs&quot;: [&quot;moment_z&quot;]</div>
 <div class="line">        }</div>
@@ -145,13 +146,18 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2nonlinear-analysis.html
 <div class="line">    }</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><p>原点と3つの折れ点を結び、第3点以降は一定の力・モーメントとなる4折線です。第3点は自動破断点ではありません。各側で以下を満たす必要があります。</p>
+</div><!-- fragment --><p>原点から第3点までは従来の3区間、第3点以降は第4勾配<code>K4</code>の4折線です。<code>delta_4, P_4</code>は新たな勾配切替点ではなく、<code>K4</code>を定める参照点です。</p>
+<p><code>K4 = (P_4 - P_3) / (delta_4 - delta_3)</code></p>
+<p><code>delta_4</code>到達後も勾配を変更せず、この直線を延長します。耐力ゼロでの打切りや<code>P_4</code>での下限制限は行わないため、十分遠くまで延長すると復元力の符号が反転し得ます。各側で以下を満たす必要があります。</p>
+<p>復元力の符号が変位側と逆になった点から反転した場合も、反転点から<code>Kd</code>の直線を連続して進みます。その進行方向に復元力0の点がなければ最大変形点指向へは切り替わらず、同じ除荷直線を継続します。その直線上で再反転すると、同じ経路を反転点まで戻って骨格へ復帰します。</p>
 <ul>
 <li><code>0 &lt; delta_1 &lt; delta_2 &lt; delta_3</code></li>
 <li><code>0 &lt; P_1 &lt;= P_2 &lt;= P_3</code></li>
-<li>勾配<code>K1 &gt;= K2 &gt;= K3 &gt;= 0</code>。K2・K3は隣接する折れ点間の勾配。</li>
+<li>勾配<code>K1 &gt;= K2 &gt;= K3 &gt;= 0</code></li>
+<li><code>delta_4, P_4</code>を使う場合は両方を指定し、<code>delta_4 &gt; delta_3</code>、<code>0 &lt;= P_4 &lt; P_3</code></li>
 <li>すべて有限値。<code>beta &gt;= 0</code>。</li>
 </ul>
+<p><code>delta_4, P_4</code>を両方省略した既存入力では、従来互換として<code>K4=0</code>、すなわち第3点以降を<code>P_3</code>一定とします。非対称入力では<code>delta_4_neg, P_4_neg</code>を指定できます。</p>
 <p><code>K_min</code>は**除荷剛性の下限**です。省略すると正負の初期剛性の小さい方の1になります。指定する場合は<code>0 &lt; K_min &lt;= min(K1正, K1負)</code>です。骨格曲線の最終勾配を正にするパラメータではありません。</p>
 <h2><a class="anchor" id="autotoc_md71"></a>
 正負非対称の骨格</h2>
@@ -180,9 +186,26 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2nonlinear-analysis.html
 <div class="line">    &quot;tolerance&quot;: 0.000001</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><p>係数はその段階の**絶対倍率**です。基準荷重と基準強制変位が同じ係数で比例的に変化します。独立した複数の荷重パターンを段階ごとに切り替えたり、未知の荷重倍率を求める変位制御・弧長制御を行ったりする機能ではありません。</p>
+</div><!-- fragment --><p>係数はその段階の**絶対倍率**です。基準荷重と基準強制変位が同じ係数で比例的に変化します。独立した複数の荷重パターンを段階ごとに切り替える機能ではありません。</p>
 <p>0も負値も繰返し値も指定できます。通常の等間隔載荷には初期0段階を含めないため、必要なら配列の先頭へ0を入れます。<code>n_load_steps</code>と<code>max_iterations</code>は<code>load_factors</code>を使う場合も正の整数にします。</p>
 <h1><a class="anchor" id="autotoc_md73"></a>
+負勾配を変位制御で追跡する</h1>
+<p><code>displacement_control</code>を指定すると、指定自由度の変位を段階ごとに固定し、基準荷重パターンの倍率<code>lambda</code>を未知数として釣合いを解きます。<code>load_factors</code>とは同時に指定できません。</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;analysis_type&quot;: &quot;material_nonlinear&quot;,</div>
+<div class="line">  &quot;analysis_params&quot;: {</div>
+<div class="line">    &quot;displacement_control&quot;: {</div>
+<div class="line">      &quot;node&quot;: 30,</div>
+<div class="line">      &quot;dof&quot;: &quot;dx&quot;,</div>
+<div class="line">      &quot;targets&quot;: [0.008, 0.020, 0.028, 0.036, 0.040]</div>
+<div class="line">    },</div>
+<div class="line">    &quot;max_iterations&quot;: 50,</div>
+<div class="line">    &quot;tolerance&quot;: 1e-9</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><p><code>dof</code>は<code>dx</code>, <code>dy</code>, <code>dz</code>, <code>rx</code>, <code>ry</code>, <code>rz</code>です。<code>targets</code>は絶対変位・回転の列です。等間隔なら<code>targets</code>の代わりに<code>target</code>を1値指定し、<code>n_load_steps</code>で分割できます。制御自由度は無拘束、基準荷重パターンは自由自由度上で非ゼロ、その他の強制支持変位はゼロである必要があります。</p>
+<p>各段階の<code>lambda</code>が求まった荷重倍率です。変位が増えながら<code>lambda</code>が減れば、負勾配の耐力低下を追跡できています。通常の変位制御は単純な荷重極大点と負勾配を通過できますが、制御変位自体が戻るスナップバックには対応しません。その場合は弧長法が必要です。</p>
+<h1><a class="anchor" id="autotoc_md74"></a>
 実行例：曲げ・除荷・反転</h1>
 <p>以下は単独で実行できます。単位はN・mです。長さ2 mの梁の先端にモーメントを与えるため、曲げモーメントが一様になり、中央断面の曲率と入力した骨格を比較できます。</p>
 <div class="fragment"><div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> isclose</div>
@@ -217,7 +240,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2nonlinear-analysis.html
 <div class="line"><span class="keyword">assert</span> abs(result[<span class="stringliteral">&quot;curvature&quot;</span>][7][<span class="stringliteral">&quot;z&quot;</span>]) &gt; 1e-8  <span class="comment"># 除荷後の残留曲率</span></div>
 <div class="line">model.save_results(<span class="stringliteral">&quot;nonlinear-result.json&quot;</span>)</div>
 </div><!-- fragment --><p>出力の各行は「載荷係数・中央曲率・固定端反力モーメント」です。係数1の段階の曲率は0.002 1/mです。最後の係数0でも、履歴を経た曲率は通常0には戻りません。曲率の符号は局所軸に基づき、材端力のi端・j端の符号とは区別します。</p>
-<h1><a class="anchor" id="autotoc_md74"></a>
+<h1><a class="anchor" id="autotoc_md75"></a>
 収束と履歴の扱い</h1>
 <p>Newton反復では、直前に収束・確定した履歴から試行状態を評価します。残差が下がるように変位増分を小さくする処理を含み、収束した段階だけを確定・保存します。</p>
 <p>未収束時は<code>NonlinearConvergenceError</code>を送出し、その段階の変位・内力・要素履歴・載荷係数を直前の確定状態へ戻します。失敗段階の結果を成功結果として返しません。HTTPでは422になります。<a class="el" href="md_docs_2wiki_2error-handling.html">エラーと対処</a>に例外の扱いを示します。</p>

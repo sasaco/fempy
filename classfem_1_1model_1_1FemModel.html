@@ -99,7 +99,6 @@ $(document).ready(function(){initNavTree('classfem_1_1model_1_1FemModel.html',''
 <a href="#pub-methods">公開メンバ関数</a> &#124;
 <a href="#pub-attribs">公開変数類</a> &#124;
 <a href="#pro-methods">限定公開メンバ関数</a> &#124;
-<a href="#pro-attribs">限定公開変数類</a> &#124;
 <a href="classfem_1_1model_1_1FemModel-members.html">全メンバ一覧</a>  </div>
   <div class="headertitle"><div class="title">fem.model.FemModel クラス</div></div>
 </div><!--header-->
@@ -140,8 +139,8 @@ None&#160;</td><td class="memItemRight" valign="bottom"><b>read_json_model</b> (
 <tr class="separator:a6aa467007be279b6ca3a92c901c74003"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4f104c2fc987ce1813ae482c9b684fcc" id="r_a4f104c2fc987ce1813ae482c9b684fcc"><td class="memItemLeft" align="right" valign="top">Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a4f104c2fc987ce1813ae482c9b684fcc">run</a> (self, Optional[str] analysis_type=None)</td></tr>
 <tr class="separator:a4f104c2fc987ce1813ae482c9b684fcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaf9a51456d1fb6dbc4adcc05673852d2" id="r_aaf9a51456d1fb6dbc4adcc05673852d2"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#aaf9a51456d1fb6dbc4adcc05673852d2">add_nonlinear_material</a> (self, int material_id, str name, float E, float delta_1, float delta_2, float delta_3, float P_1, float P_2, float P_3, float beta=0.4, Optional[float] K_min=None, bool symmetric=True, Optional[float] delta_1_neg=None, Optional[float] delta_2_neg=None, Optional[float] delta_3_neg=None, Optional[float] P_1_neg=None, Optional[float] P_2_neg=None, Optional[float] P_3_neg=None, float nu=0.2, Optional[float] density=None, Optional[float] shear_modulus=None)</td></tr>
-<tr class="separator:aaf9a51456d1fb6dbc4adcc05673852d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7092bbfd5d39510886e87e9b9f010b9" id="r_ae7092bbfd5d39510886e87e9b9f010b9"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#ae7092bbfd5d39510886e87e9b9f010b9">add_nonlinear_material</a> (self, int material_id, str name, float E, float delta_1, float delta_2, float delta_3, float P_1, float P_2, float P_3, float beta=0.4, Optional[float] K_min=None, bool symmetric=True, Optional[float] delta_1_neg=None, Optional[float] delta_2_neg=None, Optional[float] delta_3_neg=None, Optional[float] P_1_neg=None, Optional[float] P_2_neg=None, Optional[float] P_3_neg=None, float nu=0.2, Optional[float] density=None, Optional[float] shear_modulus=None, Optional[float] delta_4=None, Optional[float] P_4=None, Optional[float] delta_4_neg=None, Optional[float] P_4_neg=None)</td></tr>
+<tr class="separator:ae7092bbfd5d39510886e87e9b9f010b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2fa386e77757ea0f8f7af6db3cc6451" id="r_ae2fa386e77757ea0f8f7af6db3cc6451"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#ae2fa386e77757ea0f8f7af6db3cc6451">add_nonlinear_bar_element</a> (self, int elem_id, List[int] node_ids, int material_id, int section_id, List[str] hysteresis_dofs, float angle=0.0, bool shear_correction=True)</td></tr>
 <tr class="separator:ae2fa386e77757ea0f8f7af6db3cc6451"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6684cb9f882275a91c0e68b501174a6e" id="r_a6684cb9f882275a91c0e68b501174a6e"><td class="memItemLeft" align="right" valign="top">Optional[Dict[str, Any]]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a6684cb9f882275a91c0e68b501174a6e">get_results</a> (self)</td></tr>
@@ -231,12 +230,6 @@ None&#160;</td><td class="memItemRight" valign="bottom"><b>read_json_model</b> (
 <tr class="separator:a18117d7e7c5cb76273585e67aac39ead"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3752697bbe8db5f0bcf112b88658260b" id="r_a3752697bbe8db5f0bcf112b88658260b"><td class="memItemLeft" align="right" valign="top">Dict[str, List]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a3752697bbe8db5f0bcf112b88658260b">_extract_all_loads</a> (self, Dict[str, Any] load_data)</td></tr>
 <tr class="separator:a3752697bbe8db5f0bcf112b88658260b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
-限定公開変数類</h2></td></tr>
-<tr class="memitem:a8e814a5f917dc0d727ecb949b0979b8e" id="r_a8e814a5f917dc0d727ecb949b0979b8e"><td class="memItemLeft" align="right" valign="top"><a id="a8e814a5f917dc0d727ecb949b0979b8e" name="a8e814a5f917dc0d727ecb949b0979b8e"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>_n_modes</b></td></tr>
-<tr class="separator:a8e814a5f917dc0d727ecb949b0979b8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">詳解</h2>
 <div class="textblock"><pre class="fragment">FEM解析の統合モデルクラス（Facade）</pre> </div><h2 class="groupheader">構築子と解体子</h2>
@@ -1265,8 +1258,8 @@ Args:
 </pre> 
 </div>
 </div>
-<a id="aaf9a51456d1fb6dbc4adcc05673852d2" name="aaf9a51456d1fb6dbc4adcc05673852d2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaf9a51456d1fb6dbc4adcc05673852d2">&#9670;&#160;</a></span>add_nonlinear_material()</h2>
+<a id="ae7092bbfd5d39510886e87e9b9f010b9" name="ae7092bbfd5d39510886e87e9b9f010b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7092bbfd5d39510886e87e9b9f010b9">&#9670;&#160;</a></span>add_nonlinear_material()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1401,7 +1394,31 @@ Args:
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">Optional[float] &#160;</td>
-          <td class="paramname"><em>shear_modulus</em> = <code>None</code>&#160;</td>
+          <td class="paramname"><em>shear_modulus</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[float] &#160;</td>
+          <td class="paramname"><em>delta_4</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[float] &#160;</td>
+          <td class="paramname"><em>P_4</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[float] &#160;</td>
+          <td class="paramname"><em>delta_4_neg</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[float] &#160;</td>
+          <td class="paramname"><em>P_4_neg</em> = <code>None</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1422,6 +1439,7 @@ Args:
         axialは軸ひずみ、moment_y/zは曲率、torsionはねじり率。
         絶対端部変位・集中ヒンジ回転ではない（理論7.21節）。
     P_1, P_2, P_3: 対応する軸力または断面モーメント（正側）
+    delta_4, P_4: K4を定める正側参照点。両方省略時はK4=0。
     beta: 剛性低減係数（デフォルト: 0.4）
     K_min: 戻り剛性下限値（省略時は初期剛性の1%）
     symmetric: 対称スケルトンカーブを使用するか
@@ -1845,6 +1863,8 @@ Note:
         - n_modes: 固有モード数（modal用）
         - load_factors: 順番どおりに載荷する係数列（material_nonlinear用）。
           指定時はn_load_stepsの等間隔列に代えて使用する。
+        - displacement_control: node、dofとtargetまたはtargetsで指定する変位制御。
+          荷重係数を未知数として負勾配を追跡する。load_factorsとは排他。
     analysis_type省略時は入力の指定を使い、それもなければ
     nonlinear_barを含む場合material_nonlinear、それ以外はstatic。
 

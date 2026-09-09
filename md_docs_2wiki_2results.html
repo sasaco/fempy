@@ -98,9 +98,9 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2results.html',''); init
   <div class="headertitle"><div class="title">結果の読み方</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md88"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2nonlinear-analysis.html">材料非線形解析</a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md89"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2nonlinear-analysis.html">材料非線形解析</a></p>
 <p>まず節点変位と支点反力を確認し、次に梁の端力やシェル・ソリッドの応力を読みます。入力と同じ単位系で返り、変位をmm、回転をミリラジアンへ自動変換する処理はありません。</p>
-<h1><a class="anchor" id="autotoc_md89"></a>
+<h1><a class="anchor" id="autotoc_md90"></a>
 PythonとJSONの違い</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -113,7 +113,7 @@ PythonとJSONの違い</h1>
 <td class="markdownTableBodyNone">ケース階層   </td><td class="markdownTableBodyNone">1ケース分の辞書   </td><td class="markdownTableBodyNone">1ケース分のオブジェクト   </td></tr>
 </table>
 <p>Pythonでは<code>result["node_displacements"][2]["dy"]</code>、HTTPでは<code>result["node_displacements"]["2"]["dy"]</code>です。現在のHTTPは<code>case1.disg</code>や<code>case1.fsec</code>という階層を返しません。<code>disg/reac/fsec</code>は参照比較用の別ビューで使われる名称です。</p>
-<h1><a class="anchor" id="autotoc_md90"></a>
+<h1><a class="anchor" id="autotoc_md91"></a>
 線形静解析の主な項目</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -137,7 +137,7 @@ PythonとJSONの違い</h1>
 </table>
 <p>数値計算の経路によって、<code>precise_end_forces</code>、<code>interpolated_displacements</code>、<code>constitutive_element_stresses</code>、<code>force_recovery</code>が追加されることがあります。固定された出力キー集合を仮定せず、必要な項目を読み取ってください。</p>
 <p>線形結果には非線形用の<code>step_results</code>や<code>curvature</code>を追加しません。また、線形の成功結果に<code>converged</code>キーはありません。</p>
-<h1><a class="anchor" id="autotoc_md91"></a>
+<h1><a class="anchor" id="autotoc_md92"></a>
 節点変位と支点反力</h1>
 <div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;node_displacements&quot;: {</div>
@@ -152,7 +152,7 @@ PythonとJSONの違い</h1>
 </div><!-- fragment --><p>これは<a class="el" href="md_docs_2wiki_2getting-started.html">最初の片持ち梁</a>の結果の一部です。変位は全体XYZ方向、回転は全体XYZ軸まわりです。反力は構造物に作用する向きで、支持ばねの成分では<code>−k u</code>です。</p>
 <p>反力辞書は、拘束・ばねがある成分だけを返します。たとえばX方向だけのばねなら<code>fx</code>だけの場合があります。2D化で自動追加した補助支持の節点は、反力一覧から除外されます。</p>
 <p>全変位配列は節点IDの昇順に並び、梁・シェルを含むモデルでは1節点6成分、対応するソリッドだけなら3成分です。内部と線形の節点変位辞書は6キーを持ち、3DOFモデルの回転は0です。非線形のFemModel／HTTP互換出力では、3DOFモデルを<code>dx, dy, dz</code>の3キーに射影します。</p>
-<h1><a class="anchor" id="autotoc_md92"></a>
+<h1><a class="anchor" id="autotoc_md93"></a>
 梁の端力</h1>
 <p><code>element_stresses</code>という名前ですが、梁に対して返るのは応力ではなく**断面の力・モーメント**です。</p>
 <div class="fragment"><div class="line">{</div>
@@ -165,10 +165,10 @@ PythonとJSONの違い</h1>
 <div class="line">}</div>
 </div><!-- fragment --><p>各配列の順序は<code>[N, Vy, Vz, T, My, Mz]</code>です。**要素局所座標での節点抵抗力の符号**を使います。軸引張を受ける梁では、i端のNが負、j端のNが正になります。断面力図で両端の引張を正表示するための符号変換は適用していません。</p>
 <p>分布荷重や温度荷重を持つ線形梁の端力は、それらの荷重項を含めて計算します。単に弾性剛性と変位を掛け直した値で置き換えないでください。任意断面の材料応力を得るには、断面形状に応じた換算・後処理が別途必要です。</p>
-<h2><a class="anchor" id="autotoc_md93"></a>
+<h2><a class="anchor" id="autotoc_md94"></a>
 分割前の部材との対応</h2>
 <p>結果のキーは分割後の解析要素IDです。Pythonでは<code>model.mesh.elements</code>で、<code>original_id</code>、<code>member_start</code>、<code>member_end</code>、<code>nodes</code>などのメタデータを確認できます。元の部材IDと端からの位置を使って結果を整理してください。旧形式のシェル・ソリッドには元のIDを表す<code>shell_id</code>・<code>solid_id</code>が保持されます。</p>
-<h2><a class="anchor" id="autotoc_md94"></a>
+<h2><a class="anchor" id="autotoc_md95"></a>
 釣合いによる端力回復</h2>
 <p>線形梁で自由端から静力学的に力を決められる枝は、釣合いから端力を回復する場合があります。</p>
 <ul>
@@ -177,7 +177,7 @@ PythonとJSONの違い</h1>
 <li><code>force_recovery</code>：<code>method: "free_branch_equilibrium"</code>と対象要素ID。</li>
 </ul>
 <p>分布ばね、非線形要素、シェル、閉路を越えて力を決める処理ではありません。構成則との不一致が許容範囲を超えればエラーにします。非線形解析に含まれる線形梁では、段階ごとの結果にも適用されます。</p>
-<h1><a class="anchor" id="autotoc_md95"></a>
+<h1><a class="anchor" id="autotoc_md96"></a>
 材料非線形の段階結果</h1>
 <p>最終結果には<code>converged: true</code>、<code>step_results</code>、<code>convergence_history</code>、<code>curvature</code>が加わります。最後の載荷段階の状態が最終結果であり、途中の最大値ではありません。</p>
 <table class="markdownTable">
@@ -199,7 +199,7 @@ PythonとJSONの違い</h1>
 <td class="markdownTableBodyNone"><code>converged</code>、<code>iterations</code>   </td><td class="markdownTableBodyNone">収束したことと、その段階の反復数。   </td></tr>
 </table>
 <p>シェルを含むモデルでは、<code>shell_results</code>と<code>legacy_shell_results</code>を各段階にも追加します。未収束の段階を<code>converged: false</code>として保存しながら最後まで進める仕様ではありません。未収束時は解析を停止して例外・HTTP 422を返します。</p>
-<h2><a class="anchor" id="autotoc_md96"></a>
+<h2><a class="anchor" id="autotoc_md97"></a>
 応答曲率</h2>
 <div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;curvature&quot;: {&quot;7&quot;: {&quot;y&quot;: 0.0, &quot;z&quot;: 0.002}}</div>
@@ -212,10 +212,10 @@ PythonとJSONの違い</h1>
 <li>該当する非線形梁がない非線形解析では空辞書です。静解析にはこの項目がありません。</li>
 <li>分割モデルでは解析要素ごとの値で、元部材の平均や材端別の値ではありません。</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md97"></a>
+<h2><a class="anchor" id="autotoc_md98"></a>
 収束履歴</h2>
 <p><code>convergence_history</code>はNewton反復ごとの配列です。各記録に<code>step</code>、<code>lambda</code>、<code>iteration</code>、<code>residual_norm</code>、<code>relative_residual</code>、<code>relative_du</code>があります。初回反復の<code>relative_du</code>はnullです。収束判定の詳細は<a class="el" href="md_docs_2wiki_2workflow.html">解析ワークフロー</a>を参照してください。</p>
-<h1><a class="anchor" id="autotoc_md98"></a>
+<h1><a class="anchor" id="autotoc_md99"></a>
 シェルの結果</h1>
 <p>両面の曲げを含めて読む場合は<code>result["shell_results"][要素ID]</code>を使います。<code>element_stresses</code>側のシェル出力は、局所面内3成分の積分点応力・ひずみで、両面の曲げ応力を表しません。</p>
 <table class="markdownTable">
@@ -257,10 +257,10 @@ PythonとJSONの違い</h1>
 </table>
 <p>応力・ひずみテンソルは**全体座標**の<code>[xx, yy, zz, xy, yz, zx]</code>です。ここでのせん断ひずみはテンソル成分<code>γ/2</code>です。Mindlinの横せん断応力は構成則による値で、表面でせん断応力0となる分布を回復したものではありません。DKTの回復合せん断力は、表面のせん断応力・エネルギーには追加しません。</p>
 <p>互換項目<code>stress</code>の<code>mx/my/mxy/qx/qy</code>という名前は、物理的な曲げ合力を意味しません。応力は<code>raw_result</code>、断面合力は<code>resultants</code>を使ってください。旧シェルの仮想梁断面力は廃止されています。</p>
-<h2><a class="anchor" id="autotoc_md99"></a>
+<h2><a class="anchor" id="autotoc_md100"></a>
 旧シェル比較形式との違い</h2>
 <p><code>legacy_shell_results</code>は読込順の0始まりキー、工学せん断ひずみγ、積分点の単純平均を使い、<code>strain_energy</code>は上面の平均エネルギー密度です。通常形式の実要素ID、テンソルせん断γ/2、面積平均、体積積分エネルギーとは区別します。下面を上面で置き換えるなど、過去の不具合は再現しません。</p>
-<h1><a class="anchor" id="autotoc_md100"></a>
+<h1><a class="anchor" id="autotoc_md101"></a>
 ソリッドの応力・ひずみ</h1>
 <p><code>element_stresses[要素ID]</code>の<code>gauss_points</code>、<code>strain</code>、<code>stress</code>を使います。各行は積分点に対応し、節点への外挿や節点平均ではありません。</p>
 <ul>
@@ -268,24 +268,30 @@ PythonとJSONの違い</h1>
 <li>ひずみは全体座標の<code>[εxx, εyy, εzz, γxy, γyz, γzx]</code>。</li>
 <li>ソリッドのせん断ひずみは**工学せん断γ**で、シェルの<code>raw_result</code>とは異なります。</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md101"></a>
+<h1><a class="anchor" id="autotoc_md102"></a>
 固有値解析の結果</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">キー   </th><th class="markdownTableHeadNone">内容    </th></tr>
 <tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>n_modes</code>   </td><td class="markdownTableBodyNone">要求し、実際に返されたモード数    </td></tr>
+<tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>eigenvalues</code>   </td><td class="markdownTableBodyNone">固有値ω²    </td></tr>
-<tr class="markdownTableRowEven">
+<tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>eigenvectors</code>   </td><td class="markdownTableBodyNone">列ごとの固有ベクトル    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>frequencies</code>   </td><td class="markdownTableBodyNone">振動数ω/(2π)。整合した秒単位の入力ならHz    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>periods</code>   </td><td class="markdownTableBodyNone">正の振動数に対応する周期    </td></tr>
+<td class="markdownTableBodyNone"><code>frequencies</code>   </td><td class="markdownTableBodyNone">振動数ω/(2π)。整合した秒単位の入力ならHz    </td></tr>
 <tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>periods</code>   </td><td class="markdownTableBodyNone">正の振動数に対応する周期。ゼロモードはPythonで<code>inf</code>、JSONで<code>null</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>eigenpair_residuals</code>   </td><td class="markdownTableBodyNone">各固有対の相対残差    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>mass_orthogonality_error</code>   </td><td class="markdownTableBodyNone">質量行列に関する直交性の最大誤差    </td></tr>
+<tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>modes</code>   </td><td class="markdownTableBodyNone">モードごとの節点変位辞書の配列   </td></tr>
 </table>
-<p>モード形の大きさや全体の符号は、実際の載荷による変位ではありません。正の有限固有値を確認してから読み、<a class="el" href="md_docs_2wiki_2elements.html">固有値解析の制約</a>を考慮してください。非有限値を含む結果はHTTP送信・JSON保存でエラーになります。</p>
-<h1><a class="anchor" id="autotoc_md102"></a>
+<p>モード形は質量正規化されますが、その大きさや全体の符号は実際の載荷による変位ではありません。重根では個々のベクトルではなく部分空間を比較します。正の有限固有値を確認してから読み、<a class="el" href="md_docs_2wiki_2elements.html">固有値解析の制約</a>を考慮してください。周期以外の非有限値はHTTP送信・JSON保存でエラーになります。</p>
+<h1><a class="anchor" id="autotoc_md103"></a>
 静解析の微小補正</h1>
 <p><code>displacement_correction</code>は<code>displacement</code>と同じ順序の微小補正です。大きな剛体移動と小さな変形が混在する場合に、微小な伸び・曲げを失わないよう主値と補正値を分けて保持します。通常の変位表示には<code>node_displacements</code>を使います。</p>
 <p>梁端力・反力の計算では補償演算を使うため、主値と補正値を倍精度で先に足してから端力を再計算すると、重要な補正が消える場合があります。非線形の段階変位・履歴則には、この静解析用補正を追加していません。 </p>

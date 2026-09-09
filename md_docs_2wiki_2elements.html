@@ -195,14 +195,16 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2elements.html',''); ini
 <p>正のヤコビアンになる向きで頂点を並べます。<a class="el" href="md_docs_2wiki_2examples.html">二次四面体の実行例</a>に具体的な座標を示します。詳細な自然座標は<a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/elements/quadratic_solid.py">要素定義</a>で確認できます。</p>
 <h1><a class="anchor" id="autotoc_md20"></a>
 固有値解析の設定と制約</h1>
-<p><code>model.analysis_params["n_modes"] = 3</code>のように指定し、<code>model.run("modal")</code>を呼びます。現在の<code>run_modal_analysis(n_modes=...)</code>は引数を解析パラメータへ反映しないため、この明示的な設定方法を使ってください。</p>
+<p><code>model.analysis_params["n_modes"] = 3</code>のように指定して<code>model.run("modal")</code>を呼ぶか、<code>model.run_modal_analysis(n_modes=3)</code>を使います。要求数は正の整数で、利用可能な自由度数を超える場合はエラーになります。要求数を無言で減らしません。</p>
 <ul>
 <li>密度はPython／保存用JSONでは<code>density</code>、編集用JSONでは<code>den</code>です。N・m・s系ではkg/m³、kN・m・s系ではt/m³になります。要素ごとの密度の既定値に頼らず指定してください。</li>
 <li>梁の質量行列は集中質量の近似です。連続体の厳密解との比較では、要素分割と質量の表現による差を確認してください。</li>
-<li>モード数は内部で全自由度数の約1/3以下に制限されるため、要求数と出力数が異なる場合があります。</li>
-<li>拘束は剛性行列に大きなペナルティとして適用します。悪条件により、本来正の固有値が0として返る場合があります。固定支持モデルでは独立した参照値との確認が必要です。実行例には、ばねと質量から振動数を確認できる弾性支持モデルを用います。</li>
-<li>ARPACKの未収束時にはシフト・モード数削減などの再試行があります。最後の再試行は大きい固有値を取得するため、再試行ログがある結果を「必ず低次からのモード」と解釈しないでください。</li>
-<li>負の固有値は0に切り詰められます。ゼロ固有値の<code>periods</code>は0や非有限値になる場合があり、正の有限振動数を確認してから周期を読みます。</li>
+<li>拘束自由度は剛性・質量行列の両方から同じ配置で除き、固有ベクトルを全自由度へ復元します。支持ばねは剛性へ加えます。</li>
+<li>質量を持たない自由度が残るモデルは、誤って削除せずエラーにします。不要自由度を拘束するか、要素の慣性定義を確認してください。</li>
+<li>ARPACKの未収束時は低次選択を保つシフト反転を一度試し、再び失敗すれば要求数を減らさずエラーにします。</li>
+<li>行列尺度に対して丸め誤差と判断できる負値だけを0とし、有意な負固有値は不安定性としてエラーにします。</li>
+<li>ゼロモードの周期はPython結果では<code>inf</code>、HTTP・保存JSONでは<code>null</code>です。正のモードの周期と区別してください。</li>
+<li><code>eigenpair_residuals</code>と<code>mass_orthogonality_error</code>で数値検査値を確認できます。これらは実構造との妥当性確認の代わりではありません。</li>
 <li>非線形解析後の接線剛性による振動解析ではありません。履歴状態を引き継いだ固有値解析として利用しないでください。</li>
 </ul>
 <p><a class="el" href="md_docs_2wiki_2examples.html">固有値解析の実行例</a>は、明示した密度と支持条件を使います。</p>
