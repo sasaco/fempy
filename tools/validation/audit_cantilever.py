@@ -44,7 +44,8 @@ def measure(output):
         input_path=path.as_posix(),
         input_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
         tip_force=force,
-        central_moment=-4.85 * force,
+        central_moment=-force
+        * ((data["node"]["2"]["y"] + data["node"]["3"]["y"]) / 2 - data["node"]["1"]["y"]),
         central_curvature=(
             reference["node_displacements"]["3"]["rz"] - reference["node_displacements"]["2"]["rz"]
         )

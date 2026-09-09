@@ -1,15 +1,16 @@
 # 現行テスト台帳
 
-2026-09-09。46 ファイル・242 関数定義・1,450 展開ケース。材料非線形の完了範囲は 799 ケース。関数数とパラメータ展開数を混同しない。
+2026-09-09。48 ファイル・266 関数定義・1,508 展開ケース。材料非線形の検証範囲は 857 ケース。応答曲率出力の37ケースに加え、共通ソルバー契約の21ケースを追加。関数数とパラメータ展開数を混同しない。
 
 [項目表](test_items.md) / [実行方法](../../tests/README.md) / [移行・統合記録](../report/test-reorganization.md)。整理前の全 264 関数・112 ファイルの移管先と hash は [機械可読な移行記録](../report/test-reorganization-evidence.json) にある。
 
 | ファイル | 関数 | ケース | 主区分 |
 |---|---:|---:|---|
+| [solvers/test_unification.py](../../tests/solvers/test_unification.py) | 16 | 21 | unit |
 | [elements/beam/test_elastic.py](../../tests/elements/beam/test_elastic.py) | 6 | 11 | unit |
 | [elements/beam/test_foundation.py](../../tests/elements/beam/test_foundation.py) | 3 | 6 | unit |
 | [elements/beam/test_kinematics.py](../../tests/elements/beam/test_kinematics.py) | 3 | 15 | unit |
-| [elements/beam/test_nonlinear_section.py](../../tests/elements/beam/test_nonlinear_section.py) | 7 | 27 | unit |
+| [elements/beam/test_nonlinear_section.py](../../tests/elements/beam/test_nonlinear_section.py) | 8 | 33 | unit |
 | [elements/beam/test_precision.py](../../tests/elements/beam/test_precision.py) | 4 | 8 | unit |
 | [elements/shell/test_dkt.py](../../tests/elements/shell/test_dkt.py) | 3 | 14 | unit |
 | [elements/shell/test_kinematics.py](../../tests/elements/shell/test_kinematics.py) | 14 | 42 | unit |
@@ -24,6 +25,7 @@
 | [integration/test_beam_foundation.py](../../tests/integration/test_beam_foundation.py) | 2 | 2 | integration |
 | [integration/test_beam_precision.py](../../tests/integration/test_beam_precision.py) | 2 | 5 | integration |
 | [integration/test_beam_solutions.py](../../tests/integration/test_beam_solutions.py) | 3 | 14 | integration |
+| [integration/test_curvature_output.py](../../tests/integration/test_curvature_output.py) | 7 | 31 | integration |
 | [integration/test_input_routes.py](../../tests/integration/test_input_routes.py) | 3 | 3 | integration |
 | [integration/test_jr_beam_history.py](../../tests/integration/test_jr_beam_history.py) | 3 | 21 | integration |
 | [integration/test_linear_beam.py](../../tests/integration/test_linear_beam.py) | 12 | 17 | integration |
@@ -94,6 +96,7 @@ elements/beam / nonlinear section contracts.
 
 | 検証関数 | 展開ケース |
 |---|---:|
+| `test_response_curvature_is_local_total_and_does_not_change_history` | 6 |
 | `test_tangent_is_finite_difference_of_force` | 4 |
 | `test_section_skeleton_uses_strain_or_curvature_not_endpoint_motion` | 12 |
 | `test_named_bending_law_leaves_other_plane_elastic` | 2 |
@@ -267,6 +270,20 @@ integration / beam solutions contracts.
 | `test_cantilever_tip_load_matches_hand_solution_and_mesh_refinement` | 8 |
 | `test_fem_model_publishes_section_forces_with_nonconsecutive_nodes` | 2 |
 | `test_nonlinear_pure_bending_solution_and_output_under_refinement` | 4 |
+
+### integration/test_curvature_output.py
+
+非線形要素の応答曲率出力。局所軸・単位・状態非変更の単体保証は `elements/beam/test_nonlinear_section.py` が所有し、このファイルは解析履歴と公開出力の対応を所有する。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_curvature_output_tracks_total_cyclic_response` | 24 |
+| `test_curvature_output_survives_result_save_and_section_cut_view` | 1 |
+| `test_curvature_output_does_not_report_strain_or_twist_as_bending` | 2 |
+| `test_static_output_does_not_publish_nonlinear_curvature` | 1 |
+| `test_curvature_includes_elastic_bending_axis_of_nonlinear_element` | 1 |
+| `test_nonlinear_analysis_with_only_elastic_elements_has_empty_curvature` | 1 |
+| `test_cantilever_curvature_output_matches_independent_all_step_reference` | 1 |
 
 ### integration/test_input_routes.py
 
@@ -619,3 +636,26 @@ validation / stored references contracts.
 | `test_tri1_conditions_match_the_original_fem` | 1 |
 | `test_all_tri1_outputs_match_original_operators_without_production_imports` | 1 |
 
+
+### solvers/test_unification.py
+
+共通静解析フロー・独立解・互換境界の契約。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| test_common_entry_obeys_axial_hand_solution | 2 |
+| test_static_does_not_enter_newton | 1 |
+| test_one_step_nonlinear_still_iterates_to_independent_cubic_root | 1 |
+| test_failed_step_restores_load_factor_force_and_allows_reuse | 1 |
+| test_model_uses_common_solver_and_final_snapshots_are_independent | 1 |
+| test_legacy_solve_dispatches_to_nonlinear_and_exposes_shared_state | 1 |
+| test_newton_linear_algebra_does_not_replace_accepted_displacement | 1 |
+| test_internal_six_key_format_and_legacy_three_key_projection | 1 |
+| test_assembly_layout_does_not_depend_on_load_assembly | 1 |
+| test_modal_still_solves_generalized_eigenproblem | 1 |
+| test_same_material_elements_restart_history_after_failure_and_type_switch | 1 |
+| test_snapshot_reads_once_and_callback_mutation_cannot_change_results | 1 |
+| test_shared_spring_and_prescribed_displacement_balance | 4 |
+| test_legacy_callback_error_leaves_accepted_step_and_stops | 1 |
+| test_invalid_reanalysis_does_not_expose_previous_solver_state | 1 |
+| test_mixed_element_widths_share_layout_after_three_dof_analysis | 2 |

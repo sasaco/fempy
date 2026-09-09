@@ -36,7 +36,7 @@ uv run --locked --extra dev python -m tools.validation.check_test_results
 | `support/assertions.py` | 再帰比較・期待値との照合。製品解析を呼ばない |
 | `support/repairs` | 入力同一性を検証する純粋な修復関数 |
 
-`unit / integration / regression / oracle` のいずれかを主 marker にする。`material_nonlinear` は完了済みの 799 ケースを選ぶ範囲指定であり、単に材料非線形を扱う全テストという意味ではない。`slow` と `requires_node` は資源条件を表す。依存がない環境で自動的に skip しない。たとえば `-m "not requires_node and not slow"` は明示的な部分実行になる。
+`unit / integration / regression / oracle` のいずれかを主 marker にする。`material_nonlinear` は検証済みの範囲指定（現在 857 ケース、応答曲率出力37ケースと共通ソルバー契約21ケースを含む）であり、単に材料非線形を扱う全テストという意味ではない。`slow` と `requires_node` は資源条件を表す。依存がない環境で自動的に skip しない。たとえば `-m "not requires_node and not slow"` は明示的な部分実行になる。
 
 名前は `test_<機能・振る舞い>` にする。`phase4`、`v0` など時期・当時の内部呼称を新しいテスト／補助モジュール名に使わない。`test_*.py` 同士を import しない。製品 import は wheel と同じ `fem` / `app` に統一し、sys.path 操作は各テストに置かない。
 

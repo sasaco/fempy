@@ -1,5 +1,42 @@
 # データ構造
 
+## 共通静解析ソルバーAPI
+
+`FemModel.run()` は `static` と `material_nonlinear` を同じ `Solver` で実行します。
+省略時の入力指定・非線形要素による自動選択は従来どおりです。荷重ステップ数では解析種別を判定しません。
+
+```python
+from fem.solver import Solver
+
+solver = Solver()
+linear = solver.solve(mesh, material, boundary, elements)
+nonlinear = solver.solve(
+    mesh, material, boundary, elements,
+    analysis_type="material_nonlinear",
+    n_steps=10, max_iter=50, tol=1e-6,
+    load_factors=None, callback=None,
+)
+```
+
+既存の4位置引数は参照弾性の線形解析です。`static` は全荷重の1ステップで直接解き、
+非線形要素を含んでも参照弾性剛性を使います。`load_factors` は材料非線形専用です。
+`modal` は `eigenvalue_analysis(..., n_modes=10)` で実行する別の固有値問題です。
+
+旧 `fem.nonlinear.nonlinear_solver.NonlinearSolver` と `solve_nonlinear()` は共通実装に委譲します。
+`NonlinearSolver.solve()` も非線形解析を選びます。`FemModel.nonlinear_solver` は
+`FemModel.solver` と同じ変位・収束履歴を参照する互換ビューです。
+`NonlinearConvergenceError` の旧importと `step`、`load_factor`、`displacement` は維持します。
+
+各solve呼出しで解析状態を初期化し、`reset_states()` を持つ要素は履歴も初期化します。
+未収束は最後の確定変位・内力・要素履歴・荷重係数に戻して例外を送出します。
+コールバックは保存後に結果のコピーを受け取り、例外を送出すると確定済みステップで停止します。
+
+内部の節点変位と新しい `Solver.solve(..., analysis_type="material_nonlinear")` の返値は6キーです。
+従来の `NonlinearSolver`／`solve_nonlinear`／`FemModel`／HTTP、および非線形コールバックは、
+3DOFメッシュの変位を従来の `dx, dy, dz` に射影します。線形外部結果へ
+`step_results` や非線形曲率は追加しません。内部の `solver.step_results` は両解析で利用でき、
+返値・各ステップ・コールバックの辞書と配列は独立しています。
+
 ## 静解析の変位補正
 
 静解析結果の`displacement_correction`は`displacement`と同じDOF順序の微小補正です。
@@ -482,6 +519,32 @@ FrameWeb3 APIは構造モデルデータをJSON形式で受け取ります。以
 ```
 
 ## 出力データ構造
+
+### 非線形要素の応答曲率
+
+材料非線形解析の最終結果と各 `step_results` に `curvature` を出力します。
+Python API のキーは解析要素番号（整数）、JSON／HTTP／保存ファイルでは文字列です。
+現行の Python／HTTP 出力は `node_displacements`・`reaction_forces`・`element_stresses`
+と同じ階層に追加します。`disg`・`reac`・`fsec` を使う参照比較ビューにも同じ項目を保持します。
+
+```json
+{
+  "curvature": {
+    "2": {"y": 0.0, "z": -0.00097115875}
+  }
+}
+```
+
+- `y`／`z` は要素局所軸まわりの中央断面の全曲率（1/m）。
+  符号は構成則の `moment_y`／`moment_z` に対応し、断面力ビューの端部符号変換は適用しません。
+- 弾性分と塑性分を含みます。増分・最大経験値・塑性曲率・端部回転角ではありません。
+  履歴を経た収束状態に対応するため、除荷してモーメントがゼロでも残留曲率を出力します。
+- 対象は履歴モデルを設定した非線形梁だけです。その梁では弾性のままの曲げ軸も含めて両軸を出力します。
+  軸ひずみとねじり率は含みません。該当要素のない非線形解析では空辞書、静解析では項目を出力しません。
+- 各ステップの収束時に値を保存し、最終結果には最後のステップの値をコピーします。
+  通常の荷重増分は最初の載荷段階から出力し、ゼロ段階が必要なら `load_factors` に `0` を含めます。
+  非収束時は従来どおり解析失敗とし、失敗ステップの曲率を成功結果として返しません。
+- 分割モデルでは解析要素ごとの値です。中央断面が評価点であり、材端別・部材平均の曲率ではありません。
 
 ### 節点変位
 ```json

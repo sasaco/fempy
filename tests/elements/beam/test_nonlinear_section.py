@@ -12,6 +12,29 @@ pytestmark = pytest.mark.unit
 
 
 @pytest.mark.material_nonlinear
+@pytest.mark.parametrize("rotated", [False, True])
+@pytest.mark.parametrize("length", [0.5, 2.0, 5.0])
+def test_response_curvature_is_local_total_and_does_not_change_history(rotated, length):
+    e = beam(dofs=["moment_y", "moment_z"], length=length, rotated=rotated)
+    transform = e.get_transformation_matrix(12)
+    local = np.zeros(12)
+    local[[4, 10]] = [-0.003 * length / 2, 0.003 * length / 2]
+    local[[5, 11]] = [0.002 * length / 2, -0.002 * length / 2]
+    u = transform.T @ local
+    e.get_internal_force(u)
+    e.commit_state()
+    committed = copy.deepcopy(e.committed_states)
+    e.get_internal_force(2 * u)  # An uncommitted candidate must stay untouched by output.
+    candidate = copy.deepcopy(e.current_states)
+    assert e.calculate_curvature(u) == pytest.approx(dict(y=0.003, z=-0.002), abs=1e-14)
+    assert e.calculate_curvature(2 * u) == pytest.approx(dict(y=0.006, z=-0.004), abs=1e-14)
+    assert e.current_states == candidate
+    assert e.committed_states == committed
+    e.rollback_state()
+    assert e.calculate_curvature(u) == pytest.approx(dict(y=0.003, z=-0.002), abs=1e-14)
+
+
+@pytest.mark.material_nonlinear
 @pytest.mark.parametrize("rotation", [False, True])
 @pytest.mark.parametrize("scale", [0.00002, 0.0012])
 def test_tangent_is_finite_difference_of_force(rotation, scale):

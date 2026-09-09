@@ -134,6 +134,19 @@ class NonlinearBarElement(TBarElement):
         self.committed_states = copy.deepcopy(self.current_states)
         self._committed_response = copy.deepcopy(self._trial_response)
 
+    def calculate_curvature(self, displacement: np.ndarray) -> Dict[str, float]:
+        """Midpoint total curvature about local y/z (1/m), without history changes.
+
+        These are the generalized deformations used by the M-curvature laws,
+        including elastic bending on an axis without a hysteresis law.
+        """
+        u = np.asarray(displacement, dtype=float)
+        if u.shape != (12,) or not np.all(np.isfinite(u)):
+            raise ValueError('Expected 12 finite element displacements')
+        b, _ = self._section_operators()
+        deformation = b @ (self.get_transformation_matrix(12) @ u)
+        return {'y': float(deformation[2]), 'z': float(deformation[3])}
+
     def rollback_state(self) -> None:
         self.current_states = copy.deepcopy(self.committed_states)
         self._trial_response = copy.deepcopy(self._committed_response)

@@ -6,6 +6,7 @@
 
 | 機能・旧番号 | 現在保証する範囲／所有先 | 状態・残る要求 |
 |---|---|---|
+| 共通静解析ソルバー | 直接解法／Newtonの明示選択、3/6DOF混在、旧API委譲、状態復元・再利用、独立スナップショット、コールバック、既知固有値。`solvers/test_unification.py` | 検証済み（21ケース）。数値方針の全面変更や一般FEM既知失敗の修復を含まない |
 | 基底要素 1.1 | ID・座標・長さ・ヤコビアン・未実装 3 API。`elements/test_base.py` | 一部。未実装例外は体積／補間計算の実装完了を意味しない |
 | 梁の弾性行列 1.2, 7.1, 10.1 | BE/T 梁・非線形梁の弾性極限、右手系の端力、回転対称性。`elements/beam/test_elastic.py` | 一部。異方性と任意断面計算は未検証 |
 | 要素質量 1.2–1.4, 7.1 | 梁・Tri/Quad・Tetra/Hexa/Wedge のサイズと対角非負、シェル回転共変性 | 一部。一般の集中／一致質量・質量保存の保証とはしない |
@@ -30,6 +31,7 @@
 | 面圧 5.1, 7.4, 7.10 | F1/F2、回転、全節点値、合力／モーメント、入力保存、全解析、独立有理解。`io/test_pressure.py`, `elements/shell/test_pressure.py`, `integration/test_pressure_solution.py`, `validation/test_stored_references.py` | 検証済み（対象モデル・入力契約） |
 | 断面特性 10.1, 10.4 | 与えられた A/Iy/Iz/J とせん断指定による応答を確認 | 一部。断面形状からの断面係数・ねじり定数・有効断面計算は未検証 |
 | 座標変換 7.5, 10.1, 10.5 | 剛体、回転共変性、縦配置、局所／全体系の力・モーメント。`elements`, `integration/test_nonlinear_reference.py`, `postprocess` | 検証済み（明示条件） |
+| 応答曲率 | 非線形梁の中央断面の全曲率、局所両曲げ軸、残留・正負履歴、要素分割、各ステップと最終値、Python/JSON/HTTP/結果保存。`integration/test_curvature_output.py`, `elements/beam/test_nonlinear_section.py` | 検証済み（現行中央断面モデル）。材端別・部材平均の曲率は出力しない |
 | 応力・内力 7.5, 10.6 | せん断・両面テンソル・端力、結果量の釣合い、原演算子との照合。`postprocess` | 一部。主／相当応力・主／相当ひずみ、接触応力は独立検証なし |
 | 変形 10.7 | 軸・曲げ・ねじり、片持ち梁独立解、履歴、分割収束。`integration/test_beam_solutions.py`, `test_nonlinear_reference.py`, `test_nonlinear_convergence.py` | 一部。座屈・横倒れ・一般ねじり変形の全範囲は未検証 |
 | 保存参照 | 44 モデル 323 ケース、片持ち梁 101 保存段階、float/Decimal/有理数/原演算子、改変検出。`regression`, `validation`, `harness` | 一般 FEM は既知 308 ケース失敗。材料非線形の数学的検証と外部 JR 較正は別 |

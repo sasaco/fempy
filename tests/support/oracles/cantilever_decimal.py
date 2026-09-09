@@ -15,10 +15,12 @@ D = lambda value: Decimal(str(value))
 
 
 def reference_values(data):
-    """Return steps 0..n, in the disg/reac/fsec schema, from scalar equations."""
+    """Return steps 0..n, including total midpoint curvature, from scalar equations."""
     # Fail closed for changes outside this reference's derived model.
+    tip_y = D(data["node"]["1"]["y"])
+    assert tip_y.is_finite() and tip_y < D("-0.2")
     assert data["node"] == {
-        "1": dict(x=0, y=-5, z=0),
+        "1": dict(x=0, y=data["node"]["1"]["y"], z=0),
         "2": dict(x=0, y=-0.2, z=0),
         "3": dict(x=0, y=-0.1, z=0),
         "4": dict(x=0, y=0, z=0),
@@ -59,13 +61,15 @@ def reference_values(data):
         context.prec = 50
         points = [(D(0), D(0))] + [(D(nl[f"P_{i}"]), D(nl[f"delta_{i}"])) for i in (1, 2, 3)]
         assert all(pb > pa and kb > ka for (pa, ka), (pb, kb) in zip(points, points[1:]))
-        assert D(load["tx"]) * D("4.85") < points[-1][0]
+        central_arm = (D(data["node"]["2"]["y"]) + D(data["node"]["3"]["y"])) / 2 - tip_y
+        assert D(load["tx"]) * central_arm < points[-1][0]
         result = {}
         for step in range(n + 1):
             force = D(load["tx"]) * D(step) / D(n)
             zero_disp = dict.fromkeys(("dx", "dy", "dz", "rx", "ry", "rz"), 0.0)
             disps = {"4": zero_disp}
             sections = {}
+            curvatures = {}
             u_j = theta_j = D(0)
             for member_id in ("3", "2", "1"):
                 member = data["member"][member_id]
@@ -81,12 +85,13 @@ def reference_values(data):
                     assert ga > 0
                     shear = force * length / ga
                 # Positive magnitude; physical Mz and curvature are negative.
-                m = force * ((yi + yj) / 2 + D(5))
+                m = force * ((yi + yj) / 2 - tip_y)
                 if member_id == "2":
                     for (pa, ka), (pb, kb) in zip(points, points[1:]):
                         if m <= pb:
                             kappa = -(ka + (m - pa) * (kb - ka) / (pb - pa))
                             break
+                    curvatures[member_id] = dict(y=0.0, z=float(kappa))
                 else:
                     kappa = -m / ei
                 theta_i = theta_j - length * kappa
@@ -99,15 +104,16 @@ def reference_values(data):
                 values.update(
                     fyi=float(-force),
                     fyj=float(-force),
-                    mzi=float(force * (yi + D(5))),
-                    mzj=float(force * (yj + D(5))),
+                    mzi=float(force * (yi - tip_y)),
+                    mzj=float(force * (yj - tip_y)),
                     L=float(length),
                 )
                 sections[member_id] = {"P1": values}
                 u_j, theta_j = u_i, theta_i
             result[str(step)] = dict(
                 disg={key: disps[key] for key in ("1", "2", "3", "4")},
-                reac={"4": dict(tx=float(-force), ty=0.0, tz=0.0, mx=0.0, my=0.0, mz=float(-5 * force))},
+                reac={"4": dict(tx=float(-force), ty=0.0, tz=0.0, mx=0.0, my=0.0, mz=float(tip_y * force))},
                 fsec={key: sections[key] for key in ("1", "2", "3")},
+                curvature=curvatures,
             )
         return result

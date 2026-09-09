@@ -95,10 +95,13 @@ def section_cut_result_view(result, model, data):
         if generated:
             reaction = result["reaction_forces"].get(str(generated[-1]), {})
             reactions["0"] = dict(tx=0.0, ty=0.0, tz=0.0, mx=0.0, my=0.0, mz=reaction.get("mz", 0.0))
-    return dict(
+    output = dict(
         disg=displacement,
         reac=reactions,
         fsec=sections,
         size=len(model.mesh.nodes),
         shell_results=result.get("legacy_shell_results", result.get("shell_results", {})),
     )
+    if "curvature" in result:
+        output["curvature"] = result["curvature"]
+    return output

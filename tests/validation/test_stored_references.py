@@ -22,15 +22,16 @@ pytestmark = pytest.mark.oracle
         (1000.0, -1e-5),
         (2000.0, -5.5e-5),
         (3000.0, -0.0001),
-        (4850.0, -0.0009420275),
+        (4925.0, -0.00097115875),
     ],
 )
 def test_cantilever_reference_inverse_at_hand_calculated_ordinates(moment, curvature):
     from tests.support.oracles.cantilever import cantilever_reference
 
     d = json.loads((DATA / "snap/beam001.json").read_text(encoding="utf-8"))
-    # Current delta3=.0010103: kappa=-(.0001+(4850-3000)*.0009103/2000).
-    factor = moment / (4.85 * d["load"]["1"]["load_node"][0]["tx"])
+    # delta3=.0010051: kappa=-(.0001+(4925-3000)*.0009051/2000).
+    arm = (d["node"]["2"]["y"] + d["node"]["3"]["y"]) / 2 - d["node"]["1"]["y"]
+    factor = moment / (arm * d["load"]["1"]["load_node"][0]["tx"])
     nodes = cantilever_reference(d, factor)["node_displacements"]
     assert (nodes["3"]["rz"] - nodes["2"]["rz"]) / 0.1 == pytest.approx(curvature, abs=1e-14)
 
@@ -44,6 +45,10 @@ def test_stored_cantilever_all_steps_against_independent_scalar_reference():
     for i in range(n + 1):
         expected = cantilever_reference(data, i / n)
         snapshot = saved[str(i)]
+        nodes = expected["node_displacements"]
+        curvature = (nodes["3"]["rz"] - nodes["2"]["rz"]) / 0.1
+        assert set(snapshot["curvature"]) == {"2"}
+        assert snapshot["curvature"]["2"] == pytest.approx(dict(y=0.0, z=curvature), abs=1e-14)
         for node, displacement in expected["node_displacements"].items():
             assert snapshot["disg"][node] == pytest.approx(displacement, abs=1e-12)
         reaction = expected["reaction_forces"]["4"]
@@ -64,27 +69,32 @@ def test_stored_cantilever_all_steps_against_independent_scalar_reference():
             section = values["P1"]
             assert section["fyi"] == pytest.approx(-force, abs=1e-12)
             assert section["fyj"] == pytest.approx(-force, abs=1e-12)
-            assert section["mzi"] == pytest.approx(force * (5 + data["node"][ni]["y"]), abs=1e-12)
-            assert section["mzj"] == pytest.approx(force * (5 + data["node"][nj]["y"]), abs=1e-12)
+            tip_y = data["node"]["1"]["y"]
+            assert section["mzi"] == pytest.approx(force * (data["node"][ni]["y"] - tip_y), abs=1e-12)
+            assert section["mzj"] == pytest.approx(force * (data["node"][nj]["y"] - tip_y), abs=1e-12)
 
 
 def test_cantilever_hand_calculated_branch_crossings_and_tip_motion():
     data = json.loads(SOURCE.read_text(encoding="utf-8"))
-    # F=10*s, |Mmid|=48.5*s: cross P1 between 20/21, P2 between 61/62.
+    # F=5*s, |Mmid|=49.25*s: cross P1 between 20/21, P2 between 60/61.
     assert data["load"]["1"]["n_load_steps"] == 100
-    assert data["load"]["1"]["load_node"][0]["tx"] == 1000
+    assert data["load"]["1"]["load_node"][0]["tx"] == 500
     for step, curvature in [
-        (20, 0.0000097),
-        (21, 0.0000108325),
-        (61, 0.0000981325),
-        (62, 0.00010318605),
-        (100, 0.0009420275),
+        (20, 0.00000985),
+        (21, 0.00001154125),
+        (60, 0.000097975),
+        (61, 0.0001019233375),
+        (100, 0.00097115875),
     ]:
         nodes = data["result"][str(step)]["disg"]
+        assert data["result"][str(step)]["curvature"]["2"] == pytest.approx(
+            dict(y=0.0, z=-curvature), abs=1e-14
+        )
         assert (nodes["2"]["rz"] - nodes["3"]["rz"]) / 0.1 == pytest.approx(curvature, abs=1e-14)
     assert all("G" not in mat for mat in data["element"]["1"].values())
-    assert data["result"]["2"]["disg"]["1"]["dx"] == pytest.approx(0.0000005001212578616352, abs=1e-15)
-    assert data["result"]["100"]["disg"]["1"]["dx"] == pytest.approx(0.00045836690039308176, abs=1e-15)
+    # Equal EI=26.5e9: u=F*10^3/(3EI) + (|kappa|-9.85F/EI)*.1*9.85.
+    assert data["result"]["2"]["disg"]["1"]["dx"] == pytest.approx(0.0000010923499371069182, abs=1e-15)
+    assert data["result"]["100"]["disg"]["1"]["dx"] == pytest.approx(0.0009626976156053459, abs=1e-15)
 
 
 def test_pressure_saved_reference_is_independent_exact_polynomial_solution():

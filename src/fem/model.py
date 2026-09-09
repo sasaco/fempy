@@ -3,12 +3,14 @@ FEM解析の統合モデルクラス
 JavaScript版のFemDataModelに対応し、新モジュールを統合
 """
 from typing import Dict, Any, List, Optional, Union
+from copy import deepcopy
 import numpy as np
 from .mesh import MeshModel
 from .boundary_condition import BoundaryCondition
 from .material import Material, MaterialProperty, ShellParameter, BarParameter, NonlinearMaterialProperty
 from .section import Section
 from .solver import Solver
+from .solver_results import legacy_nonlinear_result
 from .nonlinear import NonlinearSolver
 from .nonlinear.hysteresis import JRStiffnessReductionParams
 from .file_io import read_model, write_model, read_result, write_result
@@ -31,7 +33,7 @@ class FemModel:
         self.material = Material()
         self.section = Section()
         self.solver = Solver()
-        self.nonlinear_solver = NonlinearSolver()  # 非線形ソルバー
+        self.nonlinear_solver = NonlinearSolver(self.solver)  # 旧APIからも同じ解析状態を参照
         self.elements: Dict[int, Any] = {}
         self.results: Optional[Dict[str, Any]] = None
         self.analysis_type = None
@@ -391,25 +393,23 @@ class FemModel:
         # 節点座標を要素に設定
         self._set_element_coordinates()
 
-        if analysis_type == 'static':
-            self.results = self.solver.solve(
-                self.mesh, self.material, self.boundary, self.elements
-            )
-        elif analysis_type == 'modal':
+        if analysis_type == 'modal':
             self.results = self.solver.eigenvalue_analysis(
                 self.mesh, self.material, self.boundary, self.elements,
                 n_modes=self.analysis_params.get('n_modes', 10)
             )
-        elif analysis_type == 'material_nonlinear':
-            self.results = self.nonlinear_solver.solve_nonlinear(
+        else:
+            self.results = self.solver.solve(
                 self.mesh, self.material, self.boundary, self.elements,
+                analysis_type=analysis_type,
                 n_steps=self.analysis_params.get('n_load_steps', 10),
                 max_iter=self.analysis_params.get('max_iterations', 50),
                 tol=self.analysis_params.get('tolerance', 1e-6),
-                load_factors=self.analysis_params.get('load_factors')
+                load_factors=(self.analysis_params.get('load_factors')
+                              if analysis_type == 'material_nonlinear' else None)
             )
-        else:
-            raise ValueError(f"Unknown analysis type: {analysis_type}")
+            if analysis_type == 'material_nonlinear':
+                legacy_nonlinear_result(self.results, self.solver.layout.stride)
 
         # 結果の後処理
         self.results['analysis_type'] = analysis_type
@@ -776,34 +776,27 @@ class FemModel:
             element_stresses = {}
             shell_results = {}
             displacement = self.results['displacement']
-            stride = self.solver._get_max_dof_per_node(self.mesh)
-            node_offsets = {node_id: i * stride for i, node_id in enumerate(sorted(self.mesh.nodes))}
+            layout = self.solver.layout
+            stride = layout.stride
+            node_offsets = layout.node_offsets
             
             for elem_id, element in self.elements.items():
                 # 要素の変位を抽出
-                node_ids = element.node_ids
-                elem_disp = []
-                
-                for node_id in node_ids:
-                    base_dof = node_offsets[node_id]
-                    dof_per_node = element.get_dof_per_node()
-                    
-                    for i in range(dof_per_node):
-                        if base_dof + i < len(displacement):
-                            elem_disp.append(displacement[base_dof + i])
-                        else:
-                            elem_disp.append(0.0)
+                indices = layout.element_dofs(elem_id, element)
+                elem_disp = np.asarray(displacement)[indices]
                             
                 # 梁の断面力APIを優先し、未実装の基底応力APIで遮断しない。
                 if hasattr(element, 'calculate_forces'):
-                    if (self.results.get('analysis_type') == 'static' and
+                    if self.results.get('analysis_type') == 'material_nonlinear':
+                        element_stresses[elem_id] = deepcopy(
+                            self.results['step_results'][-1]['element_stresses'][elem_id])
+                    elif (self.results.get('analysis_type') == 'static' and
                             isinstance(element, NonlinearBarElement)):
                         # Explicit static analysis uses the reference elastic
                         # stiffness; its output must use the same linear law.
                         element_stresses[elem_id] = TBarElement.calculate_forces(element, np.array(elem_disp))
                     else:
                         if 'displacement_correction' in self.results and isinstance(element, LoadedBarElement):
-                            indices = [node_offsets[n]+i for n in node_ids for i in range(6)]
                             element_stresses[elem_id] = element.calculate_forces(
                                 np.array(elem_disp), displacement_correction=self.results['displacement_correction'][indices])
                         else:
@@ -820,7 +813,7 @@ class FemModel:
                 self.results['legacy_shell_results'] = {}
                 for index, elem_id in enumerate(shell_results):
                     element = self.elements[elem_id]
-                    indices = [node_offsets[n]+i for n in element.node_ids for i in range(6)]
+                    indices = layout.element_dofs(elem_id, element)
                     self.results['legacy_shell_results'][index] = legacy_shell_view(
                         element, np.asarray(displacement)[indices])
                 for step in self.results.get('step_results', []):
@@ -828,7 +821,7 @@ class FemModel:
                     step_legacy = {}
                     for index, elem_id in enumerate(shell_results):
                         element = self.elements[elem_id]
-                        indices = [node_offsets[n]+i for n in element.node_ids for i in range(6)]
+                        indices = layout.element_dofs(elem_id, element)
                         step_shells[elem_id] = element.calculate_shell_results(
                             np.asarray(step['displacement'])[indices])
                         step_legacy[index] = legacy_shell_view(element, np.asarray(step['displacement'])[indices])
@@ -842,8 +835,8 @@ class FemModel:
         from .beam_equilibrium import recover_free_branches
         if stride != 6:
             return
-        solver = self.nonlinear_solver if self.results['analysis_type'] == 'material_nonlinear' else self.solver
-        total = solver.assemble_load_vector(self.mesh, self.boundary, self.elements)
+        solver = self.solver
+        total = solver.load_vector
         prescribed, springs = solver._get_boundary_dofs(self.boundary, len(total), stride)
         blocked_dofs = prescribed.keys() | springs.keys()
         blocked = {n: {i for i in range(stride) if start+i in blocked_dofs}
@@ -876,7 +869,7 @@ class FemModel:
             last = snapshots[-1]
             for name in ('element_stresses', 'constitutive_element_stresses', 'force_recovery', 'reaction_forces'):
                 if name in last:
-                    self.results[name] = last[name]
+                    self.results[name] = deepcopy(last[name])
             
     def get_model_info(self) -> Dict[str, Any]:
         """モデル情報を取得
