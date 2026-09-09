@@ -36,6 +36,12 @@ from .nonlinear import (
 # 結果処理
 from .result_processor import ResultProcessor
 from ._version import __version__
+from .capabilities import (
+    UnsupportedCapabilityError,
+    canonical_element_type,
+    get_capability_registry,
+    get_element_capability,
+)
 
 # 注記: 旧実装（FEMCalculation）は2025年6月に削除されました
 # 新実装（FemModel）をご使用ください
@@ -68,5 +74,11 @@ __all__ = [
     'JRStiffnessReductionModel',
 
     # 結果処理
-    'ResultProcessor'
+    'ResultProcessor',
+
+    # 機能対応表と解析前検証
+    'UnsupportedCapabilityError',
+    'canonical_element_type',
+    'get_capability_registry',
+    'get_element_capability'
 ]

@@ -27,6 +27,9 @@ LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 
 
 def inspect_pages():
+    from tools.validation.render_capabilities import check_rendered_documents
+
+    check_rendered_documents()
     fixtures, examples, links = {}, [], {}
     json_count = python_count = 0
     names = set()

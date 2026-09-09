@@ -6,10 +6,9 @@
 
 ## 結論
 
-PQ-00〜03とPQ-05は完了した。PQ-04では同じコミットから一度だけ作ったartifactを、全件pytest、
-材料非線形、Wiki例、隔離導入で検証してからTrusted Publishingへ渡すCIを実装・ローカル検証した。
-GitHub／PyPIの外部設定とリモート実行確認が残る。そこまで確認後、PQ-07の機械可読な対応表と
-解析前拒否、続いてPQ-06/PQ-08のVTK・診断へ進む。
+PQ-00〜03・PQ-05・PQ-07は完了した。PQ-04はユーザー判断で保留し、段階2は未完了のまま維持する。
+段階3「利用時の信頼性」に入り、機械可読な機能対応表と未対応組合せの解析前拒否を実装・検証した。
+次はPQ-06のVTK出力、続いてPQ-08の解析診断と結果メタデータへ進む。
 
 ## 今回完了した内容
 
@@ -42,6 +41,19 @@ GitHub／PyPIの外部設定とリモート実行確認が残る。そこまで�
 - wheelのMETADATAと隔離環境でREADME相当の解析・保存を検証した。
 
 詳細: [PQ-05導入文書・品質説明の検証報告](../report/product-quality-pq05.md)
+
+### PQ-07: 機能対応表と解析前検証
+
+- `src/fem/capabilities.json`を配布wheelにも含む唯一の正本とした。
+- 11要素型、3解析種別、質量行列、8荷重種別、6結果種別を
+  `verified`／`implemented`／`unsupported`で登録した。
+- 公開要素名と旧V0名を正本で解決し、実際に生成した完全修飾クラス名も照合する。
+- 一次wedgeの固有値解析、pyramid／hexa20の全解析、ソリッド面圧を、
+  ソルバー組立前に要素ID・型・理由付きで拒否する。
+- READMEとWikiの表を同じJSONから生成し、`check_wiki`で同期漏れを失敗にする。
+- `get_capability_registry()`等を公開し、利用者も機械可読な定義を取得できる。
+
+全1,996件は失敗・skipなしで成功した。詳細: [PQ-07実装報告](../report/product-quality-pq07.md)
 
 ### PQ-00: clean checkoutの追補
 
@@ -76,14 +88,15 @@ Wikiチェッカーは13ページ、Python 18ブロック、JSON 17ブロック�
 
 ## 共有作業ツリーの注意
 
-PQ-04開始時のHEADは`6ccbe062e5ff055c50d0e8890bc8707e4624c705`だった。作業中に別セッションが
-先行する品質変更を`2c60d45`、理論マニュアル移動を`2d80748`としてcommit・pushし、
-現在のHEAD／`origin/main`は`2d80748906a5307526abd701aafacc52cc9e8935`へ進んだ。
-これらのcommitは本作業で作成・変更していない。
+PQ-07開始時のHEAD／`origin/main`は`a4392b9`だった。全件試験中に別セッションが面荷重理論READMEを
+`18479e1`としてcommit・pushし、面荷重実装計画を`f17c65d`としてcommitした。現在のHEADは
+`f17c65d`、`origin/main`は`18479e1`である。これらのcommit、
+`docs/面荷重理論/README.md`、`docs/plans/面荷重実装計画.md`は本作業で作成・変更していない。
 
-最終確認時の未コミット変更は、下記PQ-04のworkflow 2件、検証ツール2件、試験1件、
-ロードマップ／引継ぎ／PQ-04報告の計8ファイルだけである。次回開始時も`git status --short`と
-`git diff`を取り直し、他セッションが追加した変更をstash、reset、整形、commitしない。
+今回の未コミットPQ-07変更は、機能表・検証モジュール、`FemModel`の事前検証、公開API、生成ツール、
+試験、README／Wiki、ロードマップ／引継ぎ／報告の計12ファイルである。PQ-07のcommit、pushは
+行っていない。次回開始時も`git status --short`と`git diff`を取り直し、他セッションの変更を
+stash、reset、整形、commitしない。
 
 ## PQ-04実装内容と残る外部接続
 
@@ -119,10 +132,15 @@ GitHub APIで確認できたenvironmentは`github-pages`だけであり、`pypi`
 
 詳細: [PQ-04 CI・PyPI公開経路報告](../report/product-quality-pq04.md)
 
-## 外部接続確認後の次項目: PQ-07
+## 次項目: PQ-06
 
-PQ-04の次はPQ-07を推奨する。一次wedge固有値解析などの未対応組合せを、要素IDと
-理由を含む解析前エラーとして返し、README・Wikiの対応表と同じ機械可読定義から生成する。
+PQ-04は保留のまま、段階3の次項目としてPQ-06を実施する。`shell`、`nonlinear_bar`、
+`tetra2`、`wedge2`、`hexa2`のVTKセル型0を修正し、三角形／四角形、二次要素の節点順、
+非連続ID、混在セル、セルデータのID対応を独立VTK readerで読み戻す。
+未対応型を空セルとして成功出力せず、現行の物理的なシェル結果を扱う。
+
+PQ-06完了後はPQ-08へ進み、エラーコード、節点／自由度／要素／失敗ステップ、結果メタデータ、
+ログ制御、保存往復を整備する。
 
 ## 維持する品質ルール
 

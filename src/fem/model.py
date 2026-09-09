@@ -11,6 +11,7 @@ from .material import Material, MaterialProperty, ShellParameter, BarParameter, 
 from .section import Section
 from .solver import Solver
 from .solver_results import legacy_nonlinear_result
+from .capabilities import validate_analysis_capabilities
 from .nonlinear import NonlinearSolver
 from .nonlinear.hysteresis import JRStiffnessReductionParams
 from .file_io import read_model, write_model, read_result, write_result
@@ -392,6 +393,11 @@ class FemModel:
         # 要素の作成（要素分割後に再実行が必要なため毎回実行）
         self._create_elements()
 
+        # 未対応の要素・解析・荷重組合せを、行列組立より前にID付きで拒否する。
+        validate_analysis_capabilities(
+            self.mesh.elements, self.elements, self.boundary, analysis_type
+        )
+
         # 節点座標を要素に設定
         self._set_element_coordinates()
 
@@ -701,7 +707,13 @@ class FemModel:
         elif AdvancedElement.is_advanced_element(elem_type):
             element = AdvancedElement.create_element(elem_type, elem_id,
                                                    node_ids, material_id)
-            element.set_material_properties(self.material)
+            if hasattr(element, 'set_material_properties'):
+                element.set_material_properties(self.material)
+            else:
+                # Legacy pyramid/hexa20 stubs lack the setter. Keep them
+                # constructible so capability preflight can report the actual
+                # unsupported analysis with the element ID.
+                element.material = self.material
 
         elif elem_type == 'nonlinear_bar':
             # 非線形梁要素の作成

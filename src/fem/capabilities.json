@@ -1,0 +1,366 @@
+{
+  "schema_version": 1,
+  "status_definitions": {
+    "verified": "The public FemModel path has targeted numerical or contract verification.",
+    "implemented": "The public FemModel path is implemented, but targeted verification is not complete.",
+    "unsupported": "The public FemModel path must reject this capability before analysis."
+  },
+  "analysis_types": {
+    "static": {"label_ja": "線形静解析"},
+    "material_nonlinear": {"label_ja": "材料非線形解析"},
+    "modal": {"label_ja": "固有値解析"}
+  },
+  "load_types": {
+    "nodal": {"label_ja": "節点荷重"},
+    "prescribed_displacement": {"label_ja": "強制変位"},
+    "support_spring": {"label_ja": "支持ばね"},
+    "member_distributed": {"label_ja": "部材分布荷重"},
+    "temperature": {"label_ja": "温度荷重"},
+    "foundation": {"label_ja": "分布ばね"},
+    "end_release": {"label_ja": "材端解放"},
+    "shell_pressure": {"label_ja": "シェル面圧"}
+  },
+  "result_types": {
+    "node_displacement": {"label_ja": "節点変位"},
+    "reaction_force": {"label_ja": "支点反力"},
+    "beam_end_force": {"label_ja": "梁端力"},
+    "shell_surface_result": {"label_ja": "シェル表面量"},
+    "solid_gauss_stress": {"label_ja": "積分点応力"},
+    "modal_mode": {"label_ja": "固有値・モード"}
+  },
+  "elements": {
+    "bar": {
+      "label_ja": "梁",
+      "aliases": ["beam", "BarElement", "BeamElement", "TrussElement"],
+      "node_counts": [2],
+      "implementations": [
+        "fem.elements.bar_element.TBarElement",
+        "fem.elements.loaded_bar_element.LoadedBarElement"
+      ],
+      "analyses": {
+        "static": {"status": "verified"},
+        "material_nonlinear": {"status": "verified", "note": "線形部材として非線形モデルへ混在可能"},
+        "modal": {"status": "verified"}
+      },
+      "mass_matrix": {"status": "verified", "note": "集中質量近似"},
+      "loads": {
+        "nodal": {"status": "verified"},
+        "prescribed_displacement": {"status": "verified"},
+        "support_spring": {"status": "verified"},
+        "member_distributed": {"status": "verified"},
+        "temperature": {"status": "verified"},
+        "foundation": {"status": "verified"},
+        "end_release": {"status": "verified"},
+        "shell_pressure": {"status": "unsupported", "reason": "Shell pressure is only implemented for shell elements."}
+      },
+      "results": {
+        "node_displacement": {"status": "verified"},
+        "reaction_force": {"status": "verified"},
+        "beam_end_force": {"status": "verified"},
+        "shell_surface_result": {"status": "unsupported"},
+        "solid_gauss_stress": {"status": "unsupported"},
+        "modal_mode": {"status": "verified"}
+      }
+    },
+    "nonlinear_bar": {
+      "label_ja": "材料非線形梁",
+      "aliases": [],
+      "node_counts": [2],
+      "implementations": ["fem.elements.nonlinear_bar_element.NonlinearBarElement"],
+      "analyses": {
+        "static": {"status": "verified", "note": "履歴則を使わない参照弾性解析"},
+        "material_nonlinear": {"status": "verified", "note": "JR総研剛性低減RC型"},
+        "modal": {"status": "implemented", "note": "参照梁の質量・弾性剛性を使用"}
+      },
+      "mass_matrix": {"status": "implemented", "note": "参照梁の集中質量近似"},
+      "loads": {
+        "nodal": {"status": "verified"},
+        "prescribed_displacement": {"status": "verified"},
+        "support_spring": {"status": "verified"},
+        "member_distributed": {"status": "unsupported", "reason": "Distributed member loads are not implemented directly on nonlinear_bar."},
+        "temperature": {"status": "unsupported", "reason": "Temperature loads are not implemented directly on nonlinear_bar."},
+        "foundation": {"status": "unsupported", "reason": "Distributed foundations are not implemented directly on nonlinear_bar."},
+        "end_release": {"status": "unsupported", "reason": "End releases are not implemented directly on nonlinear_bar."},
+        "shell_pressure": {"status": "unsupported", "reason": "Shell pressure is only implemented for shell elements."}
+      },
+      "results": {
+        "node_displacement": {"status": "verified"},
+        "reaction_force": {"status": "verified"},
+        "beam_end_force": {"status": "verified"},
+        "shell_surface_result": {"status": "unsupported"},
+        "solid_gauss_stress": {"status": "unsupported"},
+        "modal_mode": {"status": "implemented"}
+      }
+    },
+    "shell": {
+      "label_ja": "シェル",
+      "aliases": ["TriElement1", "QuadElement1", "ShellElement"],
+      "node_counts": [3, 4],
+      "implementations": ["fem.elements.shell_element.ShellElement"],
+      "analyses": {
+        "static": {"status": "verified"},
+        "material_nonlinear": {"status": "implemented", "note": "非線形モデル内では線形要素"},
+        "modal": {"status": "verified"}
+      },
+      "mass_matrix": {"status": "verified"},
+      "loads": {
+        "nodal": {"status": "verified"},
+        "prescribed_displacement": {"status": "verified"},
+        "support_spring": {"status": "verified"},
+        "member_distributed": {"status": "unsupported", "reason": "Member distributed loads are only implemented for linear beams."},
+        "temperature": {"status": "unsupported", "reason": "Element temperature loads are only implemented for linear beams."},
+        "foundation": {"status": "unsupported", "reason": "Distributed foundations are only implemented for linear beams."},
+        "end_release": {"status": "unsupported", "reason": "End releases are only implemented for linear beams."},
+        "shell_pressure": {"status": "verified"}
+      },
+      "results": {
+        "node_displacement": {"status": "verified"},
+        "reaction_force": {"status": "verified"},
+        "beam_end_force": {"status": "unsupported"},
+        "shell_surface_result": {"status": "verified"},
+        "solid_gauss_stress": {"status": "unsupported"},
+        "modal_mode": {"status": "verified"}
+      }
+    },
+    "tetra": {
+      "label_ja": "一次四面体",
+      "aliases": ["tet", "TetraElement1", "TetraElement"],
+      "node_counts": [4],
+      "implementations": ["fem.elements.solid_element.TetraElement"],
+      "analyses": {
+        "static": {"status": "verified"},
+        "material_nonlinear": {"status": "implemented", "note": "非線形モデル内では線形要素"},
+        "modal": {"status": "verified"}
+      },
+      "mass_matrix": {"status": "verified"},
+      "loads": {
+        "nodal": {"status": "verified"},
+        "prescribed_displacement": {"status": "verified"},
+        "support_spring": {"status": "verified"},
+        "member_distributed": {"status": "unsupported"},
+        "temperature": {"status": "unsupported"},
+        "foundation": {"status": "unsupported"},
+        "end_release": {"status": "unsupported"},
+        "shell_pressure": {"status": "unsupported", "reason": "Solid-face pressure is not implemented."}
+      },
+      "results": {
+        "node_displacement": {"status": "verified"},
+        "reaction_force": {"status": "verified"},
+        "beam_end_force": {"status": "unsupported"},
+        "shell_surface_result": {"status": "unsupported"},
+        "solid_gauss_stress": {"status": "verified"},
+        "modal_mode": {"status": "verified"}
+      }
+    },
+    "wedge": {
+      "label_ja": "一次wedge",
+      "aliases": ["WedgeElement1", "WedgeElement"],
+      "node_counts": [6],
+      "implementations": ["fem.elements.advanced_element.WedgeElement"],
+      "analyses": {
+        "static": {"status": "verified"},
+        "material_nonlinear": {"status": "implemented", "note": "非線形モデル内では線形要素"},
+        "modal": {"status": "unsupported", "reason": "Mass matrix is not implemented in the public FemModel wedge path (fem.elements.advanced_element.WedgeElement)."}
+      },
+      "mass_matrix": {"status": "unsupported", "reason": "fem.elements.advanced_element.WedgeElement.get_mass_matrix is not implemented."},
+      "loads": {
+        "nodal": {"status": "verified"},
+        "prescribed_displacement": {"status": "verified"},
+        "support_spring": {"status": "verified"},
+        "member_distributed": {"status": "unsupported"},
+        "temperature": {"status": "unsupported"},
+        "foundation": {"status": "unsupported"},
+        "end_release": {"status": "unsupported"},
+        "shell_pressure": {"status": "unsupported", "reason": "Solid-face pressure is not implemented."}
+      },
+      "results": {
+        "node_displacement": {"status": "verified"},
+        "reaction_force": {"status": "verified"},
+        "beam_end_force": {"status": "unsupported"},
+        "shell_surface_result": {"status": "unsupported"},
+        "solid_gauss_stress": {"status": "verified"},
+        "modal_mode": {"status": "unsupported"}
+      }
+    },
+    "hexa": {
+      "label_ja": "一次六面体",
+      "aliases": ["hex", "HexaElement1", "HexaElement"],
+      "node_counts": [8],
+      "implementations": ["fem.elements.solid_element.HexaElement"],
+      "analyses": {
+        "static": {"status": "verified"},
+        "material_nonlinear": {"status": "implemented", "note": "非線形モデル内では線形要素"},
+        "modal": {"status": "implemented"}
+      },
+      "mass_matrix": {"status": "verified"},
+      "loads": {
+        "nodal": {"status": "verified"},
+        "prescribed_displacement": {"status": "verified"},
+        "support_spring": {"status": "verified"},
+        "member_distributed": {"status": "unsupported"},
+        "temperature": {"status": "unsupported"},
+        "foundation": {"status": "unsupported"},
+        "end_release": {"status": "unsupported"},
+        "shell_pressure": {"status": "unsupported", "reason": "Solid-face pressure is not implemented."}
+      },
+      "results": {
+        "node_displacement": {"status": "verified"},
+        "reaction_force": {"status": "verified"},
+        "beam_end_force": {"status": "unsupported"},
+        "shell_surface_result": {"status": "unsupported"},
+        "solid_gauss_stress": {"status": "verified"},
+        "modal_mode": {"status": "implemented"}
+      }
+    },
+    "tetra2": {
+      "label_ja": "二次四面体",
+      "aliases": ["TetraElement2"],
+      "node_counts": [10],
+      "implementations": ["fem.elements.quadratic_solid.QuadraticSolidElement"],
+      "analyses": {
+        "static": {"status": "verified"},
+        "material_nonlinear": {"status": "implemented", "note": "非線形モデル内では線形要素"},
+        "modal": {"status": "verified"}
+      },
+      "mass_matrix": {"status": "verified"},
+      "loads": {
+        "nodal": {"status": "verified"},
+        "prescribed_displacement": {"status": "verified"},
+        "support_spring": {"status": "verified"},
+        "member_distributed": {"status": "unsupported"},
+        "temperature": {"status": "unsupported"},
+        "foundation": {"status": "unsupported"},
+        "end_release": {"status": "unsupported"},
+        "shell_pressure": {"status": "unsupported", "reason": "Solid-face pressure is not implemented."}
+      },
+      "results": {
+        "node_displacement": {"status": "verified"},
+        "reaction_force": {"status": "verified"},
+        "beam_end_force": {"status": "unsupported"},
+        "shell_surface_result": {"status": "unsupported"},
+        "solid_gauss_stress": {"status": "verified"},
+        "modal_mode": {"status": "verified"}
+      }
+    },
+    "wedge2": {
+      "label_ja": "二次wedge",
+      "aliases": ["WedgeElement2"],
+      "node_counts": [15],
+      "implementations": ["fem.elements.quadratic_solid.QuadraticSolidElement"],
+      "analyses": {
+        "static": {"status": "verified"},
+        "material_nonlinear": {"status": "implemented", "note": "非線形モデル内では線形要素"},
+        "modal": {"status": "implemented"}
+      },
+      "mass_matrix": {"status": "verified"},
+      "loads": {
+        "nodal": {"status": "verified"},
+        "prescribed_displacement": {"status": "verified"},
+        "support_spring": {"status": "verified"},
+        "member_distributed": {"status": "unsupported"},
+        "temperature": {"status": "unsupported"},
+        "foundation": {"status": "unsupported"},
+        "end_release": {"status": "unsupported"},
+        "shell_pressure": {"status": "unsupported", "reason": "Solid-face pressure is not implemented."}
+      },
+      "results": {
+        "node_displacement": {"status": "verified"},
+        "reaction_force": {"status": "verified"},
+        "beam_end_force": {"status": "unsupported"},
+        "shell_surface_result": {"status": "unsupported"},
+        "solid_gauss_stress": {"status": "verified"},
+        "modal_mode": {"status": "implemented"}
+      }
+    },
+    "hexa2": {
+      "label_ja": "二次六面体",
+      "aliases": ["HexaElement2"],
+      "node_counts": [20],
+      "implementations": ["fem.elements.quadratic_solid.QuadraticSolidElement"],
+      "analyses": {
+        "static": {"status": "verified"},
+        "material_nonlinear": {"status": "implemented", "note": "非線形モデル内では線形要素"},
+        "modal": {"status": "implemented"}
+      },
+      "mass_matrix": {"status": "verified"},
+      "loads": {
+        "nodal": {"status": "verified"},
+        "prescribed_displacement": {"status": "verified"},
+        "support_spring": {"status": "verified"},
+        "member_distributed": {"status": "unsupported"},
+        "temperature": {"status": "unsupported"},
+        "foundation": {"status": "unsupported"},
+        "end_release": {"status": "unsupported"},
+        "shell_pressure": {"status": "unsupported", "reason": "Solid-face pressure is not implemented."}
+      },
+      "results": {
+        "node_displacement": {"status": "verified"},
+        "reaction_force": {"status": "verified"},
+        "beam_end_force": {"status": "unsupported"},
+        "shell_surface_result": {"status": "unsupported"},
+        "solid_gauss_stress": {"status": "verified"},
+        "modal_mode": {"status": "implemented"}
+      }
+    },
+    "pyramid": {
+      "label_ja": "一次pyramid",
+      "aliases": [],
+      "node_counts": [5],
+      "implementations": ["fem.elements.advanced_element.PyramidElement"],
+      "analyses": {
+        "static": {"status": "unsupported", "reason": "Stiffness matrix is not implemented for pyramid."},
+        "material_nonlinear": {"status": "unsupported", "reason": "Stiffness matrix is not implemented for pyramid."},
+        "modal": {"status": "unsupported", "reason": "Stiffness and mass matrices are not implemented for pyramid."}
+      },
+      "mass_matrix": {"status": "unsupported"},
+      "loads": {
+        "nodal": {"status": "unsupported"},
+        "prescribed_displacement": {"status": "unsupported"},
+        "support_spring": {"status": "unsupported"},
+        "member_distributed": {"status": "unsupported"},
+        "temperature": {"status": "unsupported"},
+        "foundation": {"status": "unsupported"},
+        "end_release": {"status": "unsupported"},
+        "shell_pressure": {"status": "unsupported"}
+      },
+      "results": {
+        "node_displacement": {"status": "unsupported"},
+        "reaction_force": {"status": "unsupported"},
+        "beam_end_force": {"status": "unsupported"},
+        "shell_surface_result": {"status": "unsupported"},
+        "solid_gauss_stress": {"status": "unsupported"},
+        "modal_mode": {"status": "unsupported"}
+      }
+    },
+    "hexa20": {
+      "label_ja": "旧20節点六面体入口",
+      "aliases": [],
+      "node_counts": [20],
+      "implementations": ["fem.elements.advanced_element.Hexa20Element"],
+      "analyses": {
+        "static": {"status": "unsupported", "reason": "Stiffness matrix is not implemented for hexa20; use hexa2 for the implemented 20-node solid."},
+        "material_nonlinear": {"status": "unsupported", "reason": "Stiffness matrix is not implemented for hexa20; use hexa2 for the implemented 20-node solid."},
+        "modal": {"status": "unsupported", "reason": "Stiffness and mass matrices are not implemented for hexa20; use hexa2."}
+      },
+      "mass_matrix": {"status": "unsupported"},
+      "loads": {
+        "nodal": {"status": "unsupported"},
+        "prescribed_displacement": {"status": "unsupported"},
+        "support_spring": {"status": "unsupported"},
+        "member_distributed": {"status": "unsupported"},
+        "temperature": {"status": "unsupported"},
+        "foundation": {"status": "unsupported"},
+        "end_release": {"status": "unsupported"},
+        "shell_pressure": {"status": "unsupported"}
+      },
+      "results": {
+        "node_displacement": {"status": "unsupported"},
+        "reaction_force": {"status": "unsupported"},
+        "beam_end_force": {"status": "unsupported"},
+        "shell_surface_result": {"status": "unsupported"},
+        "solid_gauss_stress": {"status": "unsupported"},
+        "modal_mode": {"status": "unsupported"}
+      }
+    }
+  }
+}
