@@ -1,0 +1,134 @@
+{
+  "node": {
+    "10": {"x": 0, "y": 0, "z": 0},
+    "30": {"x": 2, "y": 0, "z": 0}
+  },
+  "member": {
+    "7": {"ni": 10, "nj": 30, "e": 1, "cg": 0}
+  },
+  "element": {
+    "1": {
+      "1": {
+        "E": 10000,
+        "nu": 0.25,
+        "A": 1,
+        "Iy": 1,
+        "Iz": 1,
+        "J": 1,
+        "nonlinear": {
+          "type": "jr_stiffness_reduction",
+          "delta_1": 0.001,
+          "delta_2": 0.004,
+          "delta_3": 0.01,
+          "delta_4": 0.018,
+          "P_1": 10,
+          "P_2": 16,
+          "P_3": 22,
+          "P_4": 14,
+          "beta": 0,
+          "hysteresis_dofs": ["moment_z"]
+        }
+      }
+    }
+  },
+  "fix_node": {
+    "1": [
+      {"n": 10, "tx": 1, "ty": 1, "tz": 1, "rx": 1, "ry": 1, "rz": 1}
+    ]
+  },
+  "load": {
+    "1": {
+      "load_node": [{"n": 30, "rz": 1}],
+      "n_load_steps": 10,
+      "max_iterations": 50,
+      "tolerance": 1e-10,
+      "displacement_control": {
+        "node": 30,
+        "dof": "rz",
+        "targets": [0, 0.001, 0.002, 0.004, 0.008, 0.014, 0.02, 0.028, 0.036, 0.04]
+      }
+    }
+  },
+  "result": {
+    "1": {
+      "lambda": 0,
+      "control_displacement": 0,
+      "curvature": {"7": {"y": 0.0, "z": 0.0}},
+      "disg": {"10": {"dx": 0, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0}, "30": {"dx": 0, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0}},
+      "reac": {"10": {"tx": 0, "ty": 0, "tz": 0, "mx": 0, "my": 0, "mz": 0}},
+      "fsec": {"7": {"P1": {"fxi": 0, "fyi": 0, "fzi": 0, "mxi": 0, "myi": 0, "mzi": 0, "fxj": 0, "fyj": 0, "fzj": 0, "mxj": 0, "myj": 0, "mzj": 0, "L": 2}}}
+    },
+    "2": {
+      "lambda": 5,
+      "control_displacement": 0.001,
+      "curvature": {"7": {"y": 0.0, "z": 0.0005}},
+      "disg": {"10": {"dx": 0, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0}, "30": {"dx": 0, "dy": 0.001, "dz": 0, "rx": 0, "ry": 0, "rz": 0.001}},
+      "reac": {"10": {"tx": 0, "ty": 0, "tz": 0, "mx": 0, "my": 0, "mz": -5}},
+      "fsec": {"7": {"P1": {"fxi": 0, "fyi": 0, "fzi": 0, "mxi": 0, "myi": 0, "mzi": -5, "fxj": 0, "fyj": 0, "fzj": 0, "mxj": 0, "myj": 0, "mzj": -5, "L": 2}}}
+    },
+    "3": {
+      "lambda": 10,
+      "control_displacement": 0.002,
+      "curvature": {"7": {"y": 0.0, "z": 0.001}},
+      "disg": {"10": {"dx": 0, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0}, "30": {"dx": 0, "dy": 0.002, "dz": 0, "rx": 0, "ry": 0, "rz": 0.002}},
+      "reac": {"10": {"tx": 0, "ty": 0, "tz": 0, "mx": 0, "my": 0, "mz": -10}},
+      "fsec": {"7": {"P1": {"fxi": 0, "fyi": 0, "fzi": 0, "mxi": 0, "myi": 0, "mzi": -10, "fxj": 0, "fyj": 0, "fzj": 0, "mxj": 0, "myj": 0, "mzj": -10, "L": 2}}}
+    },
+    "4": {
+      "lambda": 12,
+      "control_displacement": 0.004,
+      "curvature": {"7": {"y": 0.0, "z": 0.002}},
+      "disg": {"10": {"dx": 0, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0}, "30": {"dx": 0, "dy": 0.004, "dz": 0, "rx": 0, "ry": 0, "rz": 0.004}},
+      "reac": {"10": {"tx": 0, "ty": 0, "tz": 0, "mx": 0, "my": 0, "mz": -12}},
+      "fsec": {"7": {"P1": {"fxi": 0, "fyi": 0, "fzi": 0, "mxi": 0, "myi": 0, "mzi": -12, "fxj": 0, "fyj": 0, "fzj": 0, "mxj": 0, "myj": 0, "mzj": -12, "L": 2}}}
+    },
+    "5": {
+      "lambda": 16,
+      "control_displacement": 0.008,
+      "curvature": {"7": {"y": 0.0, "z": 0.004}},
+      "disg": {"10": {"dx": 0, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0}, "30": {"dx": 0, "dy": 0.008, "dz": 0, "rx": 0, "ry": 0, "rz": 0.008}},
+      "reac": {"10": {"tx": 0, "ty": 0, "tz": 0, "mx": 0, "my": 0, "mz": -16}},
+      "fsec": {"7": {"P1": {"fxi": 0, "fyi": 0, "fzi": 0, "mxi": 0, "myi": 0, "mzi": -16, "fxj": 0, "fyj": 0, "fzj": 0, "mxj": 0, "myj": 0, "mzj": -16, "L": 2}}}
+    },
+    "6": {
+      "lambda": 19,
+      "control_displacement": 0.014,
+      "curvature": {"7": {"y": 0.0, "z": 0.007}},
+      "disg": {"10": {"dx": 0, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0}, "30": {"dx": 0, "dy": 0.014, "dz": 0, "rx": 0, "ry": 0, "rz": 0.014}},
+      "reac": {"10": {"tx": 0, "ty": 0, "tz": 0, "mx": 0, "my": 0, "mz": -19}},
+      "fsec": {"7": {"P1": {"fxi": 0, "fyi": 0, "fzi": 0, "mxi": 0, "myi": 0, "mzi": -19, "fxj": 0, "fyj": 0, "fzj": 0, "mxj": 0, "myj": 0, "mzj": -19, "L": 2}}}
+    },
+    "7": {
+      "lambda": 22,
+      "control_displacement": 0.02,
+      "curvature": {"7": {"y": 0.0, "z": 0.01}},
+      "disg": {"10": {"dx": 0, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0}, "30": {"dx": 0, "dy": 0.02, "dz": 0, "rx": 0, "ry": 0, "rz": 0.02}},
+      "reac": {"10": {"tx": 0, "ty": 0, "tz": 0, "mx": 0, "my": 0, "mz": -22}},
+      "fsec": {"7": {"P1": {"fxi": 0, "fyi": 0, "fzi": 0, "mxi": 0, "myi": 0, "mzi": -22, "fxj": 0, "fyj": 0, "fzj": 0, "mxj": 0, "myj": 0, "mzj": -22, "L": 2}}}
+    },
+    "8": {
+      "lambda": 18,
+      "control_displacement": 0.028,
+      "curvature": {"7": {"y": 0.0, "z": 0.014}},
+      "disg": {"10": {"dx": 0, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0}, "30": {"dx": 0, "dy": 0.028, "dz": 0, "rx": 0, "ry": 0, "rz": 0.028}},
+      "reac": {"10": {"tx": 0, "ty": 0, "tz": 0, "mx": 0, "my": 0, "mz": -18}},
+      "fsec": {"7": {"P1": {"fxi": 0, "fyi": 0, "fzi": 0, "mxi": 0, "myi": 0, "mzi": -18, "fxj": 0, "fyj": 0, "fzj": 0, "mxj": 0, "myj": 0, "mzj": -18, "L": 2}}}
+    },
+    "9": {
+      "lambda": 14,
+      "control_displacement": 0.036,
+      "curvature": {"7": {"y": 0.0, "z": 0.018}},
+      "disg": {"10": {"dx": 0, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0}, "30": {"dx": 0, "dy": 0.036, "dz": 0, "rx": 0, "ry": 0, "rz": 0.036}},
+      "reac": {"10": {"tx": 0, "ty": 0, "tz": 0, "mx": 0, "my": 0, "mz": -14}},
+      "fsec": {"7": {"P1": {"fxi": 0, "fyi": 0, "fzi": 0, "mxi": 0, "myi": 0, "mzi": -14, "fxj": 0, "fyj": 0, "fzj": 0, "mxj": 0, "myj": 0, "mzj": -14, "L": 2}}}
+    },
+    "10": {
+      "lambda": 12,
+      "control_displacement": 0.04,
+      "curvature": {"7": {"y": 0.0, "z": 0.02}},
+      "disg": {"10": {"dx": 0, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0}, "30": {"dx": 0, "dy": 0.04, "dz": 0, "rx": 0, "ry": 0, "rz": 0.04}},
+      "reac": {"10": {"tx": 0, "ty": 0, "tz": 0, "mx": 0, "my": 0, "mz": -12}},
+      "fsec": {"7": {"P1": {"fxi": 0, "fyi": 0, "fzi": 0, "mxi": 0, "myi": 0, "mzi": -12, "fxj": 0, "fyj": 0, "fzj": 0, "mxj": 0, "myj": 0, "mzj": -12, "L": 2}}}
+    }
+  }
+}

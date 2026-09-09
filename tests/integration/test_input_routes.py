@@ -6,9 +6,11 @@ import pytest
 
 from fem.model import FemModel
 from main import app
-from tests.support.assertions import assert_axial
+from tests.support.assertions import assert_axial, assert_dict_almost_equal
 from tests.support.builders.input_routes import axial_json, json_model, python_axial
 from tests.support.builders.linear_frame import cantilever
+from tests.support.builders.nonlinear_reference import solve
+from tests.support.paths import DATA
 from tests.support.serialization import wire
 
 pytestmark = pytest.mark.integration
@@ -25,8 +27,6 @@ def test_python_json_file_http_equivalence(tmp_path):
     response = app.test_client().post("/", json=data)
     assert response.status_code == 200
     results.append(json.loads(response.data))
-    from tests.support.assertions import assert_dict_almost_equal
-
     for r in results:
         assert_axial(r)
         assert_dict_almost_equal(wire(r), wire(results[0]))
@@ -34,30 +34,26 @@ def test_python_json_file_http_equivalence(tmp_path):
 
 
 @pytest.mark.material_nonlinear
-def test_json_and_http_displacement_control_trace_actual_jr_softening():
-    control = {
-        "node": 30,
-        "dof": "dx",
-        "targets": [0.008, 0.020, 0.028, 0.036, 0.040, 0.068, 0.0678],
-    }
-    data = axial_json(force=1, displacement_control=control)
-    nonlinear = data["element"]["1"]["1"]["nonlinear"]
-    nonlinear.update(delta_4=0.018, P_4=14)  # K4=(14-22)/(.018-.010)=-1000.
-    python_model = python_axial(1, delta_4=0.018, P_4=14)
-    python_model.analysis_params["displacement_control"] = control
-    results = [wire(python_model.run()), wire(json_model(data).run())]
-    response = app.test_client().post("/", json=data)
-    assert response.status_code == 200
-    results.append(json.loads(response.data))
+def test_python_json_and_http_use_saved_jr_k4_displacement_history():
+    data = json.loads((DATA / "snap/jr_k4_displacement_control.json").read_text(encoding="utf8"))
+    expected = list(data["result"].values())
+    results = [solve(data, route) for route in ("python", "json", "http")]
     for result in results:
         assert [step["lambda"] for step in result["step_results"]] == pytest.approx(
-            [16, 22, 18, 14, 12, -2, -2.2], abs=1e-9
+            [step["lambda"] for step in expected], abs=1e-9
         )
         assert [step["control_displacement"] for step in result["step_results"]] == pytest.approx(
-            control["targets"], abs=1e-12
+            [step["control_displacement"] for step in expected], abs=1e-12
         )
-        assert result["lambda"] == pytest.approx(-2.2)
-        assert result["node_displacements"]["30"]["dx"] == pytest.approx(0.0678)
+        assert [step["curvature"]["7"]["z"] for step in result["step_results"]] == pytest.approx(
+            [step["curvature"]["7"]["z"] for step in expected], abs=1e-12
+        )
+        assert result["lambda"] == pytest.approx(12.0)
+        assert result["node_displacements"]["30"]["dy"] == pytest.approx(0.040)
+        assert result["node_displacements"]["30"]["rz"] == pytest.approx(0.040)
+        assert result["reaction_forces"]["10"]["mz"] == pytest.approx(-12.0)
+    assert_dict_almost_equal(results[1], results[0])
+    assert_dict_almost_equal(results[2], results[0])
 
 
 @pytest.mark.material_nonlinear

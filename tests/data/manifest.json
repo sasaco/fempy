@@ -1379,6 +1379,34 @@
       "execution": "regression; all cases"
     },
     {
+      "id": "snap/jr_k4_displacement_control",
+      "file": "snap/jr_k4_displacement_control.json",
+      "sha256": "67749fec183ed8ae1d4a5058f5b3e572e40cad59252a0cc4b230d0f0ee1b1ee1",
+      "input_format": "structural_json",
+      "contract": "displacement_control_history",
+      "cases": [],
+      "steps": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10"
+      ],
+      "sources": [],
+      "reference_location": "result",
+      "reference_status": "independent_piecewise_jr_trace",
+      "units": "N, m, rad",
+      "signs": "Positive rz gives positive curvature z and tip dy; the fixed-end reaction mz and section-cut mzi/mzj are negative",
+      "tolerance": "stored_result",
+      "followup": [],
+      "execution": "regression; material_nonlinear; displacement control; all stored targets"
+    },
+    {
       "id": "snap/beam001",
       "file": "snap/beam001.json",
       "sha256": "4013df775f886dc0cc748b5194c7b153d24de1897c778e30b645917484e054c7",
