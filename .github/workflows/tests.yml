@@ -1,0 +1,40 @@
+name: FEM verification
+on:
+  push:
+  pull_request:
+
+jobs:
+  material-nonlinear:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.11'
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --extra dev
+      - run: uv run --locked --extra dev python -m pytest -m material_nonlinear -q --junitxml=tmp/material-nonlinear.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: material-nonlinear-results
+          path: tmp/material-nonlinear.xml
+  complete-suite-baseline:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --extra dev
+      - name: Verify complete suite against known failures
+        run: uv run --locked --extra dev python -m tools.validation.check_test_results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: complete-suite-raw-results-and-baseline-comparison
+          path: tmp/test-results/

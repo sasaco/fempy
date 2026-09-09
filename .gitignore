@@ -5,7 +5,6 @@ __pycache__/
 input.json
 result.json
 *.log
-uv.lock
 tests/data/**/*.ATR
 tests/data/**/*.DB1
 tests/data/**/*.DB2

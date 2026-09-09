@@ -1,0 +1,621 @@
+# 現行テスト台帳
+
+2026-09-09。46 ファイル・242 関数定義・1,450 展開ケース。材料非線形の完了範囲は 799 ケース。関数数とパラメータ展開数を混同しない。
+
+[項目表](test_items.md) / [実行方法](../../tests/README.md) / [移行・統合記録](../report/test-reorganization.md)。整理前の全 264 関数・112 ファイルの移管先と hash は [機械可読な移行記録](../report/test-reorganization-evidence.json) にある。
+
+| ファイル | 関数 | ケース | 主区分 |
+|---|---:|---:|---|
+| [elements/beam/test_elastic.py](../../tests/elements/beam/test_elastic.py) | 6 | 11 | unit |
+| [elements/beam/test_foundation.py](../../tests/elements/beam/test_foundation.py) | 3 | 6 | unit |
+| [elements/beam/test_kinematics.py](../../tests/elements/beam/test_kinematics.py) | 3 | 15 | unit |
+| [elements/beam/test_nonlinear_section.py](../../tests/elements/beam/test_nonlinear_section.py) | 7 | 27 | unit |
+| [elements/beam/test_precision.py](../../tests/elements/beam/test_precision.py) | 4 | 8 | unit |
+| [elements/shell/test_dkt.py](../../tests/elements/shell/test_dkt.py) | 3 | 14 | unit |
+| [elements/shell/test_kinematics.py](../../tests/elements/shell/test_kinematics.py) | 14 | 42 | unit |
+| [elements/shell/test_pressure.py](../../tests/elements/shell/test_pressure.py) | 3 | 22 | unit |
+| [elements/solid/test_linear.py](../../tests/elements/solid/test_linear.py) | 7 | 18 | unit |
+| [elements/solid/test_quadratic.py](../../tests/elements/solid/test_quadratic.py) | 3 | 9 | unit |
+| [elements/test_base.py](../../tests/elements/test_base.py) | 7 | 9 | unit |
+| [harness/test_comparison.py](../../tests/harness/test_comparison.py) | 2 | 2 | unit |
+| [harness/test_sample_runner.py](../../tests/harness/test_sample_runner.py) | 5 | 14 | unit |
+| [harness/test_source_repairs.py](../../tests/harness/test_source_repairs.py) | 7 | 37 | unit |
+| [harness/test_suite_contracts.py](../../tests/harness/test_suite_contracts.py) | 6 | 13 | unit |
+| [integration/test_beam_foundation.py](../../tests/integration/test_beam_foundation.py) | 2 | 2 | integration |
+| [integration/test_beam_precision.py](../../tests/integration/test_beam_precision.py) | 2 | 5 | integration |
+| [integration/test_beam_solutions.py](../../tests/integration/test_beam_solutions.py) | 3 | 14 | integration |
+| [integration/test_input_routes.py](../../tests/integration/test_input_routes.py) | 3 | 3 | integration |
+| [integration/test_jr_beam_history.py](../../tests/integration/test_jr_beam_history.py) | 3 | 21 | integration |
+| [integration/test_linear_beam.py](../../tests/integration/test_linear_beam.py) | 12 | 17 | integration |
+| [integration/test_model_contracts.py](../../tests/integration/test_model_contracts.py) | 3 | 5 | integration |
+| [integration/test_nonlinear_convergence.py](../../tests/integration/test_nonlinear_convergence.py) | 2 | 8 | integration |
+| [integration/test_nonlinear_reference.py](../../tests/integration/test_nonlinear_reference.py) | 8 | 423 | integration |
+| [integration/test_plate_bending.py](../../tests/integration/test_plate_bending.py) | 2 | 12 | integration |
+| [integration/test_pressure_solution.py](../../tests/integration/test_pressure_solution.py) | 2 | 2 | integration |
+| [integration/test_solids.py](../../tests/integration/test_solids.py) | 2 | 12 | integration |
+| [io/test_http.py](../../tests/io/test_http.py) | 6 | 21 | integration |
+| [io/test_model_lifecycle.py](../../tests/io/test_model_lifecycle.py) | 4 | 6 | integration |
+| [io/test_model_roundtrip.py](../../tests/io/test_model_roundtrip.py) | 2 | 2 | integration |
+| [io/test_pressure.py](../../tests/io/test_pressure.py) | 8 | 8 | integration |
+| [io/test_source_input.py](../../tests/io/test_source_input.py) | 3 | 13 | integration |
+| [io/test_structural_input.py](../../tests/io/test_structural_input.py) | 9 | 28 | integration |
+| [materials/test_jr_hysteresis.py](../../tests/materials/test_jr_hysteresis.py) | 26 | 152 | unit |
+| [postprocess/test_beam_equilibrium.py](../../tests/postprocess/test_beam_equilibrium.py) | 4 | 11 | unit |
+| [postprocess/test_shell_results.py](../../tests/postprocess/test_shell_results.py) | 10 | 33 | unit |
+| [postprocess/test_solid_stress.py](../../tests/postprocess/test_solid_stress.py) | 1 | 3 | unit |
+| [regression/test_cantilever_history.py](../../tests/regression/test_cantilever_history.py) | 4 | 5 | regression |
+| [regression/test_structural_samples.py](../../tests/regression/test_structural_samples.py) | 1 | 323 | regression |
+| [solvers/test_boundary_conditions.py](../../tests/solvers/test_boundary_conditions.py) | 6 | 6 | unit |
+| [solvers/test_linear.py](../../tests/solvers/test_linear.py) | 3 | 5 | unit |
+| [solvers/test_nonlinear.py](../../tests/solvers/test_nonlinear.py) | 9 | 15 | unit |
+| [validation/test_provenance.py](../../tests/validation/test_provenance.py) | 6 | 13 | oracle |
+| [validation/test_solid_sources.py](../../tests/validation/test_solid_sources.py) | 3 | 9 | oracle |
+| [validation/test_source_solid_reference.py](../../tests/validation/test_source_solid_reference.py) | 7 | 16 | oracle |
+| [validation/test_stored_references.py](../../tests/validation/test_stored_references.py) | 6 | 10 | oracle |
+
+## 各ファイルが所有する検証
+
+### elements/beam/test_elastic.py
+
+elements/beam / elastic contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_axial_stiffness_and_end_forces` | 1 |
+| `test_invalid_node_count` | 1 |
+| `test_mass_matrix` | 1 |
+| `test_rotated_stiffness_is_symmetric` | 1 |
+| `test_elastic_limit_matches_closed_form_matrix` | 6 |
+| `test_bernoulli_euler_force_output_uses_right_handed_moments` | 1 |
+
+### elements/beam/test_foundation.py
+
+elements/beam / foundation contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_axial_foundation_matches_hyperbolic_dynamic_stiffness` | 3 |
+| `test_long_bending_foundation_matches_independent_half_infinite_solution` | 1 |
+| `test_linear_foundation_particular_solution_preserves_consistent_loads` | 2 |
+
+### elements/beam/test_kinematics.py
+
+elements/beam / kinematics contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_rigid_body_motion_has_zero_force` | 12 |
+| `test_endpoint_forces_and_moments_balance` | 2 |
+| `test_rotated_response_matches_independent_basis_rotation` | 1 |
+
+### elements/beam/test_nonlinear_section.py
+
+elements/beam / nonlinear section contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_tangent_is_finite_difference_of_force` | 4 |
+| `test_section_skeleton_uses_strain_or_curvature_not_endpoint_motion` | 12 |
+| `test_named_bending_law_leaves_other_plane_elastic` | 2 |
+| `test_trial_order_cannot_change_result_or_committed_history` | 1 |
+| `test_tangent_and_output_do_not_replace_trial_to_be_committed` | 1 |
+| `test_output_preserves_converged_force_after_commit_and_other_trials` | 1 |
+| `test_tangent_with_fixed_committed_history_on_smooth_branches` | 6 |
+
+### elements/beam/test_precision.py
+
+elements/beam / precision contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_stiff_beam_rigid_rotation_force_does_not_cancel_large_products` | 3 |
+| `test_loaded_beam_internal_force_and_section_force_use_same_kinematics` | 1 |
+| `test_polynomial_beam_virtual_work_and_force_resultants` | 3 |
+| `test_beam_keeps_displacement_below_the_rigid_translation_ulp` | 1 |
+
+### elements/shell/test_dkt.py
+
+elements/shell / dkt contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_dkt_quadratic_bending_has_exact_thickness_cubed_energy` | 12 |
+| `test_dkt_covariance_and_exactly_six_null_modes` | 1 |
+| `test_dkt_requires_a_triangle` | 1 |
+
+### elements/shell/test_kinematics.py
+
+elements/shell / kinematics contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_shell_six_rigid_body_modes_have_no_internal_force` | 12 |
+| `test_shell_stiffness_and_mass_rotate_with_the_plane` | 2 |
+| `test_shell_affine_membrane_energy` | 2 |
+| `test_degenerate_shell_is_rejected_without_fallback` | 2 |
+| `test_shell_has_exactly_six_physical_rigid_zero_modes` | 2 |
+| `test_drill_spin_constraint_has_independent_constant_field_energy` | 2 |
+| `test_quad_constant_bending_energy_has_no_shear_locking` | 6 |
+| `test_initialization` | 2 |
+| `test_shape_functions` | 2 |
+| `test_shape_derivatives` | 2 |
+| `test_gauss_points` | 2 |
+| `test_jacobian_determinant` | 2 |
+| `test_stiffness_matrix` | 2 |
+| `test_mass_matrix` | 2 |
+
+### elements/shell/test_pressure.py
+
+Surface-pressure nodal values, face direction and force/moment balance.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_surface_pressure_nodal_values_and_equilibrium` | 15 |
+| `test_invalid_surface_pressure_never_falls_back` | 4 |
+| `test_invalid_triangle_pressure` | 3 |
+
+### elements/solid/test_linear.py
+
+Linear solid interpolation, quadrature and matrix contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_initialization` | 3 |
+| `test_shape_functions` | 3 |
+| `test_shape_derivatives` | 3 |
+| `test_tetrahedron_volume` | 1 |
+| `test_gauss_points` | 2 |
+| `test_stiffness_matrix` | 3 |
+| `test_mass_matrix` | 3 |
+
+### elements/solid/test_quadratic.py
+
+elements/solid / quadratic contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_quadratic_partition_polynomials_derivatives` | 3 |
+| `test_quadratic_affine_energy_mass_and_six_rigid_modes` | 3 |
+| `test_quadratic_inverted_geometry_is_rejected` | 3 |
+
+### elements/test_base.py
+
+elements / base contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_get_element_length` | 1 |
+| `test_get_jacobian` | 1 |
+| `test_initialization` | 1 |
+| `test_invalid_input` | 1 |
+| `test_nonexistent_node` | 1 |
+| `test_set_node_coordinates` | 1 |
+| `test_unimplemented_geometry_contract` | 3 |
+
+### harness/test_comparison.py
+
+harness / comparison contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_comparator_rejects_missing_extra_wrong_sign_and_number` | 1 |
+| `test_legacy_cut_signs_and_labels_have_independent_physical_values` | 1 |
+
+### harness/test_sample_runner.py
+
+harness / sample runner contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_missing_sample_reference_never_writes` | 1 |
+| `test_sample_comparison_really_rejects_corrupted_reference` | 5 |
+| `test_late_step_reference_mutation_is_detected` | 3 |
+| `test_audit_visits_later_case_after_first_error_and_never_writes_reference` | 1 |
+| `test_cantilever_step_zero_reference_is_compared_in_addition_to_all_step_oracle` | 4 |
+
+### harness/test_source_repairs.py
+
+harness / source repairs contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_source_repair_rejects_changed_model_or_unknown_reference` | 8 |
+| `test_support_reference_repair_rejects_unverified_evidence` | 6 |
+| `test_support_reference_completion_preserves_inputs_and_is_idempotent` | 1 |
+| `test_tri1_reference_rejects_changed_input_conditions` | 7 |
+| `test_tetra_input_repair_rejects_unverified_conditions` | 9 |
+| `test_solid_source_repair_is_pure_and_idempotent` | 5 |
+| `test_tetrahedron_reference_repair_preserves_input_and_is_idempotent` | 1 |
+
+### harness/test_suite_contracts.py
+
+Prevent collection drift, reference contamination and baseline masking.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_sample_manifest_covers_all_original_files_cases_and_snapshots` | 1 |
+| `test_test_modules_do_not_import_each_other_or_use_historical_names` | 1 |
+| `test_oracles_and_recursive_assertions_have_no_product_dependencies` | 1 |
+| `test_baseline_classification_keeps_other_failure_causes_visible` | 3 |
+| `test_public_model_and_http_import_the_same_classes` | 1 |
+| `test_baseline_gate_rejects_collection_and_outcome_changes` | 6 |
+
+### integration/test_beam_foundation.py
+
+integration / beam foundation contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_distributed_axial_foundation_exact_solution` | 1 |
+| `test_foundation_constant_patch_and_linear_nonlinear_route` | 1 |
+
+### integration/test_beam_precision.py
+
+integration / beam precision contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_public_axial_force_survives_prescribed_rigid_translation` | 3 |
+| `test_short_segment_sample_reaches_constitutive_equilibrium` | 2 |
+
+### integration/test_beam_solutions.py
+
+integration / beam solutions contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_cantilever_tip_load_matches_hand_solution_and_mesh_refinement` | 8 |
+| `test_fem_model_publishes_section_forces_with_nonconsecutive_nodes` | 2 |
+| `test_nonlinear_pure_bending_solution_and_output_under_refinement` | 4 |
+
+### integration/test_input_routes.py
+
+integration / input routes contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_python_json_file_http_equivalence` | 1 |
+| `test_omitted_nu_has_same_nonlinear_default_in_python_json_and_http` | 1 |
+| `test_omitted_g_file_http_and_saved_model_agree` | 1 |
+
+### integration/test_jr_beam_history.py
+
+integration / jr beam history contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_jr_beam_reversal_commit_rollback_and_saved_output` | 8 |
+| `test_jr_beam_history_tangent_matches_all_force_columns` | 12 |
+| `test_real_jr_failure_restores_last_commit_and_fresh_run` | 1 |
+
+### integration/test_linear_beam.py
+
+integration / linear beam contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_legacy_bernoulli_section_and_cg` | 1 |
+| `test_generated_point_coordinates_keep_submillimetre_precision` | 1 |
+| `test_uniform_and_triangular_load_consistent_forces` | 3 |
+| `test_released_tip_propped_beam` | 1 |
+| `test_legacy_support_spring_is_not_prescribed_motion` | 3 |
+| `test_rigid_zone_uses_its_assigned_section` | 1 |
+| `test_point_load_and_negative_width_split` | 1 |
+| `test_public_distributed_load_and_joint_apis` | 1 |
+| `test_timoshenko_uniform_load_includes_shear_and_fixed_end_forces` | 1 |
+| `test_fully_released_unloaded_rotation_is_absent_not_stabilized` | 1 |
+| `test_split_roundoff_and_other_case_subdivisions_keep_loads_separate` | 1 |
+| `test_temperature_load_free_expansion_and_restrained_force` | 2 |
+
+### integration/test_model_contracts.py
+
+integration / model contracts contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_public_legacy_ids_are_insertion_indices_and_modern_ids_are_retained` | 1 |
+| `test_public_shell_output_with_noncontiguous_ids` | 2 |
+| `test_nonconsecutive_node_ids_preserve_reactions_and_displacements` | 2 |
+
+### integration/test_nonlinear_convergence.py
+
+integration / nonlinear convergence contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_load_increment_and_tolerance_sensitivity` | 3 |
+| `test_nonuniform_bending_discrete_compliance_and_continuum_limit` | 5 |
+
+### integration/test_nonlinear_reference.py
+
+integration / nonlinear reference contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_uniform_modes_independent_inverse_skeleton` | 96 |
+| `test_cyclic_polygon_residual_deformation_and_work` | 96 |
+| `test_public_spring_api_participates_in_equilibrium` | 3 |
+| `test_nested_reversal_and_damage_independent_polygon` | 192 |
+| `test_elastic_cantilever_force_moment_balance` | 6 |
+| `test_explicit_G_elastic_torsion` | 3 |
+| `test_two_members_with_intermediate_load_have_independent_equilibrium` | 3 |
+| `test_rotated_member_global_displacements_and_equilibrium` | 24 |
+
+### integration/test_plate_bending.py
+
+integration / plate bending contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_dkt_cantilever_constant_moment` | 4 |
+| `test_quad_cantilever_constant_moment_full_solver` | 8 |
+
+### integration/test_pressure_solution.py
+
+integration / pressure solution contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_pressure_fix_is_identical_in_json_and_original_format_and_balances_load` | 1 |
+| `test_releasing_pressure_fixture_rotations_creates_a_loaded_rigid_mode` | 1 |
+
+### integration/test_solids.py
+
+integration / solids contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_quadratic_public_prescribed_affine_solution` | 3 |
+| `test_quadratic_reactions_with_large_rigid_displacement` | 9 |
+
+### io/test_http.py
+
+io / http contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_http_explicit_analysis_type` | 3 |
+| `test_http_invalid_input_is_not_success` | 7 |
+| `test_http_failed_analysis_and_reanalysis` | 4 |
+| `test_invalid_load_factors_rejected` | 4 |
+| `test_failed_postprocessing_clears_result_and_http_is_error` | 2 |
+| `test_explicit_static_spring_reactions_balance` | 1 |
+
+### io/test_model_lifecycle.py
+
+io / model lifecycle contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_failed_file_reload_does_not_leave_previous_success` | 1 |
+| `test_failed_fem_run_clears_previous_results` | 1 |
+| `test_programmatic_fem_model_has_analysis_defaults` | 1 |
+| `test_missing_topology_has_an_input_error_before_linear_algebra` | 3 |
+
+### io/test_model_roundtrip.py
+
+io / model roundtrip contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_model_save_load_preserves_nonlinear_input_and_result` | 1 |
+| `test_saved_legacy_member_features_retain_the_same_physical_model` | 1 |
+
+### io/test_pressure.py
+
+io / pressure contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_boundary_condition_clear` | 1 |
+| `test_boundary_condition_pressure_management` | 1 |
+| `test_pressure_class_creation` | 1 |
+| `test_pressure_class_string_representation` | 1 |
+| `test_multiple_pressure_loads` | 1 |
+| `test_pressure_file_io_roundtrip` | 1 |
+| `test_shell_with_pressure_load_fem` | 1 |
+| `test_shell_with_pressure_load_json` | 1 |
+
+### io/test_source_input.py
+
+io / original source input contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_source_shell_material_thickness_restraint_load_records` | 1 |
+| `test_source_bad_input_rejected_with_line_number` | 11 |
+| `test_original_hexa_input_preserves_all_records` | 1 |
+
+### io/test_structural_input.py
+
+io / structural input contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_json_does_not_add_unrequested_rotational_restraint` | 1 |
+| `test_g_omission_and_explicit_shear_flag` | 12 |
+| `test_selected_case_and_rigid_zone_use_their_own_g` | 1 |
+| `test_nonbeam_elements_require_no_beam_section` | 4 |
+| `test_disabled_member_load_ignores_stale_values_and_does_not_split` | 2 |
+| `test_member_and_shell_number_namespaces_do_not_overwrite_each_other` | 1 |
+| `test_explicit_shell_thickness_and_mindlin_override_are_preserved` | 1 |
+| `test_missing_or_invalid_legacy_shell_thickness_is_rejected` | 4 |
+| `test_shell_area_field_supplies_thickness` | 2 |
+
+### materials/test_jr_hysteresis.py
+
+materials / jr hysteresis contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_monotonic_skeleton_all_segments_and_outgoing_tangent` | 14 |
+| `test_reversal_uses_latest_committed_point_and_is_continuous` | 2 |
+| `test_zero_force_crossing_at_same_sign_displacement_and_target_continuity` | 2 |
+| `test_yielded_source_aims_at_opposite_second_breakpoint` | 2 |
+| `test_zero_beyond_nominal_target_uses_forward_skeleton_intersection` | 1 |
+| `test_asymmetric_loading_both_directions` | 1 |
+| `test_nested_inner_loops_restore_return_points_and_suspended_outer_path` | 2 |
+| `test_reversal_before_force_zero_retraces_unloading_line` | 2 |
+| `test_region_specific_reduced_stiffness_and_limits` | 20 |
+| `test_trial_reproducibility_input_immutability_and_hold` | 4 |
+| `test_force_finite_difference_matches_tangent_on_smooth_branches` | 9 |
+| `test_transition_continuity_and_one_sided_tangent` | 7 |
+| `test_subdividing_same_path_preserves_response_and_future_history` | 9 |
+| `test_nonfinite_parameters_are_explicitly_rejected` | 42 |
+| `test_invalid_parameter_order_and_incompatible_stiffness_rejected` | 9 |
+| `test_nonfinite_trial_deformation_is_rejected` | 3 |
+| `test_zero_plateau_is_not_replaced_by_artificial_stiffness` | 1 |
+| `test_material_api_validates_before_division_or_analysis` | 10 |
+| `test_symmetric_constructor_rejects_zero_before_default_stiffness_division` | 1 |
+| `test_reversing_at_exact_zero_retraces_and_restores_zero_crossing_path` | 2 |
+| `test_internal_unloading_retrace_does_not_leave_a_stale_reversal` | 2 |
+| `test_small_nonzero_increment_is_not_treated_as_hold` | 1 |
+| `test_asymmetric_elastic_reversal_and_origin_one_sided_tangent` | 1 |
+| `test_irregular_cyclic_path_refinement_with_asymmetry` | 2 |
+| `test_maximum_deformation_api_includes_off_skeleton_experience` | 1 |
+| `test_reduced_stiffness_inside_loop_keeps_outer_damage_and_returns_exactly` | 2 |
+
+### postprocess/test_beam_equilibrium.py
+
+postprocess / beam equilibrium contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_free_end_recovery_preserves_applied_moments_and_force_balance` | 6 |
+| `test_recovery_does_not_hide_a_constitutive_or_solver_error` | 1 |
+| `test_supported_or_foundation_member_is_not_statically_recovered` | 2 |
+| `test_recovery_with_consistent_distributed_load_and_reversed_loading` | 2 |
+
+### postprocess/test_shell_results.py
+
+postprocess / shell results contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_dkt_transverse_resultants_follow_moment_equilibrium` | 1 |
+| `test_shell_rotated_membrane_patch` | 4 |
+| `test_legacy_engineering_shear_energy_density_and_separate_surfaces` | 1 |
+| `test_legacy_view_uses_point_mean_not_area_weighted_mean` | 1 |
+| `test_surface_tensors` | 16 |
+| `test_shell_integrated_energy_and_resultants` | 1 |
+| `test_drilling_energy_is_separate_from_physical_energy` | 1 |
+| `test_shell_output_rejects_incomplete_or_nonfinite_displacement` | 3 |
+| `test_edge_tractions_from_uniform_membrane_stress` | 4 |
+| `test_edge_bending_couple_has_physical_rotation_sign` | 1 |
+
+### postprocess/test_solid_stress.py
+
+postprocess / solid stress contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_solid_affine_stress_patch` | 3 |
+
+### regression/test_cantilever_history.py
+
+regression / cantilever history contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_cantilever_all_stored_steps_keep_strict_zero_moment_reference` | 1 |
+| `test_public_cantilever_keeps_a_real_sub_tolerance_end_moment` | 1 |
+| `test_cantilever_independent_flexibility_reference` | 2 |
+| `test_all_stored_history_steps` | 1 |
+
+### regression/test_structural_samples.py
+
+Every registered structural sample load/reference case is independently visible.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_saved_sample_case` | 323 |
+
+### solvers/test_boundary_conditions.py
+
+solvers / boundary conditions contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_only_last_node_is_fixed_in_four_node_frame` | 1 |
+| `test_prescribed_displacement_corrects_free_rhs_and_preserves_symmetry` | 1 |
+| `test_solid_boundary_uses_explicit_three_dof_stride` | 1 |
+| `test_spring_support_is_not_a_fixed_displacement` | 1 |
+| `test_reaction_uses_actual_node_stride` | 1 |
+| `test_newton_bc_enforces_remaining_prescribed_motion_and_spring_force` | 1 |
+
+### solvers/test_linear.py
+
+solvers / linear contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_sparse_product_retains_real_sub_ulp_force_and_python311_fallback` | 1 |
+| `test_linear_solver_scales_without_artificial_stiffness` | 1 |
+| `test_linear_solver_rejects_rigid_mode` | 3 |
+
+### solvers/test_nonlinear.py
+
+solvers / nonlinear contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_linear_bar_through_newton_matches_hand_calculation` | 1 |
+| `test_prescribed_motion_without_external_force_is_applied_once_per_step` | 1 |
+| `test_spring_force_participates_in_residual_and_reactions` | 1 |
+| `test_unconverged_step_rolls_back_and_stops_before_callback` | 1 |
+| `test_unrestrained_model_is_rejected_not_regularized` | 1 |
+| `test_fixed_node_load_does_not_hide_free_dof_imbalance` | 1 |
+| `test_cubic_spring_converges_to_known_nonlinear_root` | 1 |
+| `test_failed_second_step_restores_first_converged_state` | 1 |
+| `test_invalid_controls_rejected_before_analysis` | 7 |
+
+### validation/test_provenance.py
+
+validation / provenance contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_complete_external_solid_input_and_repaired_displacement` | 5 |
+| `test_missing_json_connectivity_is_proved_against_original_fem` | 4 |
+| `test_tetra_printed_reference_is_incomplete_and_not_same_model_proof` | 1 |
+| `test_source_audit_detects_input_change_instead_of_trusting_same_file_name` | 1 |
+| `test_stale_notice_record_does_not_stop_the_numerical_audit` | 1 |
+| `test_selected_material_case_and_rounded_geometry_are_reported` | 1 |
+
+### validation/test_solid_sources.py
+
+validation / solid sources contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_quadratic_solid_all_outputs_against_independent_decimal_source` | 3 |
+| `test_tetrahedron_all_outputs_against_source_input_solution` | 1 |
+| `test_solid_displacements_and_global_equilibrium` | 5 |
+
+### validation/test_source_solid_reference.py
+
+validation / source solid reference contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_original_shape_stiffness_has_exact_affine_work_and_rigid_modes` | 3 |
+| `test_decimal_reference_inverse_on_skew_jacobian` | 1 |
+| `test_source_input_only_tetra_solves_hand_axial_patch` | 1 |
+| `test_source_input_rejects_unsupported_dangling_and_duplicate_records` | 3 |
+| `test_original_source_tetra_uniform_axial_stress_supports` | 1 |
+| `test_original_source_rejects_partial_output_without_echo` | 1 |
+| `test_refined_source_solves_load_not_inaccurate_output_displacement` | 6 |
+
+### validation/test_stored_references.py
+
+validation / stored references contracts.
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_cantilever_reference_inverse_at_hand_calculated_ordinates` | 5 |
+| `test_stored_cantilever_all_steps_against_independent_scalar_reference` | 1 |
+| `test_cantilever_hand_calculated_branch_crossings_and_tip_motion` | 1 |
+| `test_pressure_saved_reference_is_independent_exact_polynomial_solution` | 1 |
+| `test_tri1_conditions_match_the_original_fem` | 1 |
+| `test_all_tri1_outputs_match_original_operators_without_production_imports` | 1 |
+

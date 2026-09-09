@@ -29,3 +29,17 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/app", "src/fem"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+addopts = "--import-mode=importlib --strict-markers"
+markers = [
+    "unit: isolated element, solver, material or harness contracts",
+    "integration: model assembly, public input routes and physical solutions",
+    "regression: saved structural samples and load histories",
+    "oracle: independent reference values and provenance validation",
+    "material_nonlinear: verified material nonlinear closure scope",
+    "slow: expensive complete source-model solve",
+    "requires_node: independent original JavaScript evaluator requires Node.js",
+]
