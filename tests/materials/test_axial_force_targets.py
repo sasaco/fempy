@@ -389,17 +389,16 @@ def test_resumed_actual_anchor_survives_another_Nd_hold(sign):
 
 
 @pytest.mark.parametrize('sign', [-1, 1])
-def test_return_to_displaced_skeleton_is_diagnosed_without_mutation(sign):
-    from fem.diagnostics import UnsupportedAnalysisError
+def test_return_to_displaced_skeleton_intersects_before_actual_point_without_mutation(sign):
     from fem.nonlinear.axial_force_history import AxialForceHistoryState, evaluate_axial_force_hold
     from fem.nonlinear.axial_force_targets import evaluate_axial_force_curvature
     table = material()
     initial = AxialForceHistoryState.from_fixed_history(0., experienced(table, [sign*.002, sign*.0015]))
     held = evaluate_axial_force_hold(table, initial, .4).state
     saved = deepcopy(held)
-    with pytest.raises(UnsupportedAnalysisError) as failure:
-        evaluate_axial_force_curvature(table, held, sign*.002)
-    assert failure.value.details['reason'] == 'axial_force_return_to_moved_skeleton'
+    result = evaluate_axial_force_curvature(table, held, sign*.002)
+    assert (result.moment, result.bending_tangent) == pytest.approx((sign*9.6, 800.))
+    assert result.state.history.active_segment is None
     assert held == saved
 
 

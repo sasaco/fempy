@@ -188,7 +188,9 @@ def evaluate_axial_force_hold(table: AxialForceTable, committed: AxialForceHisto
     invariant = _has_constant_skeleton(table, committed.Nd, Nd)
     segment = history.active_segment
     reload = segment is not None and history.branch in ('reloading', 'inner_reloading')
-    if reload and segment.target is not None and segment.target.kind in ('skeleton', 'forward'):
+    forward_return = (segment is not None and history.branch == 'retracing'
+                      and segment.target is not None and segment.target.kind == 'forward')
+    if (reload or forward_return) and segment.target is not None and segment.target.kind in ('skeleton', 'forward'):
         # The zero-length response still has a nonzero Nd sensitivity.
         if Nd == committed.Nd or not invariant:
             from .axial_force_reload_hold import evaluate_reload_hold
@@ -204,6 +206,8 @@ def evaluate_axial_force_hold(table: AxialForceTable, committed: AxialForceHisto
         raise UnsupportedAnalysisError('Moving reload targets require the coupled history integrator',
                                        reason='axial_force_hold_moving_target', branch=history.branch)
     skeleton = history.active_segment is None and not contact
+    direct_return = (segment is not None and segment.branch == 'retracing'
+                     and segment.next_segment is None and history.loading_direction == side)
     events = []
     current_moment = history.current_P
 
@@ -259,8 +263,11 @@ def evaluate_axial_force_hold(table: AxialForceTable, committed: AxialForceHisto
             if candidates:
                 root = min(candidates)
                 current_moment = envelope(root)
-                event('contact', position(root), segment)
-                contact = True
+                event('target' if direct_return else 'contact', position(root), segment)
+                # A direct outward return has reached its skeleton target.
+                # It must stay on the skeleton when Nd later reverses, just
+                # like arrival at an explicitly moving reload target.
+                skeleton, contact = direct_return, not direct_return
                 history.active_segment = None
                 history.reversal_stack.clear()
                 history.reversal_paths.clear()

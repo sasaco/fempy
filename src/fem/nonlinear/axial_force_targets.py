@@ -5,12 +5,12 @@ Target derivatives hold the experienced history and line anchor fixed.
 """
 from copy import deepcopy
 from dataclasses import dataclass
-from math import isfinite
+from math import isfinite, isclose
 from typing import TYPE_CHECKING
 
 from ..diagnostics import InputValidationError, NumericalConditionError, UnsupportedAnalysisError
 from .axial_force_table import AxialForceTable, _number
-from .hysteresis.base_hysteresis import HysteresisSegment
+from .hysteresis.base_hysteresis import HysteresisSegment, JRReloadTarget
 from .hysteresis import JRStiffnessReductionModel
 
 if TYPE_CHECKING:
@@ -49,7 +49,14 @@ def _forward_target(table, segment, Nd):
         if kd == slope:
             continue
         x = (kd*start_x-start_p+intercept)/(kd-slope)
-        if d[i] <= side*x <= d[i+1] and side*(x-start_x) > 0:
+        at_return_origin = (segment.branch == 'retracing'
+                            and isclose(x, start_x, rel_tol=2e-14, abs_tol=0.))
+        if at_return_origin:
+            # At an Nd row touch the actual return anchor can temporarily
+            # be its own forward target. Keep the held line through the
+            # touch; the next outward curvature leg consumes this target.
+            x = start_x
+        if d[i] <= side*x <= d[i+1] and (side*(x-start_x) > 0 or at_return_origin):
             # At a breakpoint use the interval just selected for the root.
             # Sensitivities there are one-sided; callers must split events.
             dd, dp = (0., 0.) if i == 0 else (derivative.curvatures[i-1], derivative.moments[i-1])
@@ -159,9 +166,36 @@ class _FixedNdTargetModel(JRStiffnessReductionModel):
     def _trace(self, state, delta, direction):
         while state.active_segment is not None:
             segment = state.active_segment
-            if segment.branch in ('reloading', 'inner_reloading'):
+            if (segment.branch in ('reloading', 'inner_reloading')
+                    or segment.target is not None and segment.target.kind == 'forward'):
                 response = evaluate_reload_target(self.table, segment, self.Nd)
                 segment.end_delta, segment.end_P, segment.K = response.curvature, response.moment, response.stiffness
+            if (segment.branch == 'retracing' and segment.next_segment is None
+                    and segment.target is None):
+                p, _ = self.get_skeleton_force(segment.end_delta, direction)
+                if abs(p-segment.end_P) > 16*2.220446049250313e-16*(abs(p)+abs(segment.end_P)):
+                    # The actual return is never projected onto the envelope.
+                    # Search the held line from its origin, including all four
+                    # skeleton segments. Contraction can intercept it BEFORE
+                    # the saved point; expansion needs a continuation AFTER it.
+                    forward = HysteresisSegment(
+                        segment.start_delta, segment.start_P, segment.end_delta, segment.end_P,
+                        segment.K, 'retracing',
+                        target=JRReloadTarget('forward', direction, unloading_stiffness=segment.K))
+                    target = evaluate_reload_target(self.table, forward, self.Nd)
+                    if self._reached(segment.end_delta, target.curvature, direction):
+                        if self._reached(delta, target.curvature, direction):
+                            state.active_segment = None
+                            break
+                    elif self._reached(delta, segment.end_delta, direction):
+                        # Reversal in the extension retraces to the actual
+                        # point and then restores its original unloading path.
+                        forward.start_delta, forward.start_P = segment.end_delta, segment.end_P
+                        forward.end_delta, forward.end_P = target.curvature, target.moment
+                        forward.reverse_segment = segment.reverse_segment
+                        forward.origin_depth = segment.origin_depth
+                        forward.restore_depth = segment.restore_depth
+                        segment.next_segment = forward
             if not self._reached(delta, segment.end_delta, direction):
                 state.branch = segment.branch
                 state.crossed_zero = segment.branch in ('reloading', 'inner_reloading')
@@ -175,10 +209,15 @@ class _FixedNdTargetModel(JRStiffnessReductionModel):
             if actual_return and continuation is not None and continuation.target is not None:
                 continuation = resume_reload_target(self.table, continuation, self.Nd,
                                                     segment.end_delta, segment.end_P)
-            elif actual_return and continuation is None:
+            elif actual_return and continuation is None and (
+                    segment.target is None or segment.target.kind != 'forward'):
+                # Retain the guard for other actual-return graphs. A saved
+                # internal point with a missing continuation must not jump
+                # onto the envelope merely because direct retracing is now
+                # supported. Resolved forward targets are geometric events.
                 p, _ = self.get_skeleton_force(segment.end_delta, 1 if segment.end_delta >= 0 else -1)
                 if abs(p-segment.end_P) > 16*2.220446049250313e-16*(abs(p)+abs(segment.end_P)):
-                    raise UnsupportedAnalysisError('Actual return point no longer lies on the moved skeleton',
+                    raise UnsupportedAnalysisError('Actual return point requires a continuous skeleton connection',
                                                    reason='axial_force_return_to_moved_skeleton', Nd=self.Nd,
                                                    curvature=segment.end_delta, moment=segment.end_P,
                                                    skeleton_moment=p)
@@ -190,9 +229,9 @@ def evaluate_axial_force_curvature(table, committed, curvature):
     """Trace curvature at the already committed Nd, with owned JR history.
 
     This operation and an Nd hold are distinct physical loading legs. Calling
-    them successively is NOT a simultaneous curvature/Nd update. Restoration
-    directly to a displaced skeleton (with no reload continuation) remains
-    unsupported; it is diagnosed rather than introducing a force jump.
+    them successively is NOT a simultaneous curvature/Nd update. A direct
+    return meets a contracted skeleton before its saved point, or extends the
+    held return line beyond that actual point to an expanded skeleton.
     """
     from .axial_force_history import AxialForceHistoryState
     curvature = _number(curvature, 'curvature')
