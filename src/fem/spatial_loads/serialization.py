@@ -2,7 +2,7 @@
 from collections.abc import Mapping
 
 from .definitions import (
-    GeometryTolerance, SpatialLoad, SpatialLoadDefinitions, SpatialLoadPanel,
+    GeometryTolerance, LoadDirection, LocalPlane, SpatialLoad, SpatialLoadDefinitions, SpatialLoadMeshNode, SpatialLoadPanel,
     SpatialLoadPath, integer_id, sequence,
 )
 from .validation import validate_references
@@ -24,19 +24,33 @@ def from_json(value, mesh):
     data = _record(value, ('panels', 'paths', 'loads'), (), 'spatial_loads')
     panels, paths, loads = [], [], []
     for item in sequence(data.get('panels', ()), 'panels'):
-        item = _record(item, ('id', 'nodes', 'elements', 'triangles', 'holes', 'tolerance'),
+        item = _record(item, ('id', 'nodes', 'elements', 'triangles', 'holes', 'tolerance', 'plane',
+                              'loading_nodes', 'loading_triangles'),
                        ('id', 'nodes'), 'spatial panel')
         label = f"panel {item['id']}"
         tolerance = _record(item.get('tolerance', {}),
                             ('absolute_length', 'relative_length'), (), label + ' tolerance')
-        panels.append(SpatialLoadPanel(**{**item, 'tolerance': GeometryTolerance(**tolerance)}))
+        plane = None
+        if 'plane' in item:
+            fields = ('origin', 'axis_u', 'axis_v')
+            plane = LocalPlane(**_record(item['plane'], fields, fields, label + ' plane'))
+        loading_nodes = []
+        for node in sequence(item.get('loading_nodes', ()), label + ' loading nodes'):
+            node = _record(node, ('id', 'point'), ('id', 'point'), label + ' loading node')
+            loading_nodes.append(SpatialLoadMeshNode(**node))
+        panels.append(SpatialLoadPanel(**{**item, 'tolerance': GeometryTolerance(**tolerance),
+                                         'plane': plane, 'loading_nodes': loading_nodes}))
     for item in sequence(data.get('paths', ()), 'paths'):
         item = _record(item, ('id', 'points'), ('id', 'points'), 'spatial path')
         paths.append(SpatialLoadPath(**item))
     for item in sequence(data.get('loads', ()), 'loads'):
         fields = ('id', 'panel_id', 'path_ids', 'end_intensities')
-        item = _record(item, fields, fields, 'spatial load')
-        loads.append(SpatialLoad(**item))
+        item = _record(item, (*fields, 'direction'), fields, 'spatial load')
+        direction = LoadDirection()
+        if 'direction' in item:
+            direction = LoadDirection(**_record(item['direction'], ('mode', 'vector'),
+                                                ('mode',), f"load {item['id']} direction"))
+        loads.append(SpatialLoad(**{**item, 'direction': direction}))
     result = SpatialLoadDefinitions(panels, paths, loads)
     validate_references(result, mesh)
     return result
@@ -45,14 +59,22 @@ def from_json(value, mesh):
 def to_json(definitions):
     return dict(
         panels=[dict(id=p.id, nodes=list(p.nodes), elements=list(p.elements),
-                     triangles=[list(t) for t in p.triangles], holes=[],
+                     triangles=[list(t) for t in p.triangles], holes=[list(ring) for ring in p.holes],
+                     **({'plane': dict(origin=list(p.plane.origin), axis_u=list(p.plane.axis_u),
+                                       axis_v=list(p.plane.axis_v))} if p.plane is not None else {}),
+                     **({'loading_nodes': [dict(id=n.id, point=list(n.point)) for n in p.loading_nodes],
+                         'loading_triangles': [list(t) for t in p.loading_triangles]}
+                        if p.loading_nodes else {}),
                      tolerance=dict(absolute_length=p.tolerance.absolute_length,
                                     relative_length=p.tolerance.relative_length))
                 for p in definitions.panels],
         paths=[dict(id=p.id, points=[list(point) for point in p.points])
                for p in definitions.paths],
         loads=[dict(id=p.id, panel_id=p.panel_id, path_ids=list(p.path_ids),
-                    end_intensities=[list(pair) for pair in p.end_intensities])
+                    end_intensities=[list(pair) for pair in p.end_intensities],
+                    **({'direction': dict(mode=p.direction.mode,
+                        **({'vector': list(p.direction.vector)} if p.direction.vector is not None else {}))}
+                       if p.direction != LoadDirection() else {}))
                for p in definitions.loads],
     )
 

@@ -19,8 +19,8 @@
     "foundation": {"label_ja": "分布ばね"},
     "end_release": {"label_ja": "材端解放"},
     "shell_pressure": {"label_ja": "シェル面圧"},
-    "spatial_line": {"label_ja": "空間線荷重", "status": "verified", "analysis_types": ["static"], "note": "Global XY parallel, convex, hole-free panels; global +Z intensity."},
-    "spatial_area": {"label_ja": "空間面荷重", "status": "verified", "analysis_types": ["static"], "note": "Global XY parallel, convex, hole-free panels; global +Z intensity."}
+    "spatial_line": {"label_ja": "空間線荷重", "status": "verified", "analysis_types": ["static"], "note": "Planar panels, including nonconvex boundaries, declared holes and independent loading meshes. Explicit plane for inclined geometry; global unit vector or oriented normal. Lines cannot cross holes."},
+    "spatial_area": {"label_ja": "空間面荷重", "status": "verified", "analysis_types": ["static"], "note": "Planar panels, including nonconvex boundaries, declared holes and independent loading meshes. Explicit plane for inclined geometry; global unit vector or oriented normal. Declared hole interiors are excluded from area integration."}
   },
   "result_types": {
     "node_displacement": {"label_ja": "節点変位"},

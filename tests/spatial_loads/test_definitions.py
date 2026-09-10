@@ -53,7 +53,7 @@ def test_malformed_paths_are_rejected(points):
     {}, dict(elements=[1], triangles=[[1, 2, 3]]),
     dict(triangles=[[1, 1, 2]]), dict(triangles=[[1, 2, 4]]),
     dict(triangles=[[1, 2, 3], [3, 2, 1]]), dict(elements=[1, 1]),
-    dict(triangles=[[1, 2, 3]], holes=[[1, 2, 3]]),
+    dict(triangles=[[1, 2, 3]], holes=[[1, 2]]),
 ])
 def test_invalid_topology_contracts_are_rejected(kwargs):
     with pytest.raises(ValueError, match="panel 7"):

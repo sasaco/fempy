@@ -121,8 +121,8 @@ def test_fw3_rejection_happens_before_existing_file_is_opened(tmp_path):
 def test_unknown_modern_keys_and_ambiguous_dual_input_are_rejected():
     data = _read_json_model(legacy_panel())
     wire = model_to_jsonable(data)
-    wire['spatial_loads']['loads'][0]['direction'] = [0, 0, -1]
-    with pytest.raises(ValueError, match='unknown.*direction'):
+    wire['spatial_loads']['loads'][0]['unexpected_direction'] = [0, 0, -1]
+    with pytest.raises(ValueError, match='unknown.*unexpected_direction'):
         _read_json_model(wire)
     source = legacy_panel()
     source['spatial_loads'] = model_to_jsonable(data)['spatial_loads']

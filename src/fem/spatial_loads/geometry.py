@@ -53,8 +53,8 @@ def segments_intersect(a, b, c, d, eps):
             and cross(d - c, a - c) * cross(d - c, b - c) < 0)
 
 
-def validate_polygon(points, eps, label='polygon', *, strict=False):
-    """Validate a simple convex polygon; return its orientation (+1 or -1)."""
+def validate_polygon(points, eps, label='polygon', *, strict=False, convex=True):
+    """Validate a simple polygon, optionally convex; return its orientation."""
     p = points_array(points, label=label)
     if len(p) < 3:
         raise ValueError(f'{label}: at least three vertices are required')
@@ -77,7 +77,7 @@ def validate_polygon(points, eps, label='polygon', *, strict=False):
         u, v = p[i] - p[i - 1], p[(i + 1) % len(p)] - p[i]
         turn = orientation * cross(u, v)
         threshold = eps * max(np.linalg.norm(u), np.linalg.norm(v))
-        if turn < -threshold or (strict and turn <= threshold):
+        if convex and (turn < -threshold or (strict and turn <= threshold)):
             raise ValueError(f'{label}: non-convex or degenerate polygon')
         if abs(turn) <= threshold and np.dot(u, v) < 0:
             raise ValueError(f'{label}: overlapping adjacent edges')
@@ -89,6 +89,20 @@ def contains_point(polygon, point, eps):
     sign = 1 if signed_area(p) > 0 else -1
     return all(sign * cross(b - a, point - a) >= -eps * np.linalg.norm(b - a)
                for a, b in zip(p, np.roll(p, -1, axis=0)))
+
+
+def contains_simple(polygon, point, eps):
+    """Even/odd containment for a validated simple ring, including its edges."""
+    p, point = np.asarray(polygon), np.asarray(point)
+    inside = False
+    for a, b in zip(p, np.roll(p, -1, axis=0)):
+        if point_on_segment(point, a, b, eps):
+            return True
+        if (a[1] > point[1]) != (b[1] > point[1]):
+            x = a[0] + (point[1] - a[1]) * (b[0] - a[0]) / (b[1] - a[1])
+            if point[0] < x:
+                inside = not inside
+    return inside
 
 
 def _clean_polygon(points, eps):
@@ -129,6 +143,33 @@ def triangulate_convex(polygon, eps):
     scale = np.linalg.norm(np.ptp(p, axis=0))
     return tuple(frozen_points(t) for i in range(1, len(p) - 1)
                  if abs(signed_area(t := p[[0, i, i + 1]])) > eps * scale)
+
+
+def triangulate_simple(polygon, eps, label='polygon'):
+    """Ear clipping of a validated simple ring, solely for domain integration."""
+    p = np.asarray(polygon)
+    sign = validate_polygon(p, eps, label, convex=False)
+    remaining = list(range(len(p)))
+    triangles = []
+    while len(remaining) > 3:
+        for i, node in enumerate(remaining):
+            a, c = remaining[i - 1], remaining[(i + 1) % len(remaining)]
+            if point_on_segment(p[node], p[a], p[c], eps):
+                remaining.pop(i)
+                break
+            triangle = p[[a, node, c]]
+            scale = max(np.linalg.norm(p[node] - p[a]), np.linalg.norm(p[c] - p[node]))
+            if sign * cross(p[node] - p[a], p[c] - p[node]) <= eps * scale:
+                continue
+            if any(contains_point(triangle, p[j], eps) for j in remaining if j not in (a, node, c)):
+                continue
+            triangles.append(frozen_points(triangle))
+            remaining.pop(i)
+            break
+        else:
+            raise ValueError(f'{label}: polygon triangulation failed')
+    triangles.append(frozen_points(p[remaining]))
+    return tuple(triangles)
 
 
 @dataclass(frozen=True)
@@ -190,10 +231,17 @@ class PanelGeometry:
     frame: PlanarFrame
     cells: tuple[PanelCell, ...]
     boundary: tuple
+    holes: tuple = ()
+    domain_cells: tuple[PanelCell, ...] = ()
 
 
-def validate_partition(cells, eps, label):
-    """Require an oriented, conforming, connected disk with a convex boundary."""
+def validate_partition(cells, eps, label, *, holes=()):
+    """Require oriented, conforming connected cells and explicitly declared holes.
+
+    Cells stay convex T3/Q4; their union and its boundary rings may be nonconvex.
+    Hole rings use node IDs, cyclic order and the opposite winding to the outer
+    ring. Connectivity is authoritative: metadata never cuts a hole in a cell.
+    """
     edges, points = {}, {}
     sign = None
     for index, cell in enumerate(cells):
@@ -234,17 +282,44 @@ def validate_partition(cells, eps, label):
         successors[a] = b
     if not successors or len(set(successors.values())) != len(successors):
         raise ValueError(f'{label}: invalid boundary')
-    start = min(successors)
-    ring, current = [], start
-    while current not in ring:
-        ring.append(current)
-        if current not in successors:
-            raise ValueError(f'{label}: open boundary')
-        current = successors[current]
-    if current != start or len(ring) != len(boundary_edges):
-        raise ValueError(f'{label}: holes or multiple boundaries are not supported')
-    boundary = tuple(points[n] for n in ring)
-    validate_polygon(boundary, eps, f'{label} boundary')
+    rings, unused = [], set(successors)
+    while unused:
+        start = min(unused)
+        ring, current = [], start
+        while current not in ring:
+            if current not in unused:
+                raise ValueError(f'{label}: open or branching boundary')
+            ring.append(current)
+            unused.remove(current)
+            current = successors[current]
+        if current != start:
+            raise ValueError(f'{label}: invalid boundary ring')
+        rings.append(tuple(ring))
+    outer, inner = [], []
+    for ring in rings:
+        polygon = tuple(points[n] for n in ring)
+        orientation = validate_polygon(polygon, eps, f'{label} boundary', convex=False)
+        (outer if orientation == sign else inner).append(ring)
+    if len(outer) != 1:
+        raise ValueError(f'{label}: multiple outer boundaries')
+    def cyclic(ring):
+        i = ring.index(min(ring))
+        return ring[i:] + ring[:i]
+    if holes is not None and sorted(cyclic(ring) for ring in inner) != sorted(cyclic(ring) for ring in holes):
+        raise ValueError(f'{label}: declared holes must match topology and opposite winding')
+    boundary = tuple(points[n] for n in outer[0])
+    polygons = [tuple(points[n] for n in ring) for ring in (outer + inner)]
+    for hole in polygons[1:]:
+        if not contains_simple(boundary, hole[0], eps):
+            raise ValueError(f'{label}: hole outside outer boundary')
+    for i, first in enumerate(polygons):
+        for second in polygons[i + 1:]:
+            if any(segments_intersect(np.array(a), np.array(b), np.array(c), np.array(d), eps)
+                   for a, b in zip(first, first[1:] + first[:1])
+                   for c, d in zip(second, second[1:] + second[:1])):
+                raise ValueError(f'{label}: touching or intersecting hole boundaries')
+            if i > 0 and (contains_simple(first, second[0], eps) or contains_simple(second, first[0], eps)):
+                raise ValueError(f'{label}: nested holes')
     scale = np.linalg.norm(np.ptp(np.array(boundary), axis=0))
     for i, first in enumerate(cells):
         for second in cells[i + 1:]:
@@ -252,7 +327,7 @@ def validate_partition(cells, eps, label):
             if abs(signed_area(overlap)) > eps * scale:
                 raise ValueError(f'{label}: overlapping cell interiors')
     if abs(sum(abs(signed_area(c.points)) for c in cells)
-           - abs(signed_area(boundary))) > eps * scale:
+           - abs(signed_area(boundary)) + sum(abs(signed_area(p)) for p in polygons[1:])) > eps * scale:
         raise ValueError(f'{label}: cells do not cover the boundary')
     return boundary
 
@@ -295,7 +370,10 @@ def split_line(panel, points, parameters, label='line'):
         length = np.linalg.norm(b - a)
         intervals = [(j, interval) for j, cell in enumerate(panel.cells)
                      if (interval := _segment_interval(cell.points, a, b, eps)) is not None]
-        cuts = sorted({0., 1., *(t for _, pair in intervals for t in pair)})
+        domain_intervals = [(j, interval) for j, cell in enumerate(panel.domain_cells or panel.cells)
+                            if (interval := _segment_interval(cell.points, a, b, eps)) is not None]
+        cuts = sorted({0., 1., *(t for _, pair in intervals for t in pair),
+                       *(t for _, pair in domain_intervals for t in pair)})
         unique = [cuts[0]]
         for t in cuts[1:]:
             if t - unique[-1] > eps / length:
@@ -304,7 +382,9 @@ def split_line(panel, points, parameters, label='line'):
         for t0, t1 in zip(unique, unique[1:]):
             mid = (t0 + t1) / 2
             owners = [j for j, (lo, hi) in intervals if lo - eps / length <= mid <= hi + eps / length]
-            if not owners:
+            domain_owners = [j for j, (lo, hi) in domain_intervals
+                             if lo - eps / length <= mid <= hi + eps / length]
+            if not owners or not domain_owners:
                 raise ValueError(f'{label}: line leaves panel {panel.panel_id}; extrapolation is forbidden')
             owner = min(owners, key=lambda j: panel.cells[j].key)
             ds = parameters[i + 1] - parameters[i]

@@ -6,8 +6,9 @@
 
 指定位置の線荷重・面荷重は`fem.spatial_loads`の不変定義型を作り、
 `model.set_spatial_loads(definitions)`で設定して`model.run("static")`で解析します。
-線の強度は力/長さ、面の強度は力/長さ²、正方向は全体+Zです。
-全体XYに平行な凸・穴なしパネルを使います。[入力例・結果・エラー・制限](spatial-loads.md)を参照してください。
+線の強度は力/長さ、面の強度は力/長さ²、省略時の正方向は全体+Zです。
+`LocalPlane`で傾斜平面、`LoadDirection`で全体方向ベクトルまたは面法線を指定できます。
+非凸外周・宣言した穴にも対応します。[入力例・結果・エラー・制限](spatial-loads.md)を参照してください。
 
 ## Pythonだけで片持ち梁を作る
 

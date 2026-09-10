@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from collections.abc import Mapping
-from math import dist, isfinite
+from math import dist, hypot, isfinite
 from numbers import Integral, Real
 
 
@@ -46,6 +46,58 @@ def _ids(value, label):
     return tuple(integer_id(v, label) for v in sequence(value, label))
 
 
+def _vector(value, label, *, unit=False):
+    result = tuple(finite_number(v, label) for v in sequence(value, label))
+    if len(result) != 3:
+        raise ValueError(f'{label}: expected three components')
+    if unit:
+        scale = max(abs(v) for v in result)
+        if scale == 0:
+            raise ValueError(f'{label}: vector must be nonzero')
+        scaled = tuple(v / scale for v in result)
+        length = hypot(*scaled)
+        result = tuple(v / length for v in scaled)
+    return result
+
+
+@dataclass(frozen=True)
+class LocalPlane:
+    """Explicit global origin and orthogonal axes; axis lengths carry no scale.
+
+    Paths and mesh nodes always use global coordinates. A plane defines an
+    isometric integration chart, not a transformation of input coordinates.
+    """
+    origin: tuple[float, float, float]
+    axis_u: tuple[float, float, float]
+    axis_v: tuple[float, float, float]
+
+    def __post_init__(self):
+        object.__setattr__(self, 'origin', _vector(self.origin, 'plane origin'))
+        u = _vector(self.axis_u, 'plane axis_u', unit=True)
+        v = _vector(self.axis_v, 'plane axis_v', unit=True)
+        if abs(sum(a*b for a, b in zip(u, v))) > 1e-12:
+            raise ValueError('plane axes must be orthogonal')
+        object.__setattr__(self, 'axis_u', u)
+        object.__setattr__(self, 'axis_v', v)
+
+
+@dataclass(frozen=True)
+class LoadDirection:
+    """Unit global force direction, or normal from oriented panel connectivity."""
+    mode: str = 'global'
+    vector: tuple[float, float, float] | None = None
+
+    def __post_init__(self):
+        if self.mode not in ('global', 'normal'):
+            raise ValueError('load direction mode must be global or normal')
+        if self.mode == 'normal':
+            if self.vector is not None:
+                raise ValueError('normal load direction must not specify a vector')
+        else:
+            vector = (0., 0., 1.) if self.vector is None else self.vector
+            object.__setattr__(self, 'vector', _vector(vector, 'load direction', unit=True))
+
+
 @dataclass(frozen=True)
 class GeometryTolerance:
     """Length tolerance only; never used to round or compare forces."""
@@ -80,6 +132,9 @@ class SpatialLoadPanel:
     triangles: tuple[tuple[int, int, int], ...] = ()
     holes: tuple = ()
     tolerance: GeometryTolerance = field(default_factory=GeometryTolerance)
+    plane: LocalPlane | None = None
+    loading_nodes: tuple['SpatialLoadMeshNode', ...] = ()
+    loading_triangles: tuple[tuple[int, int, int], ...] = ()
 
     def __post_init__(self):
         object.__setattr__(self, 'id', integer_id(self.id, 'panel'))
@@ -100,13 +155,45 @@ class SpatialLoadPanel:
             if key in seen:
                 raise ValueError(f'{label}: duplicate loading triangle')
             seen.add(key)
-        if sequence(self.holes, label):
-            raise ValueError(f'{label}: holes are not supported')
+        holes = tuple(_ids(ring, label + ' hole') for ring in sequence(self.holes, label))
         if not isinstance(self.tolerance, GeometryTolerance):
             raise ValueError(f'{label}: tolerance must be GeometryTolerance')
+        if self.plane is not None and not isinstance(self.plane, LocalPlane):
+            raise ValueError(f'{label}: plane must be LocalPlane')
+        loading_nodes = sequence(self.loading_nodes, label + ' loading nodes')
+        if any(not isinstance(node, SpatialLoadMeshNode) for node in loading_nodes):
+            raise ValueError(f'{label}: loading nodes must be SpatialLoadMeshNode records')
+        loading_ids = [node.id for node in loading_nodes]
+        if len(set(loading_ids)) != len(loading_ids):
+            raise ValueError(f'{label}: duplicate loading node ID')
+        loading_triangles = tuple(_ids(t, label + ' loading triangle')
+                                  for t in sequence(self.loading_triangles, label))
+        if bool(loading_nodes) != bool(loading_triangles):
+            raise ValueError(f'{label}: loading nodes and loading triangles must be specified together')
+        used, loading_seen = set(), set()
+        for triangle in loading_triangles:
+            if len(triangle) != 3 or len(set(triangle)) != 3 or not set(triangle) <= set(loading_ids):
+                raise ValueError(f'{label}: loading triangle must use three distinct loading nodes')
+            key = frozenset(triangle)
+            if key in loading_seen:
+                raise ValueError(f'{label}: duplicate independent loading triangle')
+            loading_seen.add(key)
+            used.update(triangle)
+        if loading_nodes and used != set(loading_ids):
+            raise ValueError(f'{label}: unused loading nodes')
+        hole_universe = set(loading_ids) if loading_nodes else set(nodes)
+        hole_nodes = set()
+        for ring in holes:
+            if len(ring) < 3 or len(set(ring)) != len(ring) or not set(ring) <= hole_universe:
+                raise ValueError(f'{label}: each hole must use distinct panel or loading nodes')
+            if hole_nodes & set(ring):
+                raise ValueError(f'{label}: duplicate or touching holes')
+            hole_nodes.update(ring)
         for name, value in (('nodes', nodes), ('elements', elements),
-                            ('triangles', triangles), ('holes', ())):
+                            ('triangles', triangles), ('holes', holes)):
             object.__setattr__(self, name, value)
+        object.__setattr__(self, 'loading_nodes', loading_nodes)
+        object.__setattr__(self, 'loading_triangles', loading_triangles)
 
 
 @dataclass(frozen=True)
@@ -136,11 +223,23 @@ class SpatialLoadPath:
 
 
 @dataclass(frozen=True)
+class SpatialLoadMeshNode:
+    """A geometry-only loading node; it owns no structural DOF or stiffness."""
+    id: int
+    point: tuple[float, float, float]
+
+    def __post_init__(self):
+        object.__setattr__(self, 'id', integer_id(self.id, 'loading node'))
+        object.__setattr__(self, 'point', _vector(self.point, f'loading node {self.id}'))
+
+
+@dataclass(frozen=True)
 class SpatialLoad:
     id: int
     panel_id: int
     path_ids: tuple[int, ...]
     end_intensities: tuple[tuple[float, float], ...]
+    direction: LoadDirection = field(default_factory=LoadDirection)
 
     def __post_init__(self):
         object.__setattr__(self, 'id', integer_id(self.id, 'load'))
@@ -153,6 +252,8 @@ class SpatialLoad:
             raise ValueError(f'{label}: one or two distinct path IDs are required')
         if len(values) != len(paths) or any(len(pair) != 2 for pair in values):
             raise ValueError(f'{label}: two endpoint intensities are required per path')
+        if not isinstance(self.direction, LoadDirection):
+            raise ValueError(f'{label}: direction must be LoadDirection')
         object.__setattr__(self, 'panel_id', panel)
         object.__setattr__(self, 'path_ids', paths)
         object.__setattr__(self, 'end_intensities', values)

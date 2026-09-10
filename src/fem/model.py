@@ -179,7 +179,9 @@ class FemModel:
         """Replace unexpanded spatial input after structural-reference validation.
 
         Import definitions from ``fem.spatial_loads``. Linear static analysis
-        accepts convex, hole-free panels parallel to global XY and loads in +Z.
+        accepts planar panels with nonconvex boundaries and declared holes.
+        An explicit LocalPlane enables inclined panels; LoadDirection selects
+        a unit global direction or the oriented panel normal. Defaults are XY/+Z.
         Line intensity has units force/length; area intensity force/length**2.
         Negative intensity acts in -Z. Geometry and conservation are checked
         on every ``run()`` before stiffness assembly. See the Wiki spatial-loads

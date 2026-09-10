@@ -22,10 +22,7 @@ pytestmark = pytest.mark.unit
     ([(0, 0, 0), (2, 0, 0), (2, 2, .1), (0, 2, 0)], [(1, 2, 3, 4)], True),
     ([(0, 0, 0), (2, 0, 1), (2, 2, 1), (0, 2, 0)], [(1, 2, 3, 4)], True),
     ([(0, 0), (1, 0), (0, np.inf)], [(1, 2, 3)], False),
-    # Connected L-shaped panel: valid cells, non-convex outer boundary.
-    ([(0, 0), (1, 0), (2, 0), (2, 1), (1, 1), (1, 2), (0, 2), (0, 1)],
-     [(1, 2, 5, 8), (2, 3, 4, 5), (8, 5, 6, 7)], True),
-    # Conforming ring with a hole; no declared hole metadata is necessary.
+    # A hole must be declared explicitly, even when connectivity contains it.
     ([(0, 0), (3, 0), (3, 3), (0, 3), (1, 1), (2, 1), (2, 2), (1, 2)],
      [(1, 2, 6, 5), (2, 3, 7, 6), (3, 4, 8, 7), (4, 1, 5, 8)], True),
 ])
@@ -54,7 +51,6 @@ def test_invalid_line_is_rejected_with_load_panel_and_path_ids(points):
     ([(0, 1), (2, 1)], [(1, 0), (1, 2)]),  # ambiguous endpoint pairing
     ([(0, 0), (2, 0)], [(0, 0), (2, 1)]),  # zero-width end
     ([(0, .3), (1, 1.5), (2, .3)], [(0, 1), (1, .5), (2, 1)]),
-    ([(0, 0), (1, .5), (2, 0)], [(0, 1), (1, 1.5), (2, 1)]),  # non-convex boundary
 ])
 def test_invalid_strip_is_rejected_even_for_zero_intensity(first, second):
     mesh, panel = geometry_model()

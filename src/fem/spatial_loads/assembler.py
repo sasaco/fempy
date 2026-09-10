@@ -155,7 +155,11 @@ def _compile_load(prepared, mesh, tolerance):
     cells = panel.cells
     offsets = np.cumsum([0, *(len(c.node_ids) for c in cells)])
     count = int(offsets[-1])
-    origin = np.asarray(panel.frame.origin)
+    if load.direction.mode == 'normal':
+        sign = 1 if signed_area(panel.cells[0].points) > 0 else -1
+        load_direction = sign * np.asarray(panel.frame.normal)
+    else:
+        load_direction = np.asarray(load.direction.vector)
     pieces = []
     active = set()
 
@@ -170,8 +174,8 @@ def _compile_load(prepared, mesh, tolerance):
                 shape_values(cell.points, point, panel.frame.eps, label) * q
             )
             # Evaluated from the physical load position, not interpolated nodes.
-            position = origin + np.r_[point, 0.]
-            force = np.array([0., 0., q])
+            position = panel.frame.lift(point)
+            force = load_direction * q
             value[count:count + 3] = force
             value[count + 3:] = np.cross(position, force)
             return value
@@ -212,15 +216,17 @@ def _compile_load(prepared, mesh, tolerance):
     contributions, node_forces = [], {}
     for i in sorted(active):
         cell = cells[i]
-        forces = tuple((0., 0., float(q)) for q in integral.value[offsets[i]:offsets[i+1]])
+        forces = tuple(_tuple(load_direction * q) for q in integral.value[offsets[i]:offsets[i+1]])
         contributions.append(CellLoadContribution(load.id, load.panel_id, cell.key, cell.element_id,
                                                   cell.node_ids, forces))
         for node, force in zip(cell.node_ids, forces):
             node_forces.setdefault(node, np.zeros(3))[:] += force
     force, moment = integral.value[count:count+3], integral.value[count+3:]
     nodal_force, nodal_moment = _nodal_audit(node_forces, mesh)
-    force_scale = float(integral.absolute_integral[count+2])
-    arm = max(float(np.linalg.norm(np.asarray(mesh.nodes[n])[:2])) for n in node_forces)
+    # Constant unit direction: norm of the three absolute component integrals
+    # equals integral(abs(q)), including in-plane forces and signed cancellation.
+    force_scale = float(np.linalg.norm(integral.absolute_integral[count:count+3]))
+    arm = max(float(np.linalg.norm(np.cross(mesh.nodes[n], load_direction))) for n in node_forces)
     moment_scale = force_scale * arm
     errors = _check_conservation(force, moment, nodal_force, nodal_moment,
                                  force_scale, moment_scale, tolerance, label)

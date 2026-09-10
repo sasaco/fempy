@@ -8,11 +8,17 @@
 
 ## 座標・符号・単位
 
-- パネルは全体XYに平行な平面です。パネルと経路のZ座標を一致させます。
-- 正の強度は全体+Z、負の強度は全体-Z方向です。節点順を逆にしても方向は変わりません。
+- `plane`省略時は全体XYに平行な平面です。パネルと経路のZ座標を一致させます。
+  傾斜平面には`LocalPlane`（JSONでは`plane`）を明示します。構造節点と経路の座標は常に全体座標です。
+- `direction`省略時は正の強度が全体+Z、負が全体-Z方向です。節点順を逆にしても方向は変わりません。
+  全体方向ベクトルは正規化され、その長さを荷重倍率には使いません。
+  `normal`方向の正負は要素・載荷三角形の節点順に従い、全セルの反転で荷重方向も反転します。
 - 線荷重は力/長さ、面荷重は力/長さ²です。N・m系ではN/m、N/m²を使います。
   座標・剛性・通常荷重も同じ単位系にそろえます。自動換算はありません。
 - 旧`line.position`のZ省略値は0です。強度や座標は入力時に丸めません。
+
+局所基底の原点・二軸は積分用の平面を定めます。二軸は非零で直交する必要があり、各軸の長さは正規化します。
+平面外の点を黙って投影しません。線強度は実長、面強度は実面積あたりの値です。XYへの投影長・投影面積ではありません。
 
 一本の経路では、始終点強度を折れ線の累積長に沿って補間します。
 二本の経路では正規化弧長で位置を対応させ、経路間にも強度を補間します。
@@ -29,9 +35,18 @@ T3は重心座標、Q4は双一次形状関数を使います。平面内で歪�
 梁は三角形からの節点荷重を受けます。梁要素への分布荷重と同じ精度になるとは限らないため、
 荷重配分と変位・端力のメッシュ依存性を確認してください。
 
+載荷領域の節点を構造節点と分ける場合は、`loading_nodes`にIDと全体座標、`loading_triangles`に
+その接続を指定します。このメッシュは載荷領域だけを定め、構造自由度や剛性を追加しません。
+各積分点を既存シェルまたは構造節点の`triangles`へ探索し、形状関数により総力と一次モーメントを
+保存して構造自由度へ写像します。載荷メッシュが構造側の補間領域から出る場合は拒否します。
+
 `elements`と`triangles`の非空指定は排他です。旧JSONで両方を省略すると、パネル節点に含まれる
 既存シェルから接続を復元します。シェルのない節点集合から三角形を自動生成しません。
 旧`elements`は`shell`名前空間のID、新形式は内部要素IDです。梁IDと旧シェルIDが同じでも区別します。
+
+外周は指定したT3/Q4接続から復元するため、非凸でも凸包へ置換しません。穴は接続に実在する境界を
+`holes`へ節点ID順で明示します。穴の順序は外周と逆向きでなければならず、面荷重積分から穴内部を除外します。
+線荷重は穴を横断できませんが、決定規則により穴の境界上へ一度だけ載荷できます。
 
 ## 旧JSONの完全な例
 
@@ -116,6 +131,40 @@ assert isclose(sum(r["fz"] for r in result["reaction_forces"].values()), 12, abs
 assert model.run()["spatial_load_contribution"] == audit
 ```
 
+傾斜平面で面法線方向を使う例です。構造節点順を反転すると面法線も反転します。
+
+<!-- run: spatial-inclined-normal -->
+```python
+from math import isclose
+from fem import FemModel, BarParameter
+from fem.spatial_loads import (
+    LoadDirection, LocalPlane, SpatialLoad, SpatialLoadDefinitions,
+    SpatialLoadPanel, SpatialLoadPath,
+)
+
+model = FemModel()
+for node, xyz in enumerate(((0, 0, 0), (2, 0, 0), (2, 0, 2), (0, 0, 2)), 1):
+    model.add_node(node, *xyz)
+model.add_material(1, "vertical", E=1000, nu=.25)
+model.material.add_bar_parameter(1, BarParameter(1, 1, 1, 1))
+for element, nodes in enumerate(((1, 2), (2, 3), (3, 4), (4, 1)), 1):
+    model.add_element(element, "bar", nodes, 1, section_id=1, shear_correction=False)
+for node in model.mesh.nodes:
+    model.add_restraint(node, True, True, True, True, True, True)
+panel = SpatialLoadPanel(
+    7, (1, 2, 3, 4), triangles=((1, 2, 3), (1, 3, 4)),
+    plane=LocalPlane((0, 0, 0), (1, 0, 0), (0, 0, 1)),
+)
+paths = (SpatialLoadPath(1, ((0, 0, 0), (2, 0, 0))),
+         SpatialLoadPath(2, ((0, 0, 2), (2, 0, 2))))
+load = SpatialLoad(1, 7, (1, 2), ((3, 3), (3, 3)), LoadDirection("normal"))
+model.set_spatial_loads(SpatialLoadDefinitions((panel,), paths, (load,)))
+audit = model.run()["spatial_load_contribution"]
+assert isclose(audit["resultant"][1], -12, abs_tol=1e-12)
+assert isclose(audit["moment"][0], 12, abs_tol=1e-12)
+assert isclose(audit["moment"][2], -12, abs_tol=1e-12)
+```
+
 通常荷重を残して空間荷重だけを外すには、`model.set_spatial_loads(SpatialLoadDefinitions())`を使います。
 
 ## 正規化JSONとHTTP
@@ -126,17 +175,21 @@ JSON保存時はトップレベル`spatial_loads`に、定義を欠落なく出�
 ```json
 {
   "spatial_loads": {
-    "panels": [{"id": 7, "nodes": [1, 2, 3, 4], "triangles": [[1, 2, 3], [1, 3, 4]]}],
+    "panels": [{"id": 7, "nodes": [1, 2, 3, 4], "triangles": [[1, 2, 3], [1, 3, 4]],
+                "holes": [], "plane": {"origin": [0, 0, 0], "axis_u": [1, 0, 0], "axis_v": [0, 1, 0]}}],
     "paths": [
       {"id": 1, "points": [[0, 0, 0], [2, 0, 0]]},
       {"id": 2, "points": [[0, 2, 0], [2, 2, 0]]}
     ],
-    "loads": [{"id": 1, "panel_id": 7, "path_ids": [1, 2], "end_intensities": [[-3, -3], [-3, -3]]}]
+    "loads": [{"id": 1, "panel_id": 7, "path_ids": [1, 2], "end_intensities": [[-3, -3], [-3, -3]],
+               "direction": {"mode": "global", "vector": [0, 0, 1]}}]
   }
 }
 ```
 
 IDは整数へ正規化し、重複ID・未知キー・欠落参照・非有限値を拒否します。
+独立載荷メッシュはパネルに`loading_nodes: [{"id": 101, "point": [x, y, z]}]`と
+`loading_triangles: [[101, 102, 103]]`を併記します。穴の節点IDはこの載荷メッシュ側を参照します。
 `load_inf`の荷重IDは選択ケース内の順序により1から付けます。
 `.fw3`には保存できません。定義を持つモデルは既存ファイルを開く前に拒否し、JSON保存を案内します。
 
@@ -178,9 +231,9 @@ assert isclose(result["spatial_load_contribution"]["resultant"][2], -6, abs_tol=
 
 ## 制限とエラー
 
-- 対象は単純・凸・穴なしのパネルと載荷帯です。非凸領域、穴、自己交差、経路の重複点、退化要素、
-  不連続なパネル、パネル外への載荷を拒否します。外挿や凸包への置換はしません。
-- 傾斜平面・曲面、任意方向・面法線方向、構造節点と一致しない独立載荷節点は未対応です。
+- 平面の非凸外周と宣言した穴を扱います。自己交差、経路の重複点、退化要素、不連続なパネル、
+  外周外や穴内への線載荷を拒否します。外挿や凸包への置換はしません。
+- 曲線ライン、曲面、位置ごとに変わる面積Jacobian・法線方向は未対応です。
 - `material_nonlinear`と`modal`は、強度がゼロでも荷重定義が一件あれば拒否します。
 - 梁とT3/Q4シェルは公開経路を検証済みです。他の静解析対応要素の構造節点にも載荷三角形を設定できますが、
   それらへの個別の力学検証は未完了です。詳細は[対応表](elements.md)で区別しています。

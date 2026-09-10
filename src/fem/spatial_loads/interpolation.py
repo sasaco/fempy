@@ -6,7 +6,7 @@ import numpy as np
 from ..shape_functions import q4_derivatives, q4_shape, t3_shape
 
 from .geometry import (
-    PanelCell, contains_point, cross, frozen_points, points_array,
+    PanelCell, contains_point, contains_simple, cross, frozen_points, points_array,
     segments_intersect, validate_partition, validate_polygon,
 )
 
@@ -108,7 +108,7 @@ def project_path(path, panel, label=None):
         for j in range(i + 2, len(p) - 1):
             if segments_intersect(p[i], p[i + 1], p[j], p[j + 1], eps):
                 raise ValueError(f'{label}: self-intersecting path')
-    if any(not contains_point(panel.boundary, point, eps) for point in p):
+    if any(not contains_simple(panel.boundary, point, eps) for point in p):
         raise ValueError(f'{label}: path leaves panel; extrapolation is forbidden')
     total = path.cumulative_lengths[-1]
     return ProjectedPath(path.id, frozen_points(p), tuple(s / total for s in path.cumulative_lengths))

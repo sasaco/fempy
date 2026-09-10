@@ -6,7 +6,7 @@ import numpy as np
 from .definitions import SpatialLoadDefinitions
 from .geometry import (
     PanelCell, PanelGeometry, PlanarFrame, clip_polygon, frozen_points,
-    points_array, signed_area, split_line, triangulate_convex, validate_partition,
+    points_array, signed_area, split_line, triangulate_convex, triangulate_simple, validate_partition,
 )
 from .interpolation import build_strip, project_path
 
@@ -30,15 +30,19 @@ def validate_references(definitions, mesh):
 
 
 def prepare_panel(panel, mesh):
-    """Build a validated horizontal T3/Q4 partition from explicit connectivity."""
+    """Build a validated planar T3/Q4 partition from explicit connectivity."""
     label = f'panel {panel.id}'
     validate_references(SpatialLoadDefinitions(panels=(panel,)), mesh)
     vertices = points_array([mesh.nodes[n] for n in panel.nodes], 3, label)
     frame = PlanarFrame.from_points(vertices, panel.tolerance, label)
-    if np.ptp(vertices[:, 2]) > frame.eps:
-        raise ValueError(f'{label}: only global XY parallel panels are supported')
-    # The initial public coordinate convention remains global XY and +Z.
-    frame = PlanarFrame(frame.origin, (1., 0., 0.), (0., 1., 0.), (0., 0., 1.), frame.scale, frame.eps)
+    if panel.plane is None:
+        if np.ptp(vertices[:, 2]) > frame.eps:
+            raise ValueError(f'{label}: only global XY parallel panels are supported without an explicit plane')
+        frame = PlanarFrame(frame.origin, (1., 0., 0.), (0., 1., 0.), (0., 0., 1.), frame.scale, frame.eps)
+    else:
+        plane = panel.plane
+        frame = PlanarFrame(plane.origin, plane.axis_u, plane.axis_v,
+                            tuple(np.cross(plane.axis_u, plane.axis_v)), frame.scale, frame.eps)
     projected = frame.project(vertices, label)
     for i, point in enumerate(projected):
         if any(np.linalg.norm(point - other) <= frame.eps for other in projected[i + 1:]):
@@ -55,8 +59,26 @@ def prepare_panel(panel, mesh):
     if {n for cell in cells for n in cell.node_ids} != set(panel.nodes):
         raise ValueError(f'{label}: unused panel nodes')
     cells = tuple(sorted(cells, key=lambda cell: cell.key))
-    boundary = validate_partition(cells, frame.eps, label)
-    return PanelGeometry(panel.id, frame, cells, boundary)
+    if panel.loading_nodes:
+        loading = {node.id: point for node in panel.loading_nodes
+                   for point in [tuple(frame.project((node.point,), label + ' loading node')[0])]}
+        domain_cells = tuple(PanelCell(i, triangle, tuple(loading[n] for n in triangle))
+                             for i, triangle in enumerate(panel.loading_triangles))
+        # Structural cells are the interpolation target. Their holes are
+        # inferred here because panel.holes belongs to the independent domain.
+        validate_partition(cells, frame.eps, label + ' structural target', holes=None)
+        boundary = validate_partition(domain_cells, frame.eps, label, holes=panel.holes)
+        holes = tuple(tuple(loading[n] for n in ring) for ring in panel.holes)
+        for domain in domain_cells:
+            covered = sum(abs(signed_area(clip_polygon(domain.points, cell.points, frame.eps)))
+                          for cell in cells)
+            if abs(covered - abs(signed_area(domain.points))) > frame.eps * frame.scale:
+                raise ValueError(f'{label}: loading mesh lies outside structural target')
+    else:
+        boundary = validate_partition(cells, frame.eps, label, holes=panel.holes)
+        holes = tuple(tuple(coordinates[n] for n in ring) for ring in panel.holes)
+        domain_cells = cells
+    return PanelGeometry(panel.id, frame, cells, boundary, holes, domain_cells)
 
 
 @dataclass(frozen=True)
@@ -96,16 +118,33 @@ def prepare_geometry(definitions, mesh):
             prepared.append(PreparedLoad(load, panel, paths, line_pieces=pieces))
             continue
         strips = build_strip(*paths, load.end_intensities, panel.frame.eps, label)
+        # Hole interiors are excluded explicitly. The outer boundary remains a
+        # hard domain limit, so strips cannot bridge an exterior concave notch.
+        outer_triangles = triangulate_simple(panel.boundary, panel.frame.eps, label)
+        hole_triangles = tuple(t for ring in panel.holes
+                               for t in triangulate_simple(ring, panel.frame.eps, label))
         pieces = []
         for strip_index, strip in enumerate(strips):
             triangles = []
             for cell_index, cell in enumerate(panel.cells):
-                clipped = clip_polygon(strip.points, cell.points, panel.frame.eps)
-                for triangle in triangulate_convex(clipped, panel.frame.eps):
-                    pieces.append(AreaPiece(cell_index, strip_index, triangle))
-                    triangles.append(triangle)
+                for domain in panel.domain_cells or panel.cells:
+                    clipped = clip_polygon(strip.points, domain.points, panel.frame.eps)
+                    clipped = clip_polygon(clipped, cell.points, panel.frame.eps)
+                    for triangle in triangulate_convex(clipped, panel.frame.eps):
+                        pieces.append(AreaPiece(cell_index, strip_index, triangle))
+                        triangles.append(triangle)
             integrated_area = sum(abs(signed_area(t)) for t in triangles)
-            if abs(integrated_area - abs(signed_area(strip.points))) > panel.frame.eps * panel.frame.scale:
+            strip_area = abs(signed_area(strip.points))
+            outer_area = sum(abs(signed_area(clip_polygon(strip.points, t, panel.frame.eps)))
+                             for t in outer_triangles)
+            hole_area = sum(abs(signed_area(clip_polygon(strip.points, t, panel.frame.eps)))
+                            for t in hole_triangles)
+            area_eps = panel.frame.eps * panel.frame.scale
+            if abs(outer_area - strip_area) > area_eps:
+                raise ValueError(f'{label}: area leaves panel outer boundary; extrapolation is forbidden')
+            if abs(integrated_area - (strip_area - hole_area)) > area_eps:
                 raise ValueError(f'{label}: clipped area is incomplete or duplicated')
+        if not pieces:
+            raise ValueError(f'{label}: area has no overlap with the panel outside holes')
         prepared.append(PreparedLoad(load, panel, paths, strip_cells=strips, area_pieces=tuple(pieces)))
     return tuple(prepared)

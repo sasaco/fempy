@@ -18,6 +18,10 @@ import sys
 import app
 import fem
 from fem import BarParameter, FemModel
+from fem.spatial_loads import (
+    LoadDirection, LocalPlane, SpatialLoad, SpatialLoadDefinitions,
+    SpatialLoadMeshNode, SpatialLoadPanel, SpatialLoadPath,
+)
 
 expected_version, forbidden_root = sys.argv[1:]
 assert metadata.version("FEMPython") == fem.__version__ == expected_version
@@ -42,6 +46,33 @@ model.save_results("results.json")
 assert loads(Path("model.json").read_text(encoding="utf-8"))
 saved = loads(Path("results.json").read_text(encoding="utf-8"))
 assert isclose(saved["node_displacements"]["2"]["dx"], 0.05, rel_tol=1e-12)
+
+# Exercise public stage-5 types from the installed wheel: an inclined plane,
+# oriented normal and geometry-only loading nodes mapped to structural DOFs.
+spatial = FemModel()
+for node, xyz in enumerate(((0, 0, 0), (2, 0, 0), (2, 0, 2), (0, 0, 2)), 1):
+    spatial.add_node(node, *xyz)
+spatial.add_material(1, "vertical", E=1000, nu=.25)
+spatial.material.add_bar_parameter(1, BarParameter(1, 1, 1, 1))
+for element, nodes in enumerate(((1, 2), (2, 3), (3, 4), (4, 1)), 1):
+    spatial.add_element(element, "bar", nodes, 1, section_id=1, shear_correction=False)
+for node in spatial.mesh.nodes:
+    spatial.add_restraint(node, True, True, True, True, True, True)
+loading_nodes = tuple(SpatialLoadMeshNode(i+101, point) for i, point in enumerate(
+    ((.25, 0, .25), (1.75, 0, .25), (1.75, 0, 1.75), (.25, 0, 1.75))))
+panel = SpatialLoadPanel(7, (1, 2, 3, 4), triangles=((1, 2, 3), (1, 3, 4)),
+    plane=LocalPlane((0, 0, 0), (1, 0, 0), (0, 0, 1)), loading_nodes=loading_nodes,
+    loading_triangles=((101, 102, 103), (101, 103, 104)))
+paths = (SpatialLoadPath(1, ((.25, 0, .25), (1.75, 0, .25))),
+         SpatialLoadPath(2, ((.25, 0, 1.75), (1.75, 0, 1.75))))
+spatial.set_spatial_loads(SpatialLoadDefinitions(
+    (panel,), paths, (SpatialLoad(1, 7, (1, 2), ((2, 2), (2, 2)), LoadDirection("normal")),)))
+spatial_result = spatial.run("static")
+assert isclose(spatial_result["spatial_load_contribution"]["resultant"][1], -4.5, abs_tol=1e-12)
+spatial.save_model("spatial.json")
+restored = FemModel()
+restored.load_model("spatial.json")
+assert restored.run()["spatial_load_contribution"] == spatial_result["spatial_load_contribution"]
 print(f"PASS isolated wheel {fem.__version__} from {fem.__file__}")
 '''
 
