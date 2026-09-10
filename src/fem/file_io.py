@@ -12,6 +12,11 @@ from .mesh import MeshModel
 from .boundary_condition import BoundaryCondition
 from .material import Material, MaterialProperty, ShellParameter, BarParameter, NonlinearMaterialProperty
 from .section import Section, CircleSection, RectSection, ISection, TubeSection
+from .spatial_loads.serialization import (
+    from_json as spatial_loads_from_json,
+    from_legacy as spatial_loads_from_legacy,
+    to_json as spatial_loads_to_json,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -127,6 +132,9 @@ def _read_json_model(data: Dict[str, Any]) -> Dict[str, Any]:
                     pressure_data['pressure']
                 )
                 
+    if 'spatial_loads' in data:
+        model_data['boundary'].spatial_loads = spatial_loads_from_json(
+            data['spatial_loads'], model_data['mesh'])
     return model_data
 
 
@@ -158,6 +166,7 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
     # Member, shell and solid identifiers occupy separate legacy namespaces.
     next_element_id = max([int(k) for field in ('member','shell','solid')
                            for k in data.get(field, {})] or [0])+1
+    legacy_shell_ids = {}
     # nodeセクションの読み込み
     if 'node' in data:
         for node_id, coords in data['node'].items():
@@ -225,8 +234,11 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 raise ValueError(f'Shell {shell_id} requires finite positive thickness (thickness or A)')
             
             element_id = int(shell_id)
+            if element_id in legacy_shell_ids:
+                raise ValueError(f'Duplicate normalized legacy shell ID {element_id}')
             if element_id in model_data['mesh'].elements:
                 element_id, next_element_id = next_element_id, next_element_id+1
+            legacy_shell_ids[int(shell_id)] = element_id
             model_data['mesh'].add_element(
                 element_id,
                 'shell',
@@ -482,6 +494,8 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 # 要素荷重を等価節点荷重に変換して境界条件に追加
                 pass  # prepare_members applies loads after member subdivision
     
+    model_data['boundary'].spatial_loads = spatial_loads_from_legacy(
+        data, model_data['mesh'], legacy_shell_ids)
     return model_data
 
 
@@ -628,6 +642,8 @@ def model_to_jsonable(model_data: Dict[str, Any]) -> Dict[str, Any]:
     boundary = model_data.get('boundary')
     if boundary:
         output_data['boundary_conditions'] = {}
+        if boundary.spatial_loads.has_definitions:
+            output_data['spatial_loads'] = spatial_loads_to_json(boundary.spatial_loads)
         output_data['boundary_conditions']['spring_supports'] = getattr(boundary, 'spring_supports', {})
         output_data['boundary_conditions']['auxiliary_restraint_nodes'] = sorted(getattr(boundary, 'auxiliary_restraint_nodes', set()))
         
@@ -669,6 +685,9 @@ def _write_json_model(model_data: Dict[str, Any], file_path: str) -> None:
 
 def _write_fw3_model(model_data: Dict[str, Any], file_path: str) -> None:
     """FW3フォーマットでモデルを書き込む"""
+    boundary = model_data.get('boundary')
+    if boundary is not None and boundary.spatial_loads.has_definitions:
+        raise ValueError('Models with spatial loads must be saved as JSON, not FW3')
     with open(file_path, 'w', encoding='utf-8') as f:
         # ヘッダー
         f.write("# FEMPython Model File\n")

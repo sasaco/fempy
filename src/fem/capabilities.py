@@ -155,6 +155,21 @@ def validate_analysis_capabilities(
     if analysis_type not in registry["analysis_types"]:
         raise ValueError(f"Unknown analysis type: {analysis_type}")
 
+    definitions = getattr(boundary, 'spatial_loads', None)
+    if definitions is not None and definitions.loads:
+        from .diagnostics import UnsupportedAnalysisError
+
+        features = sorted({load.feature for load in definitions.loads})
+        panels = sorted({load.panel_id for load in definitions.loads})
+        reasons = [registry['load_types'][feature]['reason'] for feature in features]
+        if analysis_type != 'static':
+            reasons = ['Spatial loads are limited to static analysis.']
+        raise UnsupportedAnalysisError(
+            f"Unsupported spatial loads on panels {panels}: {' '.join(reasons)}",
+            analysis_type=analysis_type, features=features, panel_ids=panels,
+            load_ids=[load.id for load in definitions.loads],
+        )
+
     issues: list[dict[str, Any]] = []
     canonical_by_id: dict[int, str] = {}
     for element_id, data in mesh_elements.items():

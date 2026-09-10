@@ -5,6 +5,7 @@ JavaScript版のBoundaryCondition機能に対応
 from typing import Dict, List, Optional, Tuple
 import numpy as np
 from enum import Enum
+from .spatial_loads import SpatialLoadDefinitions
 
 
 class BoundaryType(Enum):
@@ -145,6 +146,7 @@ class BoundaryCondition:
         self.temperatures: Dict[int, Temperature] = {}
         self.heat_transfers: List[HeatTransferBound] = []
         self.pressures: List[Pressure] = []  # 面圧条件リスト（V0に対応）
+        self.spatial_loads = SpatialLoadDefinitions()
         
     def add_restraint(self, node_id: int, dof_restraints: List[bool], 
                      values: Optional[List[float]] = None) -> None:
@@ -223,4 +225,5 @@ class BoundaryCondition:
         self.distributed_loads.clear()
         self.temperatures.clear()
         self.heat_transfers.clear()
-        self.pressures.clear() 
+        self.pressures.clear()
+        self.spatial_loads = SpatialLoadDefinitions()

@@ -17,6 +17,8 @@ from .solver_results import (
     normalize_model_metadata,
 )
 from .capabilities import validate_analysis_capabilities
+from .spatial_loads import SpatialLoadDefinitions
+from .spatial_loads.validation import validate_references as validate_spatial_references
 from .diagnostics import InputValidationError, UnsupportedAnalysisError
 from .nonlinear import NonlinearSolver
 from .nonlinear.hysteresis import JRStiffnessReductionParams
@@ -173,6 +175,16 @@ class FemModel:
         }
         write_model(model_data, file_path)
         
+    def set_spatial_loads(self, definitions: SpatialLoadDefinitions) -> None:
+        """Replace unexpanded spatial input after structural-reference validation.
+
+        Import definitions from ``fem.spatial_loads``. Load compilation is not
+        available yet; analysis preflight rejects these loads until it is.
+        """
+        validate_spatial_references(definitions, self.mesh)
+        self.boundary.spatial_loads = definitions
+        self.results = None
+
     def add_node(self, node_id: int, x: float, y: float, z: float) -> None:
         """節点を追加
         
