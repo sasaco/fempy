@@ -1,7 +1,7 @@
 var searchData=
 [
   ['シェルとソリッド_0',['シェルとソリッド',['../md_docs_2wiki_2data-structures.html#autotoc_md4',1,'']]],
-  ['シェルの結果_1',['シェルの結果',['../md_docs_2wiki_2results.html#autotoc_md102',1,'']]],
-  ['シェルへの面圧_2',['シェルへの面圧',['../md_docs_2wiki_2examples.html#autotoc_md44',1,'']]],
+  ['シェルの結果_1',['シェルの結果',['../md_docs_2wiki_2results.html#autotoc_md103',1,'']]],
+  ['シェルへの面圧_2',['シェルへの面圧',['../md_docs_2wiki_2examples.html#autotoc_md45',1,'']]],
   ['シェル：薄板と厚板_3',['シェル：薄板と厚板',['../md_docs_2wiki_2elements.html#autotoc_md18',1,'']]]
 ];

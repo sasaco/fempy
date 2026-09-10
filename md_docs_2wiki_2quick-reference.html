@@ -98,9 +98,9 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2quick-reference.html','
   <div class="headertitle"><div class="title">クイックリファレンス</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md84"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2python-api.html">Python API</a> · <a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md85"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2python-api.html">Python API</a> · <a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a></p>
 <p>日常的に使う指定とアクセス方法をまとめています。初回は<a class="el" href="md_docs_2wiki_2getting-started.html">片持ち梁の例</a>から始めてください。</p>
-<h1><a class="anchor" id="autotoc_md85"></a>
+<h1><a class="anchor" id="autotoc_md86"></a>
 解析を選ぶ</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -117,7 +117,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2quick-reference.html','
 <td class="markdownTableBodyNone">任意の非線形載荷順序   </td><td class="markdownTableBodyNone"><code>model.analysis_params["load_factors"] = [0, 0.5, 1, 0, -1]</code>   </td></tr>
 </table>
 <p><code>static</code>は非線形材料の履歴を使いません。<code>n_load_steps</code>だけでは解析種別は変わりません。固有値解析には<a class="el" href="md_docs_2wiki_2elements.html">対応要素・数値上の制約</a>があります。</p>
-<h1><a class="anchor" id="autotoc_md86"></a>
+<h1><a class="anchor" id="autotoc_md87"></a>
 入力名の対応</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -145,7 +145,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2quick-reference.html','
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">非線形骨格の正側   </td><td class="markdownTableBodyNone"><code>delta_1, P_1</code>など   </td><td class="markdownTableBodyNone">構築APIは同名。保存用<code>nonlinear_materials</code>は<code>delta_1_pos, P_1_pos</code>など   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md87"></a>
+<h1><a class="anchor" id="autotoc_md88"></a>
 支持・荷重</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -178,7 +178,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2quick-reference.html','
 <td class="markdownTableBodyNone">シェル<code>F1</code>の正圧   </td><td class="markdownTableBodyNone">節点順序の法線と逆方向へ作用   </td></tr>
 </table>
 <p>分布荷重の通常のL2はj端からの距離です。負のL2は載荷幅です。集中荷重のL1・L2はどちらもi端からの距離です。支持の特殊な値・入力形式ごとの違いは<a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a>で確認してください。</p>
-<h1><a class="anchor" id="autotoc_md88"></a>
+<h1><a class="anchor" id="autotoc_md89"></a>
 結果にアクセスする</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -203,7 +203,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2quick-reference.html','
 <td class="markdownTableBodyNone">結果保存   </td><td class="markdownTableBodyNone"><code>model.save_results("result.json")</code>   </td></tr>
 </table>
 <p>HTTP／結果JSONではIDを<code>["2"]</code>などの文字列にします。反力は支持成分だけを返すため、存在する成分を確認してください。</p>
-<h1><a class="anchor" id="autotoc_md89"></a>
+<h1><a class="anchor" id="autotoc_md90"></a>
 単位・符号の要点</h1>
 <ul>
 <li>全体で整合した単位を使います。N・m系なら変位はm、応力はN/m²。表示だけをmmにするなら1,000倍します。</li>
@@ -212,7 +212,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2quick-reference.html','
 <li>シェル<code>raw_result</code>のせん断ひずみは<code>γ/2</code>、ソリッドの<code>strain</code>は<code>γ</code>です。</li>
 <li>編集用JSONでG省略の梁は、せん断変形を無視します。</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md90"></a>
+<h1><a class="anchor" id="autotoc_md91"></a>
 困ったとき</h1>
 <p>HTTP 400は入力、422は非線形未収束、500は内部計算・結果処理などを示します。詳細は<a class="el" href="md_docs_2wiki_2error-handling.html">エラーと対処</a>へ進んでください。複数荷重ケース、圧縮転送、VTKは次のガイドに実行例があります。</p>
 <ul>

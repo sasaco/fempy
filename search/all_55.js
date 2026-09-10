@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['釣合いによる端力回復_0',['釣合いによる端力回復',['../md_docs_2wiki_2results.html#autotoc_md98',1,'']]]
+  ['部材の分割_0',['2. 部材の分割',['../md_docs_2wiki_2workflow.html#autotoc_md111',1,'']]],
+  ['部材途中の荷重_1',['部材途中の荷重',['../md_docs_2wiki_2data-structures.html#autotoc_md10',1,'']]]
 ];

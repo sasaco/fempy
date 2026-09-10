@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['独自形式_20tt_20fw3_20tt_0',['独自形式 &lt;tt&gt;.fw3&lt;/tt&gt;',['../md_docs_2wiki_2file-formats.html#autotoc_md55',1,'']]]
+  ['状態と結果の独立性_0',['状態と結果の独立性',['../md_docs_2wiki_2workflow.html#autotoc_md117',1,'']]],
+  ['状態の管理_1',['状態の管理',['../md_docs_2wiki_2python-api.html#autotoc_md84',1,'']]]
 ];

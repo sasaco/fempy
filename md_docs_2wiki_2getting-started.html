@@ -98,16 +98,16 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2getting-started.html','
   <div class="headertitle"><div class="title">はじめに：片持ち梁を解析する</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md57"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · 次へ：<a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md58"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · 次へ：<a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a></p>
 <p>長さ2 mの梁を左端で固定し、右端を1,000 Nで下向きに押します。右端のたわみと、左端が受け持つ反力を計算します。この例は線形弾性・せん断変形なしで、手計算と比較できます。</p>
-<h1><a class="anchor" id="autotoc_md58"></a>
+<h1><a class="anchor" id="autotoc_md59"></a>
 1. 実行環境を用意する</h1>
 <p>Python 3.11以上が必要です。リポジトリを取得したディレクトリで、uvを使って依存を揃えます。</p>
 <div class="fragment"><div class="line">uv sync --locked --extra dev</div>
 </div><!-- fragment --><p>以降のPythonコマンドは<code>uv run --locked --extra dev python ...</code>で実行します。別の仮想環境へインストールする場合は、その環境で次を実行できます。こちらは<code>uv.lock</code>による固定ではありません。</p>
 <div class="fragment"><div class="line">python -m pip install -e &quot;.[dev]&quot;</div>
 </div><!-- fragment --><p>インポート名は<code>fem</code>です。リポジトリ内の配置を表す<code>src.fem</code>には依存しません。</p>
-<h1><a class="anchor" id="autotoc_md59"></a>
+<h1><a class="anchor" id="autotoc_md60"></a>
 2. モデルをJSONで保存する</h1>
 <p>以下をUTF-8の<code>beam.json</code>として保存します。これは省略のない、実行可能な入力です。</p>
 <div class="fragment"><div class="line">{</div>
@@ -151,7 +151,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2getting-started.html','
 <td class="markdownTableBodyNone"><code>load</code>   </td><td class="markdownTableBodyNone">荷重ケース<code>tip</code>。全体Y方向へ−1,000 Nを与えます。   </td></tr>
 </table>
 <p>ここでは<code>E</code>をN/m²、座標をm、断面積をm²、断面二次モーメントとねじり定数をm⁴で指定しました。<code>dimension: 2</code>の梁モデルはXY平面の解析で、面外の<code>dz, rx, ry</code>を自動拘束します。</p>
-<h1><a class="anchor" id="autotoc_md60"></a>
+<h1><a class="anchor" id="autotoc_md61"></a>
 3. 解析して結果を読む</h1>
 <p>以下を<code>analyse.py</code>に保存します。<code>beam.json</code>と同じディレクトリから実行してください。</p>
 <div class="fragment"><div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> isclose</div>
@@ -179,10 +179,10 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2getting-started.html','
 <div class="line">左端の鉛直反力: 1000.0 N</div>
 <div class="line">左端の反力モーメント: 2000.0 N m</div>
 </div><!-- fragment --><p><code>dy</code>はmで返るので、表示時に1,000倍しました。JSON／HTTPでは節点IDが文字列になるため、<code>[2]</code>の代わりに<code>["2"]</code>でアクセスします。梁の端力は<code>result["element_stresses"][1]</code>の<code>i_end</code>と<code>j_end</code>です。<a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a>で成分順序と符号を説明しています。</p>
-<h1><a class="anchor" id="autotoc_md61"></a>
+<h1><a class="anchor" id="autotoc_md62"></a>
 4. 結果を保存する</h1>
 <p>解析済みの<code>model</code>に対して<code>model.save_results("result.json")</code>を呼ぶと、NumPy配列をJSONで保存できます。モデルの保存は<code>model.save_model("saved-model.json")</code>です。入力の編集用JSONとは形式が変わるので、詳しくは<a class="el" href="md_docs_2wiki_2file-formats.html">ファイル入出力</a>を参照してください。</p>
-<h1><a class="anchor" id="autotoc_md62"></a>
+<h1><a class="anchor" id="autotoc_md63"></a>
 次に試すこと</h1>
 <ul>
 <li>荷重を2倍にして、線形解析の変位・反力も2倍になるか確認する。</li>

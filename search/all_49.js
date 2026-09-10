@@ -1,8 +1,5 @@
 var searchData=
 [
-  ['結果にアクセスする_0',['結果にアクセスする',['../md_docs_2wiki_2quick-reference.html#autotoc_md88',1,'']]],
-  ['結果の読み方_1',['結果の読み方',['../md_docs_2wiki_2results.html',1,'']]],
-  ['結果を保存する_2',['4. 結果を保存する',['../md_docs_2wiki_2getting-started.html#autotoc_md61',1,'']]],
-  ['結果メタデータ_3',['結果メタデータ',['../md_docs_2wiki_2results.html#autotoc_md93',1,'']]],
-  ['結果json_4',['結果JSON',['../md_docs_2wiki_2file-formats.html#autotoc_md53',1,'']]]
+  ['節点・部材・材料_0',['節点・部材・材料',['../md_docs_2wiki_2data-structures.html#autotoc_md3',1,'']]],
+  ['節点変位と支点反力_1',['節点変位と支点反力',['../md_docs_2wiki_2results.html#autotoc_md96',1,'']]]
 ];

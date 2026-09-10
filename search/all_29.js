@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['互換用の圧縮転送_0',['互換用の圧縮転送',['../md_docs_2wiki_2endpoints.html#autotoc_md28',1,'']]]
+  ['二次四面体の応力_0',['二次四面体の応力',['../md_docs_2wiki_2examples.html#autotoc_md46',1,'']]]
 ];

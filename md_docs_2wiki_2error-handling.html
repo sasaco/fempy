@@ -98,9 +98,9 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2error-handling.html',''
   <div class="headertitle"><div class="title">エラーと対処</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md31"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2endpoints.html">HTTP API</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md32"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2endpoints.html">HTTP API</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a></p>
 <p>まず「入力を読み込めない」「構造が不安定」「非線形が収束しない」「結果の読取り・保存に失敗する」のどこで止まったかを確認します。条件が同じままの再試行で解決しない問題もあります。</p>
-<h1><a class="anchor" id="autotoc_md32"></a>
+<h1><a class="anchor" id="autotoc_md33"></a>
 症状から調べる</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -113,7 +113,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2error-handling.html',''
 <td class="markdownTableBodyNone">&lsquo;KeyError: 'z&rsquo;<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; 2Dでも各節点へ</code>z: 0<code>を指定する。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowEven"&gt; &lt;td class="markdownTableBodyNone"&gt;</code>Missing ... case ...<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; 荷重ケースが参照する材料・支持・ばね・材端ケースを用意する。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowOdd"&gt; &lt;td class="markdownTableBodyNone"&gt;</code>Singular stiffness matrix<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; 支持不足、切り離された節点、ゼロ剛性の自由度、材端解放の組合せ。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowEven"&gt; &lt;td class="markdownTableBodyNone"&gt;</code>Conflicting restraint and spring at same DOF<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; 同じ自由度に拘束と支持ばねを重ねていないか。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowOdd"&gt; &lt;td class="markdownTableBodyNone"&gt; HTTP 422／</code>NonlinearConvergenceError<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; 載荷段階・基準荷重、骨格曲線の耐力、支持、ステップ幅。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowEven"&gt; &lt;td class="markdownTableBodyNone"&gt; 面圧を入れても変形しない \ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt;</code>nodes/elements<code>形式か。</code>node<code>形式では明示pressuresを読み込まない。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowOdd"&gt; &lt;td class="markdownTableBodyNone"&gt; 期待した荷重倍率にならない \ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt;</code>rate<code>は現行経路で乗算されない。荷重値または非線形の</code>load_factors<code>を使う。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowEven"&gt; &lt;td class="markdownTableBodyNone"&gt;</code>NotImplementedError<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; 要素・解析の組合せを[対応表](elements.md)で確認する。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowOdd"&gt; &lt;td class="markdownTableBodyNone"&gt;</code>Non-finite analysis result<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; NaN・Infinityを含む結果はHTTP・JSON保存できない。固有値のゼロモード等を確認。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowEven"&gt; &lt;td class="markdownTableBodyNone"&gt; VTK変換中の</code>TypeError<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; 配列を含む要素結果をそのまま渡していないか。[整形例](file-formats.md)を参照。 \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowOdd"&gt; &lt;td class="markdownTableBodyNone"&gt;</code>KeyError: 'disg'<code>や</code>'case1'<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; 現行結果は</code>node_displacements`等を直接返す。   </td></tr>
 </table>
 <p>JSONの未知キーや不正な階層の一部は無視されるため、エラーが出ないことだけでは条件が正しく適用されたとは判断できません。荷重・支持を1つずつ追加し、反力と変位で確かめてください。</p>
-<h1><a class="anchor" id="autotoc_md33"></a>
+<h1><a class="anchor" id="autotoc_md34"></a>
 不安定なモデルを直す</h1>
 <ol type="1">
 <li>梁・シェルなら6つの剛体運動、平面モデルなら対応する面内の剛体運動を抑える支持があるか確認します。</li>
@@ -123,7 +123,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2error-handling.html',''
 <li>断面値・剛域の剛性比・部材長・単位を確認します。</li>
 </ol>
 <p>計算を通すためだけに無関係な節点を固定すると、解析対象そのものが変わります。実際の支持と、モデル化で不要になる自由度を区別して設定します。</p>
-<h1><a class="anchor" id="autotoc_md34"></a>
+<h1><a class="anchor" id="autotoc_md35"></a>
 非線形の未収束</h1>
 <p><code>NonlinearConvergenceError</code>は次の情報を持ちます。</p>
 <table class="markdownTable">
@@ -175,7 +175,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2error-handling.html',''
 <li>収束履歴を見て、必要に応じて<code>max_iterations</code>を調整する。</li>
 </ol>
 <p>耐力を超えて釣合い解がない場合や機構になった場合は、反復回数を増やしても解決しません。許容差を緩めただけの結果を妥当と判断せず、自由節点の釣合いと履歴を確認します。</p>
-<h1><a class="anchor" id="autotoc_md35"></a>
+<h1><a class="anchor" id="autotoc_md36"></a>
 Pythonの診断例外</h1>
 <p><code>FemModel.run()</code>は従来の<code>ValueError</code>／<code>RuntimeError</code>との互換性を保ちながら、次の機械可読な <code>error_code</code>を持つ例外を返します。</p>
 <table class="markdownTable">
@@ -195,12 +195,12 @@ Pythonの診断例外</h1>
 <td class="markdownTableBodyNone"><code>modal_nonconvergence</code>   </td><td class="markdownTableBodyNone">固有値ソルバー再試行の未収束   </td><td class="markdownTableBodyNone"><code>ModalConvergenceError</code>（<code>RuntimeError</code>）   </td></tr>
 </table>
 <p>例外の<code>details</code>には、確定できる場合だけ<code>analysis_type</code>、<code>issues</code>内の要素ID、<code>matrix_dofs</code>、 <code>step</code>、<code>load_factor</code>などが入ります。一般的な特異行列から原因節点を一意に決められない場合は、 推測した節点・自由度を返しません。入力ファイルの読込そのものや低水準APIでは、従来どおり 診断属性を持たない<code>ValueError</code>が出る場合があります。</p>
-<h1><a class="anchor" id="autotoc_md36"></a>
+<h1><a class="anchor" id="autotoc_md37"></a>
 HTTPステータスの解釈</h1>
 <p>HTTPエラーJSONは常に<code>error</code>、<code>error_code</code>、<code>error_category</code>、<code>converged: false</code>を持ちます。 入力不正と未知解析は400、未対応組合せ・構造機構・数値悪条件・反復未収束は422、 分類できない内部失敗は500です。<code>details</code>は確定した追加情報がある場合だけ付きます。 同じ<code>FemModel.run()</code>の失敗はPython例外とHTTPで同じ<code>error_code</code>になります。</p>
 <p>分類できない後処理の<code>LinAlgError</code>などは<code>analysis_failure</code>です。タイムアウト・通信断は サーバーのエラーJSONを受け取れないこともあります。</p>
 <p>圧縮要求のエラー応答は通常JSONです。成功時のBase64/gzip復号をエラー応答に適用しないでください。<a class="el" href="md_docs_2wiki_2endpoints.html">HTTPの例</a>を参照してください。</p>
-<h1><a class="anchor" id="autotoc_md37"></a>
+<h1><a class="anchor" id="autotoc_md38"></a>
 解析ログを有効にする</h1>
 <p>ライブラリは解析反復やモデル分割を標準出力へ無条件に書きません。Python標準の<code>logging</code>で 必要な範囲だけ有効にできます。Newton反復は<code><a class="el" href="namespacefem_1_1equilibrium.html">fem.equilibrium</a></code>のDEBUG、未収束通知はINFOです。</p>
 <div class="fragment"><div class="line"><span class="keyword">import</span> logging</div>
@@ -208,7 +208,7 @@ HTTPステータスの解釈</h1>
 <div class="line">logging.basicConfig(level=logging.INFO)</div>
 <div class="line">logging.getLogger(<span class="stringliteral">&quot;fem.equilibrium&quot;</span>).setLevel(logging.DEBUG)</div>
 </div><!-- fragment --><p>入力変換は<code><a class="el" href="namespacefem_1_1file__io.html">fem.file_io</a></code>、モデル分割は<code><a class="el" href="namespacefem_1_1model.html">fem.model</a></code>、要素の数値警告は各要素モジュールの loggerへ出ます。アプリケーション側でhandler、level、出力先を設定してください。</p>
-<h1><a class="anchor" id="autotoc_md38"></a>
+<h1><a class="anchor" id="autotoc_md39"></a>
 問題を再現できる形にする</h1>
 <p>解析種別、入力JSON、期待する値と得られた値、例外またはHTTP応答、Python・依存環境を残します。材料非線形では<code>load_factors</code>と失敗した段階も必要です。結果が大きくずれるときは、元の大規模モデルとともに、問題を保った小さなモデルを作ると原因を追いやすくなります。</p>
 <p>製品の既存テストと保証範囲は<a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/tests/README.md">テストガイド</a>を参照してください。 </p>

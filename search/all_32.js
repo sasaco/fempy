@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['問題を再現できる形にする_0',['問題を再現できる形にする',['../md_docs_2wiki_2error-handling.html#autotoc_md38',1,'']]]
+  ['収束と履歴の扱い_0',['収束と履歴の扱い',['../md_docs_2wiki_2nonlinear-analysis.html#autotoc_md78',1,'']]],
+  ['収束履歴_1',['収束履歴',['../md_docs_2wiki_2results.html#autotoc_md102',1,'']]]
 ];

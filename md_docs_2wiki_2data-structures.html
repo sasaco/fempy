@@ -131,6 +131,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2data-structures.html','
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">密度（時間をsとする）   </td><td class="markdownTableBodyNone">F·s²/L⁴   </td><td class="markdownTableBodyNone">kg/m³   </td></tr>
 </table>
+<p>同じ物理モデルを換算する場合、座標・変位を<code>a</code>倍、力を<code>b</code>倍すると、モーメントは<code>ab</code>倍、 <code>E</code>と<code>G</code>は<code>b/a²</code>倍、面積は<code>a²</code>倍、断面二次モーメントは<code>a⁴</code>倍、密度は<code>b/a⁴</code>倍です。 並進ばねは<code>b/a</code>倍、回転ばねは<code>ab</code>倍にします。N–mからN–mmでは<code>a=1000, b=1</code>、 kN–mでは<code>a=1, b=0.001</code>です。たとえば密度7850はそれぞれ<code>7.85e-9</code>、<code>7.85</code>になります。 表示値だけ、または<code>E</code>と座標だけを変える換算は同じ物理モデルではありません。</p>
 <p>節点荷重・節点変位・反力は全体XYZ座標です。部材荷重は全体・局所のどちらかを指定します。梁の局所x軸はi端からj端へ向かい、<code>Iy</code>は局所y軸まわり、<code>Iz</code>は局所z軸まわりの曲げに使われます。</p>
 <h1><a class="anchor" id="autotoc_md2"></a>
 ルートの項目</h1>
@@ -303,7 +304,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2data-structures.html','
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>max_iterations</code>   </td><td class="markdownTableBodyRight">50   </td><td class="markdownTableBodyNone">各非線形段階の最大反復回数。正の整数。    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>tolerance</code>   </td><td class="markdownTableBodyRight">1e-6   </td><td class="markdownTableBodyNone">非線形の相対残差・変位増分の判定値。正の有限値。    </td></tr>
+<td class="markdownTableBodyNone"><code>tolerance</code>   </td><td class="markdownTableBodyRight">1e-6   </td><td class="markdownTableBodyNone">非線形の無次元な相対残差・変位増分の共通判定値。正の有限値。    </td></tr>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>load_factors</code>   </td><td class="markdownTableBodyRight">未指定   </td><td class="markdownTableBodyNone">非線形の載荷係数列。指定すると等間隔列に優先。    </td></tr>
 <tr class="markdownTableRowOdd">

@@ -98,14 +98,14 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2endpoints.html',''); in
   <div class="headertitle"><div class="title">HTTP API</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md22"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a> · <a class="el" href="md_docs_2wiki_2error-handling.html">エラーと対処</a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md23"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a> · <a class="el" href="md_docs_2wiki_2error-handling.html">エラーと対処</a></p>
 <p>HTTP APIは、Pythonの<code>FemModel</code>と同じ解析経路を使います。1回のPOSTで1つの荷重条件を解析し、結果をJSONで返します。</p>
-<h1><a class="anchor" id="autotoc_md23"></a>
+<h1><a class="anchor" id="autotoc_md24"></a>
 ローカルサーバーの起動</h1>
 <p>リポジトリ直下で次を実行します。<a class="el" href="md_docs_2wiki_2getting-started.html">環境の準備</a>が済んでいることを確認してください。</p>
 <div class="fragment"><div class="line">uv run --locked --extra dev python -m flask --app main:app run --host 127.0.0.1 --port 5000</div>
 </div><!-- fragment --><p>別のターミナルから、以降のクライアント例を実行します。例ではPython標準ライブラリを使うため、追加のHTTPクライアントライブラリは不要です。</p>
-<h1><a class="anchor" id="autotoc_md24"></a>
+<h1><a class="anchor" id="autotoc_md25"></a>
 エンドポイント</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -119,7 +119,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2endpoints.html',''); in
 </table>
 <p>通常のPOSTは<code>Content-Type: application/json</code>にします。<code>Content-Encoding</code>は省略するか<code>json</code>を指定します。</p>
 <p>CORSは<code>Access-Control-Allow-Origin: *</code>で、プリフライトではGET・POSTと、Content-Type・Content-Encoding・Authorizationなどのヘッダーを許可します。認証・レート制限はこのアプリ内には実装されておらず、Authorizationヘッダーを送るだけで認証処理が行われるわけではありません。</p>
-<h1><a class="anchor" id="autotoc_md25"></a>
+<h1><a class="anchor" id="autotoc_md26"></a>
 通常JSONで解析する</h1>
 <p><a class="el" href="md_docs_2wiki_2getting-started.html">はじめに</a>の<code>beam.json</code>をクライアントの作業ディレクトリへ保存して実行します。</p>
 <div class="fragment"><div class="line"><span class="keyword">import</span> json</div>
@@ -138,16 +138,16 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2endpoints.html',''); in
 <div class="line"><span class="keyword">assert</span> isclose(result[<span class="stringliteral">&quot;node_displacements&quot;</span>][<span class="stringliteral">&quot;2&quot;</span>][<span class="stringliteral">&quot;dy&quot;</span>], -1/750, rel_tol=1e-8)</div>
 <div class="line">print(<span class="stringliteral">&quot;先端変位 [m]:&quot;</span>, result[<span class="stringliteral">&quot;node_displacements&quot;</span>][<span class="stringliteral">&quot;2&quot;</span>][<span class="stringliteral">&quot;dy&quot;</span>])</div>
 <div class="line">print(<span class="stringliteral">&quot;支点反力:&quot;</span>, result[<span class="stringliteral">&quot;reaction_forces&quot;</span>][<span class="stringliteral">&quot;1&quot;</span>])</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md26"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md27"></a>
 入力と解析モード</h2>
 <p>POSTは編集用<code>node/member/element</code>形式と、保存用<code>nodes/elements/materials</code>形式の両方を受け付けます。ファイル名や <code>.fem</code> ファイルそのものをPOSTする仕様ではありません。</p>
 <p><code>analysis_type</code>を省略したときは、入力内の指定と非線形要素の有無から解析を選びます。詳しくは<a class="el" href="md_docs_2wiki_2elements.html">解析の選び方</a>を参照してください。<code>load_factors</code>は材料非線形の載荷係数です。</p>
 <p>編集用JSONの<code>load</code>に複数ケースがある場合は、先頭のケースだけを解析します。結果に荷重ケース名の階層は付きません。全ケースの処理は<a class="el" href="md_docs_2wiki_2examples.html">ケースごとの実行例</a>と同様に、クライアント側で1ケースずつ送ります。</p>
-<h2><a class="anchor" id="autotoc_md27"></a>
+<h2><a class="anchor" id="autotoc_md28"></a>
 成功時の結果</h2>
 <p>線形解析では<code>analysis_type</code>、<code>node_displacements</code>、<code>reaction_forces</code>、<code>element_stresses</code>などを返します。非線形解析では<code>converged</code>、<code>step_results</code>、<code>curvature</code>、<code>convergence_history</code>が加わります。固有値解析では<code>frequencies</code>、<code>periods</code>、<code>modes</code>などになります。すべての成功結果に、製品version、入力SHA-256、解析条件、座標・単位宣言、残差、反復数、警告、高精度経路をまとめた<code>metadata</code>が付きます。</p>
 <p>JSONのIDは文字列です。<code>case1.disg/reac/fsec</code>を返す旧説明とは異なります。単位・符号・任意項目は<a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a>を参照してください。</p>
-<h1><a class="anchor" id="autotoc_md28"></a>
+<h1><a class="anchor" id="autotoc_md29"></a>
 互換用の圧縮転送</h1>
 <p>通常のJSON送信から始めることを推奨します。既存クライアントとの互換用に圧縮経路もありますが、**標準HTTPのgzip転送とは異なり、要求と応答の包み方も非対称**です。</p>
 <table class="markdownTable">
@@ -182,7 +182,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2endpoints.html',''); in
 <div class="line"><span class="keyword">assert</span> isclose(result[<span class="stringliteral">&quot;reaction_forces&quot;</span>][<span class="stringliteral">&quot;1&quot;</span>][<span class="stringliteral">&quot;fy&quot;</span>], 1000, rel_tol=1e-8)</div>
 <div class="line">print(result[<span class="stringliteral">&quot;node_displacements&quot;</span>][<span class="stringliteral">&quot;2&quot;</span>])</div>
 </div><!-- fragment --><p>圧縮の選択は要求の<code>Content-Encoding</code>によります。応答サイズによる自動切替や<code>Accept-Encoding</code>との交渉はありません。成功した圧縮応答には現在<code>Content-Encoding</code>が付かず、Content-TypeもJSONのままです。クライアントは自分が選んだ要求方式に合わせて復号します。</p>
-<h1><a class="anchor" id="autotoc_md29"></a>
+<h1><a class="anchor" id="autotoc_md30"></a>
 エラー応答</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -228,7 +228,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2endpoints.html',''); in
 <div class="line">    <span class="keyword">assert</span> body[<span class="stringliteral">&quot;converged&quot;</span>] <span class="keywordflow">is</span> <span class="keyword">False</span></div>
 <div class="line">    print(error.code, body[<span class="stringliteral">&quot;error&quot;</span>])</div>
 </div><!-- fragment --><p>特異な静解析モデルは<code>structural_mechanism</code>、非線形反復で同じ状態へ到達した場合は <code>nonlinear_nonconvergence</code>になることがあります。後者は反復中に機構の原因を確定できないためです。 <a class="el" href="md_docs_2wiki_2error-handling.html">エラーと対処</a>の手順でモデル条件を確認してください。</p>
-<h1><a class="anchor" id="autotoc_md30"></a>
+<h1><a class="anchor" id="autotoc_md31"></a>
 運用上の挙動</h1>
 <p>POSTは同期処理です。ジョブIDの発行、進捗取得、キャンセル用エンドポイントはありません。クライアントがタイムアウトしても、サーバー側で計算が停止したことを意味しません。環境の処理時間・メモリ制約は、ライブラリの固定上限とは別に確認してください。 </p>
 </div></div><!-- contents -->

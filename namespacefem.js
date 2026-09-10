@@ -5,6 +5,12 @@ var namespacefem =
     [ "beam_equilibrium", "namespacefem_1_1beam__equilibrium.html", null ],
     [ "boundary_condition", "namespacefem_1_1boundary__condition.html", "namespacefem_1_1boundary__condition" ],
     [ "capabilities", "namespacefem_1_1capabilities.html", "namespacefem_1_1capabilities" ],
+    [ "convergence", "namespacefem_1_1convergence.html", [
+      [ "characteristic_length", "namespacefem_1_1convergence.html#aa33e7bdce0d3acca11b0b112a45305c7", null ],
+      [ "generalized_displacement_norm", "namespacefem_1_1convergence.html#a12cafea859df4723e495ad06068035cc", null ],
+      [ "generalized_force_norm", "namespacefem_1_1convergence.html#afe95e7dcf53d7dbdf79de9b76cba4240", null ],
+      [ "relative_measure", "namespacefem_1_1convergence.html#a033ef8ab2018440fc080f17d57ca3a05", null ]
+    ] ],
     [ "decimal_bvp", "namespacefem_1_1decimal__bvp.html", [
       [ "solve", "namespacefem_1_1decimal__bvp.html#a2d346eea7b0d26f26031063efca345c9", null ]
     ] ],
