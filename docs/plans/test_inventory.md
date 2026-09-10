@@ -1,6 +1,6 @@
 # 現行テスト台帳
 
-2026-09-10。65ファイル・383関数定義・2,023展開ケース。`material_nonlinear` markerは909ケース。一般FEMの修復に加え、PQ-01〜10の固有値、配布、機能表、VTK、診断、メッシュ収束、単位不変性の検証を反映した。関数数とパラメータ展開数を混同しない。
+2026-09-10。66ファイル・386関数定義・2,026展開ケース。`material_nonlinear` markerは909ケース。一般FEMの修復に加え、PQ-01〜10・PQ-12の固有値、配布、機能表、VTK、診断、メッシュ収束、単位不変性、性能計測契約を反映した。関数数とパラメータ展開数を混同しない。
 
 [項目表](test_items.md) / [実行方法](../../tests/README.md) / [移行・統合記録](../report/test-reorganization.md)。整理前の全 264 関数・112 ファイルの移管先と hash は [機械可読な移行記録](../report/test-reorganization-evidence.json) にある。
 
@@ -62,6 +62,7 @@
 | [solvers/test_nonlinear.py](../../tests/solvers/test_nonlinear.py) | 9 | 15 | unit |
 | [solvers/test_unification.py](../../tests/solvers/test_unification.py) | 16 | 21 | unit |
 | [validation/test_mesh_convergence.py](../../tests/validation/test_mesh_convergence.py) | 4 | 4 | oracle |
+| [validation/test_performance.py](../../tests/validation/test_performance.py) | 3 | 3 | integration |
 | [validation/test_plane_frame_series.py](../../tests/validation/test_plane_frame_series.py) | 8 | 197 | oracle |
 | [validation/test_provenance.py](../../tests/validation/test_provenance.py) | 6 | 13 | oracle |
 | [validation/test_shell_variational.py](../../tests/validation/test_shell_variational.py) | 5 | 16 | oracle |
@@ -889,6 +890,16 @@ JR K4負勾配の保存変位制御履歴と参照改変拒否。
 | `test_distortion_and_aspect_sweeps_remain_within_measured_scope` | 1 |
 | `test_mitc4_thickness_sweep_has_no_shear_locking_in_strip_problem` | 1 |
 | `test_hexa8_nearly_incompressible_stress_and_energy_are_an_explicit_limit` | 1 |
+
+### validation/test_performance.py
+
+小規模smoke model、位相・メモリschema、同一環境回帰判定、保存済み13 workload baseline。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_smoke_profile_covers_phases_and_workload_dimensions` | 1 |
+| `test_regression_gate_rejects_environment_workload_and_limit_changes` | 1 |
+| `test_committed_baseline_covers_all_pq12_dimensions` | 1 |
 
 ### validation/test_unit_invariance.py
 

@@ -16,7 +16,9 @@ uv run --locked --extra dev python -m tools.validation.check_test_results
 
 現在の既知失敗は0件で、全件実行の成功条件はpytest終了コード0。最後のコマンドは全件を実行し、保存サンプルの失敗 ID・数値不一致件数・例外理由を [既知失敗](regression/known_failures.json) と照合する。新規失敗、別の失敗理由、skip、収集不足、解消した失敗を検出すると照合も失敗する。解消時は原因を確認して基準を更新する。基準に失敗が残る場合、照合成功を全テスト成功と呼ばない。
 
-2026-09-09の全件実行は1,886件中1,863成功・23失敗。その後ユーザーが `bar/3D_Sample01` の支持を変更し、残る23件も成功した。最新の検証は対象モデルと関連118件が成功、全体の収集は1,911件。[支持変更後の検証記録](../docs/report/general-fem-support01-20260909.md)を参照。
+2026-09-10のPQ-12完了時は2,026件すべてが成功し、failure 0、error 0、skip 0だった。
+JUnit実測は1,265.754秒。最新の件数・保証範囲と、過去の基準からの変更理由は
+[現行台帳](../docs/plans/test_inventory.md)と[PQ-12報告](../docs/report/product-quality-pq12.md)を参照する。
 
 ログ、JUnit、生の pytest 終了コード、環境、入力 hash は `tmp/test-results/` に残る。[CI](../.github/workflows/tests.yml) は材料非線形の成功と全件の基準一致を別 job で確認し、生の結果を artifact に保存する。
 
@@ -38,7 +40,7 @@ uv run --locked --extra dev python -m tools.validation.check_test_results
 | `support/assertions.py` | 再帰比較・期待値との照合。製品解析を呼ばない |
 | `support/repairs` | 入力同一性を検証する純粋な修復関数 |
 
-`unit / integration / regression / oracle` のいずれかを主 marker にする。`material_nonlinear` は検証済みの範囲指定（現在 857 ケース、応答曲率出力37ケースと共通ソルバー契約21ケースを含む）であり、単に材料非線形を扱う全テストという意味ではない。`slow` と `requires_node` は資源条件を表す。依存がない環境で自動的に skip しない。たとえば `-m "not requires_node and not slow"` は明示的な部分実行になる。
+`unit / integration / regression / oracle` のいずれかを主 marker にする。`material_nonlinear` は検証済みの範囲指定（現在909ケース）であり、単に材料非線形を扱う全テストという意味ではない。`slow` と `requires_node` は資源条件を表す。依存がない環境で自動的に skip しない。たとえば `-m "not requires_node and not slow"` は明示的な部分実行になる。
 
 名前は `test_<機能・振る舞い>` にする。`phase4`、`v0` など時期・当時の内部呼称を新しいテスト／補助モジュール名に使わない。`test_*.py` 同士を import しない。製品 import は wheel と同じ `fem` / `app` に統一し、sys.path 操作は各テストに置かない。
 
@@ -58,7 +60,11 @@ uv run --locked --extra dev python -m tools.validation.audit_cantilever --output
 uv run --locked --extra dev python -m tools.validation.audit_solid_supports --output tmp/support-audit.json
 uv run --locked --extra dev python -m tools.validation.check_cantilever_reference --check
 uv run --locked --extra dev python -m tools.debug.execute_model tests/data/snap/beam001.json --output-dir tmp/model-output
+uv run --locked --extra dev python -m tools.validation.performance --profile baseline --repeats 5 --warmups 1 --output tmp/performance.json
 ```
+
+性能計測は通常pytestの時間閾値と分離する。同じCPU・OS・Python・NumPy・SciPy・thread設定でのみ
+保存baselineと比較し、異なる環境では新しいartifactとして記録する。
 
 `tools/debug/execute_model.py --gui` は Flet 画面を開く。手動出力の既定先は `tmp/model-output`、解析種別は入力の指定に従う。VTK 生成例は [docs/examples](../docs/examples/) に保管し、pytest の検証証拠とは扱わない。
 

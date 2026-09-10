@@ -117,6 +117,15 @@ uv run --locked --extra dev pytest tests
 uv run --locked --extra dev python -m tools.validation.check_wiki
 ```
 
+性能は節点数だけでなく、自由度数、疎行列の非ゼロ数、荷重case数、材料非線形の履歴step数、
+結果量、実行環境で変わります。固定した小／中／大workloadの再現手順と実測値は
+[PQ-12性能基準・計測報告](docs/report/product-quality-pq12.md)にあります。記載した最大規模は
+製品上限ではありません。通常試験とは分離した専用計測は次で実行できます。
+
+```bash
+uv run --locked --extra dev python -m tools.validation.performance --profile baseline --repeats 5 --warmups 1 --output tmp/performance.json
+```
+
 検証範囲と最新の結果は、[テスト保証範囲](docs/plans/test_items.md)、
 [テスト台帳](docs/plans/test_inventory.md)、[品質ロードマップ](docs/plans/product-quality-roadmap.md)、
 および[検証報告](docs/report/)を参照してください。

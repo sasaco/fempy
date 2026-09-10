@@ -6,11 +6,11 @@
 
 ## 結論
 
-PQ-00〜03・PQ-05〜10は完了した。PQ-04はユーザー判断で保留し、段階2は未完了のまま維持する。
+PQ-00〜03・PQ-05〜10・PQ-12は完了した。PQ-04はユーザー判断で保留し、段階2は未完了のまま維持する。
 段階3「利用時の信頼性」では、機械可読な機能対応表、未対応組合せの解析前拒否、
 検証済みLegacy VTK出力、安定した解析診断と結果メタデータを実装した。段階4では
 PQ-09のメッシュ誤差と適用範囲、PQ-10の単位不変な非線形収束判定を完了した。
-PQ-11は実験資料待ちのため、次の実行可能項目はPQ-12の性能基準と計測である。
+PQ-11は実験資料待ちである。これで外部接続または資料を必要としないロードマップ項目は完了した。
 
 ## 今回完了した内容
 
@@ -109,6 +109,19 @@ PQ-11は実験資料待ちのため、次の実行可能項目はPQ-12の性能�
 
 詳細: [PQ-10単位換算・収束判定報告](../report/product-quality-pq10.md)
 
+### PQ-12: 性能基準と計測
+
+- 通常梁、シェル、ソリッドの小／中／大、材料非線形5／20／50 stepを測定した。
+- 通常梁と分けて高精度梁を測り、高精度経路へ入った解析回数も保存した。
+- 13 workloadについてDOF、nnz、荷重case、履歴step、位相別時間、Python peak、RSSを記録した。
+- 1 thread、warmup 1回、5反復中央値の環境付きbaseline JSONを保存した。
+- 同じ環境fingerprint・workloadだけを実測ばらつき由来の閾値へ比較するCLIを追加した。
+- 通常pytestは時間閾値を使わず、smoke model、schema、保存baseline、比較器の契約を検査する。
+- 最大位相は、通常梁が組立、高精度梁が求解、シェルが後処理、材料非線形が反復組立だった。
+- 製品コードの最適化・cacheは行わず、性能基準を先に固定した。
+
+詳細: [PQ-12性能基準・計測報告](../report/product-quality-pq12.md)
+
 ### PQ-00: clean checkoutの追補
 
 `ebd64ea`単体の全件実行は`1924 passed, 2 failed`だった。2失敗は
@@ -142,9 +155,9 @@ Wikiチェッカーは13ページ、Python 18ブロック、JSON 17ブロック�
 
 ## 共有作業ツリーの注意
 
-PQ-10開始時は`main`の`b3d33d9`で作業ツリーはclean、`origin/main`より1コミット先行していた。
-今回の変更は一般化収束ノルム、ソルバー・結果メタデータ、単位換算検証器と試験、README／Wiki、
-ロードマップ／引継ぎ／報告に限定した。commit、pushは行っていない。
+PQ-12開始時は`main`の`1057788`で作業ツリーはclean、`origin/main`より2コミット先行していた。
+今回の変更は性能計測器、その契約試験、保存baseline、README、テスト保証範囲、
+ロードマップ／引継ぎ／報告に限定した。製品ソルバーは変更していない。commit、pushは行っていない。
 次回開始時も`git status --short`と`git diff`を取り直し、他セッションの変更をstash、reset、整形、
 commitしない。
 
@@ -247,11 +260,31 @@ uv run --locked --extra dev pytest --junitxml=tmp/product-quality-pq10-current.x
 - 材料骨格、断面、密度、荷重・モーメント、並進・回転ばね、曲率を一貫換算
 - 詳細値は[PQ-10報告](../report/product-quality-pq10.md)と生成JSONに記録
 
-## 次項目: PQ-12
+## PQ-12集中検証
 
-PQ-04は外部接続判断で保留、PQ-11は実験資料待ちのまま、実行可能なPQ-12へ進む。
-小・中・大モデルについて、組立、求解、後処理、VTK、保存、メモリを分けて再現可能に測定する。
-正しさの試験を維持したまま基準値・回帰判定・環境情報を定義し、測定前に最適化を始めない。
+```powershell
+$env:OMP_NUM_THREADS='1'
+$env:OPENBLAS_NUM_THREADS='1'
+$env:MKL_NUM_THREADS='1'
+$env:NUMEXPR_NUM_THREADS='1'
+uv run --locked --extra dev pytest tests/validation/test_performance.py -q
+uv run --locked --extra dev pytest --junitxml=tmp/product-quality-pq12-current.xml
+```
+
+- 性能契約3件、PQ-09／PQ-10を含む集中12件が成功
+- 全件2,026成功、failure 0、error 0、skip 0、終了コード0
+- JUnit実測1,265.754秒（21分06秒）
+- Wiki 13ページ、Python 21 block、JSON 17 block、実行例18件が成功
+- baselineは13 workload、warmup 1回、各5反復、4種のthread環境変数を1へ固定
+- tool SHA-256、完全commit hash、dirty状態をbaseline provenanceへ保存
+
+## 残る項目
+
+- PQ-04: GitHubの`pypi` environmentとPyPI Trusted Publisherを設定し、commit／push後の
+  workflow runと未使用versionのtag公開を確認する。ユーザー判断で保留中。
+- PQ-11: GF-06の実験資料を受領後、入力同一性、単位、境界条件、材料較正、独立比較を進める。
+- PQ-12後続候補: シェル後処理と材料非線形の反復組立をprofileし、正しさを維持できる変更だけを
+  baselineと比較する。これはPQ-12完了条件ではなく、計測から得た継続改善候補である。
 
 ## 維持する品質ルール
 
