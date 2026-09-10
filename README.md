@@ -142,6 +142,7 @@ uv run --locked --extra dev python -m tools.validation.performance --profile bas
 - [入力データ](docs/wiki/data-structures.md)
 - [実行例](docs/wiki/examples.md)
 - [結果の読み方](docs/wiki/results.md)
+- [設計実務での利用手順](docs/wiki/design-practice.md)
 - [エラーと対処](docs/wiki/error-handling.md)
 
 ## ライセンス

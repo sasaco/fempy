@@ -1,12 +1,15 @@
 # 結果の読み方
 
-[Wikiホーム](index.md) · [モデルの入力](data-structures.md) · [材料非線形解析](nonlinear-analysis.md)
+[Wikiホーム](index.md) · [モデルの入力](data-structures.md) · [材料非線形解析](nonlinear-analysis.md) · [実務チェック](design-practice.md)
 
 まず節点変位と支点反力を確認し、次に梁の端力やシェル・ソリッドの応力を読みます。入力と同じ単位系で返り、変位をmm、回転をミリラジアンへ自動変換する処理はありません。
 
 線荷重・面荷重の解析では`spatial_load_contribution`に荷重配分と保存性監査を、
 `element_nodal_equilibrium_forces`にシェルの全体座標での`K_e u_e - f_e`を追加します。
 既存の応力・断面合力との違いは[線荷重・面荷重の出力](spatial-loads.md)を参照してください。
+
+設計値へ採用する場合は、反力との釣合い、評価位置、メッシュ感度、独立計算、保存すべき再現情報を
+[設計実務での利用手順](design-practice.md)に沿って確認してください。
 
 ## PythonとJSONの違い
 

@@ -1,8 +1,9 @@
 # クイックリファレンス
 
-[Wikiホーム](index.md) · [モデルの入力](data-structures.md) · [Python API](python-api.md) · [結果の読み方](results.md)
+[Wikiホーム](index.md) · [モデルの入力](data-structures.md) · [Python API](python-api.md) · [結果の読み方](results.md) · [実務チェック](design-practice.md)
 
 日常的に使う指定とアクセス方法をまとめています。初回は[片持ち梁の例](getting-started.md)から始めてください。
+設計計算へ採用する前の釣合い、メッシュ感度、独立計算、保存資料は[設計実務での利用手順](design-practice.md)で確認します。
 
 ## 解析を選ぶ
 
