@@ -269,11 +269,19 @@ def test_noop_on_skeleton_reports_active_partial_Nd_derivative():
     assert response.moment_Nd_derivative == pytest.approx(-5.5)
 
 
-def test_moving_reload_start_is_explicitly_unsupported_not_silently_frozen():
+def test_moving_reload_start_uses_current_target_and_requires_its_identity():
     material = table()
     initial = experienced(material, [.002, -.0001])
     saved = deepcopy(initial)
     assert initial.history.branch == 'reloading'
+    response = hold(material, initial, .4)
+    # Zero=.0008, target=(-.001,-10*(1-.5Nd)); at phi=-.0001,
+    # M=-5*(1-.5Nd), not the frozen previous force -5.
+    assert response.moment == pytest.approx(-4.)
+    assert response.moment_Nd_derivative == pytest.approx(2.5)
+    assert initial == saved
+    initial.history.active_segment.target = None
+    saved = deepcopy(initial)
     with pytest.raises(UnsupportedAnalysisError) as failure:
         hold(material, initial, .4)
     assert failure.value.details['reason'] == 'axial_force_hold_moving_target'

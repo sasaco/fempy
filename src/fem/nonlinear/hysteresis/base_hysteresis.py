@@ -9,6 +9,21 @@ from abc import ABC, abstractmethod
 import copy
 
 
+@dataclass(frozen=True)
+class JRReloadTarget:
+    """Target identity fixed when a return path is created.
+
+    ``experienced`` means the actual segment endpoint, not its projection on
+    a later skeleton. ``skeleton`` uses the experienced curvature and the
+    reversal's virgin-side threshold. ``forward`` extends the frozen unload.
+    """
+    kind: str
+    side: int
+    experienced_curvature: float = 0.
+    threshold: int = 1
+    unloading_stiffness: float = 0.
+
+
 @dataclass
 class HysteresisSegment:
     """Fixed affine branch and its continuation at an exact event point.
@@ -29,6 +44,7 @@ class HysteresisSegment:
     # Reloading remembers the incoming unload so reversal exactly at P=0
     # retraces it. A tuple avoids a cyclic next/reverse segment graph.
     unloading_origin: Optional[Tuple[float, float, float]] = None
+    target: Optional[JRReloadTarget] = None
 
 
 @dataclass

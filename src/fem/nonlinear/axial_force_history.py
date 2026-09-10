@@ -3,7 +3,7 @@
 This pure local operation follows an initially fixed unloading/retracing line
 or the skeleton through an Nd path. It is a building block for the coupled
 history integrator, not a general simultaneous curvature/Nd update. Moving
-reload targets require additional path metadata and are explicitly rejected.
+reloads use explicit target identities and the companion reload-hold adapter.
 
 Within an Nd row and skeleton segment, M_b = Q(t)/W(t), where Q is quadratic
 and W is positive affine. All intersections and turning points are obtained
@@ -163,10 +163,9 @@ def evaluate_axial_force_hold(table: AxialForceTable, committed: AxialForceHisto
                               Nd: float) -> AxialForceHoldResponse:
     """Advance Nd monotonically at exactly the committed curvature.
 
-    Supported starts: skeleton/initial, fixed unloading/inner-unloading,
-    retracing, and sustained envelope contact. An invariant table preserves
-    all JR branches exactly. General moving-target reloads are not yet part
-    of this kernel and raise a structured unsupported diagnostic.
+    Supported starts include fixed return lines and explicitly identified
+    moving reload targets. An invariant table preserves all JR branches.
+    This operation does not trace curvature or resume an internal loop.
 
     Contact supersedes the intercepted return path. Departure creates a new
     unload with the departure Nd and experienced extrema, then holds its Kd.
@@ -187,13 +186,21 @@ def evaluate_axial_force_hold(table: AxialForceTable, committed: AxialForceHisto
         raise InputValidationError('Contact metadata must agree with the history branch')
     contact = committed.contact_side is not None
     invariant = _has_constant_skeleton(table, committed.Nd, Nd)
+    segment = history.active_segment
+    reload = segment is not None and history.branch in ('reloading', 'inner_reloading')
+    if reload and segment.target is not None and segment.target.kind in ('skeleton', 'forward'):
+        # The zero-length response still has a nonzero Nd sensitivity.
+        if Nd == committed.Nd or not invariant:
+            from .axial_force_reload_hold import evaluate_reload_hold
+            return evaluate_reload_hold(table, committed, Nd)
     if Nd == committed.Nd or invariant:
         derivative = 0.
         if Nd == committed.Nd and (contact or history.active_segment is None):
             derivative = table.evaluate_skeleton(curvature, Nd, side=side).moment_Nd_derivative
         state = AxialForceHistoryState(Nd, history, committed.contact_side, committed.contact_segment)
         return AxialForceHoldResponse(state, history.current_P, history.current_K, derivative, ())
-    if history.active_segment is not None and history.branch not in ('unloading', 'inner_unloading', 'retracing'):
+    fixed_return = reload and segment.target is not None and segment.target.kind == 'experienced'
+    if segment is not None and history.branch not in ('unloading', 'inner_unloading', 'retracing') and not fixed_return:
         raise UnsupportedAnalysisError('Moving reload targets require the coupled history integrator',
                                        reason='axial_force_hold_moving_target', branch=history.branch)
     skeleton = history.active_segment is None and not contact
@@ -240,6 +247,15 @@ def evaluate_axial_force_hold(table: AxialForceTable, committed: AxialForceHisto
                 if abs(gap(endpoint)) <= 8*_EPS*scale:
                     candidates.append(endpoint)
             candidates = [root for root in candidates if _enters_positive(gap, root)]
+            if any(abs(root-1) <= 32*_EPS for root in candidates):
+                limit = table.rows[-1].Nd if Nd > committed.Nd else table.rows[0].Nd
+                if right != limit:
+                    _, _, _, next_q, next_w = next(_pieces(table, curvature, right, limit, side))
+                    if not _enters_positive(side*(current_moment*next_w-next_q), 0.):
+                        # The outgoing row can turn back inside at this
+                        # corner. Do not create a contact/departure pair just
+                        # from extrapolating the incoming row beyond its end.
+                        candidates = [root for root in candidates if abs(root-1) > 32*_EPS]
             if candidates:
                 root = min(candidates)
                 current_moment = envelope(root)

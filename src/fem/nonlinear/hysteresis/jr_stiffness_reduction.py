@@ -7,7 +7,7 @@ from dataclasses import dataclass, fields
 from math import isfinite, isclose
 from typing import Optional
 
-from .base_hysteresis import BaseHysteresis, HysteresisState, HysteresisSegment
+from .base_hysteresis import BaseHysteresis, HysteresisState, HysteresisSegment, JRReloadTarget
 
 
 @dataclass
@@ -251,13 +251,19 @@ class JRStiffnessReductionModel(BaseHysteresis):
             target_x, target_p = s.reversal_stack[-2]
             continuation = s.reversal_paths[-2]
             restore_depth = len(s.reversal_stack)-2
+            target = JRReloadTarget('experienced', direction, unloading_stiffness=kd)
         else:
             target_x, target_p = self.get_target_point(direction, s)
             continuation, restore_depth = None, 0
+            source_max = getattr(s, f'delta_max_{self._side(-direction)}')
+            threshold = 2 if source_max > self._value('delta_2', -direction) else 1
+            target = JRReloadTarget('skeleton', direction,
+                                    getattr(s, f'delta_max_{self._side(direction)}'), threshold, kd)
         if direction*(target_x-zero) <= 0:
             # No forward, positive-slope connection to that target is possible.
             target_x, target_p = self._forward_intersection(zero, kd, direction)
             continuation, restore_depth = None, 0
+            target = JRReloadTarget('forward', direction, unloading_stiffness=kd)
         reload_k = target_p/(target_x-zero)
         if not all(isfinite(v) for v in (zero, target_x, reload_k)) or reload_k <= 0:
             raise ValueError('Invalid JR reloading geometry')
@@ -266,7 +272,7 @@ class JRStiffnessReductionModel(BaseHysteresis):
             zero, 0., target_x, target_p, reload_k,
             'inner_reloading' if inner else 'reloading',
             next_segment=continuation, restore_depth=restore_depth,
-            reverse_segment=old, origin_depth=depth, unloading_origin=(x, p, kd))
+            reverse_segment=old, origin_depth=depth, unloading_origin=(x, p, kd), target=target)
         s.active_segment = HysteresisSegment(
             x, p, zero, 0., kd, 'inner_unloading' if inner else 'unloading',
             next_segment=reload, reverse_segment=old, origin_depth=depth)
