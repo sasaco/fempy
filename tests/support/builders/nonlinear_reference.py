@@ -71,6 +71,10 @@ def solve(data, route):
         )
         for key, elem in data["member"].items():
             m.add_nonlinear_bar_element(int(key), [elem["ni"], elem["nj"]], 1, 1, nl["hysteresis_dofs"])
+            # Match the legacy input's documented G-omission convention, now
+            # observable in the accepted condensed shear coefficient too.
+            m.mesh.elements[int(key)]["shear_correction"] = elem.get(
+                "shear_correction", "G" in data["element"]["1"]["1"])
         for load in data["load"]["1"]["load_node"]:
             m.boundary.add_load(
                 int(load["n"]), [load.get(k, 0) for k in ("tx", "ty", "tz", "rx", "ry", "rz")]

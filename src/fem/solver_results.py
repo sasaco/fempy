@@ -133,6 +133,10 @@ def build_result_metadata(model, analysis_type):
         "input_sha256": hashlib.sha256(canonical).hexdigest(),
         "analysis": {
             "type": analysis_type,
+            **({'beam_formulation': 'jr_updated_inertia_v1'}
+               if analysis_type == 'material_nonlinear' and any(
+                   getattr(e, 'committed_bending_states', {}) for e in model.elements.values()
+               ) else {}),
             "parameters": _effective_analysis_parameters(
                 analysis_type, model.analysis_params
             ),
@@ -179,6 +183,10 @@ def snapshot(solver, mesh, boundary, elements, solution, force, step, factor, no
     if nonlinear:
         result['element_stresses'] = solver._element_end_forces(elements, u, solver.layout.stride)
         result['curvature'] = solver._element_curvatures(elements, u, solver.layout.stride)
+        result['section_response'] = {
+            key: element.get_section_response() for key, element in elements.items()
+            if getattr(element, 'committed_bending_states', {})
+        }
     elif correction is not None:
         result['displacement_correction'] = correction.copy()
         if getattr(solver, 'interpolated_displacements', {}):
@@ -210,7 +218,8 @@ def final_result(solver, nonlinear):
     if nonlinear:
         # The historical low-level result has no final element_stresses key;
         # FemModel consumes the accepted end-force snapshot during postprocess.
-        keys = ('displacement', 'node_displacements', 'reaction_forces', 'curvature', 'converged')
+        keys = ('displacement', 'node_displacements', 'reaction_forces', 'curvature',
+                'section_response', 'converged')
         if last.get('control_mode') == 'displacement':
             keys += ('lambda', 'control_mode', 'control_node', 'control_dof',
                      'control_displacement')

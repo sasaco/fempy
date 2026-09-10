@@ -39,8 +39,25 @@ def test_nonuniform_bending_discrete_compliance_and_continuum_limit(n):
         moment <= 10, moment / 10000, np.where(moment <= 16, (moment - 8) / 2000, (moment - 12) / 1000)
     )
     theta_discrete = h * np.sum(kappa)
-    v_discrete = h * np.dot(t, kappa) + p * length / ga + n * p * h**3 / (12 * ei)
     d = configuration("moment_z", n=n, force=0)
+    # The accepted path connects the section deformations by straight lines.
+    # Equilibrium fixes M=Q*t and V=Q at each endpoint. On a load increment,
+    # delta_s=delta_Q/C_mean, with curvature-weighted C_mean over crossed
+    # branches. This independently replaces the old fixed-C compliance.
+    n_steps = d["load"]["1"]["n_load_steps"]
+    shear = np.zeros(n)
+    previous = np.zeros(n)
+    for step in range(1, n_steps+1):
+        m = p*step/n_steps*t
+        current = np.where(m <= 10, m/ei, np.where(m <= 16, (m-8)/2000, (m-12)/1000))
+        integral = np.zeros(n)
+        for lower, upper, slope in [(0., .001, ei), (.001, .004, 2000.), (.004, .01, 1000.)]:
+            width = np.maximum(0., np.minimum(current, upper)-np.maximum(previous, lower))
+            c = 12*slope*ga/(12*slope+ga*h*h)
+            integral += c*width
+        shear += (p/n_steps)*(current-previous)/integral
+        previous = current
+    v_discrete = h*np.dot(t, kappa)+h*np.sum(shear)
     d["load"]["1"]["load_node"] = [dict(n=10 + 20 * n, ty=p)]
     r = solve(d, "json")
     tip = r["node_displacements"][str(10 + 20 * n)]

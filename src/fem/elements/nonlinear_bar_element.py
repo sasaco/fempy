@@ -1,7 +1,7 @@
 """Small-displacement beam with midpoint section hysteresis (manual 7.21).
 
 Section laws act on strain/curvature, not nodal motion or hinge rotation.
-Elastic shear modes retain the reference Timoshenko coefficients.
+Active bending laws update condensed shear increments from their JR tangents.
 """
 from typing import Dict, List, Optional
 import copy
@@ -12,6 +12,8 @@ from .bar_element import TBarElement
 from ..nonlinear.hysteresis import (
     HysteresisState, JRStiffnessReductionParams, JRStiffnessReductionModel,
 )
+from ..nonlinear.beam_section_response import BendingPlaneState, evaluate_bending_plane
+from ..diagnostics import NumericalConditionError
 
 
 class NonlinearBarElement(TBarElement):
@@ -33,9 +35,13 @@ class NonlinearBarElement(TBarElement):
         self.hysteresis_models: Dict[str, JRStiffnessReductionModel] = {}
         self.current_states: Dict[str, Dict[str, HysteresisState]] = {}
         self.committed_states: Dict[str, Dict[str, HysteresisState]] = {}
+        self.current_bending_states: Dict[str, BendingPlaneState] = {}
+        self.committed_bending_states: Dict[str, BendingPlaneState] = {}
         # (global displacement, local nodal resisting force)
         self._trial_response = None
         self._committed_response = None
+        self._trial_section_response = {}
+        self._committed_section_response = {}
 
     def get_name(self) -> str:
         return 'nonlinear_bar'
@@ -48,7 +54,12 @@ class NonlinearBarElement(TBarElement):
         self.hysteresis_models[dof] = model
         self.current_states[dof] = {'center': model.create_initial_state()}
         self.committed_states[dof] = {'center': model.create_initial_state()}
+        if dof in ('moment_y', 'moment_z'):
+            self.current_bending_states[dof] = BendingPlaneState.initial(model)
+            self.committed_bending_states[dof] = BendingPlaneState.initial(model)
         self._trial_response = self._committed_response = None
+        self._trial_section_response = {}
+        self._committed_section_response = {}
 
     def _section_operators(self):
         """Return constant B and reference rigidities for e = B q_local.
@@ -92,25 +103,67 @@ class NonlinearBarElement(TBarElement):
         if u.shape != (12,) or not np.all(np.isfinite(u)):
             raise ValueError('Expected 12 finite element displacements')
         t = self.get_transformation_matrix(12)
-        b, tangent = self._section_operators()
+        b, rigidities = self._section_operators()
         deformation = b @ (t @ u)
-        p = tangent * deformation
+        p = rigidities * deformation
+        tangent = np.diag(rigidities)
         states = {}
+        bending_states = {}
+        section_response = {}
         for row, dof in enumerate(self.DOF_MAPPING):
             if dof not in self.hysteresis_models:
                 continue
             model = self.hysteresis_models[dof]
+            if dof in ('moment_y', 'moment_z'):
+                shear_row = 5 if dof == 'moment_y' else 4
+                correction = self.bar_param.kappa_z if shear_row == 5 else self.bar_param.kappa_y
+                material = self.material.materials[self.material_id]
+                ga = correction*material.G*self.bar_param.area if self.shear_correction else None
+                try:
+                    response = evaluate_bending_plane(
+                        model, self.committed_bending_states[dof],
+                        deformation[row], deformation[shear_row], length=self.length,
+                        young_modulus=material.E, shear_rigidity=ga)
+                except NumericalConditionError as error:
+                    error.details.update(element_id=self.element_id, axis=dof[-1])
+                    raise
+                indices = [row, shear_row]
+                p[indices] = [response.state.moment, response.state.shear_force]
+                tangent[np.ix_(indices, indices)] = response.tangent
+                bending_states[dof] = response.state
+                states[dof] = {'center': response.state.history.copy()}
+                section_response[dof[-1]] = {
+                    'curvature': response.state.curvature, 'moment': response.state.moment,
+                    'shear_deformation': response.state.shear_deformation,
+                    'shear_force': response.state.shear_force,
+                    'bending_tangent': response.bending_tangent,
+                    'effective_inertia': response.effective_inertia,
+                    'shear_coefficient': response.shear_coefficient,
+                    'branch': response.state.history.branch,
+                    'skeleton': {
+                        side: [[getattr(model.params, f'delta_{i}_{side}'),
+                                getattr(model.params, f'P_{i}_{side}')]
+                               for i in (1, 2, 3, 4)
+                               if getattr(model.params, f'delta_{i}_{side}') is not None]
+                        for side in ('pos', 'neg')
+                    },
+                }
+                continue
             state = self.committed_states[dof]['center'].copy()
-            p[row], tangent[row], info = model.get_force_and_stiffness(deformation[row], state)
+            p[row], tangent[row, row], info = model.get_force_and_stiffness(deformation[row], state)
             states[dof] = {'center': model.update_state(
-                deformation[row], p[row], tangent[row], state, info)}
+                deformation[row], p[row], tangent[row, row], state, info)}
         f_local = self.length * b.T @ p
-        k_local = self.length * b.T @ (tangent[:, None] * b)
-        return f_local, t.T @ k_local @ t, states
+        k_local = self.length * b.T @ tangent @ b
+        for values in section_response.values():
+            values.update(N=float(p[0]), Nd=float(-p[0]))
+        return f_local, t.T @ k_local @ t, states, bending_states, section_response
 
     def get_internal_force(self, displacement: np.ndarray) -> np.ndarray:
-        f_local, _, states = self._evaluate(displacement)
+        f_local, _, states, bending_states, section_response = self._evaluate(displacement)
         self.current_states = states
+        self.current_bending_states = bending_states
+        self._trial_section_response = section_response
         self._trial_response = (np.array(displacement, copy=True), f_local.copy())
         return self.get_transformation_matrix(12).T @ f_local
 
@@ -132,7 +185,13 @@ class NonlinearBarElement(TBarElement):
 
     def commit_state(self) -> None:
         self.committed_states = copy.deepcopy(self.current_states)
+        self.committed_bending_states = copy.deepcopy(self.current_bending_states)
         self._committed_response = copy.deepcopy(self._trial_response)
+        self._committed_section_response = copy.deepcopy(self._trial_section_response)
+
+    def get_section_response(self):
+        """Accepted central bending response, without re-evaluating history."""
+        return {'center': copy.deepcopy(self._committed_section_response)}
 
     def calculate_curvature(self, displacement: np.ndarray) -> Dict[str, float]:
         """Midpoint total curvature about local y/z (1/m), without history changes.
@@ -149,7 +208,9 @@ class NonlinearBarElement(TBarElement):
 
     def rollback_state(self) -> None:
         self.current_states = copy.deepcopy(self.committed_states)
+        self.current_bending_states = copy.deepcopy(self.committed_bending_states)
         self._trial_response = copy.deepcopy(self._committed_response)
+        self._trial_section_response = copy.deepcopy(self._committed_section_response)
 
     def reset_states(self) -> None:
         self.committed_states = {
@@ -157,7 +218,15 @@ class NonlinearBarElement(TBarElement):
             for dof, model in self.hysteresis_models.items()
         }
         self.current_states = copy.deepcopy(self.committed_states)
+        self.committed_bending_states = {
+            dof: BendingPlaneState.initial(model)
+            for dof, model in self.hysteresis_models.items()
+            if dof in ('moment_y', 'moment_z')
+        }
+        self.current_bending_states = copy.deepcopy(self.committed_bending_states)
         self._trial_response = self._committed_response = None
+        self._trial_section_response = {}
+        self._committed_section_response = {}
 
     def get_hysteresis_state(self, dof: str) -> Optional[Dict[str, HysteresisState]]:
         """Return a snapshot of the candidate central section state."""

@@ -8,10 +8,10 @@ def cantilever_reference(data, factor=1.0):
     For each element, invert the monotonic skeleton at Mmid, then integrate
     tipward from the fixed end:
     theta_i=theta_j-L*kappa;
-    ux_i=ux_j+L*(theta_i+theta_j)/2 + F*L/(G*k*A)+F*L**3/(12*E*Iz).
-    Omit F*L/(G*k*A) when G is absent or shear_correction is false.
-    Last term is the reference elastic moment-gradient flexibility retained
-    by the central-section formulation. Only monotonic symmetric branches with
+    ux_i=ux_j+L*(theta_i+theta_j)/2 + L*s.
+    For nonlinear bending integrate delta_s=delta_F/C_mean over the prescribed
+    load schedule, independently inverting the moment at every endpoint.
+    Only monotonic symmetric branches with
     positive slope are covered; no cyclic history or plateau inversion.
     """
     assert set(data["node"]) == {"1", "2", "3", "4"}
@@ -37,24 +37,45 @@ def cantilever_reference(data, factor=1.0):
             assert nl["symmetric"]
             points = [(0.0, 0.0)] + [(nl[f"P_{i}"], nl[f"delta_{i}"]) for i in (1, 2, 3)]
             assert abs(moment) < nl["P_3"], "No unique force-controlled inverse at capacity"
-            for (pa, ea), (pb, eb) in zip(points[:-1], points[1:]):
-                assert pb > pa and eb > ea
-                if abs(moment) <= pb:
-                    curvature = np.sign(moment) * (ea + (abs(moment) - pa) * (eb - ea) / (pb - pa))
-                    break
+            def inverse(magnitude):
+                for (pa, ea), (pb, eb) in zip(points[:-1], points[1:]):
+                    assert pb > pa and eb > ea
+                    if magnitude <= pb:
+                        return ea+(magnitude-pa)*(eb-ea)/(pb-pa)
+                raise AssertionError('No monotone inverse above reference capacity')
+
+            curvature = np.sign(moment)*inverse(abs(moment))
+            controls = {**data['load']['1'], **data.get('analysis_params', {})}
+            schedule = controls.get('load_factors')
+            if schedule is None:
+                schedule = np.arange(1, controls['n_load_steps']+1)/controls['n_load_steps']
+            schedule = [v for v in schedule if 0 < v < factor]+([factor] if factor else [])
+            assert all(b > a for a, b in zip([0., *schedule[:-1]], schedule))
+            shear = previous_curvature = previous_force = 0.
+            arm = abs((yi+yj)/2-tip_y)
+            for value in schedule:
+                step_force = value*load['tx']
+                target = inverse(abs(step_force)*arm)
+                weighted = 0.
+                for (pa, ea), (pb, eb) in zip(points[:-1], points[1:]):
+                    span = max(0., min(target, eb)-max(previous_curvature, ea))
+                    bending = (pb-pa)/(eb-ea)
+                    compliance = length**2/(12*bending)
+                    if 'G' in mat and member.get('shear_correction', True):
+                        compliance += 1/(g*(5/6)*mat['A'])
+                    weighted += span/compliance
+                shear += length*(step_force-previous_force)*(target-previous_curvature)/weighted
+                previous_curvature, previous_force = target, step_force
         else:
             curvature = moment / ei
+            shear = force*length**3/(12*ei)
+            if "G" in mat and member.get("shear_correction", True):
+                shear += force*length/(g*(5/6)*mat['A'])
         rotation = disps[nj]["rz"] - length * curvature
-        shear = (
-            force * length / (g * (5 / 6) * mat["A"])
-            if "G" in mat and member.get("shear_correction", True)
-            else 0.0
-        )
         u = (
             disps[nj]["dx"]
             + length * (rotation + disps[nj]["rz"]) / 2
             + shear
-            + force * length**3 / (12 * ei)
         )
         disps[ni] = dict(dx=u, dy=0.0, dz=0.0, rx=0.0, ry=0.0, rz=rotation)
         end_forces[member_id] = {

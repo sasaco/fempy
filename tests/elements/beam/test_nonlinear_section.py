@@ -45,7 +45,13 @@ def test_tangent_is_finite_difference_of_force(rotation, scale):
     h = 1e-7
     fd = np.column_stack([(force(e, u + h * d) - force(e, u - h * d)) / (2 * h) for d in np.eye(12)])
     np.testing.assert_allclose(k, fd, rtol=2e-8, atol=2e-7)
-    np.testing.assert_allclose(k, k.T, atol=1e-12)
+    # One constant elastic branch has no curvature/shear coupling. Across a
+    # breakpoint dV/dkappa = delta_s*(C_last-C_mean)/delta_kappa is nonzero,
+    # while dM/ds remains zero: the updated-inertia tangent is nonsymmetric.
+    if scale == 0.00002:
+        np.testing.assert_allclose(k, k.T, atol=1e-12)
+    else:
+        assert not np.allclose(k, k.T)
 
 
 @pytest.mark.material_nonlinear

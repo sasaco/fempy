@@ -92,9 +92,20 @@ def test_cantilever_hand_calculated_branch_crossings_and_tip_motion():
         )
         assert (nodes["2"]["rz"] - nodes["3"]["rz"]) / 0.1 == pytest.approx(curvature, abs=1e-14)
     assert all("G" not in mat for mat in data["element"]["1"].values())
-    # Equal EI=26.5e9: u=F*10^3/(3EI) + (|kappa|-9.85F/EI)*.1*9.85.
-    assert data["result"]["2"]["disg"]["1"]["dx"] == pytest.approx(0.0000010923499371069182, abs=1e-15)
-    assert data["result"]["100"]["disg"]["1"]["dx"] == pytest.approx(0.0009626976156053459, abs=1e-15)
+    # Closed-form contributions from 20 initial increments, the step-21
+    # crossing, 39 second-branch increments, the step-61 crossing, then 39
+    # third-branch increments. No calls to either reference generator.
+    h, ei = .1, 26.5e9
+    b1, b2, b3 = 1e8, 2000/.00009, 2000/.0009051
+    c1, c2, c3 = [12*b/h**2 for b in (b1, b2, b3)]
+    s2 = 10/c1
+    s100 = (100/c1 + 5*(.00001154125-.00000985)/(
+        c1*(.00001-.00000985)+c2*(.00001154125-.00001)) + 195/c2
+        + 5*(.0001019233375-.000097975)/(
+            c2*(.0001-.000097975)+c3*(.0001019233375-.0001)) + 195/c3)
+    for step, force, curvature, shear in [(2, 10., .000000985, s2), (100, 500., .00097115875, s100)]:
+        u = force*10**3/(3*ei)+(curvature-9.85*force/ei)*h*9.85+h*shear-force*h**3/(12*ei)
+        assert data['result'][str(step)]['disg']['1']['dx'] == pytest.approx(u, abs=1e-15)
 
 
 def test_pressure_saved_reference_is_independent_exact_polynomial_solution():

@@ -1409,7 +1409,7 @@
     {
       "id": "snap/beam001",
       "file": "snap/beam001.json",
-      "sha256": "4013df775f886dc0cc748b5194c7b153d24de1897c778e30b645917484e054c7",
+      "sha256": "df05d6b445f2f24c554d530061a8393649476ec7a14c0793502f562ec7e2d7cb",
       "input_format": "structural_json",
       "contract": "cantilever_history",
       "cases": [],

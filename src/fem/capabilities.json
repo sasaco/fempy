@@ -73,7 +73,7 @@
       "implementations": ["fem.elements.nonlinear_bar_element.NonlinearBarElement"],
       "analyses": {
         "static": {"status": "verified", "note": "履歴則を使わない参照弾性解析"},
-        "material_nonlinear": {"status": "verified", "note": "JR総研剛性低減RC型"},
+        "material_nonlinear": {"status": "verified", "note": "固定骨格JR総研剛性低減RC型。履歴接線によるI・C更新、累積せん断力、収束断面出力。Nd依存履歴は未対応"},
         "modal": {"status": "implemented", "note": "参照梁の質量・弾性剛性を使用"}
       },
       "mass_matrix": {"status": "implemented", "note": "参照梁の集中質量近似"},

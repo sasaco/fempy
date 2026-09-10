@@ -64,6 +64,7 @@ def reference_values(data):
         central_arm = (D(data["node"]["2"]["y"]) + D(data["node"]["3"]["y"])) / 2 - tip_y
         assert D(load["tx"]) * central_arm < points[-1][0]
         result = {}
+        accumulated_shear = previous_curvature = D(0)
         for step in range(n + 1):
             force = D(load["tx"]) * D(step) / D(n)
             zero_disp = dict.fromkeys(("dx", "dy", "dz", "rx", "ry", "rz"), 0.0)
@@ -80,6 +81,7 @@ def reference_values(data):
                 ei = D(mat["E"]) * D(mat["Iz"])
                 assert ei > 0
                 shear = D(0)
+                ga = None
                 if "G" in mat and member.get("shear_correction", True):
                     ga = D(mat["G"]) * D(mat["A"]) * D(5) / D(6)
                     assert ga > 0
@@ -92,10 +94,24 @@ def reference_values(data):
                             kappa = -(ka + (m - pa) * (kb - ka) / (pb - pa))
                             break
                     curvatures[member_id] = dict(y=0.0, z=float(kappa))
+                    if step:
+                        target = -kappa
+                        integral = D(0)
+                        for (pa, ka), (pb, kb) in zip(points, points[1:]):
+                            span = max(D(0), min(target, kb)-max(previous_curvature, ka))
+                            bending = (pb-pa)/(kb-ka)
+                            flexibility = length**2/(12*bending)
+                            if ga is not None:
+                                flexibility += 1/ga
+                            integral += span/flexibility
+                        accumulated_shear += (D(load['tx'])/n)*(target-previous_curvature)/integral
+                        previous_curvature = target
+                    shear = length*accumulated_shear
                 else:
                     kappa = -m / ei
+                    shear += force*length**3/(12*ei)
                 theta_i = theta_j - length * kappa
-                u_i = u_j + length * (theta_i + theta_j) / 2 + shear + force * length**3 / (12 * ei)
+                u_i = u_j + length * (theta_i + theta_j) / 2 + shear
                 disps[ni] = dict(zero_disp, dx=float(u_i), rz=float(theta_i))
                 # Local cut-force convention, independently from equilibrium.
                 values = dict.fromkeys(

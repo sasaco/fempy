@@ -479,7 +479,9 @@ class Solver:
                 else:
                     solution = direct_step(self, mesh, boundary, elements, force, factor)
                     u = solution[0]
-            except Exception:
+            except Exception as error:
+                if hasattr(error, 'details'):
+                    error.details.update(step=step, load_factor=float(factor))
                 self.displacement = committed_u.copy()
                 self._last_internal_force = committed_force
                 self.displacement_correction = None
