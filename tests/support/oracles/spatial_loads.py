@@ -24,6 +24,48 @@ def rectangle_q4_loads(width, height, coefficients):
     return np.array([float(sp.integrate(n * pressure, (x, 0, w), (y, 0, h))) for n in shapes])
 
 
+def rectangle_t3_loads(width, height, coefficients):
+    """Analytic integrals on the two triangles separated by y=h*x/w."""
+    x, y = sp.symbols('x y')
+    a, b, c, d = map(sp.Rational, coefficients)
+    w, h = sp.Rational(width), sp.Rational(height)
+    p = a + b*x + c*y + d*x*y
+    lower = (1-x/w, x/w-y/h, y/h, sp.S.Zero)
+    upper = (1-y/h, sp.S.Zero, x/w, y/h-x/w)
+    return np.array([float(sp.integrate(n*p, (y, 0, h*x/w), (x, 0, w))
+                           + sp.integrate(m*p, (y, h*x/w, h), (x, 0, w)))
+                     for n, m in zip(lower, upper)])
+
+
+def rectangle_distribution(width, height, coefficients):
+    """Resultant and global-origin moment from distribution alone."""
+    x, y = sp.symbols('x y')
+    a, b, c, d = map(sp.Rational, coefficients)
+    p = a + b*x + c*y + d*x*y
+    values = [float(sp.integrate(f*p, (x, 0, width), (y, 0, height))) for f in (1, y, -x)]
+    return np.array([0., 0., values[0]]), np.array([values[1], values[2], 0.])
+
+
+def square_strip_loads(*, shell, area):
+    """Independent integration of the legacy builder's clipped line/band."""
+    x, y = sp.symbols('x y')
+    q4 = ((1-x/2)*(1-y/2), x/2*(1-y/2), x*y/4, (1-x/2)*y/2)
+    lower = q4 if shell else (1-x/2, x/2-y/2, y/2, sp.S.Zero)
+    upper = q4 if shell else (1-y/2, sp.S.Zero, x/2, y/2-x/2)
+    result = []
+    for n, m in zip(lower, upper):
+        if area:
+            p = 5*x + 20*y
+            value = sp.integrate(sp.integrate(m*p, (x, 0, y))
+                                 + sp.integrate(n*p, (x, y, 2)), (y, sp.Rational(1, 2), sp.Rational(3, 2)))
+        else:
+            p = 10 + 5*x
+            value = sp.integrate((m*p).subs(y, sp.Rational(1, 2)), (x, 0, sp.Rational(1, 2)))
+            value += sp.integrate((n*p).subs(y, sp.Rational(1, 2)), (x, sp.Rational(1, 2), 2))
+        result.append(float(value))
+    return np.array(result)
+
+
 def trapezoid_reference(*, q4):
     """x=(2+y)*u, 0<=u,y<=1, p=1+2*u+3*y+4*u*y.
 

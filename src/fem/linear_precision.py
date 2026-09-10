@@ -212,6 +212,11 @@ def solve_precise_frame(solver, mesh, boundary, elements, force, factor, basis, 
             base = solver._node_dof_start(node, solver.layout.stride)
             for j, value in enumerate(load.forces[: solver.layout.stride]):
                 external[base + j] += dec(factor) * dec(value)
+        if solver.spatial_load_contribution is not None:
+            # This path reconstructs F independently; retain the compiled
+            # spatial nodal load without inventing beam fixed-end corrections.
+            for dof, value in enumerate(solver.spatial_load_contribution.dof_loads):
+                external[dof] += dec(factor) * dec(value)
         matrices = {}
         for key, e, indices in solver.layout.elements(elements):
             k, t, f = element_matrix(e, mesh.nodes, mesh.elements[key])

@@ -37,3 +37,46 @@ def legacy_panel(*, area=False):
         load={"1": dict(inf_panel="7", load_inf=[record],
                         load_node=[dict(n=2, tz=-3)])},
     )
+
+
+def square_definitions(panel, *, area=True, coefficients=(1, 0, 0, 0), reverse=(), offset=(0, 0, 0), scale=1.):
+    from fem.spatial_loads import SpatialLoad, SpatialLoadDefinitions, SpatialLoadPath
+
+    a, b, c, d = coefficients
+    paths = [((0, 0, 0), (2, 0, 0)), ((0, 2, 0), (2, 2, 0))][:2 if area else 1]
+    values = [(a, a+2*b), (a+2*c, a+2*b+2*c+4*d)][:len(paths)]
+    records = []
+    for i, points in enumerate(paths):
+        points = [tuple(offset[j] + scale*p[j] for j in range(3)) for p in points]
+        if i in reverse:
+            points, values[i] = points[::-1], values[i][::-1]
+        records.append(SpatialLoadPath(i+1, points))
+    return SpatialLoadDefinitions((panel,), records, (SpatialLoad(9, panel.id, tuple(p.id for p in records), values),))
+
+
+def solver_panel(*, shell=False, area=True, fixed=True):
+    """Real beam/shell model for the internal Solver acceptance boundary."""
+    from fem.file_io import _read_json_model
+    from fem.model import FemModel
+
+    data = legacy_panel(area=area)
+    if shell:
+        data.pop('member')
+        data['shell'] = {'1': dict(nodes=[1, 2, 3, 4], e=1, t=.1)}
+        data['inf_panel']['7'] = dict(nodes=[1, 2, 3, 4], elements=[1])
+    model = FemModel()
+    model.read_json_model(_read_json_model(data))
+    if fixed:
+        for node in model.mesh.nodes:
+            model.add_restraint(node, True, True, True, True, True, True)
+    model._set_element_coordinates()
+    return model
+
+
+def solve_spatial_internal(model):
+    """Stage-3 numerical entry; deliberately does not bypass public preflight."""
+    result = model.solver.solve(model.mesh, model.material, model.boundary, model.elements)
+    model.results = result
+    result['analysis_type'] = 'static'
+    model._post_process_results()
+    return result

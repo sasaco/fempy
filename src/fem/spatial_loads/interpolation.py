@@ -3,22 +3,12 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from ..shape_functions import q4_derivatives, q4_shape, t3_shape
+
 from .geometry import (
     PanelCell, contains_point, cross, frozen_points, points_array,
     segments_intersect, validate_partition, validate_polygon,
 )
-
-
-def q4_shape(natural):
-    """Bilinear basis in node order (-,-), (+,-), (+,+), (-,+)."""
-    r, s = natural
-    return .25 * np.array([(1-r)*(1-s), (1+r)*(1-s), (1+r)*(1+s), (1-r)*(1+s)])
-
-
-def q4_derivatives(natural):
-    r, s = natural
-    return .25 * np.array([[-(1-s), -(1-r)], [1-s, -(1+r)],
-                           [1+s, 1+r], [-(1+s), 1-r]])
 
 
 def natural_coordinates(vertices, point, eps, label='Q4'):
@@ -81,7 +71,7 @@ def shape_values(vertices, point, eps, label='cell'):
         raise ValueError(f'{label}: point outside cell; extrapolation is forbidden')
     scale = np.linalg.norm(np.ptp(p, axis=0))
     uv = np.linalg.solve(((p[1:] - p[0]) / scale).T, (point - p[0]) / scale)
-    return np.array([1 - uv.sum(), *uv])
+    return t3_shape(uv)
 
 
 @dataclass(frozen=True)

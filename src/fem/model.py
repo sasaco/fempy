@@ -178,8 +178,8 @@ class FemModel:
     def set_spatial_loads(self, definitions: SpatialLoadDefinitions) -> None:
         """Replace unexpanded spatial input after structural-reference validation.
 
-        Import definitions from ``fem.spatial_loads``. Load compilation is not
-        available yet; analysis preflight rejects these loads until it is.
+        Import definitions from ``fem.spatial_loads``. The internal compiler is
+        available; public analysis awaits the input-route acceptance gate.
         """
         validate_spatial_references(definitions, self.mesh)
         self.boundary.spatial_loads = definitions
@@ -381,6 +381,7 @@ class FemModel:
     def run(self, analysis_type: Optional[str] = None) -> Dict[str, Any]:
         """Run an analysis and expose stable diagnostics for input failures."""
         self.results = None
+        self.solver.clear_spatial_load_state()
         try:
             return self._run(analysis_type)
         except np.linalg.LinAlgError:
@@ -394,6 +395,9 @@ class FemModel:
         except Exception:
             self.results = None
             raise
+        finally:
+            if self.results is None:
+                self.solver.clear_spatial_load_state()
 
     def _run(self, analysis_type: Optional[str] = None) -> Dict[str, Any]:
         """解析を実行

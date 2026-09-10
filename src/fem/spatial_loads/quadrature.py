@@ -96,10 +96,13 @@ def _integrate(function, domains, kind, *, degree, atol, rtol, max_depth, label)
     domains = [points_array(d) for d in domains]
     if not domains:
         raise ValueError(f'{label}: empty integration domain')
+    functions = [function] * len(domains) if callable(function) else list(function)
+    if len(functions) != len(domains):
+        raise ValueError(f'{label}: each domain needs its own integrand')
     rule = (lambda d, n: line_rule(*d, n)) if kind == 'line' else triangle_rule
     if degree is not None:
         order = max(1, (degree + (2 if kind == 'line' else 3)) // 2)
-        results = [_evaluate(function, rule(d, order), label) for d in domains]
+        results = [_evaluate(f, rule(d, order), label) for f, d in zip(functions, domains)]
         value = np.sum([r[0] for r in results], axis=0)
         magnitude = np.sum([r[1] for r in results], axis=0)
         if not np.all(np.isfinite(value)) or not np.all(np.isfinite(magnitude)):
@@ -108,14 +111,14 @@ def _integrate(function, domains, kind, *, degree, atol, rtol, max_depth, label)
                               len(domains) * order**(1 if kind == 'line' else 2), 0)
     evaluations, subdivisions = 0, 0
 
-    def estimate(domain, depth):
+    def estimate(function, domain, depth):
         nonlocal evaluations
         low, _ = _evaluate(function, rule(domain, 4), label)
         high, magnitude = _evaluate(function, rule(domain, 8), label)
         evaluations += 12 if kind == 'line' else 80
-        return (domain, depth, high, np.abs(high - low), magnitude)
+        return (domain, depth, high, np.abs(high - low), magnitude, function)
 
-    leaves = [estimate(d, 0) for d in domains]
+    leaves = [estimate(f, d, 0) for f, d in zip(functions, domains)]
     while True:
         value = np.sum([leaf[2] for leaf in leaves], axis=0)
         error = np.sum([leaf[3] for leaf in leaves], axis=0)
@@ -135,8 +138,8 @@ def _integrate(function, domains, kind, *, degree, atol, rtol, max_depth, label)
             raise ValueError(f'{label}: quadrature did not converge at subdivision limit {max_depth}')
         tiny = np.finfo(float).tiny
         index = max(candidates, key=lambda i: float(np.max(leaves[i][3] / np.maximum(budget, tiny))))
-        domain, depth, _, _, _ = leaves.pop(index)
-        leaves.extend(estimate(child, depth + 1) for child in _children(domain, kind))
+        domain, depth, _, _, _, function = leaves.pop(index)
+        leaves.extend(estimate(function, child, depth + 1) for child in _children(domain, kind))
         subdivisions += 1
 
 
@@ -152,3 +155,17 @@ def integrate_triangles(function, triangles, *, degree=None, atol=1e-10, rtol=1e
     """Integrate all triangles against one shared componentwise error budget."""
     return _integrate(function, triangles, 'triangle', degree=degree, atol=atol, rtol=rtol,
                       max_depth=max_depth, label=label)
+
+
+def integrate_pieces(pieces, *, kind, degree=None, atol=1e-10, rtol=1e-9,
+                     max_depth=8, label='spatial load'):
+    """Integrate (callback, physical domain) pairs with ONE load-wide budget.
+
+    Callbacks must return the same component layout. A piece retains its
+    structural cell and load-field owner throughout adaptive refinement.
+    """
+    if kind not in ('line', 'triangle'):
+        raise ValueError(f'{label}: integration kind must be line or triangle')
+    pieces = tuple(pieces)
+    return _integrate(tuple(p[0] for p in pieces), [p[1] for p in pieces], kind,
+                      degree=degree, atol=atol, rtol=rtol, max_depth=max_depth, label=label)

@@ -185,6 +185,23 @@ def snapshot(solver, mesh, boundary, elements, solution, force, step, factor, no
             result['interpolated_displacements'] = deepcopy(solver.interpolated_displacements)
         if getattr(solver, 'precise_end_forces', None) is not None:
             result['precise_end_forces'] = deepcopy(solver.precise_end_forces)
+    if solver.spatial_load_contribution is not None:
+        result['spatial_load_contribution'] = solver.spatial_load_contribution.to_dict()
+        # These are global element-node equilibrium forces. Constitutive shell
+        # stresses, stress resultants and edge forces keep their existing meaning.
+        equilibrium = {}
+        for key, element, indices in solver.layout.elements(elements):
+            if hasattr(element, 'calculate_shell_results'):
+                stiffness = element.get_stiffness_matrix()
+                values = stiffness @ u[indices]
+                if correction is not None:
+                    values += stiffness @ correction[indices]
+                values -= solver._shell_direct_loads.get(key, np.zeros(len(indices)))
+                equilibrium[key] = {
+                    'node_ids': list(element.node_ids),
+                    'forces': values.reshape(-1, 6).tolist(),
+                }
+        result['element_nodal_equilibrium_forces'] = equilibrium
     return deepcopy(result)
 
 
@@ -203,7 +220,8 @@ def final_result(solver, nonlinear):
                       analysis_type='material_nonlinear')
     else:
         keys = ('displacement', 'node_displacements', 'reaction_forces', 'displacement_correction',
-                'interpolated_displacements', 'precise_end_forces')
+                'interpolated_displacements', 'precise_end_forces',
+                'spatial_load_contribution', 'element_nodal_equilibrium_forces')
         result = {key: last[key] for key in keys if key in last}
     return result
 

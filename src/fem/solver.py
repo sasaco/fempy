@@ -19,6 +19,7 @@ from .equilibrium import (
     newton_iteration, solve_direct_system, solve_newton_system,
 )
 from .solver_results import snapshot, final_result
+from .spatial_loads import compile_spatial_loads
 
 
 class Solver:
@@ -32,6 +33,7 @@ class Solver:
         self._reset_analysis_state()
 
     def _reset_analysis_state(self):
+        self.clear_spatial_load_state()
         self.assembled_stiffness = None
         self.assembled_stiffness_correction = None
         self.assembled_mass = None
@@ -53,6 +55,26 @@ class Solver:
         self.analysis_warnings = []
         self.characteristic_length = None
         self.characteristic_length_source = None
+
+    def clear_spatial_load_state(self):
+        """Discard compiled data, including on preflight or solve failure."""
+        if getattr(self, 'spatial_load_contribution', None) is not None:
+            self.load_vector = None
+        for result in getattr(self, 'step_results', ()):
+            result.pop('spatial_load_contribution', None)
+            result.pop('element_nodal_equilibrium_forces', None)
+        self.spatial_load_contribution = None
+        self._shell_direct_loads = {}
+
+    def _validate_spatial_analysis(self, boundary, analysis_type):
+        definitions = boundary.spatial_loads
+        if definitions.loads and analysis_type != 'static':
+            raise UnsupportedAnalysisError(
+                'Spatial loads are limited to static analysis.', analysis_type=analysis_type,
+                features=sorted({load.feature for load in definitions.loads}),
+                panel_ids=sorted({load.panel_id for load in definitions.loads}),
+                load_ids=[load.id for load in definitions.loads],
+            )
 
     def _set_dof_layout(self, mesh: MeshModel) -> None:
         signature = (tuple(sorted(mesh.nodes)), tuple(
@@ -130,7 +152,12 @@ class Solver:
         Returns:
             荷重ベクトル
         """
+        self.clear_spatial_load_state()
+        self.load_vector = None
         self._set_dof_layout(mesh)
+        contribution = (compile_spatial_loads(boundary.spatial_loads, mesh)
+                        if boundary.spatial_loads.loads else None)
+        shell_direct = {}
         max_dof_per_node = self.layout.stride
         n_dof = self.layout.size
         F = np.zeros(n_dof)
@@ -161,6 +188,8 @@ class Solver:
             
             indices = self.layout.element_dofs(elem_id, element)
             self.layout.add_vector(F, indices[:len(equiv_loads)], equiv_loads)
+            if contribution is not None and hasattr(element, 'calculate_shell_results'):
+                shell_direct.setdefault(elem_id, np.zeros(element.get_matrix_size()))[:] += equiv_loads
         
         # 面圧荷重の適用（V0のloadVector関数の面圧処理を移植）
         for pressure in boundary.pressures:
@@ -177,7 +206,17 @@ class Solver:
             
             indices = self.layout.element_dofs(elem_id, element)
             self.layout.add_vector(F, indices[:len(equiv_loads)], equiv_loads)
-                        
+            if contribution is not None and hasattr(element, 'calculate_shell_results'):
+                shell_direct.setdefault(elem_id, np.zeros(element.get_matrix_size()))[:] += equiv_loads
+
+        if contribution is not None:
+            F += contribution.dof_loads
+            for elem_id, values in contribution.shell_load_vectors().items():
+                shell_direct.setdefault(elem_id, np.zeros_like(values))[:] += values
+        if not np.all(np.isfinite(F)):
+            raise ValueError('Loads must be finite')
+        self.spatial_load_contribution = contribution
+        self._shell_direct_loads = shell_direct
         self.load_vector = F
         return F
         
@@ -331,6 +370,20 @@ class Solver:
               n_steps=DEFAULT_N_STEPS, max_iter=DEFAULT_MAX_ITER,
               tol=DEFAULT_TOL, callback=None, load_factors=None,
               displacement_control=None):
+        """Solve with per-call spatial compilation and discard it on failure."""
+        try:
+            return self._solve(mesh, material, boundary, elements, analysis_type=analysis_type,
+                               n_steps=n_steps, max_iter=max_iter, tol=tol, callback=callback,
+                               load_factors=load_factors, displacement_control=displacement_control)
+        except Exception:
+            self.clear_spatial_load_state()
+            raise
+
+    def _solve(self, mesh: MeshModel, material: Material, boundary: BoundaryCondition,
+               elements: Dict[int, Any], *, analysis_type='static',
+               n_steps=DEFAULT_N_STEPS, max_iter=DEFAULT_MAX_ITER,
+               tol=DEFAULT_TOL, callback=None, load_factors=None,
+               displacement_control=None):
         """Shared static flow; analysis type selects material law and equilibrium.
 
         The original four positional arguments select reference-elastic static
@@ -339,6 +392,7 @@ class Solver:
         a new analysis; elements implementing reset_states start fresh history.
         """
         self._reset_analysis_state()
+        self._validate_spatial_analysis(boundary, analysis_type)
         if analysis_type not in ('static', 'material_nonlinear'):
             raise UnsupportedAnalysisError(
                 f'Unknown static analysis type: {analysis_type}',
@@ -373,9 +427,14 @@ class Solver:
                 element.reset_states()
             if hasattr(element, 'load_factor'):
                 element.load_factor = 0.0 if nonlinear else 1.0
-        if not nonlinear:
+        if boundary.spatial_loads.loads:
+            # Geometry, quadrature and conservation must pass before K assembly.
+            total = self.assemble_load_vector(mesh, boundary, elements)
             self.create_stiffness_matrix(mesh, material, elements)
-        total = self.assemble_load_vector(mesh, boundary, elements)
+        else:
+            if not nonlinear:
+                self.create_stiffness_matrix(mesh, material, elements)
+            total = self.assemble_load_vector(mesh, boundary, elements)
         if not np.all(np.isfinite(total)):
             raise ValueError('Loads must be finite')
         control = None
@@ -470,6 +529,7 @@ class Solver:
                           n_modes: int = 10) -> Dict[str, Any]:
         """Solve the constrained generalized eigenproblem for requested low modes."""
         self._reset_analysis_state()
+        self._validate_spatial_analysis(boundary, 'modal')
         if (isinstance(n_modes, (bool, np.bool_)) or
                 not isinstance(n_modes, (int, np.integer)) or n_modes <= 0):
             raise ValueError('n_modes must be a positive integer')

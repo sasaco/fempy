@@ -19,8 +19,8 @@
     "foundation": {"label_ja": "分布ばね"},
     "end_release": {"label_ja": "材端解放"},
     "shell_pressure": {"label_ja": "シェル面圧"},
-    "spatial_line": {"label_ja": "空間線荷重", "status": "unsupported", "reason": "Spatial line input is supported; load compilation is not yet implemented."},
-    "spatial_area": {"label_ja": "空間面荷重", "status": "unsupported", "reason": "Spatial area input is supported; load compilation is not yet implemented."}
+    "spatial_line": {"label_ja": "空間線荷重", "status": "unsupported", "reason": "Spatial line compilation is available internally; public analysis awaits input-route validation."},
+    "spatial_area": {"label_ja": "空間面荷重", "status": "unsupported", "reason": "Spatial area compilation is available internally; public analysis awaits input-route validation."}
   },
   "result_types": {
     "node_displacement": {"label_ja": "節点変位"},
@@ -54,8 +54,8 @@
         "foundation": {"status": "verified"},
         "end_release": {"status": "verified"},
         "shell_pressure": {"status": "unsupported", "reason": "Shell pressure is only implemented for shell elements."},
-        "spatial_line": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."},
-        "spatial_area": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."}
+        "spatial_line": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."},
+        "spatial_area": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."}
       },
       "results": {
         "node_displacement": {"status": "verified"},
@@ -86,8 +86,8 @@
         "foundation": {"status": "unsupported", "reason": "Distributed foundations are not implemented directly on nonlinear_bar."},
         "end_release": {"status": "unsupported", "reason": "End releases are not implemented directly on nonlinear_bar."},
         "shell_pressure": {"status": "unsupported", "reason": "Shell pressure is only implemented for shell elements."},
-        "spatial_line": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."},
-        "spatial_area": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."}
+        "spatial_line": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."},
+        "spatial_area": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."}
       },
       "results": {
         "node_displacement": {"status": "verified"},
@@ -118,8 +118,8 @@
         "foundation": {"status": "unsupported", "reason": "Distributed foundations are only implemented for linear beams."},
         "end_release": {"status": "unsupported", "reason": "End releases are only implemented for linear beams."},
         "shell_pressure": {"status": "verified"},
-        "spatial_line": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."},
-        "spatial_area": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."}
+        "spatial_line": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."},
+        "spatial_area": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."}
       },
       "results": {
         "node_displacement": {"status": "verified"},
@@ -150,8 +150,8 @@
         "foundation": {"status": "unsupported"},
         "end_release": {"status": "unsupported"},
         "shell_pressure": {"status": "unsupported", "reason": "Solid-face pressure is not implemented."},
-        "spatial_line": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."},
-        "spatial_area": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."}
+        "spatial_line": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."},
+        "spatial_area": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."}
       },
       "results": {
         "node_displacement": {"status": "verified"},
@@ -182,8 +182,8 @@
         "foundation": {"status": "unsupported"},
         "end_release": {"status": "unsupported"},
         "shell_pressure": {"status": "unsupported", "reason": "Solid-face pressure is not implemented."},
-        "spatial_line": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."},
-        "spatial_area": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."}
+        "spatial_line": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."},
+        "spatial_area": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."}
       },
       "results": {
         "node_displacement": {"status": "verified"},
@@ -214,8 +214,8 @@
         "foundation": {"status": "unsupported"},
         "end_release": {"status": "unsupported"},
         "shell_pressure": {"status": "unsupported", "reason": "Solid-face pressure is not implemented."},
-        "spatial_line": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."},
-        "spatial_area": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."}
+        "spatial_line": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."},
+        "spatial_area": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."}
       },
       "results": {
         "node_displacement": {"status": "verified"},
@@ -246,8 +246,8 @@
         "foundation": {"status": "unsupported"},
         "end_release": {"status": "unsupported"},
         "shell_pressure": {"status": "unsupported", "reason": "Solid-face pressure is not implemented."},
-        "spatial_line": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."},
-        "spatial_area": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."}
+        "spatial_line": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."},
+        "spatial_area": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."}
       },
       "results": {
         "node_displacement": {"status": "verified"},
@@ -278,8 +278,8 @@
         "foundation": {"status": "unsupported"},
         "end_release": {"status": "unsupported"},
         "shell_pressure": {"status": "unsupported", "reason": "Solid-face pressure is not implemented."},
-        "spatial_line": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."},
-        "spatial_area": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."}
+        "spatial_line": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."},
+        "spatial_area": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."}
       },
       "results": {
         "node_displacement": {"status": "verified"},
@@ -310,8 +310,8 @@
         "foundation": {"status": "unsupported"},
         "end_release": {"status": "unsupported"},
         "shell_pressure": {"status": "unsupported", "reason": "Solid-face pressure is not implemented."},
-        "spatial_line": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."},
-        "spatial_area": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."}
+        "spatial_line": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."},
+        "spatial_area": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."}
       },
       "results": {
         "node_displacement": {"status": "verified"},
@@ -342,8 +342,8 @@
         "foundation": {"status": "unsupported"},
         "end_release": {"status": "unsupported"},
         "shell_pressure": {"status": "unsupported"},
-        "spatial_line": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."},
-        "spatial_area": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."}
+        "spatial_line": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."},
+        "spatial_area": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."}
       },
       "results": {
         "node_displacement": {"status": "unsupported"},
@@ -374,8 +374,8 @@
         "foundation": {"status": "unsupported"},
         "end_release": {"status": "unsupported"},
         "shell_pressure": {"status": "unsupported"},
-        "spatial_line": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."},
-        "spatial_area": {"status": "unsupported", "reason": "Spatial load compilation is not yet implemented."}
+        "spatial_line": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."},
+        "spatial_area": {"status": "unsupported", "reason": "Public spatial load analysis awaits input-route validation."}
       },
       "results": {
         "node_displacement": {"status": "unsupported"},

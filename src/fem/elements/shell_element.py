@@ -5,6 +5,7 @@ V0技術移植: TriElement1（三角形）とQuadElement1（四角形）の統�
 """
 from typing import Dict, List, Tuple, Optional, Any
 import numpy as np
+from ..shape_functions import t3_shape, t3_derivatives, q4_shape, q4_derivatives
 from .base_element import BaseElement
 from ..material import Material, ShellParameter
 
@@ -78,65 +79,14 @@ class ShellElement(BaseElement):
         )
         
     def get_shape_functions(self, xi: np.ndarray) -> np.ndarray:
-        """形状関数を取得（V0 TriElement1技術移植）
-        
-        Args:
-            xi: 自然座標 [xi, eta]
-            
-        Returns:
-            形状関数の値
-        """
-        if self.element_type == "triangle":
-            # ✅ V0のTriElement1.prototype.shapeFunction移植
-            # JavaScript: [[1-xsi-eta,-1,-1],[xsi,1,0],[eta,0,1]]
-            xi_val, eta_val = xi[0], xi[1]
-            N = np.array([
-                1 - xi_val - eta_val,  # N1
-                xi_val,                 # N2  
-                eta_val                 # N3
-            ])
-            return N
-        else:
-            # 既存の4節点四角形実装
-            xi_val, eta_val = xi[0], xi[1]
-            N = np.array([
-                0.25 * (1 - xi_val) * (1 - eta_val),
-                0.25 * (1 + xi_val) * (1 - eta_val),
-                0.25 * (1 + xi_val) * (1 + eta_val),
-                0.25 * (1 - xi_val) * (1 + eta_val)
-            ])
-            return N
-        
+        """Shared T3/Q4 natural-coordinate basis in the existing node order."""
+        return t3_shape(xi) if self.element_type == "triangle" else q4_shape(xi)
+
     def get_shape_derivatives(self, xi: np.ndarray) -> np.ndarray:
-        """形状関数の微分を取得（V0技術移植）
-        
-        Args:
-            xi: 自然座標 [xi, eta]
-            
-        Returns:
-            形状関数の微分値 (2, n_nodes)
-        """
-        if self.element_type == "triangle":
-            # ✅ V0のTriElement1.prototype.shapeFunction微分移植
-            # dN1/dxi = -1, dN1/deta = -1
-            # dN2/dxi =  1, dN2/deta =  0  
-            # dN3/dxi =  0, dN3/deta =  1
-            dN_dxi = np.array([
-                [-1, 1, 0],   # dN/dxi
-                [-1, 0, 1]    # dN/deta
-            ])
-            return dN_dxi
-        else:
-            # 既存の4節点四角形実装
-            xi_val, eta_val = xi[0], xi[1]
-            dN_dxi = np.array([
-                [-0.25 * (1 - eta_val), 0.25 * (1 - eta_val), 
-                  0.25 * (1 + eta_val), -0.25 * (1 + eta_val)],
-                [-0.25 * (1 - xi_val), -0.25 * (1 + xi_val),
-                  0.25 * (1 + xi_val), 0.25 * (1 - xi_val)]
-            ])
-            return dN_dxi
-        
+        """Return derivatives in the shell's (2, n_nodes) convention."""
+        basis = t3_derivatives if self.element_type == "triangle" else q4_derivatives
+        return basis(xi).T
+
     def get_gauss_points(self) -> Tuple[np.ndarray, np.ndarray]:
         """ガウス積分点と重みを取得（V0技術移植）
         
