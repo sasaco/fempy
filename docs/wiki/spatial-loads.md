@@ -217,9 +217,25 @@ assert isclose(result["spatial_load_contribution"]["resultant"][2], -6, abs_tol=
 ## 出力と失敗時の扱い
 
 `node_displacements`、`reaction_forces`、`element_stresses`と既存のシェル結果に荷重が反映されます。
-`spatial_load_contribution`には`node_loads`、`shell_element_loads`、`cells`、`loads`（荷重別監査）、
-合力`resultant`、原点回りモーメント`moment`、節点側の監査値、保存誤差を出力します。
-荷重別監査には積分点数・載荷面積・載荷長さ・求積推定誤差も含まれます。
+`spatial_load_contribution`は空間荷重だけの監査結果です。主なキーは次のとおりです。
+
+| キー | 内容 |
+|---|---|
+| `resultant`、`moment` | 入力分布を積分した全体座標の合力と、全体原点回りモーメント |
+| `nodal_resultant`、`nodal_moment` | 構造節点へ配分した荷重から再計算した合力とモーメント |
+| `force_error`、`moment_error` | 入力分布側と節点側の保存誤差。許容値超過時は解析前に拒否する |
+| `node_loads` | 構造節点へ配分した荷重。`stride: 3`では`[Fx, Fy, Fz]`、`stride: 6`では`[Fx, Fy, Fz, Mx, My, Mz]`。空間荷重による節点モーメントは0 |
+| `shell_element_loads`、`cells` | シェルへ直接与えた要素荷重と、セルごとの配分内訳 |
+| `loads` | 荷重IDごとの監査結果 |
+
+`loads`の各項目には`feature`、`integrated_length`、`clipped_area`、合力・モーメント、保存誤差、
+`estimated_nodal_error`、`estimated_resultant_error`、`estimated_moment_error`、`evaluations`、
+`subdivisions`が含まれます。線荷重では`integrated_length`、面荷重では`clipped_area`を入力図と
+独立計算に照合してください。複数荷重の総和は最上位の監査値で確認します。
+
+空間荷重だけの確認ケースでは、支点位置を`r`、支点反力を`R`、支点反力モーメントを`M_R`とすると、
+`sum(R) + resultant = 0`および`sum(cross(r, R) + M_R) + moment = 0`です。
+他の荷重を併用する場合は、その合力とモーメントも同じ全体原点で加えて確認します。
 
 `element_nodal_equilibrium_forces`はシェルの`K_e u_e - f_e`を全体座標で返します。
 `node_ids`順の各行は`[Fx, Fy, Fz, Mx, My, Mz]`です。
