@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['互換用の圧縮転送_0',['互換用の圧縮転送',['../md_docs_2wiki_2endpoints.html#autotoc_md29',1,'']]]
+  ['ローカルサーバーの起動_0',['ローカルサーバーの起動',['../md_docs_2wiki_2endpoints.html#autotoc_md37',1,'']]]
 ];

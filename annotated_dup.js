@@ -202,6 +202,41 @@ var annotated_dup =
       [ "solver", "namespacefem_1_1solver.html", [
         [ "Solver", "classfem_1_1solver_1_1Solver.html", "classfem_1_1solver_1_1Solver" ]
       ] ],
+      [ "spatial_loads", "namespacefem_1_1spatial__loads.html", [
+        [ "assembler", "namespacefem_1_1spatial__loads_1_1assembler.html", [
+          [ "AssemblyTolerance", "classfem_1_1spatial__loads_1_1assembler_1_1AssemblyTolerance.html", null ],
+          [ "CellLoadContribution", "classfem_1_1spatial__loads_1_1assembler_1_1CellLoadContribution.html", null ],
+          [ "LoadAudit", "classfem_1_1spatial__loads_1_1assembler_1_1LoadAudit.html", null ],
+          [ "SpatialLoadContribution", "classfem_1_1spatial__loads_1_1assembler_1_1SpatialLoadContribution.html", "classfem_1_1spatial__loads_1_1assembler_1_1SpatialLoadContribution" ]
+        ] ],
+        [ "definitions", "namespacefem_1_1spatial__loads_1_1definitions.html", [
+          [ "GeometryTolerance", "classfem_1_1spatial__loads_1_1definitions_1_1GeometryTolerance.html", null ],
+          [ "LoadDirection", "classfem_1_1spatial__loads_1_1definitions_1_1LoadDirection.html", null ],
+          [ "LocalPlane", "classfem_1_1spatial__loads_1_1definitions_1_1LocalPlane.html", null ],
+          [ "SpatialLoad", "classfem_1_1spatial__loads_1_1definitions_1_1SpatialLoad.html", null ],
+          [ "SpatialLoadDefinitions", "classfem_1_1spatial__loads_1_1definitions_1_1SpatialLoadDefinitions.html", null ],
+          [ "SpatialLoadMeshNode", "classfem_1_1spatial__loads_1_1definitions_1_1SpatialLoadMeshNode.html", null ],
+          [ "SpatialLoadPanel", "classfem_1_1spatial__loads_1_1definitions_1_1SpatialLoadPanel.html", null ],
+          [ "SpatialLoadPath", "classfem_1_1spatial__loads_1_1definitions_1_1SpatialLoadPath.html", null ]
+        ] ],
+        [ "geometry", "namespacefem_1_1spatial__loads_1_1geometry.html", [
+          [ "LinePiece", "classfem_1_1spatial__loads_1_1geometry_1_1LinePiece.html", null ],
+          [ "PanelCell", "classfem_1_1spatial__loads_1_1geometry_1_1PanelCell.html", null ],
+          [ "PanelGeometry", "classfem_1_1spatial__loads_1_1geometry_1_1PanelGeometry.html", null ],
+          [ "PlanarFrame", "classfem_1_1spatial__loads_1_1geometry_1_1PlanarFrame.html", null ]
+        ] ],
+        [ "interpolation", "namespacefem_1_1spatial__loads_1_1interpolation.html", [
+          [ "ProjectedPath", "classfem_1_1spatial__loads_1_1interpolation_1_1ProjectedPath.html", null ],
+          [ "StripCell", "classfem_1_1spatial__loads_1_1interpolation_1_1StripCell.html", null ]
+        ] ],
+        [ "quadrature", "namespacefem_1_1spatial__loads_1_1quadrature.html", [
+          [ "IntegralResult", "classfem_1_1spatial__loads_1_1quadrature_1_1IntegralResult.html", null ]
+        ] ],
+        [ "validation", "namespacefem_1_1spatial__loads_1_1validation.html", [
+          [ "AreaPiece", "classfem_1_1spatial__loads_1_1validation_1_1AreaPiece.html", null ],
+          [ "PreparedLoad", "classfem_1_1spatial__loads_1_1validation_1_1PreparedLoad.html", null ]
+        ] ]
+      ] ],
       [ "stiffness_matrix", null, [
         [ "Freedom", "classfem_1_1stiffness__matrix_1_1Freedom.html", null ],
         [ "StiffnessMatrix", "classfem_1_1stiffness__matrix_1_1StiffnessMatrix.html", null ]

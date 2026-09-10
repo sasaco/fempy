@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['静解析の微小補正_0',['静解析の微小補正',['../md_docs_2wiki_2results.html#autotoc_md107',1,'']]]
+  ['要素と解析の選び方_0',['要素と解析の選び方',['../md_docs_2wiki_2elements.html',1,'']]]
 ];

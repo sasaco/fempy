@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['vtkwriter_0',['VTKWriter',['../classfem_1_1vtk__writer_1_1VTKWriter.html',1,'fem::vtk_writer']]]
+  ['unsupportedanalysiserror_0',['UnsupportedAnalysisError',['../classfem_1_1diagnostics_1_1UnsupportedAnalysisError.html',1,'fem::diagnostics']]],
+  ['unsupportedcapabilityerror_1',['UnsupportedCapabilityError',['../classfem_1_1capabilities_1_1UnsupportedCapabilityError.html',1,'fem::capabilities']]]
 ];

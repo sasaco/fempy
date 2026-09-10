@@ -1,0 +1,283 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FEMPython: 線荷重・面荷重</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FEMPython
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('md_docs_2wiki_2spatial-loads.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">線荷重・面荷重</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="autotoc_md121"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2python-api.html">Python API</a> · <a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a> · <a class="el" href="md_docs_2wiki_2design-practice.html">実務チェック</a></p>
+<p><code>static</code>で、指定した位置の線荷重・面荷重を構造節点へ配分して解析できます。 通常の節点荷重・部材荷重・シェル面圧と同じ荷重ケースに加算されます。 荷重別と総和の合力・全体原点回りモーメントを監査し、一回の静解析で結果を求めます。 設計利用時は、荷重領域の面積、作用方向、支持反力との釣合い、構造・載荷メッシュの感度を <a class="el" href="md_docs_2wiki_2design-practice.html">設計実務での利用手順</a>と併せて確認してください。</p>
+<h1><a class="anchor" id="autotoc_md122"></a>
+座標・符号・単位</h1>
+<ul>
+<li><code>plane</code>省略時は全体XYに平行な平面です。パネルと経路のZ座標を一致させます。 傾斜平面には<code>LocalPlane</code>（JSONでは<code>plane</code>）を明示します。構造節点と経路の座標は常に全体座標です。</li>
+<li><code>direction</code>省略時は正の強度が全体+Z、負が全体-Z方向です。節点順を逆にしても方向は変わりません。 全体方向ベクトルは正規化され、その長さを荷重倍率には使いません。 <code>normal</code>方向の正負は要素・載荷三角形の節点順に従い、全セルの反転で荷重方向も反転します。</li>
+<li>線荷重は力/長さ、面荷重は力/長さ²です。N・m系ではN/m、N/m²を使います。 座標・剛性・通常荷重も同じ単位系にそろえます。自動換算はありません。</li>
+<li>旧<code>line.position</code>のZ省略値は0です。強度や座標は入力時に丸めません。</li>
+</ul>
+<p>局所基底の原点・二軸は積分用の平面を定めます。二軸は非零で直交する必要があり、各軸の長さは正規化します。 平面外の点を黙って投影しません。線強度は実長、面強度は実面積あたりの値です。XYへの投影長・投影面積ではありません。</p>
+<p>一本の経路では、始終点強度を折れ線の累積長に沿って補間します。 二本の経路では正規化弧長で位置を対応させ、経路間にも強度を補間します。 対応する端点間の距離二乗和を比較して二本目の向きをそろえ、許容値内の同点は対応が曖昧として拒否します。 経路を逆向きに記述するときは、その経路の始終点強度も入れ替えます。</p>
+<h1><a class="anchor" id="autotoc_md123"></a>
+パネルの指定</h1>
+<p>既存シェルを使う場合は<code>elements</code>で要素IDを指定します。 T3は重心座標、Q4は双一次形状関数を使います。平面内で歪んだQ4も求積の収束を確認して扱います。</p>
+<p>シェルを持たない梁モデルでは<code>triangles</code>に既存構造節点の三角形接続を指定します。 載荷三角形は補間専用で、材料・板厚・剛性を追加しません。 梁は三角形からの節点荷重を受けます。梁要素への分布荷重と同じ精度になるとは限らないため、 荷重配分と変位・端力のメッシュ依存性を確認してください。</p>
+<p>載荷領域の節点を構造節点と分ける場合は、<code>loading_nodes</code>にIDと全体座標、<code>loading_triangles</code>に その接続を指定します。このメッシュは載荷領域だけを定め、構造自由度や剛性を追加しません。 各積分点を既存シェルまたは構造節点の<code>triangles</code>へ探索し、形状関数により総力と一次モーメントを 保存して構造自由度へ写像します。載荷メッシュが構造側の補間領域から出る場合は拒否します。</p>
+<p><code>elements</code>と<code>triangles</code>の非空指定は排他です。旧JSONで両方を省略すると、パネル節点に含まれる 既存シェルから接続を復元します。シェルのない節点集合から三角形を自動生成しません。 旧<code>elements</code>は<code>shell</code>名前空間のID、新形式は内部要素IDです。梁IDと旧シェルIDが同じでも区別します。</p>
+<p>外周は指定したT3/Q4接続から復元するため、非凸でも凸包へ置換しません。穴は接続に実在する境界を <code>holes</code>へ節点ID順で明示します。穴の順序は外周と逆向きでなければならず、面荷重積分から穴内部を除外します。 線荷重は穴を横断できませんが、決定規則により穴の境界上へ一度だけ載荷できます。</p>
+<h1><a class="anchor" id="autotoc_md124"></a>
+旧JSONの完全な例</h1>
+<p>長さ2の片持梁二本の先端間に、強度-3の線荷重を載せる数値確認モデルです。 合計荷重は-6、各先端への荷重は-3、曲げ剛性は1000なので先端変位は-0.008になります。</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;analysis_type&quot;: &quot;static&quot;,</div>
+<div class="line">  &quot;node&quot;: {</div>
+<div class="line">    &quot;1&quot;: {&quot;x&quot;: 0, &quot;y&quot;: 0, &quot;z&quot;: 0}, &quot;2&quot;: {&quot;x&quot;: 2, &quot;y&quot;: 0, &quot;z&quot;: 0},</div>
+<div class="line">    &quot;3&quot;: {&quot;x&quot;: 2, &quot;y&quot;: 2, &quot;z&quot;: 0}, &quot;4&quot;: {&quot;x&quot;: 0, &quot;y&quot;: 2, &quot;z&quot;: 0}</div>
+<div class="line">  },</div>
+<div class="line">  &quot;member&quot;: {&quot;1&quot;: {&quot;ni&quot;: 1, &quot;nj&quot;: 2, &quot;e&quot;: 1}, &quot;2&quot;: {&quot;ni&quot;: 4, &quot;nj&quot;: 3, &quot;e&quot;: 1}},</div>
+<div class="line">  &quot;element&quot;: {&quot;1&quot;: {&quot;1&quot;: {&quot;E&quot;: 1000, &quot;A&quot;: 1, &quot;Iy&quot;: 1, &quot;Iz&quot;: 1, &quot;J&quot;: 1}}},</div>
+<div class="line">  &quot;fix_node&quot;: {&quot;1&quot;: [</div>
+<div class="line">    {&quot;n&quot;: 1, &quot;tx&quot;: 1, &quot;ty&quot;: 1, &quot;tz&quot;: 1, &quot;rx&quot;: 1, &quot;ry&quot;: 1, &quot;rz&quot;: 1},</div>
+<div class="line">    {&quot;n&quot;: 4, &quot;tx&quot;: 1, &quot;ty&quot;: 1, &quot;tz&quot;: 1, &quot;rx&quot;: 1, &quot;ry&quot;: 1, &quot;rz&quot;: 1}</div>
+<div class="line">  ]},</div>
+<div class="line">  &quot;inf_panel&quot;: {&quot;7&quot;: {&quot;nodes&quot;: [1, 2, 3, 4], &quot;triangles&quot;: [[1, 2, 3], [1, 3, 4]]}},</div>
+<div class="line">  &quot;line&quot;: {&quot;1&quot;: {&quot;position&quot;: [{&quot;x&quot;: 2, &quot;y&quot;: 0}, {&quot;x&quot;: 2, &quot;y&quot;: 2}]}},</div>
+<div class="line">  &quot;load&quot;: {&quot;1&quot;: {&quot;inf_panel&quot;: 7, &quot;load_inf&quot;: [{&quot;L1&quot;: 1, &quot;P11&quot;: -3, &quot;P12&quot;: -3}]}}</div>
+<div class="line">}</div>
+</div><!-- fragment --><div class="fragment"><div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> isclose</div>
+<div class="line"><span class="keyword">from</span> fem <span class="keyword">import</span> FemModel</div>
+<div class="line"> </div>
+<div class="line">model = FemModel()</div>
+<div class="line">model.load_model(<span class="stringliteral">&quot;spatial-cantilevers.json&quot;</span>)</div>
+<div class="line">result = model.run()</div>
+<div class="line"><span class="keyword">assert</span> isclose(result[<span class="stringliteral">&quot;node_displacements&quot;</span>][2][<span class="stringliteral">&quot;dz&quot;</span>], -0.008, abs_tol=1e-12)</div>
+<div class="line"><span class="keyword">assert</span> isclose(result[<span class="stringliteral">&quot;reaction_forces&quot;</span>][1][<span class="stringliteral">&quot;fz&quot;</span>], 3, abs_tol=1e-12)</div>
+<div class="line"><span class="keyword">assert</span> isclose(result[<span class="stringliteral">&quot;reaction_forces&quot;</span>][1][<span class="stringliteral">&quot;my&quot;</span>], -6, abs_tol=1e-12)</div>
+<div class="line"><span class="keyword">assert</span> isclose(result[<span class="stringliteral">&quot;spatial_load_contribution&quot;</span>][<span class="stringliteral">&quot;resultant&quot;</span>][2], -6, abs_tol=1e-12)</div>
+<div class="line">model.save_model(<span class="stringliteral">&quot;spatial-saved.json&quot;</span>)</div>
+<div class="line">restored = FemModel()</div>
+<div class="line">restored.load_model(<span class="stringliteral">&quot;spatial-saved.json&quot;</span>)</div>
+<div class="line"><span class="keyword">assert</span> restored.run()[<span class="stringliteral">&quot;node_displacements&quot;</span>] == result[<span class="stringliteral">&quot;node_displacements&quot;</span>]</div>
+<div class="line"><span class="keyword">assert</span> model.run()[<span class="stringliteral">&quot;spatial_load_contribution&quot;</span>] == result[<span class="stringliteral">&quot;spatial_load_contribution&quot;</span>]</div>
+<div class="line">model.save_results(<span class="stringliteral">&quot;spatial-results.json&quot;</span>)</div>
+</div><!-- fragment --><p><code>L1/P11/P12</code>のみで線荷重、<code>L2/P21/P22</code>も指定すると面荷重です。 一つのケース内の<code>load_inf</code>をすべて加算します。旧JSONの複数ケースは先頭一件だけを選びます。 未選択ケースの荷重は加算しません。選択ケースの<code>load_inf</code>と新形式<code>spatial_loads</code>の併記は拒否します。</p>
+<h1><a class="anchor" id="autotoc_md125"></a>
+Python APIと面荷重</h1>
+<p>定義型は不変です。変更には新しい定義を<code>set_spatial_loads()</code>へ渡します。 次の例はPythonだけで同じ二本の梁を作り、パネル全体に強度-3の面荷重を載せます。</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> isclose</div>
+<div class="line"><span class="keyword">from</span> fem <span class="keyword">import</span> FemModel, BarParameter</div>
+<div class="line"><span class="keyword">from</span> <a class="code hl_namespace" href="namespacefem_1_1spatial__loads.html">fem.spatial_loads</a> <span class="keyword">import</span> SpatialLoadDefinitions, SpatialLoadPanel, SpatialLoadPath, SpatialLoad</div>
+<div class="line"> </div>
+<div class="line">model = FemModel()</div>
+<div class="line"><span class="keywordflow">for</span> node, (x, y) <span class="keywordflow">in</span> enumerate(((0, 0), (2, 0), (2, 2), (0, 2)), 1):</div>
+<div class="line">    model.add_node(node, x, y, 0)</div>
+<div class="line">model.add_material(1, <span class="stringliteral">&quot;Example&quot;</span>, E=1000, nu=0.3)</div>
+<div class="line">model.material.add_bar_parameter(1, BarParameter(area=1, Iy=1, Iz=1, J=1))</div>
+<div class="line">model.add_element(1, <span class="stringliteral">&quot;bar&quot;</span>, [1, 2], 1, section_id=1, shear_correction=<span class="keyword">False</span>)</div>
+<div class="line">model.add_element(2, <span class="stringliteral">&quot;bar&quot;</span>, [4, 3], 1, section_id=1, shear_correction=<span class="keyword">False</span>)</div>
+<div class="line"><span class="keywordflow">for</span> node <span class="keywordflow">in</span> (1, 4):</div>
+<div class="line">    model.add_restraint(node, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>)</div>
+<div class="line">model.set_spatial_loads(SpatialLoadDefinitions(</div>
+<div class="line">    panels=(SpatialLoadPanel(7, (1, 2, 3, 4), triangles=((1, 2, 3), (1, 3, 4))),),</div>
+<div class="line">    paths=(SpatialLoadPath(1, ((0, 0, 0), (2, 0, 0))),</div>
+<div class="line">           SpatialLoadPath(2, ((0, 2, 0), (2, 2, 0)))),</div>
+<div class="line">    loads=(SpatialLoad(1, 7, (1, 2), ((-3, -3), (-3, -3))),),</div>
+<div class="line">))</div>
+<div class="line">result = model.run(<span class="stringliteral">&quot;static&quot;</span>)</div>
+<div class="line">audit = result[<span class="stringliteral">&quot;spatial_load_contribution&quot;</span>]</div>
+<div class="line"><span class="keyword">assert</span> isclose(audit[<span class="stringliteral">&quot;resultant&quot;</span>][2], -12, abs_tol=1e-12)</div>
+<div class="line"><span class="keyword">assert</span> isclose(audit[<span class="stringliteral">&quot;moment&quot;</span>][1], 12, abs_tol=1e-12)</div>
+<div class="line"><span class="keyword">assert</span> isclose(sum(r[<span class="stringliteral">&quot;fz&quot;</span>] <span class="keywordflow">for</span> r <span class="keywordflow">in</span> result[<span class="stringliteral">&quot;reaction_forces&quot;</span>].values()), 12, abs_tol=1e-12)</div>
+<div class="line"><span class="keyword">assert</span> model.run()[<span class="stringliteral">&quot;spatial_load_contribution&quot;</span>] == audit</div>
+<div class="ttc" id="anamespacefem_1_1spatial__loads_html"><div class="ttname"><a href="namespacefem_1_1spatial__loads.html">fem.spatial_loads</a></div><div class="ttdef"><b>Definition</b> __init__.py:1</div></div>
+</div><!-- fragment --><p>傾斜平面で面法線方向を使う例です。構造節点順を反転すると面法線も反転します。</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> isclose</div>
+<div class="line"><span class="keyword">from</span> fem <span class="keyword">import</span> FemModel, BarParameter</div>
+<div class="line"><span class="keyword">from</span> <a class="code hl_namespace" href="namespacefem_1_1spatial__loads.html">fem.spatial_loads</a> <span class="keyword">import</span> (</div>
+<div class="line">    LoadDirection, LocalPlane, SpatialLoad, SpatialLoadDefinitions,</div>
+<div class="line">    SpatialLoadPanel, SpatialLoadPath,</div>
+<div class="line">)</div>
+<div class="line"> </div>
+<div class="line">model = FemModel()</div>
+<div class="line"><span class="keywordflow">for</span> node, xyz <span class="keywordflow">in</span> enumerate(((0, 0, 0), (2, 0, 0), (2, 0, 2), (0, 0, 2)), 1):</div>
+<div class="line">    model.add_node(node, *xyz)</div>
+<div class="line">model.add_material(1, <span class="stringliteral">&quot;vertical&quot;</span>, E=1000, nu=.25)</div>
+<div class="line">model.material.add_bar_parameter(1, BarParameter(1, 1, 1, 1))</div>
+<div class="line"><span class="keywordflow">for</span> element, nodes <span class="keywordflow">in</span> enumerate(((1, 2), (2, 3), (3, 4), (4, 1)), 1):</div>
+<div class="line">    model.add_element(element, <span class="stringliteral">&quot;bar&quot;</span>, nodes, 1, section_id=1, shear_correction=<span class="keyword">False</span>)</div>
+<div class="line"><span class="keywordflow">for</span> node <span class="keywordflow">in</span> model.mesh.nodes:</div>
+<div class="line">    model.add_restraint(node, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>, <span class="keyword">True</span>)</div>
+<div class="line">panel = SpatialLoadPanel(</div>
+<div class="line">    7, (1, 2, 3, 4), triangles=((1, 2, 3), (1, 3, 4)),</div>
+<div class="line">    plane=LocalPlane((0, 0, 0), (1, 0, 0), (0, 0, 1)),</div>
+<div class="line">)</div>
+<div class="line">paths = (SpatialLoadPath(1, ((0, 0, 0), (2, 0, 0))),</div>
+<div class="line">         SpatialLoadPath(2, ((0, 0, 2), (2, 0, 2))))</div>
+<div class="line">load = SpatialLoad(1, 7, (1, 2), ((3, 3), (3, 3)), LoadDirection(<span class="stringliteral">&quot;normal&quot;</span>))</div>
+<div class="line">model.set_spatial_loads(SpatialLoadDefinitions((panel,), paths, (load,)))</div>
+<div class="line">audit = model.run()[<span class="stringliteral">&quot;spatial_load_contribution&quot;</span>]</div>
+<div class="line"><span class="keyword">assert</span> isclose(audit[<span class="stringliteral">&quot;resultant&quot;</span>][1], -12, abs_tol=1e-12)</div>
+<div class="line"><span class="keyword">assert</span> isclose(audit[<span class="stringliteral">&quot;moment&quot;</span>][0], 12, abs_tol=1e-12)</div>
+<div class="line"><span class="keyword">assert</span> isclose(audit[<span class="stringliteral">&quot;moment&quot;</span>][2], -12, abs_tol=1e-12)</div>
+</div><!-- fragment --><p>通常荷重を残して空間荷重だけを外すには、<code>model.set_spatial_loads(SpatialLoadDefinitions())</code>を使います。</p>
+<h1><a class="anchor" id="autotoc_md126"></a>
+正規化JSONとHTTP</h1>
+<p>JSON保存時はトップレベル<code>spatial_loads</code>に、定義を欠落なく出力します。 次は上の面荷重の部分スキーマです。構造節点・材料・要素・支持はモデル本体へ指定します。</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;spatial_loads&quot;: {</div>
+<div class="line">    &quot;panels&quot;: [{&quot;id&quot;: 7, &quot;nodes&quot;: [1, 2, 3, 4], &quot;triangles&quot;: [[1, 2, 3], [1, 3, 4]],</div>
+<div class="line">                &quot;holes&quot;: [], &quot;plane&quot;: {&quot;origin&quot;: [0, 0, 0], &quot;axis_u&quot;: [1, 0, 0], &quot;axis_v&quot;: [0, 1, 0]}}],</div>
+<div class="line">    &quot;paths&quot;: [</div>
+<div class="line">      {&quot;id&quot;: 1, &quot;points&quot;: [[0, 0, 0], [2, 0, 0]]},</div>
+<div class="line">      {&quot;id&quot;: 2, &quot;points&quot;: [[0, 2, 0], [2, 2, 0]]}</div>
+<div class="line">    ],</div>
+<div class="line">    &quot;loads&quot;: [{&quot;id&quot;: 1, &quot;panel_id&quot;: 7, &quot;path_ids&quot;: [1, 2], &quot;end_intensities&quot;: [[-3, -3], [-3, -3]],</div>
+<div class="line">               &quot;direction&quot;: {&quot;mode&quot;: &quot;global&quot;, &quot;vector&quot;: [0, 0, 1]}}]</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>IDは整数へ正規化し、重複ID・未知キー・欠落参照・非有限値を拒否します。 独立載荷メッシュはパネルに<code>loading_nodes: [{"id": 101, "point": [x, y, z]}]</code>と <code>loading_triangles: [[101, 102, 103]]</code>を併記します。穴の節点IDはこの載荷メッシュ側を参照します。 <code>load_inf</code>の荷重IDは選択ケース内の順序により1から付けます。 <code>.fw3</code>には保存できません。定義を持つモデルは既存ファイルを開く前に拒否し、JSON保存を案内します。</p>
+<p><a class="el" href="md_docs_2wiki_2endpoints.html">HTTP API</a>も同じ旧形式・新形式を受け付け、通常JSONと既存の圧縮形式の双方で同じ解析結果を返します。 次の例はローカルHTTPサーバー起動後に実行します。</p>
+<div class="fragment"><div class="line"><span class="keyword">import</span> json</div>
+<div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> isclose</div>
+<div class="line"><span class="keyword">from</span> pathlib <span class="keyword">import</span> Path</div>
+<div class="line"><span class="keyword">from</span> urllib.request <span class="keyword">import</span> Request, urlopen</div>
+<div class="line"> </div>
+<div class="line">request = Request(<span class="stringliteral">&quot;http://localhost:5000/&quot;</span>, method=<span class="stringliteral">&quot;POST&quot;</span>,</div>
+<div class="line">                  data=Path(<span class="stringliteral">&quot;spatial-cantilevers.json&quot;</span>).read_bytes(),</div>
+<div class="line">                  headers={<span class="stringliteral">&quot;Content-Type&quot;</span>: <span class="stringliteral">&quot;application/json&quot;</span>})</div>
+<div class="line"><span class="keyword">with</span> urlopen(request) <span class="keyword">as</span> response:</div>
+<div class="line">    result = json.load(response)</div>
+<div class="line"><span class="keyword">assert</span> isclose(result[<span class="stringliteral">&quot;node_displacements&quot;</span>][<span class="stringliteral">&quot;2&quot;</span>][<span class="stringliteral">&quot;dz&quot;</span>], -0.008, abs_tol=1e-12)</div>
+<div class="line"><span class="keyword">assert</span> isclose(result[<span class="stringliteral">&quot;spatial_load_contribution&quot;</span>][<span class="stringliteral">&quot;resultant&quot;</span>][2], -6, abs_tol=1e-12)</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md127"></a>
+出力と失敗時の扱い</h1>
+<p><code>node_displacements</code>、<code>reaction_forces</code>、<code>element_stresses</code>と既存のシェル結果に荷重が反映されます。 <code>spatial_load_contribution</code>には<code>node_loads</code>、<code>shell_element_loads</code>、<code>cells</code>、<code>loads</code>（荷重別監査）、 合力<code>resultant</code>、原点回りモーメント<code>moment</code>、節点側の監査値、保存誤差を出力します。 荷重別監査には積分点数・載荷面積・載荷長さ・求積推定誤差も含まれます。</p>
+<p><code>element_nodal_equilibrium_forces</code>はシェルの<code>K_e u_e - f_e</code>を全体座標で返します。 <code>node_ids</code>順の各行は<code>[Fx, Fy, Fz, Mx, My, Mz]</code>です。 直接シェル荷重には空間荷重と既存<code>pressure</code>の両方を含めます。 載荷三角形からの荷重は節点荷重なので、シェル直接荷重には含めません。 既存の構成則によるシェル応力・断面合力・辺の力は、引き続き別の出力です。</p>
+<p>定義は読込時に既存荷重へ加算せず、解析ごとに組み立てます。保存・再読込・再解析で荷重は累積しません。 解析に失敗した場合は結果とコンパイル済み空間荷重を破棄し、修正後の再試行では最新の入力から作り直します。 空間荷重がないモデルには、この追加出力を付けません。</p>
+<h1><a class="anchor" id="autotoc_md128"></a>
+制限とエラー</h1>
+<ul>
+<li>平面の非凸外周と宣言した穴を扱います。自己交差、経路の重複点、退化要素、不連続なパネル、 外周外や穴内への線載荷を拒否します。外挿や凸包への置換はしません。</li>
+<li>曲線ライン、曲面、位置ごとに変わる面積Jacobian・法線方向は未対応です。</li>
+<li><code>material_nonlinear</code>と<code>modal</code>は、強度がゼロでも荷重定義が一件あれば拒否します。</li>
+<li>梁とT3/Q4シェルは公開経路を検証済みです。他の静解析対応要素の構造節点にも載荷三角形を設定できますが、 それらへの個別の力学検証は未完了です。詳細は<a class="el" href="md_docs_2wiki_2elements.html">対応表</a>で区別しています。</li>
+<li>移動荷重、最不利配置・包絡、設計活荷重モデル、旧RBF・台形則による旧値互換は未実装です。</li>
+</ul>
+<p>パネル7の経路が外へ出ると、Pythonでは<code>ValueError</code>を継承する入力例外が発生し、 HTTPでは400・<code>error_code: "invalid_input"</code>・<code>converged: false</code>を返します。 メッセージにパネル・荷重・経路など原因のIDを含め、剛性行列組立前に停止します。 対象外解析は400・<code>unsupported_analysis</code>で、<code>details</code>に<code>analysis_type</code>、<code>features</code>、<code>panel_ids</code>、<code>load_ids</code>を返します。</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> fem <span class="keyword">import</span> FemModel</div>
+<div class="line"> </div>
+<div class="line">model = FemModel()</div>
+<div class="line">model.load_model(<span class="stringliteral">&quot;spatial-cantilevers.json&quot;</span>)</div>
+<div class="line"><span class="keywordflow">try</span>:</div>
+<div class="line">    model.run(<span class="stringliteral">&quot;modal&quot;</span>)</div>
+<div class="line"><span class="keywordflow">except</span> ValueError <span class="keyword">as</span> error:</div>
+<div class="line">    <span class="keyword">assert</span> error.error_code == <span class="stringliteral">&quot;unsupported_analysis&quot;</span></div>
+<div class="line">    <span class="keyword">assert</span> error.details[<span class="stringliteral">&quot;panel_ids&quot;</span>] == [7]</div>
+<div class="line">    <span class="keyword">assert</span> error.details[<span class="stringliteral">&quot;load_ids&quot;</span>] == [1]</div>
+<div class="line"><span class="keywordflow">else</span>:</div>
+<div class="line">    <span class="keywordflow">raise</span> AssertionError(<span class="stringliteral">&quot;modal must reject spatial loads&quot;</span>)</div>
+<div class="line"><span class="keyword">assert</span> model.results <span class="keywordflow">is</span> <span class="keywordtype">None</span></div>
+<div class="line"><span class="keyword">assert</span> model.run(<span class="stringliteral">&quot;static&quot;</span>)[<span class="stringliteral">&quot;metadata&quot;</span>][<span class="stringliteral">&quot;solver&quot;</span>][<span class="stringliteral">&quot;converged&quot;</span>] <span class="keywordflow">is</span> <span class="keyword">True</span></div>
+</div><!-- fragment --> </div></div><!-- contents -->
+</div><!-- PageDoc -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

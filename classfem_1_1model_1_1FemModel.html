@@ -115,6 +115,8 @@ None&#160;</td><td class="memItemRight" valign="bottom"><b>read_json_model</b> (
 <tr class="separator:a331ac89012995cdb691e2bca1c4f5851"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0a5953091537ceb824bedbd8e5693b01" id="r_a0a5953091537ceb824bedbd8e5693b01"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a0a5953091537ceb824bedbd8e5693b01">save_model</a> (self, str file_path)</td></tr>
 <tr class="separator:a0a5953091537ceb824bedbd8e5693b01"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a13664c6a57bea92af6eb974ccdf45fbf" id="r_a13664c6a57bea92af6eb974ccdf45fbf"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a13664c6a57bea92af6eb974ccdf45fbf">set_spatial_loads</a> (self, <a class="el" href="classfem_1_1spatial__loads_1_1definitions_1_1SpatialLoadDefinitions.html">SpatialLoadDefinitions</a> definitions)</td></tr>
+<tr class="separator:a13664c6a57bea92af6eb974ccdf45fbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae96e159998c76358f94f34d5c9695856" id="r_ae96e159998c76358f94f34d5c9695856"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#ae96e159998c76358f94f34d5c9695856">add_node</a> (self, int node_id, float x, float y, float z)</td></tr>
 <tr class="separator:ae96e159998c76358f94f34d5c9695856"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4bca022d2737cc4270b995e648daa6bb" id="r_a4bca022d2737cc4270b995e648daa6bb"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a4bca022d2737cc4270b995e648daa6bb">add_element</a> (self, int elem_id, str elem_type, List[int] node_ids, int material_id, **kwargs)</td></tr>
@@ -2032,6 +2034,44 @@ Args:
 
 Args:
     file_path: 保存先ファイルパス
+</pre> 
+</div>
+</div>
+<a id="a13664c6a57bea92af6eb974ccdf45fbf" name="a13664c6a57bea92af6eb974ccdf45fbf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a13664c6a57bea92af6eb974ccdf45fbf">&#9670;&#160;</a></span>set_spatial_loads()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.set_spatial_loads </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1spatial__loads_1_1definitions_1_1SpatialLoadDefinitions.html">SpatialLoadDefinitions</a>&#160;</td>
+          <td class="paramname"><em>definitions</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Replace unexpanded spatial input after structural-reference validation.
+
+Import definitions from ``fem.spatial_loads``. Linear static analysis
+accepts planar panels with nonconvex boundaries and declared holes.
+An explicit LocalPlane enables inclined panels; LoadDirection selects
+a unit global direction or the oriented panel normal. Defaults are XY/+Z.
+Line intensity has units force/length; area intensity force/length**2.
+Negative intensity acts in -Z. Geometry and conservation are checked
+on every ``run()`` before stiffness assembly. See the Wiki spatial-loads
+page for topology, JSON examples, output and unsupported combinations.
 </pre> 
 </div>
 </div>

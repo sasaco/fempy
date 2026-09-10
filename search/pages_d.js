@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['要素と解析の選び方_0',['要素と解析の選び方',['../md_docs_2wiki_2elements.html',1,'']]]
+  ['線荷重・面荷重_0',['線荷重・面荷重',['../md_docs_2wiki_2spatial-loads.html',1,'']]]
 ];

@@ -98,9 +98,9 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2examples.html',''); ini
   <div class="headertitle"><div class="title">実行例</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md40"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2getting-started.html">はじめに</a> · <a class="el" href="md_docs_2wiki_2python-api.html">Python API</a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md53"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2getting-started.html">はじめに</a> · <a class="el" href="md_docs_2wiki_2python-api.html">Python API</a></p>
 <p>各例は独立したPythonスクリプトとして実行できます。<code>beam.json</code>を使う例では、先に<a class="el" href="md_docs_2wiki_2getting-started.html">はじめに</a>のJSONを同じ作業ディレクトリへ保存してください。記載の単位はN・mです。assertは、期待する物理量や結果の形を確認するためのものです。</p>
-<h1><a class="anchor" id="autotoc_md41"></a>
+<h1><a class="anchor" id="autotoc_md54"></a>
 分布荷重と着目位置での分割</h1>
 <p>片持ち梁の全長へ1,000 N/mの下向き荷重をかけ、0.5 mと1 mで分割します。全長載荷の指定は<code>L1=0, L2=0</code>です。</p>
 <div class="fragment"><div class="line"><span class="keyword">import</span> json</div>
@@ -126,7 +126,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2examples.html',''); ini
 <div class="line">print(<span class="stringliteral">&quot;先端のたわみ [m]:&quot;</span>, result[<span class="stringliteral">&quot;node_displacements&quot;</span>][2][<span class="stringliteral">&quot;dy&quot;</span>])</div>
 <div class="line">print(<span class="stringliteral">&quot;解析要素:&quot;</span>, list(model.mesh.elements))</div>
 </div><!-- fragment --><p>先端のたわみは−0.001 mです。出力端力は分割後の各要素に対応します。モデル規模は<code>get_model_info()</code>で確認でき、節点数を変位配列の長さから数える必要はありません。</p>
-<h1><a class="anchor" id="autotoc_md42"></a>
+<h1><a class="anchor" id="autotoc_md55"></a>
 複数荷重ケースを1つずつ解析する</h1>
 <p>HTTPや<code>load_model()</code>はJSONの全ケースを一括計算しません。以下は対象ケースだけを残して、ケースごとに新しいモデルを作る例です。各ケース内の材料・支持・ばね・材端条件の参照はそのまま保持します。</p>
 <div class="fragment"><div class="line"><span class="keyword">import</span> copy</div>
@@ -153,7 +153,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2examples.html',''); ini
 <div class="line">    print(case_id, result[<span class="stringliteral">&quot;node_displacements&quot;</span>][2][<span class="stringliteral">&quot;dy&quot;</span>])</div>
 </div><!-- fragment --><p>この方法は各ケースの荷重に応じて独立に分割します。比較には元の節点IDを使い、ケース間で生成節点・生成要素のIDが同じとは仮定しないでください。共通の比較位置は<code>notice_points</code>で与えます。HTTPでも同じように1ケースずつ送信します。</p>
 <p>非線形解析の履歴は各モデルで独立です。複数ケースを足し合わせて1本の履歴として扱うことや、非線形結果を線形重ね合わせすることはできません。</p>
-<h1><a class="anchor" id="autotoc_md43"></a>
+<h1><a class="anchor" id="autotoc_md56"></a>
 支持ばねと強制変位</h1>
 <p>長さ2 m、軸剛性EA=1,000 Nの部材の右端に500 N/mのばねを付け、左端を0.002 m動かします。部材の軸ばねEA/Lも500 N/mなので、右端は0.001 m動きます。</p>
 <div class="fragment"><div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> isclose</div>
@@ -175,7 +175,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2examples.html',''); ini
 <div class="line"><span class="keyword">assert</span> isclose(result[<span class="stringliteral">&quot;reaction_forces&quot;</span>][1][<span class="stringliteral">&quot;fx&quot;</span>], 0.5, abs_tol=1e-10)</div>
 <div class="line">print(result[<span class="stringliteral">&quot;reaction_forces&quot;</span>])</div>
 </div><!-- fragment --><p>ばね反力は構造物へ作用する向きで、変位に対して<code>−k u</code>です。強制変位とばねを同じ自由度に同時に設定することはできません。</p>
-<h1><a class="anchor" id="autotoc_md44"></a>
+<h1><a class="anchor" id="autotoc_md57"></a>
 温度変化による梁の伸び</h1>
 <p>片持ち梁の温度を20だけ上げ、線膨張係数を12×10⁻⁶とします。軸方向の伸びが自由なので、先端変位は<code>alpha × 温度変化 × 長さ</code>です。</p>
 <div class="fragment"><div class="line"><span class="keyword">import</span> json</div>
@@ -195,7 +195,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2examples.html',''); ini
 <div class="line"><span class="keyword">assert</span> abs(result[<span class="stringliteral">&quot;reaction_forces&quot;</span>][1][<span class="stringliteral">&quot;fx&quot;</span>]) &lt; 1e-7</div>
 <div class="line">print(<span class="stringliteral">&quot;自由熱伸び [m]:&quot;</span>, result[<span class="stringliteral">&quot;node_displacements&quot;</span>][2][<span class="stringliteral">&quot;dx&quot;</span>])</div>
 </div><!-- fragment --><p>温度を求める熱伝導解析ではなく、与えた一様温度変化に対する構造解析です。</p>
-<h1><a class="anchor" id="autotoc_md45"></a>
+<h1><a class="anchor" id="autotoc_md58"></a>
 シェルへの面圧</h1>
 <p>2 m×1 mの板を1枚の四角形シェルで表し、x=0の辺を固定します。節点を上から見て反時計回りに並べたため、F1の法線は+Zです。正圧1,000 N/m²は−Zへ作用します。</p>
 <div class="fragment"><div class="line"><span class="keyword">import</span> json</div>
@@ -225,7 +225,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2examples.html',''); ini
 <div class="line">print(<span class="stringliteral">&quot;上面の面積平均応力:&quot;</span>, shell[<span class="stringliteral">&quot;raw_result&quot;</span>][<span class="stringliteral">&quot;elemStress1&quot;</span>])</div>
 <div class="line">print(<span class="stringliteral">&quot;局所座標の断面合力:&quot;</span>, shell[<span class="stringliteral">&quot;resultants&quot;</span>])</div>
 </div><!-- fragment --><p>この例のassertは面圧の合力と支持反力の釣合いを確認しています。1要素のたわみが連続した板の厳密解と一致することを保証するものではありません。たわみや局所応力を評価するときはメッシュを細かくして比較してください。</p>
-<h1><a class="anchor" id="autotoc_md46"></a>
+<h1><a class="anchor" id="autotoc_md59"></a>
 二次四面体の応力</h1>
 <p>10節点の四面体へ、一様なひずみが生じるように全節点の変位を与えます。頂点の後に、辺の中間節点を正しい順序で置きます。</p>
 <div class="fragment"><div class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</div>
@@ -251,7 +251,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2examples.html',''); ini
 <div class="line">np.testing.assert_allclose(stress, np.tile(expected, (len(stress), 1)), atol=1e-10)</div>
 <div class="line">print(<span class="stringliteral">&quot;各積分点の応力 [N/m^2]:&quot;</span>, stress)</div>
 </div><!-- fragment --><p><code>stress</code>は節点値ではなく積分点値です。<code>wedge2</code>・<code>hexa2</code>の節点順序は<a class="el" href="md_docs_2wiki_2elements.html">要素の選び方</a>を参照してください。</p>
-<h1><a class="anchor" id="autotoc_md47"></a>
+<h1><a class="anchor" id="autotoc_md60"></a>
 荷重だけを伝達する部材</h1>
 <p>線形梁と同じ両端に、断面値がすべて0の部材を重ねます。追加部材の分布荷重を両端へ伝達し、構造剛性は元の梁だけが持ちます。</p>
 <div class="fragment"><div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> isclose</div>
@@ -269,7 +269,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2examples.html',''); ini
 <div class="line"><span class="keyword">assert</span> isclose(result[<span class="stringliteral">&quot;node_displacements&quot;</span>][2][<span class="stringliteral">&quot;dy&quot;</span>], -1000*2**3/(3*200e9*1e-5), rel_tol=1e-8)</div>
 <div class="line">print(result[<span class="stringliteral">&quot;reaction_forces&quot;</span>][1])</div>
 </div><!-- fragment --><p>荷重は両端へ配分されます。元の梁自身に分布荷重を載せた場合とは変形が異なるため、荷重伝達部材の用途を区別してください。</p>
-<h1><a class="anchor" id="autotoc_md48"></a>
+<h1><a class="anchor" id="autotoc_md61"></a>
 固有値解析：ばね支持された梁</h1>
 <p>両端をばねで支持し、最も低いモードが梁全体の軸方向並進になるモデルです。固定支持の巨大なペナルティを使わず、ばね・質量から求めた振動数と比較します。</p>
 <div class="fragment"><div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> sqrt, pi, isclose</div>
@@ -295,7 +295,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2examples.html',''); ini
 <div class="line">print(<span class="stringliteral">&quot;振動数 [Hz]:&quot;</span>, result[<span class="stringliteral">&quot;frequencies&quot;</span>])</div>
 <div class="line">print(<span class="stringliteral">&quot;周期 [s]:&quot;</span>, result[<span class="stringliteral">&quot;periods&quot;</span>])</div>
 </div><!-- fragment --><p>振動数は約5.68048 Hzです。これはこの離散モデルの検証で、任意の支持条件のモード精度を保証するものではありません。固定支持のペナルティによる悪条件や未収束時の再試行など、<a class="el" href="md_docs_2wiki_2elements.html">固有値解析の制約</a>も確認してください。</p>
-<h1><a class="anchor" id="autotoc_md49"></a>
+<h1><a class="anchor" id="autotoc_md62"></a>
 非線形・HTTP・保存の例</h1>
 <ul>
 <li><a class="el" href="md_docs_2wiki_2nonlinear-analysis.html">材料非線形解析</a>：モーメントを載荷・除荷・反転し、残留曲率を読む。</li>

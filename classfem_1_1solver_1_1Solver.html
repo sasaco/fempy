@@ -113,6 +113,8 @@ $(document).ready(function(){initNavTree('classfem_1_1solver_1_1Solver.html','')
 <tr class="memitem:a6eebba60d0ba50f15024ba6757dca9b8" id="r_a6eebba60d0ba50f15024ba6757dca9b8"><td class="memItemLeft" align="right" valign="top"><a id="a6eebba60d0ba50f15024ba6757dca9b8" name="a6eebba60d0ba50f15024ba6757dca9b8"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>__init__</b> (self)</td></tr>
 <tr class="separator:a6eebba60d0ba50f15024ba6757dca9b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae04ff6af08ab1420605cf2381e392ec4" id="r_ae04ff6af08ab1420605cf2381e392ec4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#ae04ff6af08ab1420605cf2381e392ec4">clear_spatial_load_state</a> (self)</td></tr>
+<tr class="separator:ae04ff6af08ab1420605cf2381e392ec4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad592790528a3a7afe8153d3153cf032d" id="r_ad592790528a3a7afe8153d3153cf032d"><td class="memItemLeft" align="right" valign="top"><a id="ad592790528a3a7afe8153d3153cf032d" name="ad592790528a3a7afe8153d3153cf032d"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>create_stiffness_matrix</b> (self, mesh, material, elements)</td></tr>
 <tr class="separator:ad592790528a3a7afe8153d3153cf032d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -188,6 +190,9 @@ $(document).ready(function(){initNavTree('classfem_1_1solver_1_1Solver.html','')
 <tr class="memitem:a1389e20b5c1f1be0c6de998f9bb238f7" id="r_a1389e20b5c1f1be0c6de998f9bb238f7"><td class="memItemLeft" align="right" valign="top"><a id="a1389e20b5c1f1be0c6de998f9bb238f7" name="a1389e20b5c1f1be0c6de998f9bb238f7"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>characteristic_length_source</b></td></tr>
 <tr class="separator:a1389e20b5c1f1be0c6de998f9bb238f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65dab6dc05960cc5f8273806b157940e" id="r_a65dab6dc05960cc5f8273806b157940e"><td class="memItemLeft" align="right" valign="top"><a id="a65dab6dc05960cc5f8273806b157940e" name="a65dab6dc05960cc5f8273806b157940e"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>spatial_load_contribution</b></td></tr>
+<tr class="separator:a65dab6dc05960cc5f8273806b157940e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 静的公開変数類</h2></td></tr>
@@ -206,6 +211,9 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>DEFAULT_TOL</b> = 1e-6
 <tr class="memitem:a0545eef1f1b454d77bee5630c2ec7ca6" id="r_a0545eef1f1b454d77bee5630c2ec7ca6"><td class="memItemLeft" align="right" valign="top"><a id="a0545eef1f1b454d77bee5630c2ec7ca6" name="a0545eef1f1b454d77bee5630c2ec7ca6"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>_reset_analysis_state</b> (self)</td></tr>
 <tr class="separator:a0545eef1f1b454d77bee5630c2ec7ca6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae53dc3accb918750fa2cdc9966accab7" id="r_ae53dc3accb918750fa2cdc9966accab7"><td class="memItemLeft" align="right" valign="top"><a id="ae53dc3accb918750fa2cdc9966accab7" name="ae53dc3accb918750fa2cdc9966accab7"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>_validate_spatial_analysis</b> (self, boundary, analysis_type)</td></tr>
+<tr class="separator:ae53dc3accb918750fa2cdc9966accab7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a613c5f4ae9e361fa51340a35b24c18bf" id="r_a613c5f4ae9e361fa51340a35b24c18bf"><td class="memItemLeft" align="right" valign="top"><a id="a613c5f4ae9e361fa51340a35b24c18bf" name="a613c5f4ae9e361fa51340a35b24c18bf"></a>
 None&#160;</td><td class="memItemRight" valign="bottom"><b>_set_dof_layout</b> (self, <a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a> mesh)</td></tr>
 <tr class="separator:a613c5f4ae9e361fa51340a35b24c18bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -224,6 +232,8 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>_node_dof_start</b> (s
 <tr class="memitem:afb33dfe9cb4ce800da447495423cafd5" id="r_afb33dfe9cb4ce800da447495423cafd5"><td class="memItemLeft" align="right" valign="top"><a id="afb33dfe9cb4ce800da447495423cafd5" name="afb33dfe9cb4ce800da447495423cafd5"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>_displacement_control_iteration</b> (self, *args, **kwargs)</td></tr>
 <tr class="separator:afb33dfe9cb4ce800da447495423cafd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd85e859de5764b8e7e6a4ec4703cd3f" id="r_abd85e859de5764b8e7e6a4ec4703cd3f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1solver_1_1Solver.html#abd85e859de5764b8e7e6a4ec4703cd3f">_solve</a> (self, <a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a> mesh, <a class="el" href="classfem_1_1material_1_1Material.html">Material</a> material, <a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a> boundary, Dict[int, Any] elements, *analysis_type='static', n_steps=DEFAULT_N_STEPS, max_iter=DEFAULT_MAX_ITER, tol=DEFAULT_TOL, callback=None, load_factors=None, displacement_control=None)</td></tr>
+<tr class="separator:abd85e859de5764b8e7e6a4ec4703cd3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57718b57749a8f8523de0eaf6eea5992" id="r_a57718b57749a8f8523de0eaf6eea5992"><td class="memItemLeft" align="right" valign="top"><a id="a57718b57749a8f8523de0eaf6eea5992" name="a57718b57749a8f8523de0eaf6eea5992"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>_legacy_callback_snapshot</b> (self, accepted)</td></tr>
 <tr class="separator:a57718b57749a8f8523de0eaf6eea5992"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -273,6 +283,9 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>_get_max_dof_per_node<
 <tr class="memitem:ae96b358c1ea75e67fab654555a3b5ebb" id="r_ae96b358c1ea75e67fab654555a3b5ebb"><td class="memItemLeft" align="right" valign="top"><a id="ae96b358c1ea75e67fab654555a3b5ebb" name="ae96b358c1ea75e67fab654555a3b5ebb"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>_last_internal_force</b></td></tr>
 <tr class="separator:ae96b358c1ea75e67fab654555a3b5ebb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3aaf99d8c647bcd8b8fd0489a0c44c6a" id="r_a3aaf99d8c647bcd8b8fd0489a0c44c6a"><td class="memItemLeft" align="right" valign="top"><a id="a3aaf99d8c647bcd8b8fd0489a0c44c6a" name="a3aaf99d8c647bcd8b8fd0489a0c44c6a"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>_shell_direct_loads</b></td></tr>
+<tr class="separator:a3aaf99d8c647bcd8b8fd0489a0c44c6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-static-attribs" name="pro-static-attribs"></a>
 静的限定公開変数類</h2></td></tr>
@@ -656,6 +669,108 @@ Returns:
 <pre class="fragment">Validate public displacement-control input and resolve its global DOF.</pre> 
 </div>
 </div>
+<a id="abd85e859de5764b8e7e6a4ec4703cd3f" name="abd85e859de5764b8e7e6a4ec4703cd3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd85e859de5764b8e7e6a4ec4703cd3f">&#9670;&#160;</a></span>_solve()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">fem.solver.Solver._solve </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1mesh_1_1MeshModel.html">MeshModel</a>&#160;</td>
+          <td class="paramname"><em>mesh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1material_1_1Material.html">Material</a>&#160;</td>
+          <td class="paramname"><em>material</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1boundary__condition_1_1BoundaryCondition.html">BoundaryCondition</a>&#160;</td>
+          <td class="paramname"><em>boundary</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[int, Any]&#160;</td>
+          <td class="paramname"><em>elements</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">*&#160;</td>
+          <td class="paramname"><em>analysis_type</em> = <code>'static'</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>n_steps</em> = <code>DEFAULT_N_STEPS</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>max_iter</em> = <code>DEFAULT_MAX_ITER</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>tol</em> = <code>DEFAULT_TOL</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>callback</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>load_factors</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>displacement_control</em> = <code>None</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Shared static flow; analysis type selects material law and equilibrium.
+
+The original four positional arguments select reference-elastic static
+analysis. Nonlinear controls are independent of the number of steps.
+Modal analysis continues to use eigenvalue_analysis(). Each call starts
+a new analysis; elements implementing reset_states start fresh history.
+</pre> 
+</div>
+</div>
 <a id="a5bdbeb36ddff07d94d94ccfe80a99503" name="a5bdbeb36ddff07d94d94ccfe80a99503"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5bdbeb36ddff07d94d94ccfe80a99503">&#9670;&#160;</a></span>apply_boundary_conditions()</h2>
 
@@ -771,6 +886,24 @@ Args:
 Returns:
     荷重ベクトル
 </pre> 
+</div>
+</div>
+<a id="ae04ff6af08ab1420605cf2381e392ec4" name="ae04ff6af08ab1420605cf2381e392ec4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae04ff6af08ab1420605cf2381e392ec4">&#9670;&#160;</a></span>clear_spatial_load_state()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">fem.solver.Solver.clear_spatial_load_state </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Discard compiled data, including on preflight or solve failure.</pre> 
 </div>
 </div>
 <a id="ad0181bb95698ef4590b88956fa2887c5" name="ad0181bb95698ef4590b88956fa2887c5"></a>
@@ -910,13 +1043,7 @@ Returns:
         </tr>
       </table>
 </div><div class="memdoc">
-<pre class="fragment">Shared static flow; analysis type selects material law and equilibrium.
-
-The original four positional arguments select reference-elastic static
-analysis. Nonlinear controls are independent of the number of steps.
-Modal analysis continues to use eigenvalue_analysis(). Each call starts
-a new analysis; elements implementing reset_states start fresh history.
-</pre> 
+<pre class="fragment">Solve with per-call spatial compilation and discard it on failure.</pre> 
 </div>
 </div>
 <a id="a9171b95906f305a0f5c83635a915ca4b" name="a9171b95906f305a0f5c83635a915ca4b"></a>

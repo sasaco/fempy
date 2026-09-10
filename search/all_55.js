@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['部材の分割_0',['2. 部材の分割',['../md_docs_2wiki_2workflow.html#autotoc_md111',1,'']]],
-  ['部材途中の荷重_1',['部材途中の荷重',['../md_docs_2wiki_2data-structures.html#autotoc_md10',1,'']]]
+  ['荷重だけを伝達する部材_0',['荷重だけを伝達する部材',['../md_docs_2wiki_2examples.html#autotoc_md60',1,'']]],
+  ['荷重ケースを分ける_1',['3. 荷重ケースを分ける',['../md_docs_2wiki_2design-practice.html#autotoc_md19',1,'']]],
+  ['荷重ケース_2',['荷重ケース',['../md_docs_2wiki_2data-structures.html#autotoc_md8',1,'']]]
 ];

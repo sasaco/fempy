@@ -98,9 +98,9 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2elements.html',''); ini
   <div class="headertitle"><div class="title">要素と解析の選び方</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md14"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2examples.html">実行例</a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md27"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2examples.html">実行例</a></p>
 <p>部材を線で表すなら梁、厚さに比べて広い面ならシェル、厚みを含む内部の状態を調べるならソリッドを使います。要素を選んだ後、線形静解析・材料非線形解析・固有値解析を選びます。</p>
-<h1><a class="anchor" id="autotoc_md15"></a>
+<h1><a class="anchor" id="autotoc_md28"></a>
 解析モード</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -114,31 +114,31 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2elements.html',''); ini
 </table>
 <p><code>model.run("static")</code>のような明示指定が最優先です。引数を省略すると入力の<code>analysis_type</code>を使い、それもない場合は<code>nonlinear_bar</code>があれば<code>material_nonlinear</code>、なければ<code>static</code>になります。<code>n_load_steps</code>を増やすだけでは非線形解析になりません。</p>
 <p>非線形梁を含むモデルに<code>static</code>を指定すると、履歴則を使わない参照弾性解析になります。弾性剛性は材料の<code>E</code>・<code>G</code>と断面から計算するため、入力した非線形骨格の初期勾配と一致するように設定したかを確認してください。</p>
-<h1><a class="anchor" id="autotoc_md16"></a>
+<h1><a class="anchor" id="autotoc_md29"></a>
 対応する要素</h1>
 <p>以下は<code>FemModel</code>で選ぶ主要な要素名です。線形要素は材料非線形モデル内でも線形のまま使われます。</p>
-<p>この表は配布物に含まれる<code>fem/capabilities.json</code>から生成します。 「実装済み」は経路が存在するものの、この組合せに対する個別の力学検証が未完了であることを示します。 荷重・結果欄にない項目は未対応です。JSON正本では未対応項目と理由も明示しています。</p>
+<p>この表は配布物に含まれる<code>fem/capabilities.json</code>から生成します。 「実装済み」は経路が存在するものの、この組合せに対する個別の力学検証が未完了であることを示します。 荷重・結果欄にない項目は未対応です。JSON正本では未対応項目と理由も明示しています。 空間線荷重・空間面荷重は線形静解析のみです。明示局所平面・全体方向ベクトル・面法線、非凸外周・宣言した穴に対応します。省略時は全体XY／+Zです。</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">要素（公開名）   </th><th class="markdownTableHeadRight">節点数   </th><th class="markdownTableHeadNone">線形静解析   </th><th class="markdownTableHeadNone">材料非線形解析   </th><th class="markdownTableHeadNone">固有値解析   </th><th class="markdownTableHeadNone">質量行列   </th><th class="markdownTableHeadNone">利用できる荷重   </th><th class="markdownTableHeadNone">取得できる結果    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>bar</code>、<code>beam</code>   </td><td class="markdownTableBodyRight">2   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）、部材分布荷重（検証済み）、温度荷重（検証済み）、分布ばね（検証済み）、材端解放（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、梁端力（検証済み）、固有値・モード（検証済み）    </td></tr>
+<td class="markdownTableBodyNone"><code>bar</code>、<code>beam</code>   </td><td class="markdownTableBodyRight">2   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）、部材分布荷重（検証済み）、温度荷重（検証済み）、分布ばね（検証済み）、材端解放（検証済み）、空間線荷重（検証済み）、空間面荷重（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、梁端力（検証済み）、固有値・モード（検証済み）    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>nonlinear_bar</code>   </td><td class="markdownTableBodyRight">2   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、梁端力（検証済み）、固有値・モード（実装済み）    </td></tr>
+<td class="markdownTableBodyNone"><code>nonlinear_bar</code>   </td><td class="markdownTableBodyRight">2   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）、空間線荷重（実装済み）、空間面荷重（実装済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、梁端力（検証済み）、固有値・モード（実装済み）    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>shell</code>   </td><td class="markdownTableBodyRight">3、4   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）、シェル面圧（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、シェル表面量（検証済み）、固有値・モード（検証済み）    </td></tr>
+<td class="markdownTableBodyNone"><code>shell</code>   </td><td class="markdownTableBodyRight">3、4   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）、シェル面圧（検証済み）、空間線荷重（検証済み）、空間面荷重（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、シェル表面量（検証済み）、固有値・モード（検証済み）    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>tetra</code>、<code>tet</code>   </td><td class="markdownTableBodyRight">4   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）、固有値・モード（検証済み）    </td></tr>
+<td class="markdownTableBodyNone"><code>tetra</code>、<code>tet</code>   </td><td class="markdownTableBodyRight">4   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）、空間線荷重（実装済み）、空間面荷重（実装済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）、固有値・モード（検証済み）    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>wedge</code>   </td><td class="markdownTableBodyRight">6   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）    </td></tr>
+<td class="markdownTableBodyNone"><code>wedge</code>   </td><td class="markdownTableBodyRight">6   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）、空間線荷重（実装済み）、空間面荷重（実装済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>hexa</code>、<code>hex</code>   </td><td class="markdownTableBodyRight">8   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）、固有値・モード（実装済み）    </td></tr>
+<td class="markdownTableBodyNone"><code>hexa</code>、<code>hex</code>   </td><td class="markdownTableBodyRight">8   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）、空間線荷重（実装済み）、空間面荷重（実装済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）、固有値・モード（実装済み）    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>tetra2</code>   </td><td class="markdownTableBodyRight">10   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）、固有値・モード（検証済み）    </td></tr>
+<td class="markdownTableBodyNone"><code>tetra2</code>   </td><td class="markdownTableBodyRight">10   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）、空間線荷重（実装済み）、空間面荷重（実装済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）、固有値・モード（検証済み）    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>wedge2</code>   </td><td class="markdownTableBodyRight">15   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）、固有値・モード（実装済み）    </td></tr>
+<td class="markdownTableBodyNone"><code>wedge2</code>   </td><td class="markdownTableBodyRight">15   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）、空間線荷重（実装済み）、空間面荷重（実装済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）、固有値・モード（実装済み）    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>hexa2</code>   </td><td class="markdownTableBodyRight">20   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）、固有値・モード（実装済み）    </td></tr>
+<td class="markdownTableBodyNone"><code>hexa2</code>   </td><td class="markdownTableBodyRight">20   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">実装済み（個別検証未完了）   </td><td class="markdownTableBodyNone">検証済み   </td><td class="markdownTableBodyNone">節点荷重（検証済み）、強制変位（検証済み）、支持ばね（検証済み）、空間線荷重（実装済み）、空間面荷重（実装済み）   </td><td class="markdownTableBodyNone">節点変位（検証済み）、支点反力（検証済み）、積分点応力（検証済み）、固有値・モード（実装済み）    </td></tr>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>pyramid</code>   </td><td class="markdownTableBodyRight">5   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone"><b>未対応</b>   </td><td class="markdownTableBodyNone">—   </td><td class="markdownTableBodyNone">—    </td></tr>
 <tr class="markdownTableRowOdd">
@@ -150,7 +150,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2elements.html',''); ini
 <div class="line">capabilities = get_capability_registry()</div>
 </div><!-- fragment --><p>質量行列があることは、あらゆる支持条件・形状で固有値計算が成功するという意味ではありません。密度、不要自由度、収束を確認する必要があります。</p>
 <p><code>pyramid</code>と<code>hexa20</code>はクラス名・入口が残っていますが、必要な計算が未実装です。20節点六面体を使う場合の実装済み名称は**<code>hexa2</code>**です。旧名称<code>TetraElement2</code>、<code>WedgeElement2</code>、<code>HexaElement2</code>はそれぞれ二次要素に対応します。</p>
-<h1><a class="anchor" id="autotoc_md17"></a>
+<h1><a class="anchor" id="autotoc_md30"></a>
 梁：曲げとせん断変形</h1>
 <p>梁は1節点につき並進3成分・回転3成分を持ちます。局所x軸はi端からj端、曲げの剛性は<code>E Iy</code>・<code>E Iz</code>、ねじりの剛性は<code>G J</code>です。</p>
 <ul>
@@ -172,7 +172,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2elements.html',''); ini
 </table>
 <p>この省略規則はPython APIや保存用<code>materials/elements</code>形式には適用されません。そちらでは明示した<code>shear_correction</code>を保持します。剛域に別材料を割り当てた場合は、その区間の材料に対して規則を適用します。</p>
 <p>材端解放・分布ばね・分布荷重・温度荷重は、対応する線形梁の経路で利用します。<code>nonlinear_bar</code>にこれらを直接組み合わせる入力は対応していません。非線形梁の載荷には節点荷重・強制変位を使い、必要に応じて線形梁と接続してください。</p>
-<h1><a class="anchor" id="autotoc_md18"></a>
+<h1><a class="anchor" id="autotoc_md31"></a>
 シェル：薄板と厚板</h1>
 <p>現行のシェルは平面要素です。傾いた平面は扱いますが、1要素の節点を曲面上にねじって配置する使い方ではありません。</p>
 <table class="markdownTable">
@@ -187,7 +187,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2elements.html',''); ini
 </table>
 <p>三角形は<code>formulation: "dkt"</code>または<code>"mindlin"</code>で明示できます。四角形に<code>dkt</code>は指定できません。厚さは編集用JSONでは材料の<code>thickness</code>または<code>A</code>、Python・保存用JSONでは要素の<code>thickness</code>で指定します。</p>
 <p>応力の上下面・座標系・せん断ひずみの定義は<a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a>を参照してください。DKTの合せん断力は曲げモーメントの釣合いから回復したもので、横せん断変形を導入した結果ではありません。</p>
-<h1><a class="anchor" id="autotoc_md19"></a>
+<h1><a class="anchor" id="autotoc_md32"></a>
 ソリッド：一次と二次</h1>
 <p>ソリッドは1節点につき並進3成分です。梁用の<code>A, Iy, Iz, J</code>は使わず、座標から形状・体積を求めます。材料は小ひずみの等方線形弾性です。</p>
 <p>二次要素には辺の中間節点が必要です。頂点だけを渡したり、中間節点を省略したりすることはできません。下表の辺番号は、入力配列内の**1始まりの位置**です。</p>
@@ -202,7 +202,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2elements.html',''); ini
 <td class="markdownTableBodyNone"><code>hexa2</code>   </td><td class="markdownTableBodyNone">底面を一周する1〜4、対応する上面5〜8   </td><td class="markdownTableBodyNone">1–2、2–3、3–4、4–1、5–6、6–7、7–8、8–5、1–5、2–6、3–7、4–8   </td></tr>
 </table>
 <p>正のヤコビアンになる向きで頂点を並べます。<a class="el" href="md_docs_2wiki_2examples.html">二次四面体の実行例</a>に具体的な座標を示します。詳細な自然座標は<a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/elements/quadratic_solid.py">要素定義</a>で確認できます。</p>
-<h1><a class="anchor" id="autotoc_md20"></a>
+<h1><a class="anchor" id="autotoc_md33"></a>
 固有値解析の設定と制約</h1>
 <p><code>model.analysis_params["n_modes"] = 3</code>のように指定して<code>model.run("modal")</code>を呼ぶか、<code>model.run_modal_analysis(n_modes=3)</code>を使います。要求数は正の整数で、利用可能な自由度数を超える場合はエラーになります。要求数を無言で減らしません。</p>
 <ul>
@@ -217,7 +217,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2elements.html',''); ini
 <li>非線形解析後の接線剛性による振動解析ではありません。履歴状態を引き継いだ固有値解析として利用しないでください。</li>
 </ul>
 <p><a class="el" href="md_docs_2wiki_2examples.html">固有値解析の実行例</a>は、明示した密度と支持条件を使います。</p>
-<h1><a class="anchor" id="autotoc_md21"></a>
+<h1><a class="anchor" id="autotoc_md34"></a>
 メッシュ精度と適用範囲</h1>
 <p>滑らかな非一様変形を持つ独立参照問題で、2・4・8分割の誤差を測定しています。 測定した相対誤差と収束率は次の範囲です。</p>
 <table class="markdownTable">
@@ -235,7 +235,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2elements.html',''); ini
 <p>MITC4は測定したストリップ問題で板厚を<code>0.2</code>から<code>0.002</code>へ変えても誤差が増えず、 せん断ロッキングは見られませんでした。これは任意形状の薄板でロッキングがないという保証では ありません。歪み、境界条件、荷重方向を変えて収束を確認してください。</p>
 <p>完全積分のHexa8は、ポアソン比<code>0.49</code>以上の等容製造解で応力・エネルギー誤差が急増しました。 ほぼ非圧縮な材料へ現行Hexa8を使うことは検証済み範囲に含めません。混合定式化や選択低減積分を 提供しているわけでもありません。</p>
 <p>点荷重、再入隅、き裂先端、材料界面などでは応力が特異になり、点応力がメッシュ細分化で有限値へ 収束しない場合があります。節点が増えたことだけで精度を判断せず、特異点から離れた量、積分量、 メッシュ系列を比較してください。参照式、ノルム、全実測値、保証しない範囲は PQ-09検証報告にあります。</p>
-<h1><a class="anchor" id="autotoc_md22"></a>
+<h1><a class="anchor" id="autotoc_md35"></a>
 対応範囲を広げるとき</h1>
 <p>要素を細かくした結果を比較し、変位だけでなく反力と応力・端力の変化も確認してください。自動分割は指定位置や荷重位置で区切る処理であり、誤差を推定して自動的に収束メッシュを作る機能ではありません。</p>
 <p>異なる要素を接続したモデルでは、共有節点の自由度と力の伝達を確認します。特にソリッドだけの節点には回転剛性がないため、梁・シェルとの混在時に不要な回転自由度を残さないようにします。 </p>

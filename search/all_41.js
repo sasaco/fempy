@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['次に試すこと_0',['次に試すこと',['../md_docs_2wiki_2getting-started.html#autotoc_md63',1,'']]]
+  ['応答曲率_0',['応答曲率',['../md_docs_2wiki_2results.html#autotoc_md114',1,'']]]
 ];

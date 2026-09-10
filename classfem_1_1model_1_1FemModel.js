@@ -38,5 +38,6 @@ var classfem_1_1model_1_1FemModel =
     [ "run_modal_analysis", "classfem_1_1model_1_1FemModel.html#ac4aa8410a0e1d2176ede420d6bfa71bd", null ],
     [ "run_static_analysis", "classfem_1_1model_1_1FemModel.html#a92a10097233e0ee689672515dee3225c", null ],
     [ "save_model", "classfem_1_1model_1_1FemModel.html#a0a5953091537ceb824bedbd8e5693b01", null ],
-    [ "save_results", "classfem_1_1model_1_1FemModel.html#a867b6228bb788faf25cada3861ec29df", null ]
+    [ "save_results", "classfem_1_1model_1_1FemModel.html#a867b6228bb788faf25cada3861ec29df", null ],
+    [ "set_spatial_loads", "classfem_1_1model_1_1FemModel.html#a13664c6a57bea92af6eb974ccdf45fbf", null ]
 ];

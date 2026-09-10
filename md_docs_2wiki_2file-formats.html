@@ -98,9 +98,9 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2file-formats.html','');
   <div class="headertitle"><div class="title">ファイル入出力・VTK</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md50"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2python-api.html">Python API</a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md63"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2python-api.html">Python API</a></p>
 <p>継続してモデルを扱う場合はJSONを使います。既存データを読み込むために <code>.fem</code> と <code>.fw3</code> の入口もありますが、対応範囲が異なります。</p>
-<h1><a class="anchor" id="autotoc_md51"></a>
+<h1><a class="anchor" id="autotoc_md64"></a>
 対応形式</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -118,7 +118,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2file-formats.html','');
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">ASCII VTK   </td><td class="markdownTableBodyNone">読込APIなし   </td><td class="markdownTableBodyNone">対応   </td><td class="markdownTableBodyNone">対応セルの形状、ID、変位・反力・要素結果の可視化   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md52"></a>
+<h1><a class="anchor" id="autotoc_md65"></a>
 保存して再び解析する</h1>
 <p><a class="el" href="md_docs_2wiki_2getting-started.html">はじめに</a>の<code>beam.json</code>を用意して実行します。</p>
 <div class="fragment"><div class="line"><span class="keyword">from</span> math <span class="keyword">import</span> isclose</div>
@@ -145,7 +145,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2file-formats.html','');
 </div><!-- fragment --><p>保存するモデルは、ケース選択・分割後の解析モデルです。元の編集用JSONにあったすべての荷重ケースや編集情報を再生成する機能ではありません。元の入力も別に保管してください。</p>
 <p>解析設定を保持したい場合は、保存前に<code>model.analysis_type</code>と<code>model.analysis_params</code>へ設定します。<code>run("static")</code>の引数は、その呼出しに使う指定であり、保存される<code>model.analysis_type</code>を書き換える操作ではありません。</p>
 <p>非線形材料の定義と載荷係数は保存できますが、確定済みの内部履歴状態は保存しません。再読込後は最初から解析します。</p>
-<h1><a class="anchor" id="autotoc_md53"></a>
+<h1><a class="anchor" id="autotoc_md66"></a>
 保存用JSONの構造</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -176,11 +176,11 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2file-formats.html','');
 <p>保存される<code>auxiliary_restraint_nodes</code>は、2D化で自動追加した支持節点を区別する情報です。通常は利用者が手で作る必要はありません。</p>
 <p>この形式で線形梁を手書きするときは、<code>elements</code>に<code>section_id</code>を、<code>bar_parameters</code>に対応する断面を指定します。<code>shear_correction</code>も明示してください。部材荷重は要素の<code>line_loads</code>、温度は<code>temperature</code>、分布ばねは<code>foundation</code>、回転解放は<code>releases</code>として保存されます。編集用JSONの<code>load_member/fix_member/joint</code>をそのままこの形式へ移しても処理されません。</p>
 <p><code>materials</code>の<code>k</code>と<code>c</code>は保存する物性欄ですが、現行の公開解析に熱伝導ソルバーがあることを意味しません。直接<code>BoundaryCondition</code>へ追加した汎用分布荷重など、保存対象に含まれない状態もあります。独自の低水準モデルは保存前後の解析条件を比較してください。</p>
-<h1><a class="anchor" id="autotoc_md54"></a>
+<h1><a class="anchor" id="autotoc_md67"></a>
 結果JSON</h1>
 <p><code>save_results()</code>、<code>write_result()</code>、HTTPの結果変換はNumPy配列を配列へ、IDキーを文字列へ変換します。NaN・Infinityを含む結果は保存・送信できません。成功結果の<code>metadata</code>も通常のJSONとして保存され、<code>read_result()</code>で値を保ったまま読み戻せます。</p>
 <p><code>read_result()</code>や<code>load_results()</code>はJSONをそのまま読むため、文字列キーやリストを整数キー・NumPy配列へ復元しません。読込後は<code>model.get_results()["node_displacements"]["2"]</code>のようにアクセスします。数値比較が必要なら配列を<code>numpy.asarray()</code>で変換してください。</p>
-<h1><a class="anchor" id="autotoc_md55"></a>
+<h1><a class="anchor" id="autotoc_md68"></a>
 V0の構造ファイル &lt;tt&gt;.fem&lt;/tt&gt;</h1>
 <p>空白区切りのレコード形式です。現行リーダーは未対応行を黙って捨てず、行番号付きの入力エラーにします。</p>
 <table class="markdownTable">
@@ -206,10 +206,10 @@ V0の構造ファイル &lt;tt&gt;.fem&lt;/tt&gt;</h1>
 <td class="markdownTableBodyNone"><code>Pressure</code>   </td><td class="markdownTableBodyNone">シェルID、F1/F2、圧力   </td></tr>
 </table>
 <p>現行リーダーは梁用のV0レコード、特殊座標系、熱解析レコードなどの全機能を移植したものではありません。<code>docs/v0</code>内にサンプルがあることだけでは、現在の読込・解析対応を意味しません。詳細は<a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/src/fem/v0_io.py">V0リーダー</a>と<a href="https://github.com/sasaco/fempy/blob/02e55e59d725ceab78e89fdb03200e21c44ac732/tests/io/test_source_input.py">入力テスト</a>を参照してください。</p>
-<h1><a class="anchor" id="autotoc_md56"></a>
+<h1><a class="anchor" id="autotoc_md69"></a>
 独自形式 &lt;tt&gt;.fw3&lt;/tt&gt;</h1>
 <p><code>*NODES</code>、<code>*ELEMENTS</code>、<code>*RESTRAINTS</code>、<code>*LOADS</code>などのセクション形式です。現行読込は材料・断面情報を完全に復元せず、書き出した<code>*PRESSURES</code>も読込側が処理しません。これだけで解析条件を保った保存・再読込はできません。新しい作業の保存にはJSONを使ってください。</p>
-<h1><a class="anchor" id="autotoc_md57"></a>
+<h1><a class="anchor" id="autotoc_md70"></a>
 VTKで結果を可視化する</h1>
 <p><code>write_vtk()</code>はLegacy ASCII VTKの<code>UNSTRUCTURED_GRID</code>を書き出します。<code>bar</code>、<code>nonlinear_bar</code>、3／4節点<code>shell</code>、一次・二次の<code>tetra</code>／<code>wedge</code>／<code>hexa</code>に対応します。節点数が要素型と一致しない場合や未対応型は、セルタイプ0や空セルとして保存せず<code>ValueError</code>にします。</p>
 <p>節点と要素はID順に出力し、元のIDを<code>node_id</code>と<code>element_id</code>へ保存します。結果辞書の挿入順には依存しません。ある量が一部の節点・要素にだけ定義される場合、対象外・欠損箇所は0ではなく<code>NaN</code>です。可視化ソフトでは<code>NaN</code>を欠損値として扱ってください。</p>

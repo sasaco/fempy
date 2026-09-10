@@ -100,15 +100,16 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="md_docs_2wiki_2index"></a> FEMPythonは、構造物に荷重をかけたときの変形、支点反力、部材の力や応力を計算するPython製の有限要素解析ライブラリです。梁・柱の骨組み、板・シェル、立体のソリッドを扱い、Python、JSONファイル、HTTP APIから利用できます。</p>
 <p>このWikiは、リポジトリ内の現行実装を対象にしています。最初は小さな片持ち梁を解き、入力・出力の意味を確かめてから、ご自身のモデルへ進んでください。</p>
-<h1><a class="anchor" id="autotoc_md65"></a>
+<h1><a class="anchor" id="autotoc_md78"></a>
 はじめて使う方へ</h1>
 <ol type="1">
 <li><b><a class="el" href="md_docs_2wiki_2getting-started.html">はじめに</a></b> — インストールし、片持ち梁を解析する。期待する変位・反力も確認できます。</li>
 <li><b><a class="el" href="md_docs_2wiki_2elements.html">要素と解析の選び方</a></b> — 梁、板、立体のどれでモデル化するか、どの解析が使えるかを選ぶ。</li>
 <li><b><a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a></b> — 節点・材料・荷重・支持条件と単位を定義する。</li>
 <li><b><a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a></b> — 変位、反力、端力、応力、曲率を読み取る。</li>
+<li><b><a class="el" href="md_docs_2wiki_2design-practice.html">設計実務での利用手順</a></b> — 解析条件、釣合い、メッシュ感度、独立計算、保存資料を照査する。</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md66"></a>
+<h1><a class="anchor" id="autotoc_md79"></a>
 何を調べられるか</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -125,7 +126,7 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 <td class="markdownTableBodyNone">構造物が振動する周期と形   </td><td class="markdownTableBodyNone">固有値解析 <code>modal</code>   </td><td class="markdownTableBodyNone">固有値、振動数、周期、モード形   </td></tr>
 </table>
 <p>固有値解析は要素の質量行列を必要とします。通常の<code>wedge</code>経路など、未対応の組合せがあります。<a class="el" href="md_docs_2wiki_2elements.html">対応表と制約</a>を確認してください。</p>
-<h1><a class="anchor" id="autotoc_md67"></a>
+<h1><a class="anchor" id="autotoc_md80"></a>
 目的から探す</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -134,6 +135,10 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 <td class="markdownTableBodyNone">Pythonからモデルを組み立てる   </td><td class="markdownTableBodyNone"><a class="el" href="md_docs_2wiki_2python-api.html">Python API</a>    </td></tr>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">分布荷重、面圧、複数荷重ケースの例を見る   </td><td class="markdownTableBodyNone"><a class="el" href="md_docs_2wiki_2examples.html">実行例</a>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">梁・板へ指定位置の線荷重・面荷重を載せる   </td><td class="markdownTableBodyNone"><a class="el" href="md_docs_2wiki_2spatial-loads.html">線荷重・面荷重</a>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">設計計算へ使う前の確認項目と保存資料を整理する   </td><td class="markdownTableBodyNone"><a class="el" href="md_docs_2wiki_2design-practice.html">設計実務での利用手順</a>    </td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">ひび割れ・降伏・履歴曲線を設定する   </td><td class="markdownTableBodyNone"><a class="el" href="md_docs_2wiki_2nonlinear-analysis.html">材料非線形解析</a>    </td></tr>
 <tr class="markdownTableRowEven">
@@ -147,7 +152,7 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">フィールド名や操作だけをすばやく調べる   </td><td class="markdownTableBodyNone"><a class="el" href="md_docs_2wiki_2quick-reference.html">クイックリファレンス</a>   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md68"></a>
+<h1><a class="anchor" id="autotoc_md81"></a>
 利用前に押さえること</h1>
 <ul>
 <li><b>1回の解析は1つの荷重条件です。</b> <code>load</code>に複数ケースがあるJSONは、先頭のケースを選んで解析します。全ケースが自動で返るわけではありません。<a class="el" href="md_docs_2wiki_2examples.html">ケースごとに実行する例</a>を用意しています。</li>
@@ -156,7 +161,7 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 <li><b>時刻歴の地震応答、熱伝導、幾何学的非線形解析は公開解析経路にありません。</b> 温度変化による梁の伸縮を静解析する機能はあります。</li>
 <li><b>モデル規模と精度は個別に確認します。</b> 66節点や24荷重ケースなど、過去のサンプル件数は製品の上限ではありません。節点が増えたことだけでは精度を保証できません。</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md69"></a>
+<h1><a class="anchor" id="autotoc_md82"></a>
 検証・実装を確認する</h1>
 <p>Wikiの実行例とリンクは、リポジトリ直下で次のコマンドにより確認できます。</p>
 <div class="fragment"><div class="line">uv run --locked --extra dev python -m tools.validation.check_wiki</div>

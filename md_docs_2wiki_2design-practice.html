@@ -1,0 +1,282 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FEMPython: 設計実務での利用手順</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FEMPython
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('md_docs_2wiki_2design-practice.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">設計実務での利用手順</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="autotoc_md14"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2elements.html">要素と解析の選び方</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a></p>
+<p>このページは、FEMPythonの解析結果を設計検討へ使うときに、入力から照査記録まで何を確認するかをまとめたものです。 計算が正常終了しても、モデル化、荷重条件、評価方法が設計目的に合っているとは限りません。 解析担当者と照査担当者が、同じ入力と判断根拠を再現できる状態を完了条件にします。</p>
+<h1><a class="anchor" id="autotoc_md15"></a>
+適用範囲を最初に決める</h1>
+<p>最初に、解析で求める量とFEMPythonの対応範囲を照合します。</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">設計上の目的   </th><th class="markdownTableHeadNone">主な解析   </th><th class="markdownTableHeadNone">確認する結果    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">梁・柱の変位、反力、断面力   </td><td class="markdownTableBodyNone">線形静解析、梁要素   </td><td class="markdownTableBodyNone">節点変位、支点反力、梁端力    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">床版・壁の変位、応力、断面合力   </td><td class="markdownTableBodyNone">線形静解析、T3/Q4シェル   </td><td class="markdownTableBodyNone">節点変位、上下表面応力、断面合力、辺の合力    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">立体部材の応力   </td><td class="markdownTableBodyNone">線形静解析、対応するソリッド   </td><td class="markdownTableBodyNone">節点変位、積分点応力・ひずみ    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">RC梁の剛性低下と履歴   </td><td class="markdownTableBodyNone">材料非線形解析、非線形梁   </td><td class="markdownTableBodyNone">段階変位、反力、端力、中央断面曲率、収束履歴    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">固有周期とモード形   </td><td class="markdownTableBodyNone">固有値解析   </td><td class="markdownTableBodyNone">固有値、振動数、周期、モード形、固有対残差   </td></tr>
+</table>
+<p>要素と解析の組合せは<a class="el" href="md_docs_2wiki_2elements.html">機能対応表</a>を正本とします。「実装済み（個別検証未完了）」の組合せを 設計値へ使う場合は、対象モデルに即した独立比較を追加してください。</p>
+<p>FEMPythonは、設計基準に基づく荷重生成、荷重組合せ、最不利包絡、断面照査、許容値判定を自動では行いません。 これらは採用する基準、照査方法、組合せ係数を別に管理し、解析結果との対応を記録します。</p>
+<h1><a class="anchor" id="autotoc_md16"></a>
+推奨する作業順序</h1>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadRight">段階   </th><th class="markdownTableHeadNone">作業   </th><th class="markdownTableHeadNone">残す記録    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyRight">1   </td><td class="markdownTableBodyNone">設計条件と評価量を決める   </td><td class="markdownTableBodyNone">構造系、解析種別、荷重ケース、採用基準、評価位置    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyRight">2   </td><td class="markdownTableBodyNone">単位、座標、要素、支持を定義する   </td><td class="markdownTableBodyNone">単位表、軸図、要素・材料・支持一覧    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyRight">3   </td><td class="markdownTableBodyNone">小さな確認モデルを解く   </td><td class="markdownTableBodyNone">手計算または独立解との比較    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyRight">4   </td><td class="markdownTableBodyNone">本モデルをケースごとに解析する   </td><td class="markdownTableBodyNone">入力JSON、結果JSON、ログ、結果メタデータ    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyRight">5   </td><td class="markdownTableBodyNone">釣合い、変形、断面力・応力を照査する   </td><td class="markdownTableBodyNone">照査表、異常値の説明、対象外結果の明記    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyRight">6   </td><td class="markdownTableBodyNone">メッシュ・モデル化の感度を確認する   </td><td class="markdownTableBodyNone">粗・標準・細モデルの比較    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyRight">7   </td><td class="markdownTableBodyNone">入力、結果、判断を固定する   </td><td class="markdownTableBodyNone">使用版、hash、最終入力、結果、照査記録   </td></tr>
+</table>
+<h1><a class="anchor" id="autotoc_md17"></a>
+1. 計算条件を固定する</h1>
+<p>解析前に、少なくとも次を一枚の計算条件表へ記録します。</p>
+<ul>
+<li>解析の目的、対象部位、評価する限界状態</li>
+<li><code>static</code>、<code>material_nonlinear</code>、<code>modal</code>の別</li>
+<li>長さ、力、時間、質量、応力の一貫単位系</li>
+<li>全体XYZ軸、梁のi端・j端、シェル・ソリッドの節点順序</li>
+<li>材料値、断面値、板厚、密度の出典</li>
+<li>支持、ばね、材端解放、強制変位の根拠</li>
+<li>荷重ケース名、荷重方向、組合せ係数、同時載荷の範囲</li>
+<li>評価する節点、部材、断面、シェル面、積分点</li>
+</ul>
+<p><code>model.model_metadata["units"]</code>には、実際に採用した単位名を記録できます。<a class="el" href="md_docs_2wiki_2results.html">結果メタデータ</a>へ その宣言が引き継がれます。自動換算は行われないため、宣言と数値の整合は解析者が確認します。</p>
+<h1><a class="anchor" id="autotoc_md18"></a>
+2. 入力モデルを確認する</h1>
+<p>大規模モデルへ進む前に、同じ要素、単位、支持、荷重方向を使った小さなモデルを解きます。 片持ち梁、単純支持梁、一様ひずみ、一定応力など、独立解を得られる問題を選びます。</p>
+<p>本モデルでは次を確認します。</p>
+<ul>
+<li>節点の重複、要素の退化、極端な長短辺、シェル法線、ソリッド節点順序</li>
+<li>梁局所軸と<code>Iy</code>・<code>Iz</code>、部材荷重の局所／全体方向</li>
+<li>拘束不足による剛体運動と、過剰拘束による意図しない反力</li>
+<li>支持ばね、強制変位、材端解放が対象自由度へ設定されていること</li>
+<li>梁断面積・断面二次モーメント、シェル板厚、材料定数、密度の単位</li>
+<li>着目点や荷重位置による部材分割後も、評価位置を追跡できること</li>
+</ul>
+<p>モデル規模、要素数、自由度数は<code>model.get_model_info()</code>で確認します。入力ファイルの行数や結果辞書の長さを モデル規模の代わりに使わないでください。</p>
+<h1><a class="anchor" id="autotoc_md19"></a>
+3. 荷重ケースを分ける</h1>
+<p>一回の解析は一つの荷重条件です。編集用JSONの<code>load</code>に複数ケースがあっても先頭だけを選ぶため、 設計上の各ケースを一つずつ取り出して解析します。ケースごとの結果から組合せ・包絡を作る処理は、 採用した基準と係数を明示した別の計算として管理します。</p>
+<p>荷重ごとに、合力、作用位置、全体原点回りモーメント、正負の向きを先に手計算します。 節点荷重、部材荷重、シェル面圧、線荷重・面荷重を同じケースへ入れる場合は、各荷重の内訳と総和を残します。</p>
+<h2><a class="anchor" id="autotoc_md20"></a>
+線荷重・面荷重</h2>
+<p>設計実務での主な確認点は次のとおりです。</p>
+<ul>
+<li>空間荷重は<code>static</code>だけに使用する。<code>material_nonlinear</code>と<code>modal</code>へは適用しない。</li>
+<li>傾斜面では<code>plane</code>を明示し、全ての構造節点、載荷節点、経路点が同一平面上にあることを確認する。</li>
+<li><code>direction: normal</code>では節点順序から法線が決まる。代表セルの法線を数値または図で確認する。</li>
+<li>非凸外周、穴、独立載荷メッシュを使う場合は、載荷領域を図示して面積を別計算する。</li>
+<li>独立載荷メッシュは載荷領域だけを定め、剛性や自由度を増やさないことをモデル説明に記す。</li>
+<li>梁またはT3/Q4シェルへの配分を設計利用の標準とし、他要素への配分は個別検証を追加する。</li>
+</ul>
+<p>結果の<code>spatial_load_contribution</code>で、荷重別の載荷長さ・載荷面積、<code>resultant</code>、<code>moment</code>、 節点側の合力・モーメント、保存誤差を確認します。他の荷重を併用した反力との比較では、 空間荷重だけの確認ケースも作り、空間荷重の合力と支持反力を分離して照合します。 入力方法と監査項目の詳細は<a class="el" href="md_docs_2wiki_2spatial-loads.html">線荷重・面荷重</a>を参照してください。</p>
+<h1><a class="anchor" id="autotoc_md21"></a>
+4. 解析結果の成立を確認する</h1>
+<p>成功結果では、最初に次を確認します。</p>
+<ol type="1">
+<li><code>metadata.analysis.type</code>が意図した解析種別である。</li>
+<li><code>metadata.solver.converged</code>が<code>true</code>で、警告と相対残差を確認した。</li>
+<li><code>metadata.input_sha256</code>を入力・結果の管理表へ記録した。</li>
+<li>変位の方向と変形形が、荷重・支持条件から予想した形になっている。</li>
+<li>支点反力の合力・モーメントが外力と釣り合う。</li>
+<li>梁端力、シェル断面合力、ソリッド応力の評価位置と座標系を確認した。</li>
+</ol>
+<p>ゼロに近い値、反力の符号、梁端力のi端・j端、シェルの局所座標、ソリッドの積分点を区別します。 最大値だけを抜き出す前に、<a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a>で出力位置と成分順序を確認してください。</p>
+<p>HTTP 200や<code>converged: true</code>は、設計条件との一致や工学的妥当性を保証しません。未知キーが入力経路によって 無視される場合もあるため、正規化保存したモデルを再読込し、要素数、支持、荷重、結果が一致することを確認します。</p>
+<h1><a class="anchor" id="autotoc_md22"></a>
+5. メッシュとモデル化の感度を確認する</h1>
+<p>変位、反力、代表断面力・応力について、少なくとも粗・標準・細の三段階を比較します。 要素寸法を変えるときは、支持、荷重の合力・作用位置、評価位置を変えません。</p>
+<ul>
+<li>全体変位と反力は、モデル全体の挙動を確認する指標にする。</li>
+<li>梁の着目断面は同じ実座標で比較する。</li>
+<li>シェル・ソリッド応力は、支持点、集中荷重点、角部などの特異点から離れた位置も比較する。</li>
+<li>ピーク応力が細分化のたびに増える場合は、一点値を設計値として収束したと判断しない。</li>
+<li>線荷重・面荷重では、構造メッシュと載荷メッシュを別々に変え、荷重配分と構造応答の影響を分ける。</li>
+</ul>
+<p>採用する収束許容値は、設計目的、評価量、規準、モデル化誤差に応じて計算書で定めます。 FEMPythonが一律の合否値を設定するものではありません。</p>
+<h1><a class="anchor" id="autotoc_md23"></a>
+6. 独立計算と照合する</h1>
+<p>少なくとも一つ、FEMPythonと同じ実装に依存しない比較を用意します。</p>
+<ul>
+<li>梁の変位・反力・断面力を閉形式解または骨組計算で比較する。</li>
+<li>シェル・ソリッドの一定応力状態、対称性、合力を確認する。</li>
+<li>固有値を単自由度近似、理論解、または別ソルバーと比較する。</li>
+<li>材料非線形では骨格曲線、載荷順序、残留変形、エネルギー、収束段階を比較する。</li>
+<li>重要なモデルは、別の担当者が入力条件と主要結果を再計算する。</li>
+</ul>
+<p>差が出た場合は、単位、支持、局所軸、荷重方向、評価位置、要素定式化、メッシュの順に切り分けます。 単に許容差を緩めて一致としないでください。</p>
+<h1><a class="anchor" id="autotoc_md24"></a>
+7. 保存する成果物</h1>
+<p>設計計算の再現に必要な最小セットを保存します。</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">成果物   </th><th class="markdownTableHeadNone">内容    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">計算条件表   </td><td class="markdownTableBodyNone">目的、適用基準、単位、座標、材料・断面、支持、荷重ケース、評価位置    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">元入力   </td><td class="markdownTableBodyNone">受領または作成した編集用JSONと、その版・作成元    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">解析入力   </td><td class="markdownTableBodyNone">ケースごとに固定した入力JSON、またはモデル生成スクリプト    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">正規化モデル   </td><td class="markdownTableBodyNone"><code>model.save_model()</code>で保存した再読込可能なJSON    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">解析結果   </td><td class="markdownTableBodyNone"><code>model.save_results()</code>のJSONと必要な図表    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">実行環境   </td><td class="markdownTableBodyNone"><code>metadata.product.version</code>、Python版、使用wheelまたはGitコミット、依存環境    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">同一性   </td><td class="markdownTableBodyNone"><code>metadata.input_sha256</code>と、配布する入力・結果ファイルのhash    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">照査記録   </td><td class="markdownTableBodyNone">釣合い、独立解、メッシュ感度、異常値、採否判断、担当者・照査者   </td></tr>
+</table>
+<p>エラーや警告が出た試行を削除せず、最終採用結果と区別して残します。入力・結果の保存方法は <a class="el" href="md_docs_2wiki_2file-formats.html">ファイル入出力・VTK</a>、原因の調べ方は<a class="el" href="md_docs_2wiki_2error-handling.html">エラーと対処</a>を参照してください。</p>
+<h1><a class="anchor" id="autotoc_md25"></a>
+使用前チェックリスト</h1>
+<ul>
+<li>[ ] 解析目的、採用基準、評価量を明記した。</li>
+<li>[ ] 使用する要素と解析の組合せが対応表で検証済みである。</li>
+<li>[ ] 単位系、全体軸、局所軸、節点順序を確認した。</li>
+<li>[ ] 材料、断面、板厚、密度、支持条件の出典を残した。</li>
+<li>[ ] 荷重ケースを一件ずつ固定し、合力・作用位置・モーメントを別計算した。</li>
+<li>[ ] 小さな確認モデルが独立解と一致した。</li>
+<li>[ ] 変形形、反力、端力・応力の符号と評価位置を確認した。</li>
+<li>[ ] 外力と支点反力の合力・モーメントが釣り合った。</li>
+<li>[ ] 粗・標準・細モデルで主要結果の感度を確認した。</li>
+<li>[ ] 特異点のピーク値を無条件に設計値へ採用していない。</li>
+<li>[ ] 入力、結果、メタデータ、使用版、hash、照査記録を保存した。</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md26"></a>
+使用を止めて見直す条件</h1>
+<p>次の場合は結果を採用せず、モデルまたは解析方法を見直します。</p>
+<ul>
+<li>対応表で未対応の要素・解析組合せが必要である。</li>
+<li>機構、数値悪条件、未収束を示す例外や警告を解消できない。</li>
+<li>外力と反力が釣り合わない、または保存誤差を説明できない。</li>
+<li>メッシュを細かくしても主要結果が安定しない。</li>
+<li>独立計算との差を、単位・座標・モデル化・評価位置から説明できない。</li>
+<li>大変形、座屈、時刻歴、曲面上の空間荷重、移動荷重包絡など、現行機能の外側が支配する。</li>
+<li>設計基準が求める非線形性、組合せ、照査式を別途扱えない。</li>
+</ul>
+<p>この場合は<a class="el" href="md_docs_2wiki_2error-handling.html">エラーと対処</a>で診断情報を整理し、問題を保った小さな再現モデルを作ります。 </p>
+</div></div><!-- contents -->
+</div><!-- PageDoc -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

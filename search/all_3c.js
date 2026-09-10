@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['支持ばねと強制変位_0',['支持ばねと強制変位',['../md_docs_2wiki_2examples.html#autotoc_md43',1,'']]],
-  ['支持・荷重_1',['支持・荷重',['../md_docs_2wiki_2quick-reference.html#autotoc_md88',1,'']]],
-  ['支持条件と強制変位_2',['支持条件と強制変位',['../md_docs_2wiki_2data-structures.html#autotoc_md5',1,'']]]
+  ['変位・ばねを明示する形式_0',['変位・ばねを明示する形式',['../md_docs_2wiki_2data-structures.html#autotoc_md7',1,'']]]
 ];

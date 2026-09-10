@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['分割前の部材との対応_0',['分割前の部材との対応',['../md_docs_2wiki_2results.html#autotoc_md98',1,'']]],
-  ['分布荷重と着目位置での分割_1',['分布荷重と着目位置での分割',['../md_docs_2wiki_2examples.html#autotoc_md41',1,'']]]
+  ['使用を止めて見直す条件_0',['使用を止めて見直す条件',['../md_docs_2wiki_2design-practice.html#autotoc_md26',1,'']]],
+  ['使用前チェックリスト_1',['使用前チェックリスト',['../md_docs_2wiki_2design-practice.html#autotoc_md25',1,'']]]
 ];

@@ -1,0 +1,175 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FEMPython: fem.spatial_loads.assembler.LoadAudit クラス</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(document).ready(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">FEMPython
+   </div>
+  </td>
+    <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 構築: Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classfem_1_1spatial__loads_1_1assembler_1_1LoadAudit.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">読み取り中…</div>
+<div class="SRStatus" id="Searching">検索中…</div>
+<div class="SRStatus" id="NoMatches">一致する文字列を見つけられません</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-static-attribs">静的公開変数類</a> &#124;
+<a href="classfem_1_1spatial__loads_1_1assembler_1_1LoadAudit-members.html">全メンバ一覧</a>  </div>
+  <div class="headertitle"><div class="title">fem.spatial_loads.assembler.LoadAudit クラス</div></div>
+</div><!--header-->
+<div class="contents">
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+静的公開変数類</h2></td></tr>
+<tr class="memitem:a785a2e806ef5ab7b4d4435ab8a4b718b" id="r_a785a2e806ef5ab7b4d4435ab8a4b718b"><td class="memItemLeft" align="right" valign="top"><a id="a785a2e806ef5ab7b4d4435ab8a4b718b" name="a785a2e806ef5ab7b4d4435ab8a4b718b"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>load_id</b></td></tr>
+<tr class="separator:a785a2e806ef5ab7b4d4435ab8a4b718b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd3fd0eb430c1c455b898af06d377d3b" id="r_afd3fd0eb430c1c455b898af06d377d3b"><td class="memItemLeft" align="right" valign="top"><a id="afd3fd0eb430c1c455b898af06d377d3b" name="afd3fd0eb430c1c455b898af06d377d3b"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>panel_id</b></td></tr>
+<tr class="separator:afd3fd0eb430c1c455b898af06d377d3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8edb89ff65abaaa3d138a2e7ba1fff1d" id="r_a8edb89ff65abaaa3d138a2e7ba1fff1d"><td class="memItemLeft" align="right" valign="top"><a id="a8edb89ff65abaaa3d138a2e7ba1fff1d" name="a8edb89ff65abaaa3d138a2e7ba1fff1d"></a>
+str&#160;</td><td class="memItemRight" valign="bottom"><b>feature</b></td></tr>
+<tr class="separator:a8edb89ff65abaaa3d138a2e7ba1fff1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6752d15eb493b35e9744efd29a6c0cc2" id="r_a6752d15eb493b35e9744efd29a6c0cc2"><td class="memItemLeft" align="right" valign="top"><a id="a6752d15eb493b35e9744efd29a6c0cc2" name="a6752d15eb493b35e9744efd29a6c0cc2"></a>
+tuple&#160;</td><td class="memItemRight" valign="bottom"><b>resultant</b></td></tr>
+<tr class="separator:a6752d15eb493b35e9744efd29a6c0cc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4e97d1d02e1dd3e6cbf549b13516222" id="r_af4e97d1d02e1dd3e6cbf549b13516222"><td class="memItemLeft" align="right" valign="top"><a id="af4e97d1d02e1dd3e6cbf549b13516222" name="af4e97d1d02e1dd3e6cbf549b13516222"></a>
+tuple&#160;</td><td class="memItemRight" valign="bottom"><b>moment</b></td></tr>
+<tr class="separator:af4e97d1d02e1dd3e6cbf549b13516222"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5a0a47e79bfcf30b3db0f42642af87b4" id="r_a5a0a47e79bfcf30b3db0f42642af87b4"><td class="memItemLeft" align="right" valign="top"><a id="a5a0a47e79bfcf30b3db0f42642af87b4" name="a5a0a47e79bfcf30b3db0f42642af87b4"></a>
+tuple&#160;</td><td class="memItemRight" valign="bottom"><b>nodal_resultant</b></td></tr>
+<tr class="separator:a5a0a47e79bfcf30b3db0f42642af87b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f15ac32cde70a1e7efaa62c34886acf" id="r_a5f15ac32cde70a1e7efaa62c34886acf"><td class="memItemLeft" align="right" valign="top"><a id="a5f15ac32cde70a1e7efaa62c34886acf" name="a5f15ac32cde70a1e7efaa62c34886acf"></a>
+tuple&#160;</td><td class="memItemRight" valign="bottom"><b>nodal_moment</b></td></tr>
+<tr class="separator:a5f15ac32cde70a1e7efaa62c34886acf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7faf2fd6629e25517f0ef6192cdbbcc" id="r_ae7faf2fd6629e25517f0ef6192cdbbcc"><td class="memItemLeft" align="right" valign="top"><a id="ae7faf2fd6629e25517f0ef6192cdbbcc" name="ae7faf2fd6629e25517f0ef6192cdbbcc"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><b>force_scale</b></td></tr>
+<tr class="separator:ae7faf2fd6629e25517f0ef6192cdbbcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abae5e218ffabf28edeb7f33b9d71afe8" id="r_abae5e218ffabf28edeb7f33b9d71afe8"><td class="memItemLeft" align="right" valign="top"><a id="abae5e218ffabf28edeb7f33b9d71afe8" name="abae5e218ffabf28edeb7f33b9d71afe8"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><b>moment_scale</b></td></tr>
+<tr class="separator:abae5e218ffabf28edeb7f33b9d71afe8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af608dde619eb75396133fb53891af988" id="r_af608dde619eb75396133fb53891af988"><td class="memItemLeft" align="right" valign="top"><a id="af608dde619eb75396133fb53891af988" name="af608dde619eb75396133fb53891af988"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><b>force_error</b></td></tr>
+<tr class="separator:af608dde619eb75396133fb53891af988"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbb39e73eca58d3917681357155194ab" id="r_adbb39e73eca58d3917681357155194ab"><td class="memItemLeft" align="right" valign="top"><a id="adbb39e73eca58d3917681357155194ab" name="adbb39e73eca58d3917681357155194ab"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><b>moment_error</b></td></tr>
+<tr class="separator:adbb39e73eca58d3917681357155194ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5f765e328e4db4c47ae4760f61dec75" id="r_ab5f765e328e4db4c47ae4760f61dec75"><td class="memItemLeft" align="right" valign="top"><a id="ab5f765e328e4db4c47ae4760f61dec75" name="ab5f765e328e4db4c47ae4760f61dec75"></a>
+tuple&#160;</td><td class="memItemRight" valign="bottom"><b>estimated_nodal_error</b></td></tr>
+<tr class="separator:ab5f765e328e4db4c47ae4760f61dec75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03f0c57b7a01fbb129600e1e4b04b19c" id="r_a03f0c57b7a01fbb129600e1e4b04b19c"><td class="memItemLeft" align="right" valign="top"><a id="a03f0c57b7a01fbb129600e1e4b04b19c" name="a03f0c57b7a01fbb129600e1e4b04b19c"></a>
+tuple&#160;</td><td class="memItemRight" valign="bottom"><b>estimated_resultant_error</b></td></tr>
+<tr class="separator:a03f0c57b7a01fbb129600e1e4b04b19c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0558b4f2516082042a1c3040736bbff" id="r_ab0558b4f2516082042a1c3040736bbff"><td class="memItemLeft" align="right" valign="top"><a id="ab0558b4f2516082042a1c3040736bbff" name="ab0558b4f2516082042a1c3040736bbff"></a>
+tuple&#160;</td><td class="memItemRight" valign="bottom"><b>estimated_moment_error</b></td></tr>
+<tr class="separator:ab0558b4f2516082042a1c3040736bbff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abfe569e14c0c4253d4f2cdad2923d2fc" id="r_abfe569e14c0c4253d4f2cdad2923d2fc"><td class="memItemLeft" align="right" valign="top"><a id="abfe569e14c0c4253d4f2cdad2923d2fc" name="abfe569e14c0c4253d4f2cdad2923d2fc"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>evaluations</b></td></tr>
+<tr class="separator:abfe569e14c0c4253d4f2cdad2923d2fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a19c0e936215296e75ba799c1b4d9ecd9" id="r_a19c0e936215296e75ba799c1b4d9ecd9"><td class="memItemLeft" align="right" valign="top"><a id="a19c0e936215296e75ba799c1b4d9ecd9" name="a19c0e936215296e75ba799c1b4d9ecd9"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>subdivisions</b></td></tr>
+<tr class="separator:a19c0e936215296e75ba799c1b4d9ecd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab1b3a6078daeb448e6d5c773c4663f24" id="r_ab1b3a6078daeb448e6d5c773c4663f24"><td class="memItemLeft" align="right" valign="top"><a id="ab1b3a6078daeb448e6d5c773c4663f24" name="ab1b3a6078daeb448e6d5c773c4663f24"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><b>integrated_length</b></td></tr>
+<tr class="separator:ab1b3a6078daeb448e6d5c773c4663f24"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa65e4cb0c6c8cdfbcbb86fd6eb43d4af" id="r_aa65e4cb0c6c8cdfbcbb86fd6eb43d4af"><td class="memItemLeft" align="right" valign="top"><a id="aa65e4cb0c6c8cdfbcbb86fd6eb43d4af" name="aa65e4cb0c6c8cdfbcbb86fd6eb43d4af"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><b>clipped_area</b></td></tr>
+<tr class="separator:aa65e4cb0c6c8cdfbcbb86fd6eb43d4af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<hr/>このクラス詳解は次のファイルから抽出されました:<ul>
+<li>src/fem/spatial_loads/<b>assembler.py</b></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacefem.html">fem</a></li><li class="navelem"><a class="el" href="namespacefem_1_1spatial__loads.html">spatial_loads</a></li><li class="navelem"><a class="el" href="namespacefem_1_1spatial__loads_1_1assembler.html">assembler</a></li><li class="navelem"><a class="el" href="classfem_1_1spatial__loads_1_1assembler_1_1LoadAudit.html">LoadAudit</a></li>
+    <li class="footer">構築: <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

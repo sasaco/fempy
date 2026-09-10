@@ -46,12 +46,16 @@ var namespacefem =
     [ "precision", "namespacefem_1_1precision.html", null ],
     [ "result_processor", "namespacefem_1_1result__processor.html", "namespacefem_1_1result__processor" ],
     [ "section", "namespacefem_1_1section.html", "namespacefem_1_1section" ],
+    [ "shape_functions", "namespacefem_1_1shape__functions.html", [
+      [ "q4_shape", "namespacefem_1_1shape__functions.html#a7d5be080b085bee51ef6c0bba3afb0f8", null ]
+    ] ],
     [ "solver", "namespacefem_1_1solver.html", "namespacefem_1_1solver" ],
     [ "solver_results", "namespacefem_1_1solver__results.html", [
       [ "build_result_metadata", "namespacefem_1_1solver__results.html#a6a4adfb58e5c85b30ec1b51608523c90", null ],
       [ "legacy_nonlinear_result", "namespacefem_1_1solver__results.html#a3e034f8b426015525b9ef44c907b9779", null ],
       [ "normalize_model_metadata", "namespacefem_1_1solver__results.html#a0a6dd59c515552aded61ad169aa89e94", null ]
     ] ],
+    [ "spatial_loads", "namespacefem_1_1spatial__loads.html", "namespacefem_1_1spatial__loads" ],
     [ "strain_stress", "namespacefem_1_1strain__stress.html", "namespacefem_1_1strain__stress" ],
     [ "v0_io", "namespacefem_1_1v0__io.html", null ],
     [ "vtk_writer", "namespacefem_1_1vtk__writer.html", "namespacefem_1_1vtk__writer" ]
