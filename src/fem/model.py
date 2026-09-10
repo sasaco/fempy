@@ -178,8 +178,12 @@ class FemModel:
     def set_spatial_loads(self, definitions: SpatialLoadDefinitions) -> None:
         """Replace unexpanded spatial input after structural-reference validation.
 
-        Import definitions from ``fem.spatial_loads``. The internal compiler is
-        available; public analysis awaits the input-route acceptance gate.
+        Import definitions from ``fem.spatial_loads``. Linear static analysis
+        accepts convex, hole-free panels parallel to global XY and loads in +Z.
+        Line intensity has units force/length; area intensity force/length**2.
+        Negative intensity acts in -Z. Geometry and conservation are checked
+        on every ``run()`` before stiffness assembly. See the Wiki spatial-loads
+        page for topology, JSON examples, output and unsupported combinations.
         """
         validate_spatial_references(definitions, self.mesh)
         self.boundary.spatial_loads = definitions
@@ -439,6 +443,10 @@ class FemModel:
                 f'Unknown analysis type: {analysis_type}',
                 analysis_type=analysis_type,
             )
+        # Recheck references after user mesh edits, before element constructors
+        # read coordinates, so spatial errors retain their panel/node IDs.
+        if self.boundary.spatial_loads.loads:
+            validate_spatial_references(self.boundary.spatial_loads, self.mesh)
         # 要素の作成（要素分割後に再実行が必要なため毎回実行）
         self._create_elements()
 

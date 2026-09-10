@@ -80,8 +80,7 @@ class PreparedLoad:
 def prepare_geometry(definitions, mesh):
     """Validate all panels and referenced load paths, returning immutable geometry.
 
-    Public input acceptance remains separate until the load assembler and its
-    numerical acceptance tests are connected to the solver preflight.
+    The static solver calls this through the compiler before stiffness assembly.
     """
     validate_references(definitions, mesh)
     panels = {p.id: prepare_panel(p, mesh) for p in definitions.panels}

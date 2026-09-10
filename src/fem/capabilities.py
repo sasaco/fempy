@@ -156,16 +156,13 @@ def validate_analysis_capabilities(
         raise ValueError(f"Unknown analysis type: {analysis_type}")
 
     definitions = getattr(boundary, 'spatial_loads', None)
-    if definitions is not None and definitions.loads:
+    if definitions is not None and definitions.loads and analysis_type != 'static':
         from .diagnostics import UnsupportedAnalysisError
 
         features = sorted({load.feature for load in definitions.loads})
         panels = sorted({load.panel_id for load in definitions.loads})
-        reasons = [registry['load_types'][feature]['reason'] for feature in features]
-        if analysis_type != 'static':
-            reasons = ['Spatial loads are limited to static analysis.']
         raise UnsupportedAnalysisError(
-            f"Unsupported spatial loads on panels {panels}: {' '.join(reasons)}",
+            f"Unsupported spatial loads on panels {panels}: Spatial loads are limited to static analysis.",
             analysis_type=analysis_type, features=features, panel_ids=panels,
             load_ids=[load.id for load in definitions.loads],
         )
@@ -194,6 +191,29 @@ def validate_analysis_capabilities(
                 entry=entry,
                 default_reason=f"{analysis_type} is not implemented for {canonical}.",
             ))
+
+    # Spatial triangles load their structural vertices; shell panels load only
+    # the referenced elements. Check recipients, including mixed models, rather
+    # than attributing a panel's load to every element in the mesh.
+    if definitions is not None and definitions.loads:
+        panels = {panel.id: panel for panel in definitions.panels}
+        for load in definitions.loads:
+            panel = panels[load.panel_id]
+            recipients = (panel.elements if panel.elements else (
+                element_id for element_id, data in mesh_elements.items()
+                if set(data['nodes']).intersection(panel.nodes)
+            ))
+            for element_id in recipients:
+                if element_id not in canonical_by_id:
+                    continue  # The compiler reports missing references with panel IDs.
+                canonical = canonical_by_id[element_id]
+                entry = registry['elements'][canonical]['loads'][load.feature]
+                if entry['status'] == 'unsupported':
+                    issues.append(_unsupported_issue(
+                        element_id=element_id, element_type=canonical, kind='load',
+                        feature=load.feature, entry=entry,
+                        default_reason=f'{load.feature} is not implemented for {canonical}.',
+                    ))
 
     # Surface pressure otherwise reaches BaseElement.get_equivalent_nodal_loads
     # and fails only during load-vector assembly. Reject it in the same preflight.

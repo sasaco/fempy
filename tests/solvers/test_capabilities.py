@@ -153,3 +153,27 @@ def test_registry_does_not_accept_the_other_same_named_wedge_implementation():
 
 def test_readme_and_wiki_tables_are_generated_from_registry():
     check_rendered_documents()
+
+
+@pytest.mark.parametrize('feature', ['spatial_line', 'spatial_area'])
+def test_spatial_registry_documents_static_only_and_verified_receivers(feature):
+    registry = get_capability_registry()
+    assert registry['load_types'][feature]['analysis_types'] == ['static']
+    assert registry['load_types'][feature]['status'] == 'verified'
+    for kind in ('bar', 'shell'):
+        assert registry['elements'][kind]['loads'][feature]['status'] == 'verified'
+    for kind in ('pyramid', 'hexa20'):
+        assert registry['elements'][kind]['loads'][feature]['status'] == 'unsupported'
+
+
+def test_spatial_receiver_capability_is_enforced_before_compilation(monkeypatch):
+    import fem.capabilities as capabilities
+    from tests.support.builders.spatial_loads import solver_panel
+
+    model = solver_panel()
+    registry = get_capability_registry()
+    registry['elements']['bar']['loads']['spatial_area'] = dict(status='unsupported', reason='test receiver')
+    monkeypatch.setattr(capabilities, '_registry', lambda: registry)
+    monkeypatch.setattr(model.solver, 'solve', lambda *a, **k: pytest.fail('no compilation or K'))
+    with pytest.raises(UnsupportedCapabilityError, match='test receiver'):
+        model.run()

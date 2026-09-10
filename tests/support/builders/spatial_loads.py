@@ -80,3 +80,52 @@ def solve_spatial_internal(model):
     result['analysis_type'] = 'static'
     model._post_process_results()
     return result
+
+
+def uniform_strip_model(segments, *, shell=False, area=True, simply_supported=False,
+                        triangular_shell=False, intensity=3.):
+    """Two Bernoulli beam rails or a nu=0 plate strip, L=2, width=2.
+
+    Transverse plate rotations are restrained to impose cylindrical bending;
+    the plate then has the independent beam-strip solution with D=E*t**3/12.
+    Loading triangles add no stiffness to the beam model.
+    """
+    from fem.model import FemModel
+    from fem.material import BarParameter
+    from fem.spatial_loads import SpatialLoad, SpatialLoadDefinitions, SpatialLoadPanel, SpatialLoadPath
+
+    model = FemModel()
+    model.add_material(1, 'strip', E=1000., nu=0.)
+    model.material.add_bar_parameter(1, BarParameter(1., 1., 1., 1.))
+    triangles = []
+    for i in range(segments + 1):
+        for side in (0, 1):
+            node = 2*i + side + 1
+            model.add_node(node, 2*i/segments, 2*side, 0.)
+            if shell:
+                model.add_restraint(node, dx=True, dy=True, rx=True, rz=True)
+    for i in range(segments):
+        a, b, c, d = 2*i+1, 2*i+3, 2*i+4, 2*i+2
+        triangles.extend(((a, b, c), (a, c, d)))
+        if shell:
+            cells = ((a, b, c), (a, c, d)) if triangular_shell else ((a, b, c, d),)
+            for nodes in cells:
+                model.add_element(len(model.mesh.elements)+1, 'shell', list(nodes), 1,
+                                  thickness=.2, **({'formulation': 'dkt'} if triangular_shell else {}))
+        else:
+            for nodes in ((a, b), (d, c)):
+                model.add_element(len(model.mesh.elements)+1, 'bar', list(nodes), 1,
+                                  section_id=1, shear_correction=False)
+    supports = (1, 2, 2*segments+1, 2*segments+2) if simply_supported else (1, 2)
+    for node in supports:
+        model.add_restraint(node, True, True, True, True, not simply_supported, True)
+    panel = SpatialLoadPanel(7, tuple(model.mesh.nodes),
+                             elements=tuple(model.mesh.elements) if shell else (),
+                             triangles=() if shell else tuple(triangles))
+    paths = (SpatialLoadPath(1, ((0, 0, 0), (2, 0, 0))),)
+    if area:
+        paths += (SpatialLoadPath(2, ((0, 2, 0), (2, 2, 0))),)
+    model.set_spatial_loads(SpatialLoadDefinitions(
+        (panel,), paths, (SpatialLoad(9, 7, tuple(p.id for p in paths),
+                                     ((intensity, intensity),)*len(paths)),)))
+    return model

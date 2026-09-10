@@ -92,8 +92,8 @@ def test_python_api_and_json_file_preserve_definitions_and_clear_on_reload(tmp_p
     assert not restored.boundary.spatial_loads.loads
 
 
-@pytest.mark.parametrize('analysis', ['static', 'material_nonlinear', 'modal'])
-def test_uncompiled_spatial_loads_are_never_silently_ignored(monkeypatch, analysis):
+@pytest.mark.parametrize('analysis', ['material_nonlinear', 'modal'])
+def test_nonstatic_spatial_loads_are_never_silently_ignored(monkeypatch, analysis):
     model = FemModel()
     model.read_json_model(_read_json_model(legacy_panel()))
 
@@ -137,10 +137,13 @@ def test_input_without_spatial_definitions_retains_its_saved_schema():
 
 
 @pytest.mark.parametrize('area', [False, True])
-def test_http_reports_unsupported_load_with_panel_and_load_ids(area):
+@pytest.mark.parametrize('analysis', ['modal', 'material_nonlinear'])
+def test_http_reports_unsupported_load_with_panel_and_load_ids(area, analysis):
     from main import app
 
-    response = app.test_client().post('/', json=legacy_panel(area=area))
+    data = legacy_panel(area=area)
+    data['analysis_type'] = analysis
+    response = app.test_client().post('/', json=data)
     assert response.status_code == 400
     body = response.get_json()
     assert body['error_code'] == 'unsupported_analysis'

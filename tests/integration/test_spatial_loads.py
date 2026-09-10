@@ -1,4 +1,4 @@
-"""Internal Solver integration; public FemModel/HTTP remain capability-gated."""
+"""Public static spatial loading: output, conservation and failure recovery."""
 from copy import deepcopy
 from dataclasses import replace
 
@@ -15,6 +15,16 @@ from tests.support.oracles.spatial_loads import square_strip_loads
 from tests.support.serialization import wire
 
 pytestmark = pytest.mark.integration
+
+
+@pytest.fixture(params=['internal', 'public'], autouse=True)
+def spatial_entry(request):
+    """Keep the internal contracts and exercise them through public preflight."""
+    with pytest.MonkeyPatch.context() as patch:
+        if request.param == 'public':
+            patch.setattr(__import__(__name__, fromlist=['']), 'solve_spatial_internal',
+                          lambda model: model.run())
+        yield
 
 
 @pytest.mark.parametrize('shell', [False, True])
@@ -104,15 +114,13 @@ def test_failed_analysis_discards_compilation_and_retry_is_clean(monkeypatch, fa
             monkeypatch.setattr(solver_module, 'direct_step', fail)
         operation = lambda: solve_spatial_internal(model)
     elif failure == 'postprocess':
-        # Exercise FemModel's failure cleanup without enabling public spatial
-        # preflight. _run simulates an error after a compiled solver result.
+        # Exercise the real public cleanup after a compiled solver result.
         def fail_run(*args):
-            solve_spatial_internal(model)
             raise ValueError('deliberate postprocess failure')
-        monkeypatch.setattr(model, '_run', fail_run)
+        monkeypatch.setattr(model, '_post_process_results', fail_run)
         operation = model.run
     else:
-        operation = model.run
+        operation = lambda: model.run('modal')
     with pytest.raises(ValueError):
         operation()
     assert model.solver.spatial_load_contribution is None

@@ -29,6 +29,7 @@ FEMPythonは、構造物に荷重をかけたときの変形、支点反力、�
 |---|---|
 | Pythonからモデルを組み立てる | [Python API](python-api.md) |
 | 分布荷重、面圧、複数荷重ケースの例を見る | [実行例](examples.md) |
+| 梁・板へ指定位置の線荷重・面荷重を載せる | [線荷重・面荷重](spatial-loads.md) |
 | ひび割れ・降伏・履歴曲線を設定する | [材料非線形解析](nonlinear-analysis.md) |
 | 他のアプリから解析を呼ぶ | [HTTP API](endpoints.md) |
 | JSONを保存・再読込する、旧ファイルを読み込む | [ファイル入出力・VTK](file-formats.md) |

@@ -99,3 +99,16 @@ def simply_supported_uniform(length, intensity, rigidity):
 
 def cantilever_uniform(length, intensity, rigidity):
     return intensity * length, intensity * length**2 / 2, intensity * length**4 / (8 * rigidity)
+
+
+def uniform_cylindrical_plate(length, intensity, young, thickness, *, simply_supported, mindlin):
+    """nu=0 plate strip: bending D=Et^3/12, shear stiffness (5/6)Gt.
+
+    From equilibrium V'=q and integration w_s'=V/((5/6)Gt).
+    This reference imports no production element or solver.
+    """
+    rigidity = young*thickness**3/12
+    bending = (simply_supported_uniform(length, intensity, rigidity)[-1]
+               if simply_supported else cantilever_uniform(length, intensity, rigidity)[-1])
+    shear = intensity*length**2/((8 if simply_supported else 2)*(5/6)*(young/2)*thickness)
+    return bending + (shear if mindlin else 0.)

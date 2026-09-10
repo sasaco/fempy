@@ -235,8 +235,7 @@ def _compile_load(prepared, mesh, tolerance):
 def compile_spatial_loads(definitions, mesh, *, tolerance=None):
     """Validate and compile all loads without altering input or structural state.
 
-    This is an internal compiler. Public analysis enablement remains governed
-    by the capability preflight until the full input-route acceptance gate.
+    Public static analysis invokes this once per solve before stiffness assembly.
     """
     tolerance = tolerance if tolerance is not None else AssemblyTolerance()
     if not isinstance(tolerance, AssemblyTolerance):

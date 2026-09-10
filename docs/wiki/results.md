@@ -4,6 +4,10 @@
 
 まず節点変位と支点反力を確認し、次に梁の端力やシェル・ソリッドの応力を読みます。入力と同じ単位系で返り、変位をmm、回転をミリラジアンへ自動変換する処理はありません。
 
+線荷重・面荷重の解析では`spatial_load_contribution`に荷重配分と保存性監査を、
+`element_nodal_equilibrium_forces`にシェルの全体座標での`K_e u_e - f_e`を追加します。
+既存の応力・断面合力との違いは[線荷重・面荷重の出力](spatial-loads.md)を参照してください。
+
 ## PythonとJSONの違い
 
 | 項目 | `model.run()`のPython結果 | HTTP・保存JSON |
