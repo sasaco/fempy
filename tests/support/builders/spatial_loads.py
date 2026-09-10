@@ -1,6 +1,26 @@
 """Small legacy beam grid with explicit loading topology, independent of shells."""
 
 
+def geometry_model(points=None, cells=None, *, shell=False, reverse=False, tolerance=None):
+    """Build topology for geometry tests, without materials or a solver."""
+    from fem.mesh import MeshModel
+    from fem.spatial_loads import GeometryTolerance, SpatialLoadPanel
+
+    points = points if points is not None else [(0, 0), (2, 0), (2, 2), (0, 2)]
+    cells = cells if cells is not None else ([(1, 2, 3, 4)] if shell else [(1, 2, 3), (1, 3, 4)])
+    cells = [tuple(reversed(c)) if reverse else tuple(c) for c in cells]
+    mesh = MeshModel()
+    for i, point in enumerate(points, 1):
+        mesh.add_node(i, (*point, 0) if len(point) == 2 else point)
+    for i, cell in enumerate(cells, 1):
+        mesh.add_element(i, 'shell' if shell else 'bar', list(cell), 1)
+    panel = SpatialLoadPanel(7, tuple(mesh.nodes),
+                             elements=tuple(mesh.elements) if shell else (),
+                             triangles=() if shell else tuple(cells),
+                             tolerance=tolerance or GeometryTolerance())
+    return mesh, panel
+
+
 def legacy_panel(*, area=False):
     record = dict(L1="1", P11=10, P12=20)
     if area:

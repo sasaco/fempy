@@ -1,0 +1,313 @@
+"""Planar geometry for spatial loads, independent of elements and solvers.
+
+Lengths are measured in model units. Cross products are compared with a
+length tolerance times a representative length, never with a bare length.
+Polygon clipping preserves the supplied boundary; no convex hull is inferred.
+"""
+from dataclasses import dataclass
+
+import numpy as np
+
+from .definitions import GeometryTolerance
+
+
+def cross(a, b):
+    return a[0] * b[1] - a[1] * b[0]
+
+
+def points_array(points, dimension=2, label='geometry'):
+    result = np.array(points, dtype=float, copy=True)
+    if (result.ndim != 2 or result.shape[1] != dimension
+            or not np.all(np.isfinite(result))):
+        raise ValueError(f'{label}: expected finite {dimension}D points')
+    return result
+
+
+def frozen_points(points):
+    return tuple(tuple(float(v) for v in p) for p in points)
+
+
+def signed_area(points):
+    p = np.asarray(points, dtype=float)
+    if len(p) < 3:
+        return 0.
+    # Translation avoids cancellation for models far from the global origin.
+    q = p - p[0]
+    return float(sum(cross(a, b) for a, b in zip(q, np.roll(q, -1, axis=0))) / 2)
+
+
+def point_on_segment(p, a, b, eps):
+    edge = b - a
+    length = np.linalg.norm(edge)
+    if length <= eps:
+        return np.linalg.norm(p - a) <= eps
+    return (abs(cross(edge, p - a)) <= eps * length
+            and -eps * length <= np.dot(p - a, edge) <= length**2 + eps * length)
+
+
+def segments_intersect(a, b, c, d, eps):
+    if any(point_on_segment(p, u, v, eps)
+           for p, u, v in ((a, c, d), (b, c, d), (c, a, b), (d, a, b))):
+        return True
+    return (cross(b - a, c - a) * cross(b - a, d - a) < 0
+            and cross(d - c, a - c) * cross(d - c, b - c) < 0)
+
+
+def validate_polygon(points, eps, label='polygon', *, strict=False):
+    """Validate a simple convex polygon; return its orientation (+1 or -1)."""
+    p = points_array(points, label=label)
+    if len(p) < 3:
+        raise ValueError(f'{label}: at least three vertices are required')
+    lengths = np.linalg.norm(np.roll(p, -1, axis=0) - p, axis=1)
+    if np.any(lengths <= eps):
+        raise ValueError(f'{label}: degenerate edge')
+    for i in range(len(p)):
+        for j in range(i + 1, len(p)):
+            if j == i + 1 or (i == 0 and j == len(p) - 1):
+                continue
+            if segments_intersect(p[i], p[(i + 1) % len(p)],
+                                  p[j], p[(j + 1) % len(p)], eps):
+                raise ValueError(f'{label}: self-intersecting boundary')
+    area = signed_area(p)
+    scale = np.linalg.norm(np.ptp(p, axis=0))
+    if abs(area) <= eps * scale:
+        raise ValueError(f'{label}: degenerate area')
+    orientation = 1 if area > 0 else -1
+    for i in range(len(p)):
+        u, v = p[i] - p[i - 1], p[(i + 1) % len(p)] - p[i]
+        turn = orientation * cross(u, v)
+        threshold = eps * max(np.linalg.norm(u), np.linalg.norm(v))
+        if turn < -threshold or (strict and turn <= threshold):
+            raise ValueError(f'{label}: non-convex or degenerate polygon')
+        if abs(turn) <= threshold and np.dot(u, v) < 0:
+            raise ValueError(f'{label}: overlapping adjacent edges')
+    return orientation
+
+
+def contains_point(polygon, point, eps):
+    p = np.asarray(polygon)
+    sign = 1 if signed_area(p) > 0 else -1
+    return all(sign * cross(b - a, point - a) >= -eps * np.linalg.norm(b - a)
+               for a, b in zip(p, np.roll(p, -1, axis=0)))
+
+
+def _clean_polygon(points, eps):
+    out = []
+    for p in points:
+        if not out or np.linalg.norm(p - out[-1]) > eps:
+            out.append(p)
+    if len(out) > 1 and np.linalg.norm(out[0] - out[-1]) <= eps:
+        out.pop()
+    return np.array(out, dtype=float).reshape((-1, 2))
+
+
+def clip_polygon(subject, clip, eps):
+    """Intersect two validated convex polygons using exact half planes."""
+    result = np.asarray(subject, dtype=float)
+    boundary = np.asarray(clip, dtype=float)
+    sign = 1 if signed_area(boundary) > 0 else -1
+    for a, b in zip(boundary, np.roll(boundary, -1, axis=0)):
+        if len(result) < 3:
+            return np.empty((0, 2))
+        output = []
+        for start, end in zip(result, np.roll(result, -1, axis=0)):
+            f0 = sign * cross(b - a, start - a)
+            f1 = sign * cross(b - a, end - a)
+            if (f0 >= 0) != (f1 >= 0):
+                output.append(start + f0 / (f0 - f1) * (end - start))
+            if f1 >= 0:
+                output.append(end)
+        result = _clean_polygon(output, eps)
+    return result
+
+
+def triangulate_convex(polygon, eps):
+    """Fan triangulation for integration only, not a new interpolation mesh."""
+    p = np.asarray(polygon)
+    if len(p) < 3:
+        return ()
+    scale = np.linalg.norm(np.ptp(p, axis=0))
+    return tuple(frozen_points(t) for i in range(1, len(p) - 1)
+                 if abs(signed_area(t := p[[0, i, i + 1]])) > eps * scale)
+
+
+@dataclass(frozen=True)
+class PlanarFrame:
+    origin: tuple
+    axis_u: tuple
+    axis_v: tuple
+    normal: tuple
+    scale: float
+    eps: float
+
+    @classmethod
+    def from_points(cls, points, tolerance=GeometryTolerance(), label='panel'):
+        p = points_array(points, 3, label)
+        if len(p) < 3:
+            raise ValueError(f'{label}: at least three points are required')
+        q = p - p[0]
+        scale = float(np.linalg.norm(np.ptp(q, axis=0)))
+        if not np.isfinite(scale):
+            raise ValueError(f'{label}: length scale overflows')
+        eps = tolerance.length(scale)
+        if scale <= eps:
+            raise ValueError(f'{label}: degenerate length scale')
+        # Long baselines avoid choosing nearly coincident first vertices.
+        u = q[np.argmax(np.linalg.norm(q, axis=1))]
+        u = u / np.linalg.norm(u)
+        normals = np.cross(u, q)
+        normal = normals[np.argmax(np.linalg.norm(normals, axis=1))]
+        if np.linalg.norm(normal) <= eps:
+            raise ValueError(f'{label}: collinear points')
+        normal = normal / np.linalg.norm(normal)
+        if np.max(np.abs(q @ normal)) > eps:
+            raise ValueError(f'{label}: non-planar points')
+        return cls(tuple(p[0]), tuple(u), tuple(np.cross(normal, u)),
+                   tuple(normal), scale, eps)
+
+    def project(self, points, label='path'):
+        p = points_array(points, 3, label) - self.origin
+        if np.any(np.abs(p @ self.normal) > self.eps):
+            raise ValueError(f'{label}: points leave the panel plane')
+        return np.column_stack((p @ self.axis_u, p @ self.axis_v))
+
+    def lift(self, points):
+        p = np.asarray(points)
+        return np.asarray(self.origin) + p[..., 0, None] * self.axis_u + p[..., 1, None] * self.axis_v
+
+
+@dataclass(frozen=True)
+class PanelCell:
+    key: int
+    node_ids: tuple
+    points: tuple
+    element_id: int | None = None
+
+
+@dataclass(frozen=True)
+class PanelGeometry:
+    panel_id: int
+    frame: PlanarFrame
+    cells: tuple[PanelCell, ...]
+    boundary: tuple
+
+
+def validate_partition(cells, eps, label):
+    """Require an oriented, conforming, connected disk with a convex boundary."""
+    edges, points = {}, {}
+    sign = None
+    for index, cell in enumerate(cells):
+        orientation = validate_polygon(cell.points, eps, f'{label} cell {cell.key}', strict=True)
+        if sign is not None and sign != orientation:
+            raise ValueError(f'{label}: inconsistent cell orientation')
+        sign = orientation
+        for node, point in zip(cell.node_ids, cell.points):
+            points[node] = point
+        for a, b in zip(cell.node_ids, cell.node_ids[1:] + cell.node_ids[:1]):
+            entries = edges.setdefault(tuple(sorted((a, b))), [])
+            entries.append((index, a, b))
+            if len(entries) > 2:
+                raise ValueError(f'{label}: non-manifold edge')
+    adjacency = [set() for _ in cells]
+    boundary_edges = []
+    for entries in edges.values():
+        if len(entries) == 1:
+            boundary_edges.append(entries[0][1:])
+        else:
+            (i, a, b), (j, c, d) = entries
+            if (a, b) != (d, c):
+                raise ValueError(f'{label}: overlapping or inverted cells')
+            adjacency[i].add(j)
+            adjacency[j].add(i)
+    visited, pending = set(), [0]
+    while pending:
+        i = pending.pop()
+        if i not in visited:
+            visited.add(i)
+            pending.extend(adjacency[i] - visited)
+    if len(visited) != len(cells):
+        raise ValueError(f'{label}: disconnected or non-conforming cells')
+    successors = {}
+    for a, b in boundary_edges:
+        if a in successors:
+            raise ValueError(f'{label}: branching boundary')
+        successors[a] = b
+    if not successors or len(set(successors.values())) != len(successors):
+        raise ValueError(f'{label}: invalid boundary')
+    start = min(successors)
+    ring, current = [], start
+    while current not in ring:
+        ring.append(current)
+        if current not in successors:
+            raise ValueError(f'{label}: open boundary')
+        current = successors[current]
+    if current != start or len(ring) != len(boundary_edges):
+        raise ValueError(f'{label}: holes or multiple boundaries are not supported')
+    boundary = tuple(points[n] for n in ring)
+    validate_polygon(boundary, eps, f'{label} boundary')
+    scale = np.linalg.norm(np.ptp(np.array(boundary), axis=0))
+    for i, first in enumerate(cells):
+        for second in cells[i + 1:]:
+            overlap = clip_polygon(first.points, second.points, eps)
+            if abs(signed_area(overlap)) > eps * scale:
+                raise ValueError(f'{label}: overlapping cell interiors')
+    if abs(sum(abs(signed_area(c.points)) for c in cells)
+           - abs(signed_area(boundary))) > eps * scale:
+        raise ValueError(f'{label}: cells do not cover the boundary')
+    return boundary
+
+
+@dataclass(frozen=True)
+class LinePiece:
+    cell_index: int
+    start: tuple
+    end: tuple
+    s0: float
+    s1: float
+
+
+def _segment_interval(polygon, start, end, eps):
+    p = np.asarray(polygon)
+    sign = 1 if signed_area(p) > 0 else -1
+    low, high = 0., 1.
+    for a, b in zip(p, np.roll(p, -1, axis=0)):
+        edge = b - a
+        f0, f1 = sign * cross(edge, start - a), sign * cross(edge, end - a)
+        threshold = eps * np.linalg.norm(edge)
+        if abs(f1 - f0) <= threshold:
+            if min(f0, f1) < -threshold:
+                return None
+            continue
+        t = -f0 / (f1 - f0)
+        if f1 > f0:
+            low = max(low, t)
+        else:
+            high = min(high, t)
+    return (low, high) if high > low else None
+
+
+def split_line(panel, points, parameters, label='line'):
+    """Split at every cell edge; a boundary interval belongs to the lowest key."""
+    p = np.asarray(points)
+    eps = panel.frame.eps
+    pieces = []
+    for i, (a, b) in enumerate(zip(p, p[1:])):
+        length = np.linalg.norm(b - a)
+        intervals = [(j, interval) for j, cell in enumerate(panel.cells)
+                     if (interval := _segment_interval(cell.points, a, b, eps)) is not None]
+        cuts = sorted({0., 1., *(t for _, pair in intervals for t in pair)})
+        unique = [cuts[0]]
+        for t in cuts[1:]:
+            if t - unique[-1] > eps / length:
+                unique.append(t)
+        unique[-1] = 1.
+        for t0, t1 in zip(unique, unique[1:]):
+            mid = (t0 + t1) / 2
+            owners = [j for j, (lo, hi) in intervals if lo - eps / length <= mid <= hi + eps / length]
+            if not owners:
+                raise ValueError(f'{label}: line leaves panel {panel.panel_id}; extrapolation is forbidden')
+            owner = min(owners, key=lambda j: panel.cells[j].key)
+            ds = parameters[i + 1] - parameters[i]
+            pieces.append(LinePiece(owner, tuple(a + t0 * (b - a)), tuple(a + t1 * (b - a)),
+                                    parameters[i] + t0 * ds, parameters[i] + t1 * ds))
+    return tuple(pieces)
