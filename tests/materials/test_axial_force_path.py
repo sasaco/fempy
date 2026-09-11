@@ -192,6 +192,31 @@ def rational_material(beta=0.):
     return AxialForceTable(tuple(rows), beta=beta)
 
 
+def moving_power_contact(side=1, *, reverse_Nd=False):
+    first = SkeletonPoints((.001, .0025, .004), (10., 13., 15.))
+    last = SkeletonPoints((.0007, .00185, .0041), (8., 12., 15.7))
+    if reverse_Nd:
+        first, last = last, first
+    table = AxialForceTable((AxialForceRow(0., first, first),
+                             AxialForceRow(2., last, last)), beta=.7)
+    Nd, curvature, maximum = ((1.85, .0012, .0015) if reverse_Nd else
+                              (.15, .0012, .0015))
+    model = JRStiffnessReductionModel(table.interpolate(Nd).to_jr_params())
+    history = model.create_initial_state()
+    moment, tangent, info = model.get_force_and_stiffness(side*maximum, history)
+    history = model.update_state(side*maximum, moment, tangent, history, info)
+    envelope = table.evaluate_skeleton(side*curvature, Nd, side=side)
+    history.current_delta = history.previous_delta = side*curvature
+    history.current_P = history.previous_P = envelope.moment
+    history.current_K = envelope.bending_tangent
+    history.active_segment = None
+    history.reversal_stack.clear()
+    history.reversal_paths.clear()
+    history.branch = 'envelope_contact'
+    history.loading_direction = side
+    return table, AxialForceHistoryState(Nd, history, side, envelope.segment)
+
+
 @pytest.mark.parametrize('side', [-1, 1])
 @pytest.mark.parametrize('count', [1, 8, 32])
 def test_two_interior_intersections_and_directional_departure(side, count):
@@ -280,19 +305,55 @@ def test_invariant_table_retains_complete_JR_return_graph(end):
     assert actual.state.Nd == 1.
 
 
-def test_nonpolynomial_departure_is_diagnosed_only_when_contact_is_needed():
+def test_nonzero_beta_moving_point_departure_isolated_without_sampling():
     table = rational_material(beta=.4)
     state = experienced(table, [.0016, .0015])
     contact = evaluate_axial_force_hold(table, state, .8).state
     assert contact.contact_side == 1
     before = deepcopy(contact)
-    with pytest.raises(UnsupportedAnalysisError) as failure:
-        advance(table, contact, .0014, 1.3)
-    assert failure.value.details['reason'] == 'axial_force_path_nonpolynomial_departure'
+    response = advance(table, contact, .00145, 1.3)
+    departures = [event for event in response.events if event.kind == 'departure']
+    assert len(departures) == 1
+    assert departures[0].Nd == pytest.approx(.8827356237458797, rel=1e-12)
+    assert departures[0].fraction == pytest.approx((departures[0].Nd-.8)/.5)
+    assert response.moment == pytest.approx(9.218558568354527, rel=1e-12)
+    assert response.bending_tangent == pytest.approx(6823.241726163142, rel=1e-12)
+    assert response.state.contact_side is None
     assert contact == before
     # Skeleton following needs no candidate-departure root, so remains valid.
     skeleton = experienced(table, [.0015])
     assert advance(table, skeleton, .0017, 1.).moment == pytest.approx(8+3*.7)
+
+
+@pytest.mark.parametrize('side', [-1, 1])
+@pytest.mark.parametrize('count', [1, 2, 4, 8, 16])
+def test_moving_power_departure_is_partition_invariant(side, count):
+    table, state = moving_power_contact(side)
+    start_x, start_n = side*.0012, .15
+    end_x, end_n = side*.00108, 1.5
+    events = []
+    for index in range(1, count+1):
+        fraction = index/count
+        response = advance(table, state,
+                           start_x+fraction*(end_x-start_x),
+                           start_n+fraction*(end_n-start_n))
+        state = response.state
+        events.extend(response.events)
+    departures = [event for event in events if event.kind == 'departure']
+    assert len(departures) == 1
+    assert departures[0].Nd == pytest.approx(1.06434854006352, rel=1e-12)
+    assert state.history.current_P == pytest.approx(side*9.40962688491097, rel=1e-12)
+    assert state.history.current_K == pytest.approx(7088.01505831542, rel=1e-12)
+    assert state.contact_side is None
+
+
+def test_moving_power_departure_with_decreasing_Nd():
+    table, state = moving_power_contact(reverse_Nd=True)
+    response = advance(table, state, .00108, .5)
+    departure = next(event for event in response.events if event.kind == 'departure')
+    assert departure.Nd == pytest.approx(.93565145993648, rel=1e-12)
+    assert response.moment == pytest.approx(9.40962688491097, rel=1e-12)
+    assert response.bending_tangent == pytest.approx(7088.01505831542, rel=1e-12)
 
 
 def test_simultaneous_path_differs_from_two_distinct_loading_legs():

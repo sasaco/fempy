@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from math import fsum, isfinite
 
 from numpy.polynomial import Polynomial
+from scipy.optimize import brentq
 
 from ..diagnostics import InputValidationError, UnsupportedAnalysisError, NumericalConditionError
 from .axial_force_table import _number
@@ -109,47 +110,96 @@ def _pieces(table, x0, x1, n0, n1, side, maximum):
             yield left, right, x, n, i+1, q, w, d, p
 
 
-def _departure_parts(table, maximum, piece, side):
-    """Exact rational candidate Kd and directional-gap roots.
+def _power_candidate_value(candidate, maximum, t):
+    numerator, denominator, coordinate, exponent = candidate
+    value = float(numerator(t)/denominator(t))
+    return value if exponent == 0 else value*float((coordinate(t)/maximum)**exponent)
 
-    Arbitrary beta is algebraic here when curvature coordinates are fixed.
-    With moving coordinates beta=0 is supported. Nonzero beta with moving
-    coordinates requires a further nonpolynomial root-isolation contract.
+
+def _polynomial_product(polynomials):
+    result = Polynomial((1.,))
+    for polynomial in polynomials:
+        result *= polynomial
+    return result
+
+
+def _power_departure_roots(candidate, maximum, x, q, w):
+    """Isolate every root of Kd*x' - dMb/dt on one analytic piece.
+
+    For a reduced candidate, Kd=(u/v)(d/maximum)^beta.  Between zeros of
+    the factors, the logarithm of the ratio between Kd*x' and dMb/dt has
+    stationary points where a polynomial is zero.  Those points therefore
+    partition the interval into monotone pieces and give complete Brent
+    brackets without a sampling grid.
     """
+    u, v, coordinate, exponent = candidate
+    rate_numerator = q.deriv()*w-q*w.deriv()
+    dx = float(x.deriv()(0))
+    if exponent == 0 or dx == 0 or u.trim().degree() == 0 and u(0) == 0:
+        return _interval_roots(dx*u*w*w-rate_numerator*v)
+
+    factors = ((u, 1.), (v, -1.), (coordinate, exponent),
+               (w, 2.), (rate_numerator, -1.))
+    critical_numerator = Polynomial((0.,))
+    for index, (denominator, coefficient) in enumerate(factors):
+        if coefficient:
+            others = [factor for j, (factor, _) in enumerate(factors) if j != index]
+            critical_numerator += coefficient*denominator.deriv()*_polynomial_product(others)
+
+    nodes = {0., 1.}
+    for polynomial, _ in factors:
+        nodes.update(root for root in _interval_roots(polynomial) if 0 < root < 1)
+    nodes.update(root for root in _interval_roots(critical_numerator) if 0 < root < 1)
+    nodes = sorted(nodes)
+
+    def residual(t):
+        stiffness = _power_candidate_value(candidate, maximum, t)
+        return dx*stiffness-float(rate_numerator(t)/(w(t)*w(t)))
+
+    roots = []
+    for t in nodes:
+        value = residual(t)
+        scale = abs(dx*_power_candidate_value(candidate, maximum, t))
+        scale += abs(float(rate_numerator(t)/(w(t)*w(t))))
+        if abs(value) <= 64*_EPS*scale:
+            roots.append(t)
+    for a, b in zip(nodes[:-1], nodes[1:]):
+        fa, fb = residual(a), residual(b)
+        if (fa < 0 < fb) or (fb < 0 < fa):
+            roots.append(brentq(residual, a, b, xtol=5e-324, rtol=8*_EPS))
+    return tuple(sorted(set(roots)))
+
+
+def _departure_parts(table, maximum, piece, side):
+    """Candidate-Kd directional intervals, including moving power laws."""
     _, _, x, _, _, q, w, d, p = piece
-    if table.beta and any(di.trim().degree() != 0 for di in d[1:3]):
-        raise UnsupportedAnalysisError('Moving curvature points with nonzero beta require general departure isolation',
-                                       reason='axial_force_path_nonpolynomial_departure')
-    k1 = p[1], d[1]
-    k2 = p[2]-p[1], d[2]-d[1]
-    candidates = [k1, (Polynomial((table.K_min,)), Polynomial((1.,)))]
+    one = Polynomial((1.,))
+    k1 = p[1], d[1], one, 0.
+    k2 = p[2]-p[1], d[2]-d[1], one, 0.
+    floor = Polynomial((table.K_min,)), one, one, 0.
+    candidates = [k1, floor]
     if maximum <= d[1](.5):
         base = k1
     elif maximum <= d[2](.5):
-        factor = (maximum/d[1](.5))**(-table.beta)
-        reduced = p[1]*factor, d[1]
+        reduced = p[1], d[1], d[1], table.beta
         candidates.extend((reduced, k2))
         base = None
     else:
-        factor = (maximum/d[2](.5))**(-table.beta)
-        base = k2[0]*factor, k2[1]
+        base = p[2]-p[1], d[2]-d[1], d[2], table.beta
         candidates.append(base)
     cuts = {0., 1.}
-    for i, (u, v) in enumerate(candidates):
-        for r, s in candidates[i+1:]:
-            cuts.update(_interval_roots(u*s-r*v))
-    cuts = sorted(cuts)
-    for a, b in zip(cuts[:-1], cuts[1:]):
+    for candidate in candidates:
+        cuts.update(_power_departure_roots(candidate, maximum, x, q, w))
+    for a, b in zip(sorted(cuts)[:-1], sorted(cuts)[1:]):
         mid = (a+b)/2
-        selected = base if base is not None else max((reduced, k2), key=lambda pair: pair[0](mid)/pair[1](mid))
-        floor = candidates[1]
-        selected = max((selected, floor), key=lambda pair: pair[0](mid)/pair[1](mid))
-        selected = min((selected, k1), key=lambda pair: pair[0](mid)/pair[1](mid))
-        u, v = selected
-        gap_rate = side*(u*x.deriv()*w*w-(q.deriv()*w-q*w.deriv())*v)
-        roots = [a, *[r for r in _interval_roots(gap_rate) if a < r < b], b]
-        for lo, hi in zip(roots[:-1], roots[1:]):
-            yield lo, hi, gap_rate
+        selected = (base if base is not None else
+                    max((reduced, k2), key=lambda candidate: _power_candidate_value(candidate, maximum, mid)))
+        selected = max((selected, floor), key=lambda candidate: _power_candidate_value(candidate, maximum, mid))
+        selected = min((selected, k1), key=lambda candidate: _power_candidate_value(candidate, maximum, mid))
+        rate_numerator = q.deriv()*w-q*w.deriv()
+        rate = side*(_power_candidate_value(selected, maximum, mid)*x.deriv()(mid)
+                     -rate_numerator(mid)/(w(mid)*w(mid)))
+        yield a, b, 1 if rate > 0 else -1 if rate < 0 else 0
 
 
 def evaluate_axial_force_path(table, committed, curvature, Nd):
@@ -208,7 +258,7 @@ def evaluate_axial_force_path(table, committed, curvature, Nd):
         events.append(AxialForcePathEvent(kind, float(fraction), float(x), float(n), float(moment), side, index))
 
     def departure_at_start(piece):
-        return next((poly for a, b, poly in _departure_parts(table, maximum, piece, side) if a == 0), None)
+        return next((sign for a, b, sign in _departure_parts(table, maximum, piece, side) if a == 0), None)
 
     for number, piece in enumerate(pieces):
         left, right, x, n, index, q, w, _, _ = piece
@@ -217,20 +267,21 @@ def evaluate_axial_force_path(table, committed, curvature, Nd):
         following = pieces[number+1] if number+1 < len(pieces) else None
         cursor = 0.
         transitions = 0
+        just_departed = False
         while cursor < 1:
             transitions += 1
             if transitions > 16:
                 raise NumericalConditionError('Repeated zero-length path events', reason='axial_force_path_event_cycle')
             if contact:
                 departure = None
-                for a, b, rate in _departure_parts(table, maximum, piece, side):
+                for a, b, sign in _departure_parts(table, maximum, piece, side):
                     start = max(cursor, a)
-                    if start < b and _right_sign(rate, start) < 0:
+                    if start < b and sign < 0:
                         departure = start
                         break
                 if departure is None and following is not None:
-                    rate = departure_at_start(following)
-                    if rate is not None and _right_sign(rate, 0.) < 0:
+                    sign = departure_at_start(following)
+                    if sign is not None and sign < 0:
                         departure = 1.
                 if departure is None:
                     break
@@ -239,6 +290,7 @@ def evaluate_axial_force_path(table, committed, curvature, Nd):
                 point(x(cursor), moment, history.current_K)
                 _detach(table, history, float(n(cursor)), side)
                 contact = False
+                just_departed = True
                 event('departure', _lerp(left, right, cursor), x(cursor), n(cursor), moment, index)
                 if cursor == 1:
                     break
@@ -253,6 +305,8 @@ def evaluate_axial_force_path(table, committed, curvature, Nd):
             roots = _zeros(gap, cursor, 1., lambda t: abs(line(t)*w(t))+abs(q(t)))
             crossing = None
             for root in roots:
+                if just_departed and abs(root-cursor) <= 128*_EPS:
+                    continue  # The newly tangent unload must advance before it can re-contact.
                 if root == 1 and following is not None:
                     nx, nq, nw = following[2], following[5], following[6]
                     outgoing = side*((segment.start_P+segment.K*(nx-segment.start_delta))*nw-nq)
@@ -274,6 +328,7 @@ def evaluate_axial_force_path(table, committed, curvature, Nd):
             if crossing is None:
                 break
             cursor = crossing
+            just_departed = False
             direct_return = (segment.branch == 'retracing' and segment.next_segment is None
                              and direction == side)
             contact = not direct_return
