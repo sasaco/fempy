@@ -14,6 +14,53 @@
   },
   "samples": [
     {
+      "id": "snap/axial_force_shear_load_control",
+      "file": "snap/axial_force_shear_load_control.json",
+      "sha256": "e194172d0a51a71683c71d031839fab956b3126b10b63ccdf2fa319c0753437f",
+      "input_format": "structural_json",
+      "contract": "section_cut_cases",
+      "cases": [
+        "1"
+      ],
+      "steps": [],
+      "sources": [],
+      "reference_location": "result",
+      "reference_status": "independent_statics_and_closed_form_shear_integral",
+      "units": "kN, m, rad; synthetic verification example",
+      "signs": "Compression-positive Nd=-N; section-cut end signs",
+      "tolerance": "stored_result",
+      "followup": [],
+      "execution": "regression; case 1 plus all 4 steps and section response"
+    },
+    {
+      "id": "snap/axial_force_shear_displacement_control",
+      "file": "snap/axial_force_shear_displacement_control.json",
+      "sha256": "f1c8b493bc8b707b151e58f32cca0afbbc12e860cdde41e7065e7994edb455b7",
+      "input_format": "structural_json",
+      "contract": "displacement_control_history",
+      "cases": [],
+      "steps": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10"
+      ],
+      "sources": [],
+      "reference_location": "result",
+      "reference_status": "independent_statics_and_closed_form_shear_integral",
+      "units": "kN, m, rad; synthetic verification example",
+      "signs": "Compression-positive Nd=-N; section-cut end signs",
+      "tolerance": "stored_result",
+      "followup": [],
+      "execution": "regression; all 10 targets plus section response"
+    },
+    {
       "id": "bar/2D_Sample01",
       "file": "bar/2D_Sample01.json",
       "sha256": "868f510f7ca12358c92e6c285f37953e6c1434c71f3bd8fdefd9b93148d96238",

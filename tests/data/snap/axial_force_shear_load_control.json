@@ -1,0 +1,37 @@
+{
+  "node": {"10": {"x": 0, "y": 0, "z": 0}, "30": {"x": 1, "y": 0, "z": 0}},
+  "member": {"7": {"ni": 10, "nj": 30, "e": 1, "cg": 0, "shear_correction": true}},
+  "element": {"1": {"1": {
+    "E": 1000, "G": 400, "nu": 0.25, "A": 1, "Iy": 0.1, "Iz": 0.1, "J": 0.1,
+    "nonlinear": {"laws": {
+      "axial": {
+        "type": "jr_stiffness_reduction", "symmetric": true, "beta": 0,
+        "delta_1": 0.0004, "P_1": 0.4, "delta_2": 0.001, "P_2": 0.7,
+        "delta_3": 0.002, "P_3": 0.9
+      },
+      "moment_z": {
+        "type": "jr_stiffness_reduction", "symmetric": true, "beta": 0.4,
+        "axial_force_points": [
+          {"Nd": -0.5, "delta_1": 0.001, "P_1": 0.05, "delta_2": 0.003, "P_2": 0.1, "delta_3": 0.005, "P_3": 0.125},
+          {"Nd": 0, "delta_1": 0.001, "P_1": 0.1, "delta_2": 0.003, "P_2": 0.2, "delta_3": 0.005, "P_3": 0.25},
+          {"Nd": 2, "delta_1": 0.001, "P_1": 0.3, "delta_2": 0.003, "P_2": 0.6, "delta_3": 0.005, "P_3": 0.75}
+        ]
+      }
+    }}
+  }}},
+  "fix_node": {"1": [{"n": 10, "tx": 1, "ty": 1, "tz": 1, "rx": 1, "ry": 1, "rz": 1}]},
+  "load": {"1": {
+    "load_node": [{"n": 30, "tx": -0.6, "ty": 0.12, "rz": 0.02}],
+    "n_load_steps": 4, "max_iterations": 50, "tolerance": 1e-10
+  }},
+  "result": {
+    "1": {
+      "disg": {"10":{"dx":0,"dy":0,"dz":0,"rx":0,"ry":0,"rz":0},"30":{"dx":-0.0007999999999999999,"dy":0.0006881527148820168,"dz":0,"rx":0,"ry":0,"rz":0.0005}},
+      "reac": {"10":{"tx":0.6,"ty":-0.12,"tz":0,"mx":0,"my":0,"mz":-0.14}},
+      "fsec": {"7":{"P1":{"fxi":-0.6,"fyi":-0.12,"fzi":0,"mxi":0,"myi":0,"mzi":-0.14,"fxj":-0.6,"fyj":-0.12,"fzj":0,"mxj":0,"myj":0,"mzj":-0.020000000000000004,"L":1}}},
+      "curvature": {"7":{"y":0,"z":0.0005}},
+      "size": 2,
+      "shell_results": {}
+    }
+  }
+}

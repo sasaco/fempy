@@ -154,6 +154,8 @@ class AxialForceCurvatureResponse:
     state: 'AxialForceHistoryState'
     moment: float
     bending_tangent: float
+    # Actual fixed-branch ends plus skeleton corners crossed by this trial.
+    partitions: tuple[float, ...] = ()
 
 
 class _FixedNdTargetModel(JRStiffnessReductionModel):
@@ -162,6 +164,7 @@ class _FixedNdTargetModel(JRStiffnessReductionModel):
     def __init__(self, table, Nd):
         super().__init__(table.interpolate(Nd).to_jr_params())
         self.table, self.Nd = table, Nd
+        self.partitions = []
 
     def _trace(self, state, delta, direction):
         while state.active_segment is not None:
@@ -185,6 +188,7 @@ class _FixedNdTargetModel(JRStiffnessReductionModel):
                     target = evaluate_reload_target(self.table, forward, self.Nd)
                     if self._reached(segment.end_delta, target.curvature, direction):
                         if self._reached(delta, target.curvature, direction):
+                            self.partitions.append(target.curvature)
                             state.active_segment = None
                             break
                     elif self._reached(delta, segment.end_delta, direction):
@@ -200,6 +204,7 @@ class _FixedNdTargetModel(JRStiffnessReductionModel):
                 state.branch = segment.branch
                 state.crossed_zero = segment.branch in ('reloading', 'inner_reloading')
                 return segment.start_P+segment.K*(delta-segment.start_delta), segment.K
+            self.partitions.append(segment.end_delta)
             if segment.restore_depth is not None:
                 del state.reversal_stack[segment.restore_depth:]
                 del state.reversal_paths[segment.restore_depth:]
@@ -242,4 +247,11 @@ def evaluate_axial_force_curvature(table, committed, curvature):
         return AxialForceCurvatureResponse(state, state.history.current_P, state.history.current_K)
     moment, tangent, info = model.get_force_and_stiffness(curvature, committed.history)
     history = model.update_state(curvature, moment, tangent, committed.history, info)
-    return AxialForceCurvatureResponse(AxialForceHistoryState(committed.Nd, history), moment, tangent)
+    start = committed.history.current_delta
+    corners = [0., *(sign*getattr(model.params, f'delta_{i}_{side}')
+                     for side, sign in (('pos', 1.), ('neg', -1.)) for i in (1, 2, 3))]
+    partitions = tuple(sorted(
+        {x for x in (*model.partitions, *corners) if min(start, curvature) < x < max(start, curvature)},
+        reverse=curvature < start,
+    ))
+    return AxialForceCurvatureResponse(AxialForceHistoryState(committed.Nd, history), moment, tangent, partitions)

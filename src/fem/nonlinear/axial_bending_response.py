@@ -5,14 +5,18 @@ the accumulated ``dV = C ds`` response and the endpoint algorithmic tangent.
 Inputs are owned committed snapshots; no evaluation mutates them.
 """
 from dataclasses import dataclass
-from math import isfinite
+from math import fsum, isfinite
 
 import numpy as np
+from numpy.polynomial import Polynomial
 from scipy.integrate import quad
 
 from ..diagnostics import InputValidationError, NumericalConditionError
-from .axial_force_history import AxialForceHistoryState, _has_constant_skeleton
-from .axial_force_path import evaluate_axial_force_path
+from .axial_force_history import AxialForceHistoryState, _affine, _has_constant_skeleton
+from .axial_force_path import (
+    _lerp, _reload_stiffness_rational, _side_polynomials, evaluate_axial_force_path,
+)
+from .axial_force_reload_hold import _interval_roots
 from .axial_force_table import AxialForceTable, _number
 from .beam_section_response import (
     BendingPlaneState, _finite, _shear_coefficient, evaluate_bending_plane,
@@ -81,6 +85,95 @@ def _validate(table, committed, curvature, shear_deformation, Nd, length,
     return curvature, shear_deformation, Nd
 
 
+def _validate_shear_interval(numerator, denominator, length, shear_rigidity,
+                             left, right, start_nd, end_nd):
+    """Check every pole and near-pole extremum of B=U/W on one real branch.
+
+    After clearing W, the cancellation ratio is |b+g|/(|b|+|g|).
+    Its minima occur at endpoints, zeros of b+g, or stationary points
+    of b/g. Derivative-root isolation includes touching/even roots.
+    Adjacent branches are checked separately: a jump across zero is not a pole.
+    """
+    if shear_rigidity is None:
+        return
+    scale = max(np.max(np.abs(numerator.coef)), np.max(np.abs(denominator.coef)))
+    b = (12.*(numerator/scale/length))/length
+    g = shear_rigidity*(denominator/scale)
+    scale = max(np.max(np.abs(b.coef)), np.max(np.abs(g.coef)))
+    if not isfinite(scale):
+        raise NumericalConditionError('Nonfinite condensed bending coefficient',
+                                      reason='nonfinite_shear_condensation')
+    b, g = b/scale, g/scale
+    candidates = {0., 1., *_interval_roots(b+g),
+                  *_interval_roots(b.deriv()*g-b*g.deriv())}
+    for position in sorted(candidates):
+        width = float(denominator(position))
+        if width == 0:
+            # A target/anchor coincidence at an event can give a removable
+            # U=W=0. It is not a zero of the shear-condensation denominator.
+            continue
+        bending = float(numerator(position)/width)
+        try:
+            _shear_coefficient(bending, length, shear_rigidity)
+        except NumericalConditionError as error:
+            fraction = _lerp(left, right, position)
+            error.details.update(path_fraction=fraction, Nd=_lerp(start_nd, end_nd, fraction))
+            raise
+
+
+def _shear_intervals(table, committed, curvature, Nd, response, length, shear_rigidity):
+    """Recover rational branch stiffness on the already-resolved history path."""
+    start_phi, start_nd = committed.curvature, committed.axial_history.Nd
+    cuts = sorted({0., 1., *(e.fraction for e in response.events if 0 < e.fraction < 1)})
+    for left, right in zip(cuts, cuts[1:]):
+        middle = (left+right)/2
+        phi, trial_nd = _lerp(start_phi, curvature, middle), _lerp(start_nd, Nd, middle)
+        trial = evaluate_axial_force_path(table, committed.axial_history, phi, trial_nd)
+        history = trial.state.history
+        segment = history.active_segment
+        n = _affine(_lerp(start_nd, Nd, left), _lerp(start_nd, Nd, right))
+        if segment is None:
+            side = trial.state.contact_side or (1 if phi >= 0 else -1)
+            d, p = _side_polynomials(table, n, side)
+            index = table.evaluate_skeleton(phi, trial_nd, side=side).segment-1
+            if index == 3 and len(d) == 4:
+                numerator, denominator = Polynomial((0.,)), Polynomial((1.,))
+            else:
+                numerator, denominator = p[index+1]-p[index], d[index+1]-d[index]
+        elif segment.branch in ('reloading', 'inner_reloading') or (
+                segment.target is not None and segment.target.kind == 'forward'):
+            numerator, denominator, _, _ = _reload_stiffness_rational(table, segment, n, .5)
+        else:
+            numerator, denominator = Polynomial((trial.bending_tangent,)), Polynomial((1.,))
+        _validate_shear_interval(numerator, denominator, length, shear_rigidity,
+                                 left, right, start_nd, Nd)
+        yield left, right, numerator, denominator
+
+
+def _mean_shear_coefficient(intervals, length, shear_rigidity):
+    integrals = []
+    for left, right, numerator, denominator in intervals:
+        def coefficient(fraction):
+            bending = float(numerator(fraction)/denominator(fraction))
+            return _shear_coefficient(bending, length, shear_rigidity)
+
+        if numerator.trim().degree() == denominator.trim().degree() == 0:
+            mean = coefficient(.5)
+        else:
+            integral = quad(coefficient, 0., 1., epsabs=0., epsrel=2e-11,
+                            limit=50, full_output=1)
+            if len(integral) != 3 or not all(isfinite(value) for value in integral[:2]):
+                raise NumericalConditionError(
+                    'Nd-dependent shear integral did not converge',
+                    reason='axial_force_shear_integration',
+                    path_interval=[left, right], error_estimate=float(integral[1]),
+                    integration_message=integral[3] if len(integral) > 3 else 'Nonfinite integral',
+                )
+            mean = integral[0]
+        integrals.append((right-left)*mean)
+    return fsum(integrals)
+
+
 def _core(table, committed, curvature, shear_deformation, Nd, *, length,
           young_modulus, shear_rigidity):
     curvature, shear_deformation, Nd = _validate(
@@ -96,30 +189,20 @@ def _core(table, committed, curvature, shear_deformation, Nd, *, length,
         response.bending_tangent, length, shear_rigidity,
     )
     delta_shear = shear_deformation-committed.shear_deformation
+    moving = curvature != start_phi or Nd != start_nd
+    # Validate the whole path even when ds=0; an undefined intermediate C
+    # must not become an accepted material state or a later Newton tangent.
+    intervals = (tuple(_shear_intervals(table, committed, curvature, Nd, response,
+                                       length, shear_rigidity)) if moving else ())
 
     if delta_shear == 0:
         mean_c = terminal_c
         shear_force = committed.shear_force
-    elif curvature == start_phi and Nd == start_nd:
+    elif not moving:
         mean_c = terminal_c
         shear_force = committed.shear_force+mean_c*delta_shear
     else:
-        def coefficient(fraction):
-            phi = start_phi+fraction*(curvature-start_phi)
-            trial_nd = start_nd+fraction*(Nd-start_nd)
-            trial = evaluate_axial_force_path(
-                table, committed.axial_history, phi, trial_nd,
-            )
-            return _shear_coefficient(
-                trial.bending_tangent, length, shear_rigidity,
-            )
-
-        points = sorted({event.fraction for event in response.events
-                         if 0. < event.fraction < 1.})
-        mean_c = quad(
-            coefficient, 0., 1., points=points or None,
-            epsabs=0., epsrel=2e-11, limit=max(50, 4*len(points)+20),
-        )[0]
+        mean_c = _mean_shear_coefficient(intervals, length, shear_rigidity)
         shear_force = committed.shear_force+mean_c*delta_shear
 
     inertia = response.bending_tangent/young_modulus

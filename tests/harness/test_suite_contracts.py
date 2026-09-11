@@ -18,14 +18,14 @@ def test_sample_manifest_covers_all_original_files_cases_and_snapshots():
     samples = registered_samples()
     manifest = json.loads((DATA / "manifest.json").read_text(encoding="utf8"))
     assert manifest["hash_policy"] == "sha256_utf8_lf"
-    assert len(samples) == 46
+    assert len(samples) == 48
     assert len({s["id"] for s in samples}) == len(samples)
     assert {s["file"] for s in samples} == {
         p.relative_to(DATA).as_posix()
         for folder in ("bar", "shell", "bend", "snap")
         for p in (DATA / folder).glob("*.json")
     }
-    assert sum(len(s["cases"]) for s in samples) == 323
+    assert sum(len(s["cases"]) for s in samples) == 324
     for sample in samples:
         path = DATA / sample["file"]
         assert canonical_text_sha256(path) == sample["sha256"]

@@ -253,8 +253,12 @@ def _reload_cuts(table, segment, n, start, end):
     return tuple(sorted(cuts))
 
 
-def _reload_line(table, segment, x, n, probe):
-    """Return reload M=Q/W, target distance, and effective target kind."""
+def _reload_stiffness_rational(table, segment, n, probe):
+    """Return B=U/W, target curvature, and kind on one target-identity piece.
+
+    Both the event tracer and the shear integrator use this same geometry.
+    The denominator is positive on the open interval of a moving target.
+    """
     target = segment.target
     if target is None:
         raise InputValidationError('Reload segment requires an explicit target identity',
@@ -262,8 +266,7 @@ def _reload_line(table, segment, x, n, probe):
     evaluate_reload_target(table, segment, float(n(probe)))  # Validate the complete target metadata.
     if target.kind in ('experienced', 'forward'):
         stiffness = segment.K if target.kind == 'experienced' else target.unloading_stiffness
-        line = segment.start_P+stiffness*(x-segment.start_delta)
-        return line, Polynomial((1.,)), None, target.kind
+        return Polynomial((stiffness,)), Polynomial((1.,)), None, target.kind
 
     d, p = _side_polynomials(table, n, target.side)
     threshold = target.threshold
@@ -276,13 +279,18 @@ def _reload_line(table, segment, x, n, probe):
         target_q, target_w, _ = _skeleton_rational(table, target_x, n, target.side, probe)
     width = target_x-segment.start_delta
     if target.side*float(width(probe)) <= 0:
-        line = segment.start_P+target.unloading_stiffness*(x-segment.start_delta)
-        return line, Polynomial((1.,)), None, 'forward'
-    q = segment.start_P*target_w*width+(target_q-segment.start_P*target_w)*(x-segment.start_delta)
+        return Polynomial((target.unloading_stiffness,)), Polynomial((1.,)), None, 'forward'
+    q = target_q-segment.start_P*target_w
     w = target_w*width
-    # Target-side width is positive throughout this identity piece.
-    q, w = target.side*q, target.side*w
-    return q, w, target.side*(target_x-x), 'skeleton'
+    return target.side*q, target.side*w, target_x, 'skeleton'
+
+
+def _reload_line(table, segment, x, n, probe):
+    """Return reload M=Q/W, target distance, and effective target kind."""
+    u, w, target_x, kind = _reload_stiffness_rational(table, segment, n, probe)
+    q = segment.start_P*w+u*(x-segment.start_delta)
+    distance = segment.target.side*(target_x-x) if target_x is not None else None
+    return q, w, distance, kind
 
 
 def _complete_segment(table, history, segment, Nd, direction):
@@ -348,7 +356,15 @@ def evaluate_axial_force_path(table, committed, curvature, Nd):
     if Nd == n0 or _has_constant_skeleton(table, n0, Nd):
         response = evaluate_axial_force_curvature(table, committed, curvature)
         state = AxialForceHistoryState(Nd, response.state.history, response.state.contact_side, response.state.contact_segment)
-        return AxialForcePathResponse(state, response.moment, response.bending_tangent, ())
+        events = []
+        for x in response.partitions:
+            fraction = (x-x0)/(curvature-x0)
+            moment = evaluate_axial_force_curvature(table, committed, x).moment
+            event_nd = _lerp(n0, Nd, fraction)
+            envelope = table.evaluate_skeleton(x, event_nd)
+            events.append(AxialForcePathEvent('partition', fraction, x, event_nd,
+                                             moment, envelope.side, envelope.segment))
+        return AxialForcePathResponse(state, response.moment, response.bending_tangent, tuple(events))
     if side*curvature < 0:
         crossing = -x0/(curvature-x0)
         crossing_Nd = _lerp(n0, Nd, crossing)
@@ -369,6 +385,9 @@ def evaluate_axial_force_path(table, committed, curvature, Nd):
         events = tuple(
             AxialForcePathEvent(e.kind, crossing*e.fraction, e.curvature, e.Nd,
                                 e.moment, e.side, e.segment) for e in first.events)
+        events += (AxialForcePathEvent('partition', crossing, 0., crossing_Nd,
+                                      first.moment, side,
+                                      table.evaluate_skeleton(0., crossing_Nd, side=side).segment),)
         events += tuple(
             AxialForcePathEvent(e.kind, crossing+(1-crossing)*e.fraction, e.curvature,
                                 e.Nd, e.moment, e.side, e.segment) for e in second.events)
@@ -512,6 +531,8 @@ def evaluate_axial_force_path(table, committed, curvature, Nd):
             if not candidates:
                 cursor = limit
                 if cursor < 1:
+                    event('partition', _lerp(left, right, cursor), x(cursor), n(cursor),
+                          float(line_q(cursor)/line_w(cursor)), index)
                     continue
                 break
             # At a simultaneous target/contact, reaching the intended target
