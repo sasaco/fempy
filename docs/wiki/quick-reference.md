@@ -32,6 +32,7 @@
 | 節点荷重の力 | `tx, ty, tz` | `fx, fy, fz` |
 | 節点荷重のモーメント | `rx, ry, rz` | `mx, my, mz` |
 | 非線形骨格の正側 | `delta_1, P_1`など | 構築APIは同名。保存用`nonlinear_materials`は`delta_1_pos, P_1_pos`など |
+| Nd依存曲げ骨格 | `nonlinear.laws.moment_y/z.axial_force_points` | Pythonは`add_nonlinear_material_laws()`、保存用は`nonlinear_materials[id].laws` |
 
 ## 支持・荷重
 

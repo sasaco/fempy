@@ -133,7 +133,10 @@ def build_result_metadata(model, analysis_type):
         "input_sha256": hashlib.sha256(canonical).hexdigest(),
         "analysis": {
             "type": analysis_type,
-            **({'beam_formulation': 'jr_updated_inertia_v1'}
+            **({'beam_formulation': (
+                    'jr_axial_force_updated_inertia_v1'
+                    if any(getattr(e, 'axial_force_tables', {}) for e in model.elements.values())
+                    else 'jr_updated_inertia_v1')}
                if analysis_type == 'material_nonlinear' and any(
                    getattr(e, 'committed_bending_states', {}) for e in model.elements.values()
                ) else {}),

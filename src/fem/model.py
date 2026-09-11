@@ -22,6 +22,8 @@ from .spatial_loads.validation import validate_references as validate_spatial_re
 from .diagnostics import InputValidationError, UnsupportedAnalysisError
 from .nonlinear import NonlinearSolver
 from .nonlinear.hysteresis import JRStiffnessReductionParams
+from .nonlinear.axial_force_table import AxialForceTable
+from .nonlinear.component_laws import laws_from_dict
 from .file_io import read_model, write_model, read_result, write_result
 from .elements import (
     BarElement, BEBarElement, TBarElement,
@@ -568,13 +570,37 @@ class FemModel:
                                       shear_modulus=shear_modulus)
         self.material.add_material(material_id, linear_mat)
 
+    def add_nonlinear_material_laws(
+        self,
+        material_id: int,
+        name: str,
+        E: float,
+        laws: Dict[str, Dict[str, Any]],
+        nu: float = 0.2,
+        density: Optional[float] = None,
+        shear_modulus: Optional[float] = None,
+    ) -> None:
+        """Add component-specific nonlinear laws, including Nd tables.
+
+        Law keys define their application axes. Nd-dependent definitions are
+        limited to ``moment_y`` and ``moment_z``; fixed JR definitions may be
+        assigned independently to any supported component.
+        """
+        parsed = laws_from_dict(laws)
+        linear = MaterialProperty(
+            name=name, E=E, nu=nu, density=density,
+            shear_modulus=shear_modulus,
+        )
+        self.material.add_material(material_id, linear)
+        self.material.add_nonlinear_laws(material_id, parsed)
+
     def add_nonlinear_bar_element(
         self,
         elem_id: int,
         node_ids: List[int],
         material_id: int,
         section_id: int,
-        hysteresis_dofs: List[str],
+        hysteresis_dofs: Optional[List[str]] = None,
         angle: float = 0.0,
         shear_correction: bool = True
     ) -> None:
@@ -590,6 +616,8 @@ class FemModel:
             angle: 要素座標軸の回転角
             shear_correction: せん断変形を考慮するか
         """
+        if hysteresis_dofs is None:
+            hysteresis_dofs = list(self.material.get_nonlinear_laws(material_id))
         self.mesh.add_element(
             elem_id, 'nonlinear_bar', node_ids, material_id,
             section_id=section_id, angle=angle,
@@ -794,9 +822,24 @@ class FemModel:
 
             # 非線形材料から履歴パラメータを設定
             nl_mat = self.material.get_nonlinear_material(material_id)
-            if nl_mat is None or not hysteresis_dofs:
+            laws = self.material.get_nonlinear_laws(material_id)
+            if not hysteresis_dofs and laws:
+                hysteresis_dofs = list(laws)
+                elem_data['hysteresis_dofs'] = hysteresis_dofs
+            if (nl_mat is None and not laws) or not hysteresis_dofs:
                 raise ValueError('nonlinear_bar requires a nonlinear material and hysteresis_dofs')
+            if laws:
+                if set(hysteresis_dofs) != set(laws):
+                    raise ValueError('hysteresis_dofs must exactly match component law keys')
+                for dof in hysteresis_dofs:
+                    law = laws[dof]
+                    if isinstance(law, AxialForceTable):
+                        element.set_axial_force_table(dof, law)
+                    else:
+                        element.set_hysteresis_model(dof, law)
             if nl_mat is not None and hysteresis_dofs:
+                if laws:
+                    raise ValueError('Fixed and component-specific laws cannot be mixed')
                 params = JRStiffnessReductionParams(
                     delta_1_pos=nl_mat.delta_1_pos,
                     delta_2_pos=nl_mat.delta_2_pos,

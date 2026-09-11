@@ -17,6 +17,7 @@ from .spatial_loads.serialization import (
     from_legacy as spatial_loads_from_legacy,
     to_json as spatial_loads_to_json,
 )
+from .nonlinear.component_laws import law_to_dict, laws_from_dict
 
 
 logger = logging.getLogger(__name__)
@@ -100,7 +101,12 @@ def _read_json_model(data: Dict[str, Any]) -> Dict[str, Any]:
             )
             
     for mat_id, mat_data in data.get('nonlinear_materials', {}).items():
-        model_data['material'].add_nonlinear_material(int(mat_id), NonlinearMaterialProperty(**mat_data))
+        if isinstance(mat_data, dict) and set(mat_data) == {'laws'}:
+            model_data['material'].add_nonlinear_laws(
+                int(mat_id), laws_from_dict(mat_data['laws']))
+        else:
+            model_data['material'].add_nonlinear_material(
+                int(mat_id), NonlinearMaterialProperty(**mat_data))
     for section_id, params in data.get('bar_parameters', {}).items():
         model_data['material'].add_bar_parameter(int(section_id), BarParameter(**params))
 
@@ -312,6 +318,19 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                 # 非線形材料データの読み込み
                 if 'nonlinear' in elem_def:
                     nl_data = elem_def['nonlinear']
+                    if 'laws' in nl_data:
+                        unknown = set(nl_data)-{'laws', 'hysteresis_dofs'}
+                        if unknown:
+                            raise ValueError(f'Component laws cannot be mixed with flat fields: {sorted(unknown)}')
+                        laws = laws_from_dict(nl_data['laws'])
+                        hysteresis_dofs = nl_data.get('hysteresis_dofs', list(laws))
+                        if set(hysteresis_dofs) != set(laws):
+                            raise ValueError('hysteresis_dofs must exactly match component law keys')
+                        model_data['material'].add_nonlinear_laws(material_id, laws)
+                        nonlinear_materials[material_id] = {
+                            'hysteresis_dofs': hysteresis_dofs,
+                        }
+                        continue
                     nl_type = nl_data.get('type', 'jr_stiffness_reduction')
                     if nl_type != 'jr_stiffness_reduction':
                         raise ValueError(f'Unknown nonlinear material type: {nl_type}')
@@ -634,7 +653,13 @@ def model_to_jsonable(model_data: Dict[str, Any]) -> Dict[str, Any]:
             for mat_id, mat in material.materials.items()
         }
         output_data['nonlinear_materials'] = {
-            str(k): asdict(v) for k, v in material.nonlinear_materials.items()}
+            **{str(k): asdict(v) for k, v in material.nonlinear_materials.items()},
+            **{str(material_id): {
+                'laws': {dof: law_to_dict(law) for dof, law in laws.items()}
+            }
+            for material_id, laws in material.nonlinear_laws.items()
+            },
+        }
         output_data['bar_parameters'] = {
             str(k): asdict(v) for k, v in material.bar_params.items()}
         

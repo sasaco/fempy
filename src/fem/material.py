@@ -3,7 +3,7 @@
 JavaScript版のMaterial機能に対応
 非線形材料（JR総研剛性低減RC型など）もサポート
 """
-from typing import Dict, Optional, List
+from typing import Any, Dict, Optional, List
 import numpy as np
 from dataclasses import dataclass
 
@@ -188,6 +188,9 @@ class Material:
     def __init__(self):
         self.materials: Dict[int, MaterialProperty] = {}
         self.nonlinear_materials: Dict[int, NonlinearMaterialProperty] = {}  # 非線形材料
+        # Immutable component-specific fixed laws and Nd-dependent bending
+        # tables; runtime history remains element-owned.
+        self.nonlinear_laws: Dict[int, Dict[str, Any]] = {}
         self.shell_params: Dict[int, ShellParameter] = {}
         self.bar_params: Dict[int, BarParameter] = {}
         self._initialize_default_materials()
@@ -264,6 +267,15 @@ class Material:
         """
         self.nonlinear_materials[material_id] = material
 
+    def add_nonlinear_laws(self, material_id: int, laws: Dict[str, Any]) -> None:
+        """Register validated component laws without sharing runtime state."""
+        if not isinstance(laws, dict) or not laws:
+            raise ValueError('laws must be a nonempty object')
+        self.nonlinear_laws[material_id] = dict(laws)
+
+    def get_nonlinear_laws(self, material_id: int) -> Dict[str, Any]:
+        return self.nonlinear_laws.get(material_id, {})
+
     def get_nonlinear_material(
         self,
         material_id: int
@@ -287,7 +299,7 @@ class Material:
         Returns:
             非線形材料の場合True
         """
-        return material_id in self.nonlinear_materials
+        return material_id in self.nonlinear_materials or material_id in self.nonlinear_laws
         
     def get_elastic_matrix_3d(self, material_id: int) -> np.ndarray:
         """3次元弾性マトリックスを取得"""

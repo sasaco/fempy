@@ -12,8 +12,14 @@ from .bar_element import TBarElement
 from ..nonlinear.hysteresis import (
     HysteresisState, JRStiffnessReductionParams, JRStiffnessReductionModel,
 )
-from ..nonlinear.beam_section_response import BendingPlaneState, evaluate_bending_plane
-from ..diagnostics import NumericalConditionError
+from ..nonlinear.beam_section_response import (
+    BendingPlaneState, _fixed_intervals, evaluate_bending_plane,
+)
+from ..nonlinear.axial_bending_response import (
+    AxialBendingPlaneState, evaluate_axial_bending_plane,
+)
+from ..nonlinear.axial_force_table import AxialForceTable
+from ..diagnostics import InputValidationError, NumericalConditionError
 
 
 class NonlinearBarElement(TBarElement):
@@ -33,6 +39,7 @@ class NonlinearBarElement(TBarElement):
                  section_id: int, angle: float = 0.0, shear_correction: bool = True):
         super().__init__(element_id, node_ids, material_id, section_id, angle, shear_correction)
         self.hysteresis_models: Dict[str, JRStiffnessReductionModel] = {}
+        self.axial_force_tables: Dict[str, AxialForceTable] = {}
         self.current_states: Dict[str, Dict[str, HysteresisState]] = {}
         self.committed_states: Dict[str, Dict[str, HysteresisState]] = {}
         self.current_bending_states: Dict[str, BendingPlaneState] = {}
@@ -50,6 +57,8 @@ class NonlinearBarElement(TBarElement):
         """Set N(epsilon), T(twist/length), or M(curvature) for a section mode."""
         if dof not in self.DOF_MAPPING:
             raise ValueError(f'Unknown DOF: {dof}. Valid values: {list(self.DOF_MAPPING)}')
+        if dof in self.axial_force_tables:
+            raise ValueError(f'{dof} already has an axial-force-dependent law')
         model = JRStiffnessReductionModel(params)
         self.hysteresis_models[dof] = model
         self.current_states[dof] = {'center': model.create_initial_state()}
@@ -57,6 +66,24 @@ class NonlinearBarElement(TBarElement):
         if dof in ('moment_y', 'moment_z'):
             self.current_bending_states[dof] = BendingPlaneState.initial(model)
             self.committed_bending_states[dof] = BendingPlaneState.initial(model)
+        self._trial_response = self._committed_response = None
+        self._trial_section_response = {}
+        self._committed_section_response = {}
+
+    def set_axial_force_table(self, dof: str, table: AxialForceTable) -> None:
+        """Set an immutable Nd-dependent JR law for one bending axis."""
+        if dof not in ('moment_y', 'moment_z'):
+            raise ValueError('Axial-force tables apply only to moment_y or moment_z')
+        if not isinstance(table, AxialForceTable):
+            raise TypeError('table must be an AxialForceTable')
+        if dof in self.hysteresis_models:
+            raise ValueError(f'{dof} already has a fixed hysteresis law')
+        self.axial_force_tables[dof] = table
+        initial = AxialBendingPlaneState.initial(table)
+        self.current_bending_states[dof] = initial
+        self.committed_bending_states[dof] = initial
+        self.current_states[dof] = {'center': initial.history.copy()}
+        self.committed_states[dof] = {'center': initial.history.copy()}
         self._trial_response = self._committed_response = None
         self._trial_section_response = {}
         self._committed_section_response = {}
@@ -110,11 +137,177 @@ class NonlinearBarElement(TBarElement):
         states = {}
         bending_states = {}
         section_response = {}
+        # N must be evaluated before an Nd-dependent bending axis.  Torsion is
+        # independent; fixed bending planes retain the established kernel.
         for row, dof in enumerate(self.DOF_MAPPING):
-            if dof not in self.hysteresis_models:
+            if dof not in self.hysteresis_models or dof in ('moment_y', 'moment_z'):
                 continue
             model = self.hysteresis_models[dof]
-            if dof in ('moment_y', 'moment_z'):
+            state = self.committed_states[dof]['center'].copy()
+            p[row], tangent[row, row], info = model.get_force_and_stiffness(deformation[row], state)
+            states[dof] = {'center': model.update_state(
+                deformation[row], p[row], tangent[row, row], state, info)}
+
+        axial_model = self.hysteresis_models.get('axial')
+
+        def axial_path(epsilon):
+            """Return the actual piecewise-linear N(epsilon) trial path."""
+            if axial_model is None:
+                axial_rigidity = rigidities[0]
+                return axial_rigidity*epsilon, axial_rigidity, ((1., -axial_rigidity*epsilon),)
+            committed_axial = self.committed_states['axial']['center']
+            force, stiffness, _ = axial_model.get_force_and_stiffness(epsilon, committed_axial)
+            intervals = _fixed_intervals(axial_model, committed_axial, epsilon)
+            if not intervals:
+                return force, stiffness, ((1., -force),)
+            delta = epsilon-committed_axial.current_delta
+            running = committed_axial.current_P
+            legs = []
+            for part in intervals:
+                running += part.tangent*(part.end-part.start)
+                fraction = (part.end-committed_axial.current_delta)/delta
+                legs.append((float(fraction), float(-running)))
+            # Preserve the JR evaluator's terminal force convention at an event.
+            legs[-1] = (1., float(-force))
+            return force, stiffness, tuple(legs)
+
+        def trace_axial_plane(table, committed, epsilon, curvature, shear,
+                             *, length, young_modulus, shear_rigidity):
+            """Advance bending over every affine leg of a nonlinear N path."""
+            _, _, legs = axial_path(epsilon)
+            candidate = committed
+            response = None
+            for fraction, trial_nd in legs:
+                trial_curvature = committed.curvature+fraction*(curvature-committed.curvature)
+                trial_shear = (committed.shear_deformation
+                               + fraction*(shear-committed.shear_deformation))
+                response = evaluate_axial_bending_plane(
+                    table, candidate, trial_curvature, trial_shear, trial_nd,
+                    length=length, young_modulus=young_modulus,
+                    shear_rigidity=shear_rigidity, compute_tangent=False,
+                )
+                candidate = response.state
+            return response
+
+        def axial_plane_tangent(table, committed, target, base, *, length,
+                                young_modulus, shear_rigidity):
+            """Differentiate the complete nonlinear-axial section map."""
+            target = np.asarray(target, dtype=float)
+            scales = np.array([
+                max(abs(target[0]), 1e-3),
+                max(point for row in table.rows
+                    for side in (row.positive, row.negative)
+                    for point in side.curvatures),
+                max(abs(target[2]), 1e-3),
+            ])
+            result = np.empty((2, 3))
+            base_values = np.array([base.state.moment, base.state.shear_force])
+
+            def values(candidate):
+                trial = trace_axial_plane(
+                    table, committed, *candidate, length=length,
+                    young_modulus=young_modulus, shear_rigidity=shear_rigidity,
+                )
+                return np.array([trial.state.moment, trial.state.shear_force])
+
+            for column in range(3):
+                step = 1e-7*scales[column]
+                plus, minus = target.copy(), target.copy()
+                plus[column] += step
+                minus[column] -= step
+                try:
+                    upper = values(plus)
+                except InputValidationError as error:
+                    if error.details.get('reason') != 'axial_force_out_of_range':
+                        raise
+                    upper = None
+                try:
+                    lower = values(minus)
+                except InputValidationError as error:
+                    if error.details.get('reason') != 'axial_force_out_of_range':
+                        raise
+                    lower = None
+                if upper is not None and lower is not None:
+                    result[:, column] = (upper-lower)/(2*step)
+                elif upper is not None:
+                    result[:, column] = (upper-base_values)/step
+                elif lower is not None:
+                    result[:, column] = (base_values-lower)/step
+                else:
+                    raise NumericalConditionError(
+                        'Cannot evaluate coupled section tangent',
+                        reason='axial_force_tangent_domain',
+                    )
+            return result
+
+        for row, dof in enumerate(self.DOF_MAPPING):
+            if dof not in ('moment_y', 'moment_z'):
+                continue
+            if dof in self.axial_force_tables:
+                table = self.axial_force_tables[dof]
+                shear_row = 5 if dof == 'moment_y' else 4
+                correction = self.bar_param.kappa_z if shear_row == 5 else self.bar_param.kappa_y
+                material = self.material.materials[self.material_id]
+                ga = correction*material.G*self.bar_param.area if self.shear_correction else None
+                try:
+                    if axial_model is None:
+                        response = evaluate_axial_bending_plane(
+                            table, self.committed_bending_states[dof],
+                            deformation[row], deformation[shear_row], -p[0],
+                            length=self.length, young_modulus=material.E,
+                            shear_rigidity=ga,
+                        )
+                        plane_tangent = response.tangent.copy()
+                        plane_tangent[:, 0] *= -tangent[0, 0]
+                    else:
+                        response = trace_axial_plane(
+                            table, self.committed_bending_states[dof],
+                            deformation[0], deformation[row], deformation[shear_row],
+                            length=self.length, young_modulus=material.E,
+                            shear_rigidity=ga,
+                        )
+                        plane_tangent = axial_plane_tangent(
+                            table, self.committed_bending_states[dof],
+                            (deformation[0], deformation[row], deformation[shear_row]),
+                            response, length=self.length, young_modulus=material.E,
+                            shear_rigidity=ga,
+                        )
+                except (InputValidationError, NumericalConditionError) as error:
+                    error.details.update(element_id=self.element_id, axis=dof[-1])
+                    raise
+                indices = [row, shear_row]
+                p[indices] = [response.state.moment, response.state.shear_force]
+                # plane columns are [axial strain, curvature, shear].
+                tangent[indices, 0] = plane_tangent[:, 0]
+                tangent[np.ix_(indices, indices)] = plane_tangent[:, 1:]
+                bending_states[dof] = response.state
+                states[dof] = {'center': response.state.history.copy()}
+                interpolation = table.interpolate(-p[0])
+                section_response[dof[-1]] = {
+                    'curvature': response.state.curvature, 'moment': response.state.moment,
+                    'shear_deformation': response.state.shear_deformation,
+                    'shear_force': response.state.shear_force,
+                    'bending_tangent': response.bending_tangent,
+                    'effective_inertia': response.effective_inertia,
+                    'shear_coefficient': response.shear_coefficient,
+                    'branch': response.state.history.branch,
+                    'interpolation': {
+                        'lower_Nd': interpolation.lower_Nd,
+                        'upper_Nd': interpolation.upper_Nd,
+                        'fraction': interpolation.fraction,
+                    },
+                    'skeleton': {
+                        'pos': [list(pair) for pair in zip(
+                            interpolation.positive.curvatures,
+                            interpolation.positive.moments)],
+                        'neg': [list(pair) for pair in zip(
+                            interpolation.negative.curvatures,
+                            interpolation.negative.moments)],
+                    },
+                }
+                continue
+            if dof in self.hysteresis_models:
+                model = self.hysteresis_models[dof]
                 shear_row = 5 if dof == 'moment_y' else 4
                 correction = self.bar_param.kappa_z if shear_row == 5 else self.bar_param.kappa_y
                 material = self.material.materials[self.material_id]
@@ -148,11 +341,6 @@ class NonlinearBarElement(TBarElement):
                         for side in ('pos', 'neg')
                     },
                 }
-                continue
-            state = self.committed_states[dof]['center'].copy()
-            p[row], tangent[row, row], info = model.get_force_and_stiffness(deformation[row], state)
-            states[dof] = {'center': model.update_state(
-                deformation[row], p[row], tangent[row, row], state, info)}
         f_local = self.length * b.T @ p
         k_local = self.length * b.T @ tangent @ b
         for values in section_response.values():
@@ -217,12 +405,19 @@ class NonlinearBarElement(TBarElement):
             dof: {'center': model.create_initial_state()}
             for dof, model in self.hysteresis_models.items()
         }
-        self.current_states = copy.deepcopy(self.committed_states)
         self.committed_bending_states = {
-            dof: BendingPlaneState.initial(model)
-            for dof, model in self.hysteresis_models.items()
-            if dof in ('moment_y', 'moment_z')
+            **{dof: BendingPlaneState.initial(model)
+               for dof, model in self.hysteresis_models.items()
+               if dof in ('moment_y', 'moment_z')},
+            **{dof: AxialBendingPlaneState.initial(table)
+               for dof, table in self.axial_force_tables.items()},
         }
+        self.committed_states.update({
+            dof: {'center': state.history.copy()}
+            for dof, state in self.committed_bending_states.items()
+            if dof in self.axial_force_tables
+        })
+        self.current_states = copy.deepcopy(self.committed_states)
         self.current_bending_states = copy.deepcopy(self.committed_bending_states)
         self._trial_response = self._committed_response = None
         self._trial_section_response = {}
@@ -233,10 +428,10 @@ class NonlinearBarElement(TBarElement):
         return copy.deepcopy(self.current_states.get(dof))
 
     def is_nonlinear(self) -> bool:
-        return bool(self.hysteresis_models)
+        return bool(self.hysteresis_models or self.axial_force_tables)
 
     def get_nonlinear_dofs(self) -> List[str]:
-        return list(self.hysteresis_models)
+        return list(dict.fromkeys((*self.hysteresis_models, *self.axial_force_tables)))
 
     def get_max_displacement(self, dof: str) -> Dict[str, float]:
         """Maximum generalized strain/curvature, not endpoint displacement."""

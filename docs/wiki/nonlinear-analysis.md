@@ -8,7 +8,7 @@
 
 - 小変位・小回転の梁を対象に、**要素中央の1断面**へ非線形則を置きます。
 - 非線形化する成分は`axial`、`moment_y`、`moment_z`、`torsion`から選びます。
-- 各成分は独立した履歴です。軸力と曲げの相互作用や、断面のファイバー積分ではありません。
+- 固定骨格の各成分は独立です。成分別`laws`でNd表を曲げ軸へ指定すると、同じ試行状態の総軸力`N`から`Nd=-N`を求め、軸力と曲げを連成します。ファイバー断面やMy-Mz相互作用ではありません。
 - 曲げ則を指定した面では履歴接線から有効Iと曲げ・せん断の縮約係数Cを更新し、せん断力を増分積分します。基準E・G・幾何Iは保持します。
 - 線形梁、シェル、ソリッドを同じ解析に含めても、それらの材料は線形のままです。
 
@@ -18,7 +18,7 @@
 
 2026-09-10から固定骨格の曲げ則にもI更新を適用しています。従来の固定C方式と比べ、横荷重を伴う非線形応答のたわみ・端力・履歴が変わります。折れ点を跨ぐ増分では接線が非対称になる場合があります。同じ載荷経路で荷重刻みと部材分割の影響を確認してください。
 
-軸力Ndに依存する表の定義・補間は開発中の局所モジュールにありますが、公開モデルの入力とNd依存履歴にはまだ接続していません。現時点で`laws`／`axial_force_points`を解析入力として使用することはできません。
+軸力Ndに依存する曲げ骨格は、旧JSONの`nonlinear.laws`、Pythonの`add_nonlinear_material_laws()`、保存用JSONの`nonlinear_materials[id].laws`で指定できます。Ndは圧縮正で、試行軸力N（引張正）から`Nd=-N`とします。表外へ出た場合は外挿せず、要素・軸・荷重段階を含む入力エラーで停止します。
 
 `delta_1, delta_2, delta_3`という名前でも、節点の絶対変位や集中ヒンジの回転を入れる欄ではありません。
 
@@ -61,6 +61,61 @@
 ```
 
 原点から第3点までは従来の3区間、第3点以降は第4勾配`K4`の4折線です。`delta_4, P_4`は新たな勾配切替点ではなく、`K4`を定める参照点です。
+
+### 軸力Ndに依存する曲げ骨格
+
+成分別`laws`のキーが適用先です。Nd表は`moment_y`または`moment_z`へ指定し、固定JR則の`axial`や`torsion`と同じ材料内で併用できます。`hysteresis_dofs`も書く場合は、`laws`のキーと完全に一致させます。
+
+```json
+{
+  "nonlinear": {
+    "laws": {
+      "moment_z": {
+        "type": "jr_stiffness_reduction",
+        "symmetric": true,
+        "beta": 0.0,
+        "axial_force_points": [
+          {"Nd": -2.0, "delta_1": 0.001, "P_1": 0.05, "delta_2": 0.003, "P_2": 0.10, "delta_3": 0.005, "P_3": 0.125},
+          {"Nd": 0.0,  "delta_1": 0.001, "P_1": 0.10, "delta_2": 0.003, "P_2": 0.20, "delta_3": 0.005, "P_3": 0.250},
+          {"Nd": 2.0,  "delta_1": 0.001, "P_1": 0.30, "delta_2": 0.003, "P_2": 0.60, "delta_3": 0.005, "P_3": 0.750}
+        ]
+      }
+    },
+    "hysteresis_dofs": ["moment_z"]
+  }
+}
+```
+
+各行で同じ番号の曲率・モーメントを線形補間してから勾配を計算します。2行以上、Ndの厳密な昇順、Nd=0を含む範囲、全補間区間で`K1 >= K2 >= K3 >= 0`が必要です。`K_min`省略時は全Nd行・正負側の最小K1の1%を固定値として使います。全行を同一曲線にすると固定骨格の履歴・内力・接線へ帰着します。
+
+<!-- run: axial-force-dependent-beam -->
+```python
+from math import isclose
+from fem import FemModel, BarParameter
+
+law = {
+    "type": "jr_stiffness_reduction", "symmetric": True, "beta": 0.0,
+    "axial_force_points": [
+        {"Nd": -2, "delta_1": .001, "P_1": .05, "delta_2": .003, "P_2": .10, "delta_3": .005, "P_3": .125},
+        {"Nd": 0,  "delta_1": .001, "P_1": .10, "delta_2": .003, "P_2": .20, "delta_3": .005, "P_3": .250},
+        {"Nd": 2,  "delta_1": .001, "P_1": .30, "delta_2": .003, "P_2": .60, "delta_3": .005, "P_3": .750},
+    ],
+}
+model = FemModel()
+model.add_node(1, 0, 0, 0)
+model.add_node(2, 1, 0, 0)
+model.add_nonlinear_material_laws(1, "Nd beam", E=1000, nu=.25, laws={"moment_z": law})
+model.material.add_bar_parameter(1, BarParameter(1, 1, 1, 1))
+model.add_nonlinear_bar_element(7, [1, 2], 1, 1)
+model.add_restraint(1, True, True, True, True, True, True)
+model.add_load(2, fx=-.5, mz=.075)
+model.analysis_params.update(n_load_steps=2, max_iterations=30, tolerance=1e-10)
+result = model.run("material_nonlinear")
+section = result["section_response"][7]["center"]["z"]
+assert isclose(section["Nd"], .5, abs_tol=1e-10)
+assert isclose(section["moment"], .075, abs_tol=1e-10)
+assert isclose(section["curvature"], .0005, abs_tol=1e-10)
+```
 
 `K4 = (P_4 - P_3) / (delta_4 - delta_3)`
 
@@ -193,9 +248,10 @@ model.save_results("nonlinear-result.json")
 | `bending_tangent`, `effective_inertia` | 終端履歴枝の接線BとB/E |
 | `shear_coefficient` | 終端枝の縮約係数C。増分全体の平均Cとは異なる |
 | `shear_deformation`, `shear_force` | 一般化せん断変形と累積せん断力 |
-| `branch`, `skeleton` | 履歴枝名と正負の骨格点。各点は`[曲率の大きさ, Mの大きさ]` |
+| `branch`, `skeleton` | 履歴枝名と、収束Ndで補間した正負の骨格点。各点は`[曲率の大きさ, Mの大きさ]` |
+| `interpolation` | Nd表使用時の`lower_Nd`、`upper_Nd`、区間内`fraction` |
 
-`metadata.analysis.beam_formulation`の`jr_updated_inertia_v1`がこの定式化を示します。Ndの出力は軸力依存履歴への対応を意味しません。
+`metadata.analysis.beam_formulation`は固定骨格で`jr_updated_inertia_v1`、Nd表使用時に`jr_axial_force_updated_inertia_v1`です。
 
 K4=0の平坦枝ではBとCがともにゼロになります。回転だけの変位制御で継続できるかは横変位の拘束にも依存します。負接線で`12B+GkAL²`が相対的にゼロになる場合は、局所縮約が特異になるため要素ID・軸・ステップ付きで停止し、直前の確定状態へ戻します。
 

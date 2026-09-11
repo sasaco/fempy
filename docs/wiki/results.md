@@ -138,6 +138,7 @@ assert result["metadata"]["solver"]["converged"] is True
 | `reaction_forces` | その段階の支点・ばね反力。 |
 | `element_stresses` | 梁の確定端力。ソリッドの段階応力配列はここには追加されない。 |
 | `curvature` | 非線形梁の中央断面全曲率。 |
+| `section_response` | 曲げ軸別の確定M・V・履歴接線・有効I。Nd表使用時はN・Ndと補間区間も含む。 |
 | `converged`、`iterations` | 収束したことと、その段階の反復数。 |
 
 シェルを含むモデルでは、`shell_results`と`legacy_shell_results`を各段階にも追加します。未収束の段階を`converged: false`として保存しながら最後まで進める仕様ではありません。未収束時は解析を停止して例外・HTTP 422を返します。
@@ -156,6 +157,10 @@ assert result["metadata"]["solver"]["converged"] is True
 - 除荷してモーメントが0でも、残留曲率を持つ場合があります。
 - 該当する非線形梁がない非線形解析では空辞書です。静解析にはこの項目がありません。
 - 分割モデルでは解析要素ごとの値で、元部材の平均や材端別の値ではありません。
+
+### 中央断面の材料応答
+
+`section_response[要素ID]["center"]["y"または"z"]`には、収束時に確定した`N`（引張正）、`Nd=-N`（圧縮正）、`curvature`、`moment`、`shear_force`、`bending_tangent`、`effective_inertia`、`branch`、`skeleton`を保存します。Nd表を使う軸では`interpolation`に`lower_Nd`、`upper_Nd`、`fraction`も入り、`skeleton`はそのNdで補間済みの点です。試行反復中の候補や失敗段階は結果へ保存しません。
 
 ### 収束履歴
 

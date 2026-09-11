@@ -57,7 +57,7 @@ print(saved["node_displacements"]["2"])
 | `elements` | ID → `type, nodes, material_id`と要素固有パラメータ |
 | `materials` | ID → `name, E, nu, density, alpha, shear_modulus`など |
 | `bar_parameters` | 断面ID → `area, Iy, Iz, J, kappa_y, kappa_z`など |
-| `nonlinear_materials` | ID → JR材料。正側名称は`delta_1_pos, P_1_pos`など |
+| `nonlinear_materials` | ID → JR材料。旧固定則は`delta_1_pos, P_1_pos`など、成分別則は`laws`内に保存し、Nd表は`axial_force_points`を保持 |
 | `boundary_conditions.restraints` | 節点ID → `dof, values` |
 | `boundary_conditions.loads` | 節点ID → `[fx, fy, fz, mx, my, mz]` |
 | `boundary_conditions.spring_supports` | 節点ID → 方向と剛性 |
