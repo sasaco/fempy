@@ -4,7 +4,7 @@ from math import nextafter, sqrt
 
 import pytest
 
-from fem.diagnostics import InputValidationError, UnsupportedAnalysisError
+from fem.diagnostics import InputValidationError
 from fem.nonlinear.axial_force_history import AxialForceHistoryState, evaluate_axial_force_hold
 from fem.nonlinear.axial_force_table import AxialForceRow, AxialForceTable, SkeletonPoints
 from fem.nonlinear.hysteresis import JRStiffnessReductionModel
@@ -164,24 +164,47 @@ def test_invalid_endpoints(value):
         advance(table, state, .0014, value)
 
 
-def test_unsupported_reload_does_not_silently_freeze_or_split_path():
+@pytest.mark.parametrize('side', [-1, 1])
+@pytest.mark.parametrize('count', [1, 4, 16])
+def test_simultaneous_moving_reload_refreshes_target_and_is_partition_invariant(side, count):
     table = material()
-    state = experienced(table, [.002, -.0001])
-    before = deepcopy(state)
-    with pytest.raises(UnsupportedAnalysisError) as failure:
-        advance(table, state, -.0002, .4)
-    assert failure.value.details['reason'] == 'axial_force_path_moving_target'
-    assert state == before
+    initial = experienced(table, [side*.002, -side*.0001])
+    before = deepcopy(initial)
+    start, end = -side*.0001, -side*.0002
+    state = initial
+    for i in range(1, count+1):
+        fraction = i/count
+        response = advance(table, state, start+fraction*(end-start), .4*fraction)
+        state = response.state
+    assert (response.moment, response.bending_tangent) == pytest.approx(
+        (-side*40/9, 40000/9), rel=1e-12)
+    assert state.history.branch == 'reloading'
+    assert (state.history.active_segment.end_delta, state.history.active_segment.end_P) == pytest.approx(
+        (-side*.001, -side*8.))
+    assert initial == before
 
 
-def test_unresolved_zero_transition_fails_without_mutation():
+@pytest.mark.parametrize('side', [-1, 1])
+@pytest.mark.parametrize('count', [1, 4, 16])
+def test_simultaneous_zero_event_enters_moving_reload_without_a_force_jump(side, count):
     table = material()
-    state = experienced(table, [.002, .0015])
-    before = deepcopy(state)
-    with pytest.raises(UnsupportedAnalysisError) as failure:
-        advance(table, state, .0005, .1)
-    assert failure.value.details['reason'] == 'axial_force_path_return_event'
-    assert state == before
+    initial = experienced(table, [side*.002, side*.0015])
+    before = deepcopy(initial)
+    start, end = side*.0015, side*.0005
+    state, events = initial, []
+    for i in range(1, count+1):
+        fraction = i/count
+        response = advance(table, state, start+fraction*(end-start), .1*fraction)
+        state = response.state
+        events.extend(response.events)
+    zeros = [event for event in events if event.kind == 'zero']
+    assert len(zeros) == 1
+    assert (zeros[0].curvature, zeros[0].Nd, zeros[0].moment) == pytest.approx(
+        (side*.0008, .07, 0.), abs=2e-15)
+    assert (response.moment, response.bending_tangent) == pytest.approx(
+        (-side*19/12, 47500/9), rel=1e-12)
+    assert state.history.branch == 'reloading'
+    assert initial == before
 
 
 def rational_material(beta=0.):
@@ -400,13 +423,181 @@ def test_virgin_simultaneous_path_updates_actual_experience():
     assert initial.history.delta_max_pos == 0.
 
 
-def test_unresolved_curvature_side_crossing_is_explicit():
+@pytest.mark.parametrize('side', [-1, 1])
+@pytest.mark.parametrize('count', [1, 2, 5, 16])
+def test_curvature_side_crossing_preserves_the_same_affine_path(side, count):
     table = material()
-    initial = experienced(table, [.002, .0015])
+    initial = experienced(table, [side*.002, side*.0015])
     before = deepcopy(initial)
-    with pytest.raises(UnsupportedAnalysisError) as failure:
-        advance(table, initial, -.001, .5)
-    assert failure.value.details['reason'] == 'axial_force_path_side_crossing'
+    start, end = side*.0015, -side*.001
+    state, events = initial, []
+    for i in range(1, count+1):
+        fraction = i/count
+        response = advance(table, state, start+fraction*(end-start), .5*fraction)
+        state = response.state
+        events.extend(response.events)
+    assert (response.moment, response.bending_tangent) == pytest.approx((-side*7.5, 1500.))
+    assert state.history.branch == 'skeleton'
+    assert [event.kind for event in events if event.kind != 'partition'] == ['zero', 'target']
+    assert state.history.previous_delta == pytest.approx(start+(count-1)/count*(end-start))
+    assert initial == before
+
+
+@pytest.mark.parametrize('side', [-1, 1])
+@pytest.mark.parametrize('count', [1, 4, 16])
+def test_internal_actual_return_reanchors_the_moved_outer_reload(side, count):
+    table = material()
+    initial = experienced(table, [side*.002, -side*.0001, side*.0012, side*.00025])
+    before = deepcopy(initial)
+    start, end = side*.00025, -side*.0005
+    state, events = initial, []
+    for i in range(1, count+1):
+        fraction = i/count
+        response = advance(table, state, start+fraction*(end-start), .5*fraction)
+        state = response.state
+        events.extend(response.events)
+    returns = [event for event in events if event.kind == 'return']
+    assert len(returns) == 1
+    assert (returns[0].curvature, returns[0].Nd, returns[0].moment) == pytest.approx(
+        (-side*.0001, 7/30, -side*5.), rel=1e-12)
+    assert (response.moment, response.bending_tangent) == pytest.approx(
+        (-side*55/9, 25000/9), rel=1e-12)
+    resumed = state.history.active_segment
+    assert resumed.branch == 'reloading'
+    assert (resumed.start_delta, resumed.start_P, resumed.end_delta, resumed.end_P) == pytest.approx(
+        (-side*.0001, -side*5., -side*.001, -side*7.5))
+    assert state.history.reversal_stack == []
+    assert initial == before
+
+
+@pytest.mark.parametrize('side', [-1, 1])
+@pytest.mark.parametrize('count', [1, 4, 13])
+def test_moving_curvature_target_is_reached_before_its_anchor(side, count):
+    rows = []
+    for nd in (0., 1.):
+        points = SkeletonPoints(tuple(d*(1+.5*nd) for d in (.001, .002, .003)),
+                                tuple(p*(1-.5*nd) for p in (10., 12., 13.)))
+        rows.append(AxialForceRow(nd, points, points))
+    table = AxialForceTable(tuple(rows), beta=0.)
+    initial = experienced(table, [side*.002, 0.])
+    before = deepcopy(initial)
+    start, end = 0., -side*.0018
+    state, events = initial, []
+    for i in range(1, count+1):
+        fraction = i/count
+        response = advance(table, state, start+fraction*(end-start), fraction)
+        state = response.state
+        events.extend(response.events)
+    targets = [event for event in events if event.kind == 'target']
+    assert len(targets) == 1
+    assert (targets[0].fraction if count == 1 else targets[0].Nd,
+            targets[0].curvature, targets[0].Nd, targets[0].moment) == pytest.approx(
+        (10/13, -side*18/13000, 10/13, -side*80/13), rel=1e-12)
+    assert (response.moment, response.bending_tangent) == pytest.approx((-side*5.2, 2000/3))
+    assert state.history.branch == 'skeleton'
+    assert initial == before
+
+
+@pytest.mark.parametrize('side', [-1, 1])
+@pytest.mark.parametrize('count', [1, 4, 16])
+def test_moving_reload_contact_and_later_departure_are_partition_invariant(side, count):
+    from fem.nonlinear.hysteresis.base_hysteresis import HysteresisSegment, HysteresisState, JRReloadTarget
+
+    rows = []
+    for nd in (0., 1.4):
+        points = SkeletonPoints((.001, .003-.001*nd, .004),
+                                (10-2*nd, 12-nd, 12.5))
+        rows.append(AxialForceRow(nd, points, points))
+    table = AxialForceTable(tuple(rows), beta=0.)
+    segment = HysteresisSegment(-side*.0085, 0., side*.004, side*12.5, 1000., 'reloading',
+                                target=JRReloadTarget('skeleton', side, .004, 1, 2000.))
+    history = HysteresisState(current_delta=side*.0015, current_P=side*10., current_K=1000.,
+                              delta_max_pos=.004, delta_max_neg=.004, active_segment=segment,
+                              branch='reloading', loading_direction=side)
+    initial = AxialForceHistoryState.from_fixed_history(0., history)
+    before = deepcopy(initial)
+    state, events = initial, []
+    for i in range(1, count+1):
+        fraction = i/count
+        response = advance(table, state, side*(.0015+.0001*fraction), 1.4*fraction)
+        state = response.state
+        events.extend(response.events)
+    transitions = [event for event in events if event.kind in ('contact', 'departure')]
+    assert [event.kind for event in transitions] == ['contact', 'departure']
+    assert [event.Nd for event in transitions] == pytest.approx(
+        [.369142613930081, .935287591386653], rel=2e-12)
+    assert (response.moment, response.bending_tangent) == pytest.approx(
+        (side*9.78355464663828, 2756.88304901930), rel=2e-12)
+    assert state.history.branch == 'unloading'
+    assert state.contact_side is None
+    assert initial == before
+
+
+@pytest.mark.parametrize('side', [-1, 1])
+@pytest.mark.parametrize('count', [1, 4, 17])
+def test_forward_target_arrival_on_a_simultaneous_path(side, count):
+    from fem.nonlinear.hysteresis.base_hysteresis import HysteresisSegment, HysteresisState, JRReloadTarget
+
+    table = material(fourth=True)
+    segment = HysteresisSegment(side*.004, 0., side*.0055, side*3., 2000., 'reloading',
+                                target=JRReloadTarget('forward', side, unloading_stiffness=2000.))
+    history = HysteresisState(current_delta=side*.0052, current_P=side*2.4, current_K=2000.,
+                              delta_max_pos=.006, delta_max_neg=.006, active_segment=segment,
+                              branch='reloading', loading_direction=side)
+    initial = AxialForceHistoryState.from_fixed_history(0., history)
+    before = deepcopy(initial)
+    state, events = initial, []
+    for i in range(1, count+1):
+        fraction = i/count
+        response = advance(table, state, side*(.0052+.0002*fraction), fraction)
+        state = response.state
+        events.extend(response.events)
+    targets = [event for event in events if event.kind == 'target']
+    root = (33-sqrt(801))/8
+    assert len(targets) == 1
+    assert (targets[0].Nd, abs(targets[0].curvature), abs(targets[0].moment)) == pytest.approx(
+        (root, .0052+.0002*root, 2.4+.4*root), rel=1e-12)
+    assert (response.moment, response.bending_tangent) == pytest.approx((side*1.7, -2000.))
+    assert state.history.branch == 'skeleton'
+    assert initial == before
+
+
+@pytest.mark.parametrize('count', [1, 2, 8])
+def test_direct_return_accepts_the_first_crossing_from_either_gap_direction(count):
+    from fem.nonlinear.hysteresis.base_hysteresis import HysteresisSegment, HysteresisState
+
+    first = SkeletonPoints((.001, .002, .003), (10., 12., 13.))
+    last = SkeletonPoints((.001, .002, .003), (8., 10., 12.))
+    table = AxialForceTable((AxialForceRow(0., first, first), AxialForceRow(1., last, last)), beta=0.)
+    segment = HysteresisSegment(-.0005, .5, .002, 3., 1000., 'retracing')
+    history = HysteresisState(current_delta=-.0005, current_P=.5, current_K=1000.,
+                              delta_max_pos=.002, delta_max_neg=.001, active_segment=segment,
+                              branch='retracing', loading_direction=1)
+    initial = AxialForceHistoryState.from_fixed_history(0., history)
+    state, events = initial, []
+    for i in range(1, count+1):
+        fraction = i/count
+        response = advance(table, state, -.0005+.002*fraction, fraction)
+        state = response.state
+        events.extend(response.events)
+    targets = [event for event in events if event.kind == 'target']
+    assert len(targets) == 1
+    assert (targets[0].Nd, targets[0].curvature, targets[0].moment) == pytest.approx(
+        (.309661044767712, .000119322089535423, 1.11932208953542), rel=1e-12)
+    assert (response.moment, response.bending_tangent) == pytest.approx((9., 2000.))
+    assert state.history.branch == 'skeleton'
+
+
+@pytest.mark.parametrize('side', [-1, 1])
+def test_invalid_moving_target_metadata_is_rejected_before_path_mutation(side):
+    from fem.nonlinear.hysteresis.base_hysteresis import JRReloadTarget
+
+    table = material()
+    initial = experienced(table, [side*.002, -side*.0001])
+    initial.history.active_segment.target = JRReloadTarget('skeleton', -side, 0., 3, 10000.)
+    before = deepcopy(initial)
+    with pytest.raises(InputValidationError):
+        advance(table, initial, -side*.0002, .4)
     assert initial == before
 
 

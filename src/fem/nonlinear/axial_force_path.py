@@ -1,9 +1,9 @@
-"""Affine simultaneous curvature/Nd paths for skeleton and fixed-line contact.
+"""Affine simultaneous curvature/Nd paths for the complete local JR graph.
 
 This local kernel solves events on the actual straight path in (phi, Nd).
-It is not an endpoint-Nd approximation for a nonlinear axial material, and
-does not yet trace moving reloads/internal returns or produce a consistent
-coupled tangent. Unsupported transitions fail before returning a candidate.
+It is not an endpoint-Nd approximation for a nonlinear axial material. The
+returned bending tangent is the active branch partial; the consistent coupled
+tangent belongs to the section integration layer.
 """
 from dataclasses import dataclass
 from math import fsum, isfinite
@@ -11,13 +11,15 @@ from math import fsum, isfinite
 from numpy.polynomial import Polynomial
 from scipy.optimize import brentq
 
-from ..diagnostics import InputValidationError, UnsupportedAnalysisError, NumericalConditionError
+from ..diagnostics import InputValidationError, NumericalConditionError
 from .axial_force_table import _number
 from .axial_force_history import (AxialForceHistoryState, _EPS, _affine, _detach,
                                  _has_constant_skeleton, evaluate_axial_force_hold)
 from .axial_force_reload_hold import _interval_roots
-from .axial_force_targets import evaluate_axial_force_curvature
+from .axial_force_targets import (evaluate_axial_force_curvature, evaluate_reload_target,
+                                  resume_reload_target)
 from .hysteresis import JRStiffnessReductionModel
+from .hysteresis.base_hysteresis import HysteresisSegment, JRReloadTarget
 
 
 @dataclass(frozen=True)
@@ -53,6 +55,17 @@ def _right_sign(poly, t, *, at_root=False):
         if abs(value) > 32*_EPS*scale:
             return 1 if value > 0 else -1
     return 0
+
+
+def _changes_sign(poly, t):
+    """Whether an algebraic root has odd multiplicity."""
+    for order in range(1, poly.degree()+1):
+        derivative = poly.deriv(order)
+        value = float(derivative(t))
+        scale = fsum(abs(c*t**i) for i, c in enumerate(derivative.coef))
+        if abs(value) > 32*_EPS*scale:
+            return order % 2 == 1
+    return False
 
 
 def _zeros(poly, start, end, reference=None):
@@ -202,14 +215,116 @@ def _departure_parts(table, maximum, piece, side):
         yield a, b, 1 if rate > 0 else -1 if rate < 0 else 0
 
 
+def _side_polynomials(table, n, side):
+    """Skeleton coordinates over one Nd row in the caller's parameter."""
+    name = 'positive' if side > 0 else 'negative'
+    first, last = getattr(table.interpolate(float(n(0))), name), getattr(table.interpolate(float(n(1))), name)
+    d = [Polynomial((0.,)), *(_affine(a, b) for a, b in zip(first.curvatures, last.curvatures))]
+    p = [Polynomial((0.,)), *(_affine(a, b) for a, b in zip(first.moments, last.moments))]
+    return d, p
+
+
+def _skeleton_rational(table, x, n, side, probe):
+    """Envelope Q/W at an affine curvature on one already-partitioned row."""
+    d, p = _side_polynomials(table, n, side)
+    index = sum(side*float(x(probe)) >= float(di(probe)) for di in d[1:4])
+    if index == 3 and len(d) == 4:
+        return side*p[3], Polynomial((1.,)), index+1
+    w = d[index+1]-d[index]
+    q = side*(p[index]*w+(p[index+1]-p[index])*(side*x-d[index]))
+    return q, w, index+1
+
+
+def _reload_cuts(table, segment, n, start, end):
+    """Exact identity/segment cuts for a moving skeleton target."""
+    target = segment.target
+    if target is None or target.kind != 'skeleton':
+        return ()
+    evaluate_reload_target(table, segment, float(n((start+end)/2)))
+    d, _ = _side_polynomials(table, n, target.side)
+    cuts = set()
+    values = (target.experienced_curvature, target.side*segment.start_delta)
+    for value in values:
+        cuts.update(root for root in _interval_roots(d[target.threshold]-value) if start < root < end)
+    # When the experienced maximum controls the target, its envelope segment
+    # can change as moving reference points pass that fixed curvature.
+    for di in d[1:4]:
+        cuts.update(root for root in _interval_roots(di-target.experienced_curvature) if start < root < end)
+    return tuple(sorted(cuts))
+
+
+def _reload_line(table, segment, x, n, probe):
+    """Return reload M=Q/W, target distance, and effective target kind."""
+    target = segment.target
+    if target is None:
+        raise InputValidationError('Reload segment requires an explicit target identity',
+                                   reason='axial_force_target_metadata')
+    evaluate_reload_target(table, segment, float(n(probe)))  # Validate the complete target metadata.
+    if target.kind in ('experienced', 'forward'):
+        stiffness = segment.K if target.kind == 'experienced' else target.unloading_stiffness
+        line = segment.start_P+stiffness*(x-segment.start_delta)
+        return line, Polynomial((1.,)), None, target.kind
+
+    d, p = _side_polynomials(table, n, target.side)
+    threshold = target.threshold
+    virtual = float(d[threshold](probe)) >= target.experienced_curvature
+    if virtual:
+        target_x = target.side*d[threshold]
+        target_q, target_w = target.side*p[threshold], Polynomial((1.,))
+    else:
+        target_x = Polynomial((target.side*target.experienced_curvature,))
+        target_q, target_w, _ = _skeleton_rational(table, target_x, n, target.side, probe)
+    width = target_x-segment.start_delta
+    if target.side*float(width(probe)) <= 0:
+        line = segment.start_P+target.unloading_stiffness*(x-segment.start_delta)
+        return line, Polynomial((1.,)), None, 'forward'
+    q = segment.start_P*target_w*width+(target_q-segment.start_P*target_w)*(x-segment.start_delta)
+    w = target_w*width
+    # Target-side width is positive throughout this identity piece.
+    q, w = target.side*q, target.side*w
+    return q, w, target.side*(target_x-x), 'skeleton'
+
+
+def _complete_segment(table, history, segment, Nd, direction):
+    """Consume one exact JR endpoint and reconnect any suspended path."""
+    if segment.restore_depth is not None:
+        del history.reversal_stack[segment.restore_depth:]
+        del history.reversal_paths[segment.restore_depth:]
+    continuation = segment.next_segment
+    actual_return = segment.branch == 'retracing' or (
+        segment.target is not None and segment.target.kind == 'experienced')
+    if actual_return and continuation is not None and continuation.target is not None:
+        continuation = resume_reload_target(table, continuation, Nd, segment.end_delta, segment.end_P)
+    elif actual_return and continuation is None and (
+            segment.target is None or segment.target.kind != 'forward'):
+        envelope = table.evaluate_skeleton(segment.end_delta, Nd,
+                                           side=1 if segment.end_delta >= 0 else -1)
+        scale = abs(envelope.moment)+abs(segment.end_P)
+        if abs(envelope.moment-segment.end_P) > 32*_EPS*scale:
+            # A contracted envelope was intercepted before this point. For an
+            # expanded envelope, extend the same return line from the actual
+            # saved point to its first forward skeleton intersection.
+            continuation = HysteresisSegment(
+                segment.end_delta, segment.end_P, segment.end_delta, segment.end_P,
+                segment.K, 'retracing', reverse_segment=segment.reverse_segment,
+                restore_depth=segment.restore_depth, origin_depth=segment.origin_depth,
+                target=JRReloadTarget('forward', direction, unloading_stiffness=segment.K))
+            target = evaluate_reload_target(table, continuation, Nd)
+            continuation.end_delta, continuation.end_P = target.curvature, target.moment
+    history.active_segment = continuation
+    history.branch = continuation.branch if continuation is not None else 'skeleton'
+    history.crossed_zero = continuation is not None and continuation.branch in ('reloading', 'inner_reloading')
+    return continuation
+
+
 def evaluate_axial_force_path(table, committed, curvature, Nd):
     """Follow an affine (curvature, Nd) leg from owned committed history.
 
-    Simultaneous motion supports a single curvature side, the skeleton and
-    fixed lines up to an unresolved return/reload endpoint. Contact uses the
-    directional gap with candidate JR Kd. Only its creation/departure freezes
-    an unloading line; contact does not reconstruct one at every partition.
-    Scalar legs retain the existing exact adapters and invariant tables JR.
+    Contact uses the directional gap with candidate JR Kd. Only its
+    creation/departure freezes an unloading line; contact does not reconstruct
+    one at every partition. Moving reload targets and suspended return paths
+    are resolved at their exact events. Scalar legs retain the existing exact
+    adapters and invariant-table JR limit.
     """
     curvature, Nd = _number(curvature, 'curvature'), _number(Nd, 'Nd')
     table.interpolate(committed.Nd)
@@ -234,12 +349,40 @@ def evaluate_axial_force_path(table, committed, curvature, Nd):
         response = evaluate_axial_force_curvature(table, committed, curvature)
         state = AxialForceHistoryState(Nd, response.state.history, response.state.contact_side, response.state.contact_segment)
         return AxialForcePathResponse(state, response.moment, response.bending_tangent, ())
-    if side*curvature <= 0:
-        raise UnsupportedAnalysisError('Simultaneous curvature-side crossing requires the general return integrator',
-                                       reason='axial_force_path_side_crossing')
+    if side*curvature < 0:
+        crossing = -x0/(curvature-x0)
+        crossing_Nd = _lerp(n0, Nd, crossing)
+        first = evaluate_axial_force_path(table, committed, 0., crossing_Nd)
+        bridge = first.state
+        if bridge.contact_side is not None:
+            # At phi=0 both envelopes meet. Continuing in the same travel
+            # direction starts the other side's skeleton from that point.
+            bridge_history = bridge.history.copy()
+            bridge_history.branch = 'skeleton'
+            bridge_history.active_segment = None
+            bridge_history.reversal_stack.clear()
+            bridge_history.reversal_paths.clear()
+            bridge_history.crossed_zero = False
+            bridge_history.delta_max_inner = 0.
+            bridge = AxialForceHistoryState(crossing_Nd, bridge_history)
+        second = evaluate_axial_force_path(table, bridge, curvature, Nd)
+        events = tuple(
+            AxialForcePathEvent(e.kind, crossing*e.fraction, e.curvature, e.Nd,
+                                e.moment, e.side, e.segment) for e in first.events)
+        events += tuple(
+            AxialForcePathEvent(e.kind, crossing+(1-crossing)*e.fraction, e.curvature,
+                                e.Nd, e.moment, e.side, e.segment) for e in second.events)
+        second.state.history.previous_delta = x0
+        second.state.history.previous_P = committed.history.current_P
+        return AxialForcePathResponse(second.state, second.moment, second.bending_tangent, events)
     direction = 1 if curvature > x0 else -1
     model = JRStiffnessReductionModel(table.interpolate(n0).to_jr_params())
-    if contact and direction == side:
+    if contact and direction == side and history.previous_delta == x0:
+        # A contact created by a pure Nd hold has no curvature travel to
+        # sustain; an outward curvature leg joins the ordinary skeleton.
+        # Contact reached during an outward simultaneous leg retains its
+        # nonzero previous_delta marker so a later Nd-driven departure remains
+        # partition invariant.
         contact = False
         history.branch = 'skeleton'
     elif not contact and history.loading_direction and direction != history.loading_direction:
@@ -270,7 +413,7 @@ def evaluate_axial_force_path(table, committed, curvature, Nd):
         just_departed = False
         while cursor < 1:
             transitions += 1
-            if transitions > 16:
+            if transitions > 64:
                 raise NumericalConditionError('Repeated zero-length path events', reason='axial_force_path_event_cycle')
             if contact:
                 departure = None
@@ -297,48 +440,123 @@ def evaluate_axial_force_path(table, committed, curvature, Nd):
             segment = history.active_segment
             if segment is None:
                 break  # Ordinary skeleton loading does not detach under Nd expansion.
-            if segment.branch not in ('unloading', 'inner_unloading', 'retracing'):
-                raise UnsupportedAnalysisError('Simultaneous moving reload is not implemented',
-                                               reason='axial_force_path_moving_target', branch=segment.branch)
-            line = segment.start_P+segment.K*(x-segment.start_delta)
-            gap = side*(line*w-q)
-            roots = _zeros(gap, cursor, 1., lambda t: abs(line(t)*w(t))+abs(q(t)))
+            moving = segment.branch in ('reloading', 'inner_reloading') or (
+                segment.target is not None and segment.target.kind == 'forward')
+            cuts = _reload_cuts(table, segment, n, cursor, 1.) if moving else ()
+            limit = cuts[0] if cuts else 1.
+            probe = (cursor+limit)/2
+            if moving:
+                line_q, line_w, distance, target_kind = _reload_line(table, segment, x, n, probe)
+            else:
+                line_q = segment.start_P+segment.K*(x-segment.start_delta)
+                line_w, distance, target_kind = Polynomial((1.,)), None, None
+            gap = side*(line_q*w-q*line_w)
+            roots = _zeros(gap, cursor, limit,
+                           lambda t: abs(line_q(t)*w(t))+abs(q(t)*line_w(t)))
+            direct_return = (segment.branch == 'retracing' and segment.next_segment is None
+                             and direction == side)
             crossing = None
             for root in roots:
                 if just_departed and abs(root-cursor) <= 128*_EPS:
                     continue  # The newly tangent unload must advance before it can re-contact.
+                if root == limit and limit < 1:
+                    continue  # Classify a target-identity corner from its outgoing piece.
                 if root == 1 and following is not None:
                     nx, nq, nw = following[2], following[5], following[6]
-                    outgoing = side*((segment.start_P+segment.K*(nx-segment.start_delta))*nw-nq)
+                    if moving:
+                        nn = following[3]
+                        nlq, nlw, _, _ = _reload_line(table, segment, nx, nn, 0.)
+                        outgoing = side*(nlq*nw-nq*nlw)
+                    else:
+                        outgoing = side*((segment.start_P+segment.K*(nx-segment.start_delta))*nw-nq)
                     enters = _right_sign(outgoing, 0., at_root=True) > 0
                 else:
-                    enters = _right_sign(gap, root, at_root=True) > 0
+                    enters = (_changes_sign(gap, root) if direct_return else
+                              _right_sign(gap, root, at_root=True) > 0)
                 if enters:
                     crossing = root
                     break
+            target_crossing = None
+            if distance is not None:
+                for root in _zeros(distance, cursor, limit,
+                                   lambda t: abs(distance(t))+abs(x(t))):
+                    if root == limit and limit < 1:
+                        continue
+                    if _right_sign(distance, root, at_root=True) < 0:
+                        target_crossing = root
+                        break
+            if target_kind == 'forward' and segment.target.side == side and crossing is not None:
+                target_crossing = crossing
+            if distance is not None and crossing is not None:
+                separation = abs(float(distance(crossing)))
+                target_scale = 2*abs(float(x(crossing)))+separation
+                if separation <= 128*_EPS*target_scale:
+                    # Algebraically the moving target lies on the envelope.
+                    # Independently isolated high-degree roots can differ by
+                    # several parameter ULPs near a skeleton corner; classify
+                    # the common physical point as target arrival.
+                    target_crossing = crossing
+            if direct_return and crossing is not None:
+                target_crossing = crossing
             dx = float(x.deriv()(0))
             # An Nd partition can have equal rounded curvature endpoints
             # even when the complete trial has a finite one-ULP increment.
             end = ((segment.end_delta-x(0))/dx if dx else
                    0. if segment.end_delta == x(0) else float('inf'))
-            if cursor <= end <= 1 and (crossing is None or end < crossing-32*_EPS):
-                raise UnsupportedAnalysisError('Simultaneous path reached an unresolved return/reload event',
-                                               reason='axial_force_path_return_event', curvature=segment.end_delta,
-                                               Nd=float(n(end)), branch=segment.branch)
-            if crossing is None:
+            fixed_end = (not moving or segment.target is not None and segment.target.kind == 'experienced')
+            if not fixed_end or not cursor <= end <= limit:
+                end = None
+            candidates = [(root, 'contact') for root in (crossing,) if root is not None]
+            candidates += [(root, 'target') for root in (target_crossing,) if root is not None]
+            candidates += [(end, 'end')] if end is not None else []
+            if not candidates:
+                cursor = limit
+                if cursor < 1:
+                    continue
                 break
-            cursor = crossing
+            # At a simultaneous target/contact, reaching the intended target
+            # wins. A prior contact still discards the suspended graph.
+            event_root = min(root for root, _ in candidates)
+            kinds = {kind for root, kind in candidates if abs(root-event_root) <= 64*_EPS}
+            kind = 'target' if 'target' in kinds else 'contact' if 'contact' in kinds else 'end'
+            cursor = event_root
             just_departed = False
-            direct_return = (segment.branch == 'retracing' and segment.next_segment is None
-                             and direction == side)
-            contact = not direct_return
-            history.active_segment = None
-            history.reversal_stack.clear()
-            history.reversal_paths.clear()
-            history.crossed_zero = False
-            history.delta_max_inner = 0.
-            event('target' if direct_return else 'contact', _lerp(left, right, cursor), x(cursor), n(cursor),
-                  q(cursor)/w(cursor), index)
+            path_fraction = _lerp(left, right, cursor)
+            event_Nd = float(n(cursor))
+            if kind == 'contact':
+                moment = float(q(cursor)/w(cursor))
+                point(x(cursor), moment, table.evaluate_skeleton(float(x(cursor)), event_Nd, side=side).bending_tangent)
+                contact = True
+                history.active_segment = None
+                history.reversal_stack.clear()
+                history.reversal_paths.clear()
+                history.crossed_zero = False
+                history.delta_max_inner = 0.
+                event('contact', path_fraction, x(cursor), n(cursor), moment, index)
+                continue
+            if kind == 'target':
+                moment = float(q(cursor)/w(cursor))
+                point(x(cursor), moment, table.evaluate_skeleton(float(x(cursor)), event_Nd, side=side).bending_tangent)
+                contact = False
+                history.active_segment = None
+                history.reversal_stack.clear()
+                history.reversal_paths.clear()
+                history.crossed_zero = False
+                history.delta_max_inner = 0.
+                history.branch = 'skeleton'
+                event('target', path_fraction, x(cursor), n(cursor), moment, index)
+                continue
+            moment = float(line_q(cursor)/line_w(cursor))
+            point(x(cursor), moment, segment.K)
+            continuation = _complete_segment(table, history, segment, event_Nd, direction)
+            if continuation is not None and continuation.target is not None:
+                target = evaluate_reload_target(table, continuation, event_Nd)
+                continuation.end_delta, continuation.end_P, continuation.K = (
+                    target.curvature, target.moment, target.stiffness)
+            event_kind = ('zero' if segment.branch in ('unloading', 'inner_unloading') else
+                          'return' if continuation is not None else 'target')
+            event(event_kind, path_fraction, x(cursor), n(cursor), moment, index)
+            continue
         envelope = table.evaluate_skeleton(float(x(1)), float(n(1)), side=side)
         if history.active_segment is None:
             point(x(1), envelope.moment, envelope.bending_tangent)
@@ -346,6 +564,10 @@ def evaluate_axial_force_path(table, committed, curvature, Nd):
                               'initial' if history.branch == 'initial' and envelope.segment == 1 else 'skeleton')
         else:
             segment = history.active_segment
+            if segment.branch in ('reloading', 'inner_reloading') or (
+                    segment.target is not None and segment.target.kind == 'forward'):
+                response = evaluate_reload_target(table, segment, float(n(1)))
+                segment.end_delta, segment.end_P, segment.K = response.curvature, response.moment, response.stiffness
             point(x(1), segment.start_P+segment.K*(x(1)-segment.start_delta), segment.K)
             history.branch = segment.branch
         if right < 1:
