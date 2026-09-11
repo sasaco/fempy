@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['目的から探す_0',['目的から探す',['../index.html#autotoc_md80',1,'']]]
+  ['症状から調べる_0',['症状から調べる',['../md_docs_2wiki_2error-handling.html#autotoc_md47',1,'']]]
 ];

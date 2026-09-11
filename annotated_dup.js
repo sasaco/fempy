@@ -173,11 +173,42 @@ var annotated_dup =
         ] ]
       ] ],
       [ "nonlinear", "namespacefem_1_1nonlinear.html", [
+        [ "axial_bending_response", "namespacefem_1_1nonlinear_1_1axial__bending__response.html", [
+          [ "AxialBendingPlaneResponse", "classfem_1_1nonlinear_1_1axial__bending__response_1_1AxialBendingPlaneResponse.html", null ],
+          [ "AxialBendingPlaneState", "classfem_1_1nonlinear_1_1axial__bending__response_1_1AxialBendingPlaneState.html", "classfem_1_1nonlinear_1_1axial__bending__response_1_1AxialBendingPlaneState" ]
+        ] ],
+        [ "axial_force_history", "namespacefem_1_1nonlinear_1_1axial__force__history.html", [
+          [ "AxialForceHistoryEvent", "classfem_1_1nonlinear_1_1axial__force__history_1_1AxialForceHistoryEvent.html", null ],
+          [ "AxialForceHistoryState", "classfem_1_1nonlinear_1_1axial__force__history_1_1AxialForceHistoryState.html", "classfem_1_1nonlinear_1_1axial__force__history_1_1AxialForceHistoryState" ],
+          [ "AxialForceHoldResponse", "classfem_1_1nonlinear_1_1axial__force__history_1_1AxialForceHoldResponse.html", null ]
+        ] ],
+        [ "axial_force_path", "namespacefem_1_1nonlinear_1_1axial__force__path.html", [
+          [ "AxialForcePathEvent", "classfem_1_1nonlinear_1_1axial__force__path_1_1AxialForcePathEvent.html", null ],
+          [ "AxialForcePathResponse", "classfem_1_1nonlinear_1_1axial__force__path_1_1AxialForcePathResponse.html", null ]
+        ] ],
+        [ "axial_force_table", "namespacefem_1_1nonlinear_1_1axial__force__table.html", [
+          [ "AxialForceRow", "classfem_1_1nonlinear_1_1axial__force__table_1_1AxialForceRow.html", null ],
+          [ "AxialForceTable", "classfem_1_1nonlinear_1_1axial__force__table_1_1AxialForceTable.html", null ],
+          [ "InterpolatedSkeleton", "classfem_1_1nonlinear_1_1axial__force__table_1_1InterpolatedSkeleton.html", "classfem_1_1nonlinear_1_1axial__force__table_1_1InterpolatedSkeleton" ],
+          [ "SkeletonPoints", "classfem_1_1nonlinear_1_1axial__force__table_1_1SkeletonPoints.html", null ],
+          [ "SkeletonResponse", "classfem_1_1nonlinear_1_1axial__force__table_1_1SkeletonResponse.html", null ]
+        ] ],
+        [ "axial_force_targets", "namespacefem_1_1nonlinear_1_1axial__force__targets.html", [
+          [ "_FixedNdTargetModel", "classfem_1_1nonlinear_1_1axial__force__targets_1_1__FixedNdTargetModel.html", null ],
+          [ "AxialForceCurvatureResponse", "classfem_1_1nonlinear_1_1axial__force__targets_1_1AxialForceCurvatureResponse.html", null ],
+          [ "ReloadTargetResponse", "classfem_1_1nonlinear_1_1axial__force__targets_1_1ReloadTargetResponse.html", null ]
+        ] ],
+        [ "beam_section_response", "namespacefem_1_1nonlinear_1_1beam__section__response.html", [
+          [ "BendingPlaneResponse", "classfem_1_1nonlinear_1_1beam__section__response_1_1BendingPlaneResponse.html", null ],
+          [ "BendingPlaneState", "classfem_1_1nonlinear_1_1beam__section__response_1_1BendingPlaneState.html", null ],
+          [ "CurvatureInterval", "classfem_1_1nonlinear_1_1beam__section__response_1_1CurvatureInterval.html", null ]
+        ] ],
         [ "hysteresis", "namespacefem_1_1nonlinear_1_1hysteresis.html", [
           [ "base_hysteresis", "namespacefem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis.html", [
             [ "BaseHysteresis", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1BaseHysteresis.html", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1BaseHysteresis" ],
             [ "HysteresisSegment", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisSegment.html", null ],
-            [ "HysteresisState", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState" ]
+            [ "HysteresisState", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState" ],
+            [ "JRReloadTarget", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1JRReloadTarget.html", null ]
           ] ],
           [ "jr_stiffness_reduction", "namespacefem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction.html", [
             [ "JRStiffnessReductionModel", "classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel.html", "classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel" ],

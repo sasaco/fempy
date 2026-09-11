@@ -143,8 +143,10 @@ None&#160;</td><td class="memItemRight" valign="bottom"><b>read_json_model</b> (
 <tr class="separator:a4f104c2fc987ce1813ae482c9b684fcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae7092bbfd5d39510886e87e9b9f010b9" id="r_ae7092bbfd5d39510886e87e9b9f010b9"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#ae7092bbfd5d39510886e87e9b9f010b9">add_nonlinear_material</a> (self, int material_id, str name, float E, float delta_1, float delta_2, float delta_3, float P_1, float P_2, float P_3, float beta=0.4, Optional[float] K_min=None, bool symmetric=True, Optional[float] delta_1_neg=None, Optional[float] delta_2_neg=None, Optional[float] delta_3_neg=None, Optional[float] P_1_neg=None, Optional[float] P_2_neg=None, Optional[float] P_3_neg=None, float nu=0.2, Optional[float] density=None, Optional[float] shear_modulus=None, Optional[float] delta_4=None, Optional[float] P_4=None, Optional[float] delta_4_neg=None, Optional[float] P_4_neg=None)</td></tr>
 <tr class="separator:ae7092bbfd5d39510886e87e9b9f010b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae2fa386e77757ea0f8f7af6db3cc6451" id="r_ae2fa386e77757ea0f8f7af6db3cc6451"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#ae2fa386e77757ea0f8f7af6db3cc6451">add_nonlinear_bar_element</a> (self, int elem_id, List[int] node_ids, int material_id, int section_id, List[str] hysteresis_dofs, float angle=0.0, bool shear_correction=True)</td></tr>
-<tr class="separator:ae2fa386e77757ea0f8f7af6db3cc6451"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac88cdd482571fc861d00627acdd32456" id="r_ac88cdd482571fc861d00627acdd32456"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#ac88cdd482571fc861d00627acdd32456">add_nonlinear_material_laws</a> (self, int material_id, str name, float E, Dict[str, Dict[str, Any]] laws, float nu=0.2, Optional[float] density=None, Optional[float] shear_modulus=None)</td></tr>
+<tr class="separator:ac88cdd482571fc861d00627acdd32456"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa288cd849f8184cb38a23927d7b0ac11" id="r_aa288cd849f8184cb38a23927d7b0ac11"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#aa288cd849f8184cb38a23927d7b0ac11">add_nonlinear_bar_element</a> (self, int elem_id, List[int] node_ids, int material_id, int section_id, Optional[List[str]] hysteresis_dofs=None, float angle=0.0, bool shear_correction=True)</td></tr>
+<tr class="separator:aa288cd849f8184cb38a23927d7b0ac11"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6684cb9f882275a91c0e68b501174a6e" id="r_a6684cb9f882275a91c0e68b501174a6e"><td class="memItemLeft" align="right" valign="top">Optional[Dict[str, Any]]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#a6684cb9f882275a91c0e68b501174a6e">get_results</a> (self)</td></tr>
 <tr class="separator:a6684cb9f882275a91c0e68b501174a6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae838c9f367f277c0ec117734a22d5436" id="r_ae838c9f367f277c0ec117734a22d5436"><td class="memItemLeft" align="right" valign="top">Optional[Dict[str, float]]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1model_1_1FemModel.html#ae838c9f367f277c0ec117734a22d5436">get_node_displacement</a> (self, int node_id)</td></tr>
@@ -1249,8 +1251,8 @@ Args:
 </pre> 
 </div>
 </div>
-<a id="ae2fa386e77757ea0f8f7af6db3cc6451" name="ae2fa386e77757ea0f8f7af6db3cc6451"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae2fa386e77757ea0f8f7af6db3cc6451">&#9670;&#160;</a></span>add_nonlinear_bar_element()</h2>
+<a id="aa288cd849f8184cb38a23927d7b0ac11" name="aa288cd849f8184cb38a23927d7b0ac11"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa288cd849f8184cb38a23927d7b0ac11">&#9670;&#160;</a></span>add_nonlinear_bar_element()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1288,8 +1290,8 @@ Args:
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">List[str]&#160;</td>
-          <td class="paramname"><em>hysteresis_dofs</em>, </td>
+          <td class="paramtype">Optional[List[str]] &#160;</td>
+          <td class="paramname"><em>hysteresis_dofs</em> = <code>None</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1513,6 +1515,75 @@ Args:
     nu: ポアソン比
     density: 密度
     shear_modulus: 基準Gの明示値。省略時はE/(2*(1+nu))。
+</pre> 
+</div>
+</div>
+<a id="ac88cdd482571fc861d00627acdd32456" name="ac88cdd482571fc861d00627acdd32456"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac88cdd482571fc861d00627acdd32456">&#9670;&#160;</a></span>add_nonlinear_material_laws()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.model.FemModel.add_nonlinear_material_laws </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>material_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>E</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Dict[str, Any]]&#160;</td>
+          <td class="paramname"><em>laws</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &#160;</td>
+          <td class="paramname"><em>nu</em> = <code>0.2</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[float] &#160;</td>
+          <td class="paramname"><em>density</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[float] &#160;</td>
+          <td class="paramname"><em>shear_modulus</em> = <code>None</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Add component-specific nonlinear laws, including Nd tables.
+
+Law keys define their application axes. Nd-dependent definitions are
+limited to ``moment_y`` and ``moment_z``; fixed JR definitions may be
+assigned independently to any supported component.
 </pre> 
 </div>
 </div>

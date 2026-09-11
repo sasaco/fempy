@@ -122,6 +122,11 @@ $(document).ready(function(){initNavTree('classfem_1_1material_1_1Material.html'
 <tr class="separator:a9bccc77124eb34b9dc1818ee83951d86"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4545b5616036940c1e4a3b7fd80a5c9f" id="r_a4545b5616036940c1e4a3b7fd80a5c9f"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1material_1_1Material.html#a4545b5616036940c1e4a3b7fd80a5c9f">add_nonlinear_material</a> (self, int material_id, <a class="el" href="classfem_1_1material_1_1NonlinearMaterialProperty.html">NonlinearMaterialProperty</a> material)</td></tr>
 <tr class="separator:a4545b5616036940c1e4a3b7fd80a5c9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2980b10c2963e9a1963153c593062a49" id="r_a2980b10c2963e9a1963153c593062a49"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1material_1_1Material.html#a2980b10c2963e9a1963153c593062a49">add_nonlinear_laws</a> (self, int material_id, Dict[str, Any] laws)</td></tr>
+<tr class="separator:a2980b10c2963e9a1963153c593062a49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a368a260a289cecd76a8a538a0582edd3" id="r_a368a260a289cecd76a8a538a0582edd3"><td class="memItemLeft" align="right" valign="top"><a id="a368a260a289cecd76a8a538a0582edd3" name="a368a260a289cecd76a8a538a0582edd3"></a>
+Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><b>get_nonlinear_laws</b> (self, int material_id)</td></tr>
+<tr class="separator:a368a260a289cecd76a8a538a0582edd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c3a05aacf197cf2c07ad658dcf72108" id="r_a1c3a05aacf197cf2c07ad658dcf72108"><td class="memItemLeft" align="right" valign="top">Optional[<a class="el" href="classfem_1_1material_1_1NonlinearMaterialProperty.html">NonlinearMaterialProperty</a>]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1material_1_1Material.html#a1c3a05aacf197cf2c07ad658dcf72108">get_nonlinear_material</a> (self, int material_id)</td></tr>
 <tr class="separator:a1c3a05aacf197cf2c07ad658dcf72108"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b37fccbc3fac6faa0059043b2798309" id="r_a8b37fccbc3fac6faa0059043b2798309"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1material_1_1Material.html#a8b37fccbc3fac6faa0059043b2798309">is_nonlinear_material</a> (self, int material_id)</td></tr>
@@ -232,6 +237,40 @@ $(document).ready(function(){initNavTree('classfem_1_1material_1_1Material.html'
       </table>
 </div><div class="memdoc">
 <pre class="fragment">材料を追加</pre> 
+</div>
+</div>
+<a id="a2980b10c2963e9a1963153c593062a49" name="a2980b10c2963e9a1963153c593062a49"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2980b10c2963e9a1963153c593062a49">&#9670;&#160;</a></span>add_nonlinear_laws()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.material.Material.add_nonlinear_laws </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>material_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]&#160;</td>
+          <td class="paramname"><em>laws</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Register validated component laws without sharing runtime state.</pre> 
 </div>
 </div>
 <a id="a4545b5616036940c1e4a3b7fd80a5c9f" name="a4545b5616036940c1e4a3b7fd80a5c9f"></a>

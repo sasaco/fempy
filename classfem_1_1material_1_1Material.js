@@ -3,6 +3,7 @@ var classfem_1_1material_1_1Material =
     [ "_initialize_default_materials", "classfem_1_1material_1_1Material.html#a5e3b3dc6fb3ab03c9116d51a9a03037b", null ],
     [ "add_bar_parameter", "classfem_1_1material_1_1Material.html#a49122883fda7876da88d261afc14b897", null ],
     [ "add_material", "classfem_1_1material_1_1Material.html#a8109f1adf9d53080a22695db7823f390", null ],
+    [ "add_nonlinear_laws", "classfem_1_1material_1_1Material.html#a2980b10c2963e9a1963153c593062a49", null ],
     [ "add_nonlinear_material", "classfem_1_1material_1_1Material.html#a4545b5616036940c1e4a3b7fd80a5c9f", null ],
     [ "add_shell_parameter", "classfem_1_1material_1_1Material.html#ada6c77f580a6e3118b8791a7d7409dbe", null ],
     [ "get_bar_parameter", "classfem_1_1material_1_1Material.html#a9bccc77124eb34b9dc1818ee83951d86", null ],

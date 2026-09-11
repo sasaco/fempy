@@ -100,6 +100,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2design-practice.html','
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="autotoc_md14"></a> <a class="el" href="index.html#md_docs_2wiki_2index">Wikiホーム</a> · <a class="el" href="md_docs_2wiki_2elements.html">要素と解析の選び方</a> · <a class="el" href="md_docs_2wiki_2data-structures.html">モデルの入力</a> · <a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a></p>
 <p>このページは、FEMPythonの解析結果を設計検討へ使うときに、入力から照査記録まで何を確認するかをまとめたものです。 計算が正常終了しても、モデル化、荷重条件、評価方法が設計目的に合っているとは限りません。 解析担当者と照査担当者が、同じ入力と判断根拠を再現できる状態を完了条件にします。</p>
+<p>線荷重・面荷重の入力形式、実行例、出力項目は<a class="el" href="md_docs_2wiki_2spatial-loads.html">線荷重・面荷重</a>を正本とし、 本ページでは設計利用時の選択・照査・記録を補足します。本文の「未対応」「拒否」「～だけ」は 現行実装の制約です。「推奨」「確認」は一般的な設計実務上の推奨であり、採用する設計基準、 発注者要件、組織の照査手順に応じて具体的な判定値と記録様式を定めてください。</p>
 <h1><a class="anchor" id="autotoc_md15"></a>
 適用範囲を最初に決める</h1>
 <p>最初に、解析で求める量とFEMPythonの対応範囲を照合します。</p>
@@ -137,7 +138,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2design-practice.html','
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyRight">6   </td><td class="markdownTableBodyNone">メッシュ・モデル化の感度を確認する   </td><td class="markdownTableBodyNone">粗・標準・細モデルの比較    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyRight">7   </td><td class="markdownTableBodyNone">入力、結果、判断を固定する   </td><td class="markdownTableBodyNone">使用版、hash、最終入力、結果、照査記録   </td></tr>
+<td class="markdownTableBodyRight">7   </td><td class="markdownTableBodyNone">入力、結果、判断を固定する   </td><td class="markdownTableBodyNone">使用版、SHA-256ハッシュ、最終入力、結果、照査記録   </td></tr>
 </table>
 <h1><a class="anchor" id="autotoc_md17"></a>
 1. 計算条件を固定する</h1>
@@ -165,24 +166,45 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2design-practice.html','
 <li>梁断面積・断面二次モーメント、シェル板厚、材料定数、密度の単位</li>
 <li>着目点や荷重位置による部材分割後も、評価位置を追跡できること</li>
 </ul>
-<p>モデル規模、要素数、自由度数は<code>model.get_model_info()</code>で確認します。入力ファイルの行数や結果辞書の長さを モデル規模の代わりに使わないでください。</p>
+<p>節点数、要素数、材料数、支持数、荷重数は<code>model.get_model_info()</code>で確認します。現行の戻り値に 自由度数は含まれません。入力ファイルの行数や結果辞書の長さをモデル規模の代わりに使わないでください。</p>
 <h1><a class="anchor" id="autotoc_md19"></a>
 3. 荷重ケースを分ける</h1>
 <p>一回の解析は一つの荷重条件です。編集用JSONの<code>load</code>に複数ケースがあっても先頭だけを選ぶため、 設計上の各ケースを一つずつ取り出して解析します。ケースごとの結果から組合せ・包絡を作る処理は、 採用した基準と係数を明示した別の計算として管理します。</p>
 <p>荷重ごとに、合力、作用位置、全体原点回りモーメント、正負の向きを先に手計算します。 節点荷重、部材荷重、シェル面圧、線荷重・面荷重を同じケースへ入れる場合は、各荷重の内訳と総和を残します。</p>
 <h2><a class="anchor" id="autotoc_md20"></a>
-線荷重・面荷重</h2>
+荷重方法を選ぶ</h2>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">載荷したい対象   </th><th class="markdownTableHeadNone">主な入力   </th><th class="markdownTableHeadNone">選択の目安    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">節点の既知の力・モーメント   </td><td class="markdownTableBodyNone">節点荷重   </td><td class="markdownTableBodyNone">構造節点へ直接載荷する    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">梁の一部または全長   </td><td class="markdownTableBodyNone">部材集中荷重・部材分布荷重   </td><td class="markdownTableBodyNone">梁の局所／全体方向と部材上の位置で定義する    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">特定のシェル要素面   </td><td class="markdownTableBodyNone">シェル面圧<code>pressure</code>   </td><td class="markdownTableBodyNone">シェル要素の面へ直接面圧を与える    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">構造要素とは別に定めた経路・平面領域   </td><td class="markdownTableBodyNone">空間線荷重・空間面荷重<code>spatial_loads</code>   </td><td class="markdownTableBodyNone">パネルと一本または二本の経路から荷重を構造節点へ保存的に配分する   </td></tr>
+</table>
+<p>同じ分布を複数の方法で重ねて入力しないでください。特に、同じ領域へシェル面圧と空間面荷重を 同時に指定する場合は、意図した重ね合わせであることを荷重内訳に明記します。</p>
+<h2><a class="anchor" id="autotoc_md21"></a>
+空間線荷重・空間面荷重（&lt;tt&gt;spatial_loads&lt;/tt&gt;）</h2>
 <p>設計実務での主な確認点は次のとおりです。</p>
 <ul>
 <li>空間荷重は<code>static</code>だけに使用する。<code>material_nonlinear</code>と<code>modal</code>へは適用しない。</li>
-<li>傾斜面では<code>plane</code>を明示し、全ての構造節点、載荷節点、経路点が同一平面上にあることを確認する。</li>
-<li><code>direction: normal</code>では節点順序から法線が決まる。代表セルの法線を数値または図で確認する。</li>
+<li>傾斜面では<code>plane</code>を明示し、パネルの<code>nodes</code>、<code>loading_nodes</code>、全経路点が同一平面上にあることを確認する。 モデル内の無関係な構造節点まで同一平面上に置く必要はない。</li>
+<li><code>direction: normal</code>ではセルの節点順序から法線が決まる。全セルの向きが一致することを確認したうえで、 代表セルの法線を数値または図で記録する。</li>
 <li>非凸外周、穴、独立載荷メッシュを使う場合は、載荷領域を図示して面積を別計算する。</li>
 <li>独立載荷メッシュは載荷領域だけを定め、剛性や自由度を増やさないことをモデル説明に記す。</li>
-<li>梁またはT3/Q4シェルへの配分を設計利用の標準とし、他要素への配分は個別検証を追加する。</li>
+<li>検証済みの<code>bar</code>／<code>beam</code>またはT3/Q4シェルへの配分を設計利用の標準とし、他要素への配分は個別検証を追加する。</li>
 </ul>
-<p>結果の<code>spatial_load_contribution</code>で、荷重別の載荷長さ・載荷面積、<code>resultant</code>、<code>moment</code>、 節点側の合力・モーメント、保存誤差を確認します。他の荷重を併用した反力との比較では、 空間荷重だけの確認ケースも作り、空間荷重の合力と支持反力を分離して照合します。 入力方法と監査項目の詳細は<a class="el" href="md_docs_2wiki_2spatial-loads.html">線荷重・面荷重</a>を参照してください。</p>
-<h1><a class="anchor" id="autotoc_md21"></a>
+<p>結果の<code>spatial_load_contribution</code>を次の順に確認します。</p>
+<ul>
+<li><code>loads</code>の各項目で、<code>feature</code>、<code>integrated_length</code>、<code>clipped_area</code>を入力図・別計算と照合する。</li>
+<li>入力分布側の<code>resultant</code>・<code>moment</code>と、節点側の<code>nodal_resultant</code>・<code>nodal_moment</code>を照合する。</li>
+<li><code>force_error</code>・<code>moment_error</code>と、荷重別の求積推定誤差・評価回数・細分化回数を記録する。</li>
+</ul>
+<p><code>moment</code>と<code>nodal_moment</code>は全体原点回りです。他の荷重を併用した反力との比較では、空間荷重だけの 確認ケースも作ります。支点位置を<code>r</code>、支点反力を<code>R</code>、支点反力モーメントを<code>M_R</code>とすると、同じ全体原点で <code>sum(R) + resultant = 0</code>および<code>sum(cross(r, R) + M_R) + moment = 0</code>となることを、採用した許容差内で確認します。 入力方法と監査項目の詳細は<a class="el" href="md_docs_2wiki_2spatial-loads.html">線荷重・面荷重</a>を参照してください。</p>
+<h1><a class="anchor" id="autotoc_md22"></a>
 4. 解析結果の成立を確認する</h1>
 <p>成功結果では、最初に次を確認します。</p>
 <ol type="1">
@@ -193,9 +215,10 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2design-practice.html','
 <li>支点反力の合力・モーメントが外力と釣り合う。</li>
 <li>梁端力、シェル断面合力、ソリッド応力の評価位置と座標系を確認した。</li>
 </ol>
+<p><code>metadata.input_sha256</code>は、解析に使用した正規化モデルJSONのハッシュであり、元入力ファイルの バイト列に対するハッシュではありません。元入力・解析入力・結果ファイルの同一性は、各ファイルの SHA-256ハッシュを別に計算して管理します。</p>
 <p>ゼロに近い値、反力の符号、梁端力のi端・j端、シェルの局所座標、ソリッドの積分点を区別します。 最大値だけを抜き出す前に、<a class="el" href="md_docs_2wiki_2results.html">結果の読み方</a>で出力位置と成分順序を確認してください。</p>
-<p>HTTP 200や<code>converged: true</code>は、設計条件との一致や工学的妥当性を保証しません。未知キーが入力経路によって 無視される場合もあるため、正規化保存したモデルを再読込し、要素数、支持、荷重、結果が一致することを確認します。</p>
-<h1><a class="anchor" id="autotoc_md22"></a>
+<p>HTTP 200や<code>converged: true</code>は、設計条件との一致や工学的妥当性を保証しません。未知キーが入力経路によって 無視される場合もあるため、正規化保存したモデルを再読込し、要素数、支持、荷重が一致すること、 解析結果が採用した数値許容差内で一致することを確認します。</p>
+<h1><a class="anchor" id="autotoc_md23"></a>
 5. メッシュとモデル化の感度を確認する</h1>
 <p>変位、反力、代表断面力・応力について、少なくとも粗・標準・細の三段階を比較します。 要素寸法を変えるときは、支持、荷重の合力・作用位置、評価位置を変えません。</p>
 <ul>
@@ -206,7 +229,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2design-practice.html','
 <li>線荷重・面荷重では、構造メッシュと載荷メッシュを別々に変え、荷重配分と構造応答の影響を分ける。</li>
 </ul>
 <p>採用する収束許容値は、設計目的、評価量、規準、モデル化誤差に応じて計算書で定めます。 FEMPythonが一律の合否値を設定するものではありません。</p>
-<h1><a class="anchor" id="autotoc_md23"></a>
+<h1><a class="anchor" id="autotoc_md24"></a>
 6. 独立計算と照合する</h1>
 <p>少なくとも一つ、FEMPythonと同じ実装に依存しない比較を用意します。</p>
 <ul>
@@ -217,7 +240,7 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2design-practice.html','
 <li>重要なモデルは、別の担当者が入力条件と主要結果を再計算する。</li>
 </ul>
 <p>差が出た場合は、単位、支持、局所軸、荷重方向、評価位置、要素定式化、メッシュの順に切り分けます。 単に許容差を緩めて一致としないでください。</p>
-<h1><a class="anchor" id="autotoc_md24"></a>
+<h1><a class="anchor" id="autotoc_md25"></a>
 7. 保存する成果物</h1>
 <p>設計計算の再現に必要な最小セットを保存します。</p>
 <table class="markdownTable">
@@ -234,14 +257,14 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2design-practice.html','
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">解析結果   </td><td class="markdownTableBodyNone"><code>model.save_results()</code>のJSONと必要な図表    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">実行環境   </td><td class="markdownTableBodyNone"><code>metadata.product.version</code>、Python版、使用wheelまたはGitコミット、依存環境    </td></tr>
+<td class="markdownTableBodyNone">実行環境   </td><td class="markdownTableBodyNone"><code>metadata.product.version</code>、Python版、使用したwheelファイルまたはGitコミット、依存環境    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">同一性   </td><td class="markdownTableBodyNone"><code>metadata.input_sha256</code>と、配布する入力・結果ファイルのhash    </td></tr>
+<td class="markdownTableBodyNone">同一性   </td><td class="markdownTableBodyNone"><code>metadata.input_sha256</code>と、配布する入力・結果ファイルのSHA-256ハッシュ    </td></tr>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">照査記録   </td><td class="markdownTableBodyNone">釣合い、独立解、メッシュ感度、異常値、採否判断、担当者・照査者   </td></tr>
 </table>
 <p>エラーや警告が出た試行を削除せず、最終採用結果と区別して残します。入力・結果の保存方法は <a class="el" href="md_docs_2wiki_2file-formats.html">ファイル入出力・VTK</a>、原因の調べ方は<a class="el" href="md_docs_2wiki_2error-handling.html">エラーと対処</a>を参照してください。</p>
-<h1><a class="anchor" id="autotoc_md25"></a>
+<h1><a class="anchor" id="autotoc_md26"></a>
 使用前チェックリスト</h1>
 <ul>
 <li>[ ] 解析目的、採用基準、評価量を明記した。</li>
@@ -249,14 +272,15 @@ $(document).ready(function(){initNavTree('md_docs_2wiki_2design-practice.html','
 <li>[ ] 単位系、全体軸、局所軸、節点順序を確認した。</li>
 <li>[ ] 材料、断面、板厚、密度、支持条件の出典を残した。</li>
 <li>[ ] 荷重ケースを一件ずつ固定し、合力・作用位置・モーメントを別計算した。</li>
+<li>[ ] 空間荷重を使う場合は、載荷方法、平面、領域、方向、合力・モーメント、保存誤差を確認した。</li>
 <li>[ ] 小さな確認モデルが独立解と一致した。</li>
 <li>[ ] 変形形、反力、端力・応力の符号と評価位置を確認した。</li>
 <li>[ ] 外力と支点反力の合力・モーメントが釣り合った。</li>
 <li>[ ] 粗・標準・細モデルで主要結果の感度を確認した。</li>
 <li>[ ] 特異点のピーク値を無条件に設計値へ採用していない。</li>
-<li>[ ] 入力、結果、メタデータ、使用版、hash、照査記録を保存した。</li>
+<li>[ ] 入力、結果、メタデータ、使用版、SHA-256ハッシュ、照査記録を保存した。</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md26"></a>
+<h1><a class="anchor" id="autotoc_md27"></a>
 使用を止めて見直す条件</h1>
 <p>次の場合は結果を採用せず、モデルまたは解析方法を見直します。</p>
 <ul>

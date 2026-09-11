@@ -1,8 +1,4 @@
 var searchData=
 [
-  ['結果にアクセスする_0',['結果にアクセスする',['../md_docs_2wiki_2quick-reference.html#autotoc_md102',1,'']]],
-  ['結果の読み方_1',['結果の読み方',['../md_docs_2wiki_2results.html',1,'']]],
-  ['結果を保存する_2',['4. 結果を保存する',['../md_docs_2wiki_2getting-started.html#autotoc_md75',1,'']]],
-  ['結果メタデータ_3',['結果メタデータ',['../md_docs_2wiki_2results.html#autotoc_md107',1,'']]],
-  ['結果json_4',['結果JSON',['../md_docs_2wiki_2file-formats.html#autotoc_md67',1,'']]]
+  ['空間線荷重・空間面荷重（_20tt_20spatial_5floads_20tt_20）_0',['空間線荷重・空間面荷重（&lt;tt&gt;spatial_loads&lt;/tt&gt;）',['../md_docs_2wiki_2design-practice.html#autotoc_md21',1,'']]]
 ];

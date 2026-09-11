@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['分割前の部材との対応_0',['分割前の部材との対応',['../md_docs_2wiki_2results.html#autotoc_md111',1,'']]],
-  ['分布荷重と着目位置での分割_1',['分布荷重と着目位置での分割',['../md_docs_2wiki_2examples.html#autotoc_md54',1,'']]]
+  ['出力と失敗時の扱い_0',['出力と失敗時の扱い',['../md_docs_2wiki_2spatial-loads.html#autotoc_md130',1,'']]]
 ];

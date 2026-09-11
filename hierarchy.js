@@ -3,6 +3,16 @@ var hierarchy =
     [ "fem.elements.advanced_element.AdvancedElement", "classfem_1_1elements_1_1advanced__element_1_1AdvancedElement.html", null ],
     [ "fem.spatial_loads.validation.AreaPiece", "classfem_1_1spatial__loads_1_1validation_1_1AreaPiece.html", null ],
     [ "fem.spatial_loads.assembler.AssemblyTolerance", "classfem_1_1spatial__loads_1_1assembler_1_1AssemblyTolerance.html", null ],
+    [ "fem.nonlinear.axial_bending_response.AxialBendingPlaneResponse", "classfem_1_1nonlinear_1_1axial__bending__response_1_1AxialBendingPlaneResponse.html", null ],
+    [ "fem.nonlinear.axial_bending_response.AxialBendingPlaneState", "classfem_1_1nonlinear_1_1axial__bending__response_1_1AxialBendingPlaneState.html", null ],
+    [ "fem.nonlinear.axial_force_targets.AxialForceCurvatureResponse", "classfem_1_1nonlinear_1_1axial__force__targets_1_1AxialForceCurvatureResponse.html", null ],
+    [ "fem.nonlinear.axial_force_history.AxialForceHistoryEvent", "classfem_1_1nonlinear_1_1axial__force__history_1_1AxialForceHistoryEvent.html", null ],
+    [ "fem.nonlinear.axial_force_history.AxialForceHistoryState", "classfem_1_1nonlinear_1_1axial__force__history_1_1AxialForceHistoryState.html", null ],
+    [ "fem.nonlinear.axial_force_history.AxialForceHoldResponse", "classfem_1_1nonlinear_1_1axial__force__history_1_1AxialForceHoldResponse.html", null ],
+    [ "fem.nonlinear.axial_force_path.AxialForcePathEvent", "classfem_1_1nonlinear_1_1axial__force__path_1_1AxialForcePathEvent.html", null ],
+    [ "fem.nonlinear.axial_force_path.AxialForcePathResponse", "classfem_1_1nonlinear_1_1axial__force__path_1_1AxialForcePathResponse.html", null ],
+    [ "fem.nonlinear.axial_force_table.AxialForceRow", "classfem_1_1nonlinear_1_1axial__force__table_1_1AxialForceRow.html", null ],
+    [ "fem.nonlinear.axial_force_table.AxialForceTable", "classfem_1_1nonlinear_1_1axial__force__table_1_1AxialForceTable.html", null ],
     [ "fem.material.BarParameter", "classfem_1_1material_1_1BarParameter.html", null ],
     [ "fem.elements.base_element.BaseElement", "classfem_1_1elements_1_1base__element_1_1BaseElement.html", [
       [ "fem.elements.advanced_element.Hexa20Element", "classfem_1_1elements_1_1advanced__element_1_1Hexa20Element.html", null ],
@@ -24,9 +34,12 @@ var hierarchy =
         [ "fem.elements.solid_element.WedgeElement", "classfem_1_1elements_1_1solid__element_1_1WedgeElement.html", null ]
       ] ]
     ] ],
+    [ "fem.nonlinear.beam_section_response.BendingPlaneResponse", "classfem_1_1nonlinear_1_1beam__section__response_1_1BendingPlaneResponse.html", null ],
+    [ "fem.nonlinear.beam_section_response.BendingPlaneState", "classfem_1_1nonlinear_1_1beam__section__response_1_1BendingPlaneState.html", null ],
     [ "fem.boundary_condition.BoundaryCondition", "classfem_1_1boundary__condition_1_1BoundaryCondition.html", null ],
     [ "app.components.load.CaseComb", "classapp_1_1components_1_1load_1_1CaseComb.html", null ],
     [ "fem.spatial_loads.assembler.CellLoadContribution", "classfem_1_1spatial__loads_1_1assembler_1_1CellLoadContribution.html", null ],
+    [ "fem.nonlinear.beam_section_response.CurvatureInterval", "classfem_1_1nonlinear_1_1beam__section__response_1_1CurvatureInterval.html", null ],
     [ "fem.diagnostics.DiagnosticErrorMixin", "classfem_1_1diagnostics_1_1DiagnosticErrorMixin.html", [
       [ "fem.diagnostics.InputValidationError", "classfem_1_1diagnostics_1_1InputValidationError.html", null ],
       [ "fem.diagnostics.ModalConvergenceError", "classfem_1_1diagnostics_1_1ModalConvergenceError.html", null ],
@@ -95,6 +108,8 @@ var hierarchy =
     [ "fem.nonlinear.hysteresis.base_hysteresis.HysteresisState", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1HysteresisState.html", null ],
     [ "app.inputData.InputData", "classapp_1_1inputData_1_1InputData.html", null ],
     [ "fem.spatial_loads.quadrature.IntegralResult", "classfem_1_1spatial__loads_1_1quadrature_1_1IntegralResult.html", null ],
+    [ "fem.nonlinear.axial_force_table.InterpolatedSkeleton", "classfem_1_1nonlinear_1_1axial__force__table_1_1InterpolatedSkeleton.html", null ],
+    [ "fem.nonlinear.hysteresis.base_hysteresis.JRReloadTarget", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1JRReloadTarget.html", null ],
     [ "fem.nonlinear.hysteresis.jr_stiffness_reduction.JRStiffnessReductionParams", "classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionParams.html", null ],
     [ "fem.spatial_loads.geometry.LinePiece", "classfem_1_1spatial__loads_1_1geometry_1_1LinePiece.html", null ],
     [ "fem.boundary_condition.Load", "classfem_1_1boundary__condition_1_1Load.html", null ],
@@ -113,6 +128,7 @@ var hierarchy =
     [ "fem.spatial_loads.validation.PreparedLoad", "classfem_1_1spatial__loads_1_1validation_1_1PreparedLoad.html", null ],
     [ "fem.boundary_condition.Pressure", "classfem_1_1boundary__condition_1_1Pressure.html", null ],
     [ "fem.spatial_loads.interpolation.ProjectedPath", "classfem_1_1spatial__loads_1_1interpolation_1_1ProjectedPath.html", null ],
+    [ "fem.nonlinear.axial_force_targets.ReloadTargetResponse", "classfem_1_1nonlinear_1_1axial__force__targets_1_1ReloadTargetResponse.html", null ],
     [ "fem.boundary_condition.Restraint", "classfem_1_1boundary__condition_1_1Restraint.html", null ],
     [ "fem.result_processor.ResultProcessor", "classfem_1_1result__processor_1_1ResultProcessor.html", null ],
     [ "RuntimeError", null, [
@@ -121,6 +137,8 @@ var hierarchy =
     ] ],
     [ "fem.section.Section", "classfem_1_1section_1_1Section.html", null ],
     [ "fem.material.ShellParameter", "classfem_1_1material_1_1ShellParameter.html", null ],
+    [ "fem.nonlinear.axial_force_table.SkeletonPoints", "classfem_1_1nonlinear_1_1axial__force__table_1_1SkeletonPoints.html", null ],
+    [ "fem.nonlinear.axial_force_table.SkeletonResponse", "classfem_1_1nonlinear_1_1axial__force__table_1_1SkeletonResponse.html", null ],
     [ "app.components.solid.Solid", "classapp_1_1components_1_1solid_1_1Solid.html", null ],
     [ "fem.elements.solid_element.SolidElement", "classfem_1_1elements_1_1solid__element_1_1SolidElement.html", null ],
     [ "fem.solver.Solver", "classfem_1_1solver_1_1Solver.html", null ],
@@ -145,7 +163,9 @@ var hierarchy =
     [ "fem.vtk_writer.VTKWriter", "classfem_1_1vtk__writer_1_1VTKWriter.html", null ],
     [ "ABC", null, [
       [ "fem.nonlinear.hysteresis.base_hysteresis.BaseHysteresis", "classfem_1_1nonlinear_1_1hysteresis_1_1base__hysteresis_1_1BaseHysteresis.html", [
-        [ "fem.nonlinear.hysteresis.jr_stiffness_reduction.JRStiffnessReductionModel", "classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel.html", null ]
+        [ "fem.nonlinear.hysteresis.jr_stiffness_reduction.JRStiffnessReductionModel", "classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionModel.html", [
+          [ "fem.nonlinear.axial_force_targets._FixedNdTargetModel", "classfem_1_1nonlinear_1_1axial__force__targets_1_1__FixedNdTargetModel.html", null ]
+        ] ]
       ] ],
       [ "fem.section.BaseSection", "classfem_1_1section_1_1BaseSection.html", [
         [ "fem.section.CircleSection", "classfem_1_1section_1_1CircleSection.html", [

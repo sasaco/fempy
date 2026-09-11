@@ -8,5 +8,7 @@ var classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement =
     [ "get_hysteresis_state", "classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#a1faa38bad2c913c53d6210a247c48046", null ],
     [ "get_max_displacement", "classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#af48a7a6c79553c8956731d63fe37be4d", null ],
     [ "get_name", "classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#ad20c74757915106df2cb9bd01ce2fe23", null ],
+    [ "get_section_response", "classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#ac790cd06f54aa16ea7b2eb3a4ae21f36", null ],
+    [ "set_axial_force_table", "classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#aafff7238b2f431d25b636be440148966", null ],
     [ "set_hysteresis_model", "classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#a99222d531282bccb81e1d08e11875afa", null ]
 ];

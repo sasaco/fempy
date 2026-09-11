@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['計算条件を固定する_0',['1. 計算条件を固定する',['../md_docs_2wiki_2design-practice.html#autotoc_md17',1,'']]]
+  ['要素と解析の選び方_0',['要素と解析の選び方',['../md_docs_2wiki_2elements.html',1,'']]]
 ];

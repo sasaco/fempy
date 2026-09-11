@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['部材の分割_0',['2. 部材の分割',['../md_docs_2wiki_2workflow.html#autotoc_md132',1,'']]],
-  ['部材途中の荷重_1',['部材途中の荷重',['../md_docs_2wiki_2data-structures.html#autotoc_md10',1,'']]]
+  ['通常の支持・支持ばね_0',['通常の支持・支持ばね',['../md_docs_2wiki_2data-structures.html#autotoc_md6',1,'']]],
+  ['通常jsonで解析する_1',['通常JSONで解析する',['../md_docs_2wiki_2endpoints.html#autotoc_md40',1,'']]]
 ];

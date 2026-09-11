@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['二次四面体の応力_0',['二次四面体の応力',['../md_docs_2wiki_2examples.html#autotoc_md59',1,'']]]
+  ['中央断面の材料応答_0',['中央断面の材料応答',['../md_docs_2wiki_2results.html#autotoc_md117',1,'']]]
 ];

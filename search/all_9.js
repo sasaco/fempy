@@ -7,10 +7,12 @@ var searchData=
   ['basesection_4',['BaseSection',['../classfem_1_1section_1_1BaseSection.html',1,'fem::section']]],
   ['beam_5',['Beam',['../classapp_1_1components_1_1member_1_1Beam.html',1,'app::components::member']]],
   ['bebarelement_6',['BEBarElement',['../classfem_1_1elements_1_1bar__element_1_1BEBarElement.html',1,'fem::elements::bar_element']]],
-  ['boundary_5fmap_7',['boundary_map',['../namespacefem_1_1elements_1_1loaded__bar__element.html#a31241a1b2f19f9a65b560b6695b0fbab',1,'fem::elements::loaded_bar_element']]],
-  ['boundarycondition_8',['BoundaryCondition',['../classfem_1_1boundary__condition_1_1BoundaryCondition.html',1,'fem::boundary_condition']]],
-  ['boundarytype_9',['BoundaryType',['../classfem_1_1boundary__condition_1_1BoundaryType.html',1,'fem::boundary_condition']]],
-  ['build_5fresult_5fmetadata_10',['build_result_metadata',['../namespacefem_1_1solver__results.html#a6a4adfb58e5c85b30ec1b51608523c90',1,'fem::solver_results']]],
-  ['build_5fstrip_11',['build_strip',['../namespacefem_1_1spatial__loads_1_1interpolation.html#a09937a241e8af2031519388dac60252c',1,'fem::spatial_loads::interpolation']]],
-  ['bulk_5fmodulus_12',['bulk_modulus',['../classfem_1_1material_1_1MaterialProperty.html#a7e980c5a0a0e13526e26e70587c2312a',1,'fem::material::MaterialProperty']]]
+  ['bendingplaneresponse_7',['BendingPlaneResponse',['../classfem_1_1nonlinear_1_1beam__section__response_1_1BendingPlaneResponse.html',1,'fem::nonlinear::beam_section_response']]],
+  ['bendingplanestate_8',['BendingPlaneState',['../classfem_1_1nonlinear_1_1beam__section__response_1_1BendingPlaneState.html',1,'fem::nonlinear::beam_section_response']]],
+  ['boundary_5fmap_9',['boundary_map',['../namespacefem_1_1elements_1_1loaded__bar__element.html#a31241a1b2f19f9a65b560b6695b0fbab',1,'fem::elements::loaded_bar_element']]],
+  ['boundarycondition_10',['BoundaryCondition',['../classfem_1_1boundary__condition_1_1BoundaryCondition.html',1,'fem::boundary_condition']]],
+  ['boundarytype_11',['BoundaryType',['../classfem_1_1boundary__condition_1_1BoundaryType.html',1,'fem::boundary_condition']]],
+  ['build_5fresult_5fmetadata_12',['build_result_metadata',['../namespacefem_1_1solver__results.html#a6a4adfb58e5c85b30ec1b51608523c90',1,'fem::solver_results']]],
+  ['build_5fstrip_13',['build_strip',['../namespacefem_1_1spatial__loads_1_1interpolation.html#a09937a241e8af2031519388dac60252c',1,'fem::spatial_loads::interpolation']]],
+  ['bulk_5fmodulus_14',['bulk_modulus',['../classfem_1_1material_1_1MaterialProperty.html#a7e980c5a0a0e13526e26e70587c2312a',1,'fem::material::MaterialProperty']]]
 ];

@@ -125,6 +125,8 @@ fem.elements.nonlinear_bar_element.NonlinearBarElement の継承関係図</div>
 <tr class="separator:ad20c74757915106df2cb9bd01ce2fe23"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a99222d531282bccb81e1d08e11875afa" id="r_a99222d531282bccb81e1d08e11875afa"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#a99222d531282bccb81e1d08e11875afa">set_hysteresis_model</a> (self, str dof, <a class="el" href="classfem_1_1nonlinear_1_1hysteresis_1_1jr__stiffness__reduction_1_1JRStiffnessReductionParams.html">JRStiffnessReductionParams</a> params)</td></tr>
 <tr class="separator:a99222d531282bccb81e1d08e11875afa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aafff7238b2f431d25b636be440148966" id="r_aafff7238b2f431d25b636be440148966"><td class="memItemLeft" align="right" valign="top">None&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#aafff7238b2f431d25b636be440148966">set_axial_force_table</a> (self, str dof, <a class="el" href="classfem_1_1nonlinear_1_1axial__force__table_1_1AxialForceTable.html">AxialForceTable</a> table)</td></tr>
+<tr class="separator:aafff7238b2f431d25b636be440148966"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a565870863ec9a308c990cc22a9570e50" id="r_a565870863ec9a308c990cc22a9570e50"><td class="memItemLeft" align="right" valign="top"><a id="a565870863ec9a308c990cc22a9570e50" name="a565870863ec9a308c990cc22a9570e50"></a>
 np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><b>get_internal_force</b> (self, np.ndarray displacement)</td></tr>
 <tr class="separator:a565870863ec9a308c990cc22a9570e50"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -136,6 +138,8 @@ np.ndarray&#160;</td><td class="memItemRight" valign="bottom"><b>get_tangent_sti
 <tr class="memitem:a5b4fe58cfcb39c479ed1412d817d044e" id="r_a5b4fe58cfcb39c479ed1412d817d044e"><td class="memItemLeft" align="right" valign="top"><a id="a5b4fe58cfcb39c479ed1412d817d044e" name="a5b4fe58cfcb39c479ed1412d817d044e"></a>
 None&#160;</td><td class="memItemRight" valign="bottom"><b>commit_state</b> (self)</td></tr>
 <tr class="separator:a5b4fe58cfcb39c479ed1412d817d044e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac790cd06f54aa16ea7b2eb3a4ae21f36" id="r_ac790cd06f54aa16ea7b2eb3a4ae21f36"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#ac790cd06f54aa16ea7b2eb3a4ae21f36">get_section_response</a> (self)</td></tr>
+<tr class="separator:ac790cd06f54aa16ea7b2eb3a4ae21f36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a193e033b02fd5c1fa2da5046b5e25470" id="r_a193e033b02fd5c1fa2da5046b5e25470"><td class="memItemLeft" align="right" valign="top">Dict[str, float]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfem_1_1elements_1_1nonlinear__bar__element_1_1NonlinearBarElement.html#a193e033b02fd5c1fa2da5046b5e25470">calculate_curvature</a> (self, np.ndarray displacement)</td></tr>
 <tr class="separator:a193e033b02fd5c1fa2da5046b5e25470"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc90dcbb9180fa270c4c1100bb5390b3" id="r_abc90dcbb9180fa270c4c1100bb5390b3"><td class="memItemLeft" align="right" valign="top"><a id="abc90dcbb9180fa270c4c1100bb5390b3" name="abc90dcbb9180fa270c4c1100bb5390b3"></a>
@@ -203,9 +207,18 @@ List[str]&#160;</td><td class="memItemRight" valign="bottom"><b>get_nonlinear_do
 <tr class="memitem:ae605dd886e755f4ddf70f4037af17fc8" id="r_ae605dd886e755f4ddf70f4037af17fc8"><td class="memItemLeft" align="right" valign="top"><a id="ae605dd886e755f4ddf70f4037af17fc8" name="ae605dd886e755f4ddf70f4037af17fc8"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>current_states</b></td></tr>
 <tr class="separator:ae605dd886e755f4ddf70f4037af17fc8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f3d326a984dca9b3724e7c5d5863b08" id="r_a4f3d326a984dca9b3724e7c5d5863b08"><td class="memItemLeft" align="right" valign="top"><a id="a4f3d326a984dca9b3724e7c5d5863b08" name="a4f3d326a984dca9b3724e7c5d5863b08"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>current_bending_states</b></td></tr>
+<tr class="separator:a4f3d326a984dca9b3724e7c5d5863b08"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a744afa7c92f0612789fadc60f33a4f95" id="r_a744afa7c92f0612789fadc60f33a4f95"><td class="memItemLeft" align="right" valign="top"><a id="a744afa7c92f0612789fadc60f33a4f95" name="a744afa7c92f0612789fadc60f33a4f95"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>committed_states</b></td></tr>
 <tr class="separator:a744afa7c92f0612789fadc60f33a4f95"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a835f1b207d9c957afd81bd91fa1b3c90" id="r_a835f1b207d9c957afd81bd91fa1b3c90"><td class="memItemLeft" align="right" valign="top"><a id="a835f1b207d9c957afd81bd91fa1b3c90" name="a835f1b207d9c957afd81bd91fa1b3c90"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>committed_bending_states</b></td></tr>
+<tr class="separator:a835f1b207d9c957afd81bd91fa1b3c90"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab48f09fc1a0c402f9d21cd66bf6e1ede" id="r_ab48f09fc1a0c402f9d21cd66bf6e1ede"><td class="memItemLeft" align="right" valign="top"><a id="ab48f09fc1a0c402f9d21cd66bf6e1ede" name="ab48f09fc1a0c402f9d21cd66bf6e1ede"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>axial_force_tables</b></td></tr>
+<tr class="separator:ab48f09fc1a0c402f9d21cd66bf6e1ede"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7f4e458ee37e8ea4aa9699163b7959d3" id="r_a7f4e458ee37e8ea4aa9699163b7959d3"><td class="memItemLeft" align="right" valign="top"><a id="a7f4e458ee37e8ea4aa9699163b7959d3" name="a7f4e458ee37e8ea4aa9699163b7959d3"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>hysteresis_models</b></td></tr>
 <tr class="separator:a7f4e458ee37e8ea4aa9699163b7959d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -284,6 +297,12 @@ List[str]&#160;</td><td class="memItemRight" valign="bottom"><b>get_nonlinear_do
 <tr class="memitem:a0d354c5936d42b5af5571a0bda37703c" id="r_a0d354c5936d42b5af5571a0bda37703c"><td class="memItemLeft" align="right" valign="top"><a id="a0d354c5936d42b5af5571a0bda37703c" name="a0d354c5936d42b5af5571a0bda37703c"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>_committed_response</b></td></tr>
 <tr class="separator:a0d354c5936d42b5af5571a0bda37703c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2160cdee4d52442996144e16868e50c6" id="r_a2160cdee4d52442996144e16868e50c6"><td class="memItemLeft" align="right" valign="top"><a id="a2160cdee4d52442996144e16868e50c6" name="a2160cdee4d52442996144e16868e50c6"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>_trial_section_response</b></td></tr>
+<tr class="separator:a2160cdee4d52442996144e16868e50c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae04693c0daf35ae9231532aaac80fe9c" id="r_ae04693c0daf35ae9231532aaac80fe9c"><td class="memItemLeft" align="right" valign="top"><a id="ae04693c0daf35ae9231532aaac80fe9c" name="ae04693c0daf35ae9231532aaac80fe9c"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>_committed_section_response</b></td></tr>
+<tr class="separator:ae04693c0daf35ae9231532aaac80fe9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 その他の継承メンバ</h2></td></tr>
@@ -573,6 +592,58 @@ after commit (re-evaluating a JR branch could change its force).
 <pre class="fragment">要素タイプ名を取得</pre> 
 <p><a class="el" href="classfem_1_1elements_1_1bar__element_1_1BarElement.html#ae0045bc562cf955c754cb15b3cd1a81f">fem.elements.bar_element.BarElement</a>を再実装しています。</p>
 
+</div>
+</div>
+<a id="ac790cd06f54aa16ea7b2eb3a4ae21f36" name="ac790cd06f54aa16ea7b2eb3a4ae21f36"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac790cd06f54aa16ea7b2eb3a4ae21f36">&#9670;&#160;</a></span>get_section_response()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">fem.elements.nonlinear_bar_element.NonlinearBarElement.get_section_response </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Accepted central bending response, without re-evaluating history.</pre> 
+</div>
+</div>
+<a id="aafff7238b2f431d25b636be440148966" name="aafff7238b2f431d25b636be440148966"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aafff7238b2f431d25b636be440148966">&#9670;&#160;</a></span>set_axial_force_table()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> None fem.elements.nonlinear_bar_element.NonlinearBarElement.set_axial_force_table </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str&#160;</td>
+          <td class="paramname"><em>dof</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classfem_1_1nonlinear_1_1axial__force__table_1_1AxialForceTable.html">AxialForceTable</a>&#160;</td>
+          <td class="paramname"><em>table</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Set an immutable Nd-dependent JR law for one bending axis.</pre> 
 </div>
 </div>
 <a id="a99222d531282bccb81e1d08e11875afa" name="a99222d531282bccb81e1d08e11875afa"></a>
