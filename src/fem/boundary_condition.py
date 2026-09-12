@@ -141,6 +141,8 @@ class BoundaryCondition:
     
     def __init__(self):
         self.restraints: Dict[int, Restraint] = {}
+        self.spring_supports: Dict[int, dict] = {}
+        self.nonlinear_spring_supports: Dict[int, dict] = {}
         self.loads: Dict[int, Load] = {}
         self.distributed_loads: List[DistributedLoad] = []
         self.temperatures: Dict[int, Temperature] = {}
@@ -221,6 +223,8 @@ class BoundaryCondition:
     def clear(self) -> None:
         """すべての境界条件をクリア"""
         self.restraints.clear()
+        self.spring_supports.clear()
+        self.nonlinear_spring_supports.clear()
         self.loads.clear()
         self.distributed_loads.clear()
         self.temperatures.clear()

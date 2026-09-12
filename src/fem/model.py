@@ -273,6 +273,8 @@ class FemModel:
             direction: 方向 ('x', 'y', 'z', 'rx', 'ry', 'rz')
             stiffness: バネ定数
         """
+        if direction in self.boundary.nonlinear_spring_supports.get(node_id, {}):
+            raise ValueError(f'node {node_id} direction {direction}: conflicting nonlinear spring')
         # 既存の拘束条件を取得または新規作成
         restraint = self.boundary.get_restraint(node_id)
         if restraint is None:
@@ -288,6 +290,21 @@ class FemModel:
             self.boundary.spring_supports[node_id] = {}
             
         self.boundary.spring_supports[node_id][direction] = stiffness
+
+    def add_slip_spring_support(self, node_id: int, direction: str,
+                                K1: float, K2: float, delta_1: float) -> None:
+        """Add a global grounded slip spring; all parameters use consistent units."""
+        from .nonlinear.support_springs import add_nonlinear_support, validate_support_definitions
+        location = f'nonlinear_spring_supports node {node_id} direction {direction}'
+        if isinstance(node_id, (bool, np.bool_)) or not isinstance(node_id, (int, np.integer)):
+            raise ValueError(f'{location}: node must be an integer')
+        if not isinstance(direction, str):
+            raise ValueError(f'{location}: direction must be a string')
+        candidate = deepcopy(self.boundary)
+        add_nonlinear_support(candidate, node_id, direction,
+                               dict(type='slip', K1=K1, K2=K2, delta_1=delta_1), location)
+        validate_support_definitions(candidate, self.mesh)
+        self.boundary.nonlinear_spring_supports = candidate.nonlinear_spring_supports
         
     def add_distributed_load(self, element_id: int, direction: str, 
                            value_i: float, value_j: float) -> None:
@@ -427,7 +444,7 @@ class FemModel:
                 - displacement_control: node、dofとtargetまたはtargetsで指定する変位制御。
                   荷重係数を未知数として負勾配を追跡する。load_factorsとは排他。
             analysis_type省略時は入力の指定を使い、それもなければ
-            nonlinear_barを含む場合material_nonlinear、それ以外はstatic。
+            nonlinear_barまたはスリップ支持ばねを含む場合material_nonlinear、それ以外はstatic。
 
         Returns:
             解析結果
@@ -440,8 +457,8 @@ class FemModel:
         if analysis_type is None:
             analysis_type = self.analysis_type
         if analysis_type is None:
-            analysis_type = ('material_nonlinear' if any(e['type'] == 'nonlinear_bar'
-                            for e in self.mesh.elements.values()) else 'static')
+            analysis_type = ('material_nonlinear' if self.boundary.nonlinear_spring_supports
+                            or any(e['type'] == 'nonlinear_bar' for e in self.mesh.elements.values()) else 'static')
         if analysis_type not in ('static', 'modal', 'material_nonlinear'):
             raise UnsupportedAnalysisError(
                 f'Unknown analysis type: {analysis_type}',
@@ -972,8 +989,8 @@ class FemModel:
             return
         solver = self.solver
         total = solver.load_vector
-        prescribed, springs = solver._get_boundary_dofs(self.boundary, len(total), stride)
-        blocked_dofs = prescribed.keys() | springs.keys()
+        resolved = solver._resolve_boundary_dofs(self.boundary, len(total), stride)
+        blocked_dofs = resolved.prescribed.keys() | resolved.springs.keys() | resolved.nonlinear_springs.keys()
         blocked = {n: {i for i in range(stride) if start+i in blocked_dofs}
                    for n, start in node_offsets.items()}
         tolerance = self.analysis_params.get('tolerance', 1e-6) if self.results['analysis_type'] == 'material_nonlinear' else 1e-8

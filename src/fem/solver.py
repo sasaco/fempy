@@ -56,6 +56,7 @@ class Solver:
         self.analysis_warnings = []
         self.characteristic_length = None
         self.characteristic_length_source = None
+        self.support_springs = None
 
     def clear_spatial_load_state(self):
         """Discard compiled data, including on preflight or solve failure."""
@@ -234,8 +235,13 @@ class Solver:
     def _resolve_boundary_dofs(self, boundary, n_dof, stride):
         # Resolve per operation/step so reanalysis and edited boundaries cannot
         # reuse a stale mapping. Iterations keep their own normalized snapshot.
-        return BoundaryDofs.from_boundary(
+        resolved = BoundaryDofs.from_boundary(
             boundary, n_dof, stride, lambda node: self._node_dof_start(node, stride))
+        if self.support_springs is not None:
+            if self.support_springs.definitions != resolved.nonlinear_springs:
+                raise ValueError('Nonlinear support definitions changed during analysis; rerun solve')
+            resolved.support_state = self.support_springs
+        return resolved
 
     def _prepare_displacement_control(self, control, boundary, n_steps):
         """Validate public displacement-control input and resolve its global DOF."""
@@ -298,7 +304,7 @@ class Solver:
         u = np.zeros(len(F)) if current_displacement is None else current_displacement
         scale = max(float(np.max(np.abs(K.diagonal()))), 1.0)*1e15 if penalty else None
         return resolved.constrain(
-            resolved.add_spring_stiffness(K), resolved.residual(F, u), u,
+            resolved.add_spring_stiffness(K, u), resolved.residual(F, u), u,
             load_factor=load_factor, penalty_scale=scale)
         
     def solve_linear_system(self, K, F):
@@ -355,6 +361,8 @@ class Solver:
         """
         self._reset_analysis_state()
         self._validate_spatial_analysis(boundary, analysis_type)
+        from .nonlinear.support_springs import validate_support_analysis
+        validate_support_analysis(boundary, analysis_type)
         if analysis_type not in ('static', 'material_nonlinear'):
             raise UnsupportedAnalysisError(
                 f'Unknown static analysis type: {analysis_type}',
@@ -383,7 +391,8 @@ class Solver:
 
         self._set_dof_layout(mesh)
         stride = self.layout.stride
-        self._get_boundary_dofs(boundary, self.layout.size, stride)
+        resolved = self._resolve_boundary_dofs(boundary, self.layout.size, stride)
+        self.support_springs = resolved.support_state
         for element in elements.values():
             if hasattr(element, 'reset_states'):
                 element.reset_states()
@@ -437,6 +446,8 @@ class Solver:
                         force = factor*total
                     if not converged:
                         raise NonlinearConvergenceError(step, factor, committed_u)
+                    support_trial = (self.support_springs.evaluate(u)
+                                     if self.support_springs is not None else None)
                     solution = (u, self._last_internal_force, None, iterations)
                 else:
                     solution = direct_step(self, mesh, boundary, elements, force, factor)
@@ -444,6 +455,14 @@ class Solver:
             except Exception as error:
                 if hasattr(error, 'details'):
                     error.details.update(step=step, load_factor=float(factor))
+                    if self.support_springs is not None:
+                        try:
+                            states = self.support_springs.evaluate(u)
+                            error.details['support_response'] = self.support_springs.snapshot(states)
+                        except ValueError:
+                            error.details['support_response'] = self.support_springs.snapshot()
+                if self.support_springs is not None:
+                    self.support_springs.rollback()
                 self.displacement = committed_u.copy()
                 self._last_internal_force = committed_force
                 self.displacement_correction = None
@@ -458,6 +477,8 @@ class Solver:
                     record.update(step=step, **{'lambda': factor})
 
             if nonlinear:
+                if self.support_springs is not None:
+                    self.support_springs.commit(support_trial)
                 for key in previous_factors:
                     elements[key].load_factor = factor
                 for element in elements.values():
@@ -494,6 +515,8 @@ class Solver:
         """Solve the constrained generalized eigenproblem for requested low modes."""
         self._reset_analysis_state()
         self._validate_spatial_analysis(boundary, 'modal')
+        from .nonlinear.support_springs import validate_support_analysis
+        validate_support_analysis(boundary, 'modal')
         if (isinstance(n_modes, (bool, np.bool_)) or
                 not isinstance(n_modes, (int, np.integer)) or n_modes <= 0):
             raise ValueError('n_modes must be a positive integer')
@@ -640,7 +663,10 @@ class Solver:
                       for i, fixed in enumerate(restraint.dof_restraints[:stride]) if fixed}
             if values:
                 result[node_id] = values
-        for node_id, supports in getattr(boundary, 'spring_supports', {}).items():
+        supports_by_node = {node: dict(values) for node, values in boundary.spring_supports.items()}
+        for node, values in boundary.nonlinear_spring_supports.items():
+            supports_by_node.setdefault(node, {}).update(values)
+        for node_id, supports in supports_by_node.items():
             values = result.setdefault(node_id, {})
             for direction in supports:
                 i = SPRING_DIRECTIONS[direction]

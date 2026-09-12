@@ -18,6 +18,8 @@ from .spatial_loads.serialization import (
     to_json as spatial_loads_to_json,
 )
 from .nonlinear.component_laws import law_to_dict, laws_from_dict
+from .nonlinear.hysteresis.slip import parse_slip_spring
+from .nonlinear.support_springs import add_nonlinear_support, validate_support_definitions
 
 
 logger = logging.getLogger(__name__)
@@ -73,6 +75,7 @@ def _read_json_model(data: Dict[str, Any]) -> Dict[str, Any]:
         model_data = _read_legacy_json_model(data, model_data)
         prepare_members(data, model_data)
         _read_explicit_boundary(data.get('boundary_conditions', {}), model_data['boundary'])
+        validate_support_definitions(model_data['boundary'], model_data['mesh'])
         return model_data
     
     # 新形式のノードデータの読み込み
@@ -141,6 +144,7 @@ def _read_json_model(data: Dict[str, Any]) -> Dict[str, Any]:
     if 'spatial_loads' in data:
         model_data['boundary'].spatial_loads = spatial_loads_from_json(
             data['spatial_loads'], model_data['mesh'])
+    validate_support_definitions(model_data['boundary'], model_data['mesh'])
     return model_data
 
 
@@ -156,12 +160,22 @@ def _read_explicit_boundary(data, boundary):
     for node, values in data.get('spring_supports', {}).items():
         supports.setdefault(int(node), {}).update(values)
     boundary.spring_supports = supports
+    nonlinear = data.get('nonlinear_spring_supports', {})
+    if not isinstance(nonlinear, dict):
+        raise ValueError('boundary_conditions.nonlinear_spring_supports must be an object')
+    for node, values in nonlinear.items():
+        if not isinstance(values, dict):
+            raise ValueError(f'nonlinear_spring_supports node {node}: expected direction object')
+        for direction, definition in values.items():
+            add_nonlinear_support(boundary, int(node), direction, definition,
+                                   f'boundary_conditions.nonlinear_spring_supports node {node} direction {direction}')
     if 'auxiliary_restraint_nodes' in data:
         boundary.auxiliary_restraint_nodes = {int(node) for node in data['auxiliary_restraint_nodes']}
         for node in boundary.auxiliary_restraint_nodes:
             restraint = boundary.restraints.get(node)
             if (restraint is None or list(restraint.dof_restraints) != [False,False,True,True,True,False]
-                    or any(restraint.values) or node in supports):
+                    or any(restraint.values) or node in supports
+                    or node in boundary.nonlinear_spring_supports):
                 raise ValueError('Auxiliary restraint metadata must describe only automatic 2D constraints')
 
 
@@ -444,6 +458,7 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
     
     # 拘束条件の読み込み（fix_nodeセクション）
     if 'fix_node' in data:
+        seen_supports = {}
         for case_id, restraints in data['fix_node'].items():
             if not isinstance(restraints, list):
                 continue
@@ -454,8 +469,22 @@ def _read_legacy_json_model(data: Dict[str, Any], model_data: Dict[str, Any]) ->
                     
                 node_id = int(restraint['n'])
                 
-                # 自由度の設定（旧形式では1が拘束、0が自由、>1000がバネ定数）
-                values = [float(restraint.get(k, 0)) for k in ('tx','ty','tz','rx','ry','rz')]
+                # Numeric legacy values: 0 free, 1 fixed, all others linear springs.
+                values = []
+                for key, direction in zip(('tx','ty','tz','rx','ry','rz'), ('x','y','z','rx','ry','rz')):
+                    value = restraint.get(key, 0)
+                    previous = seen_supports.get((node_id, direction), 0)
+                    if ((isinstance(value, dict) and previous != 0)
+                            or (isinstance(previous, dict) and value != 0)):
+                        raise ValueError(f'fix_node[{case_id}] node {node_id} direction {direction}: conflicting support rows')
+                    if value != 0:
+                        seen_supports[node_id, direction] = value
+                    if isinstance(value, dict):
+                        add_nonlinear_support(model_data['boundary'], node_id, direction, value,
+                                               f'fix_node[{case_id}] node {node_id} direction {direction} ({key})')
+                        values.append(0.)
+                    else:
+                        values.append(float(value))
                 if not np.all(np.isfinite(values)):
                     raise ValueError('Support values must be finite')
                 model_data['boundary'].add_restraint(node_id, [v == 1 for v in values])
@@ -670,6 +699,12 @@ def model_to_jsonable(model_data: Dict[str, Any]) -> Dict[str, Any]:
         if boundary.spatial_loads.has_definitions:
             output_data['spatial_loads'] = spatial_loads_to_json(boundary.spatial_loads)
         output_data['boundary_conditions']['spring_supports'] = getattr(boundary, 'spring_supports', {})
+        if boundary.nonlinear_spring_supports:
+            output_data['boundary_conditions']['nonlinear_spring_supports'] = {
+                str(node): {direction: parse_slip_spring(value).to_dict()
+                            for direction, value in supports.items()}
+                for node, supports in boundary.nonlinear_spring_supports.items()
+            }
         output_data['boundary_conditions']['auxiliary_restraint_nodes'] = sorted(getattr(boundary, 'auxiliary_restraint_nodes', set()))
         
         if boundary.restraints:
@@ -711,6 +746,8 @@ def _write_json_model(model_data: Dict[str, Any], file_path: str) -> None:
 def _write_fw3_model(model_data: Dict[str, Any], file_path: str) -> None:
     """FW3フォーマットでモデルを書き込む"""
     boundary = model_data.get('boundary')
+    if boundary is not None and boundary.nonlinear_spring_supports:
+        raise ValueError('Models with nonlinear support springs must be saved as JSON')
     if boundary is not None and boundary.spatial_loads.has_definitions:
         raise ValueError('Models with spatial loads must be saved as JSON, not FW3')
     with open(file_path, 'w', encoding='utf-8') as f:

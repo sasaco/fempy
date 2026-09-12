@@ -36,6 +36,10 @@ class FA_Support:
             rySpr (float): 全体座標系Y軸まわり回転バネ(kNm/rad)
             rzSpr (float): 全体座標系Z軸まわり回転バネ(kNm/rad)
         """
+        for direction, value in zip(('x', 'y', 'z', 'rx', 'ry', 'rz'),
+                                    (dxSpr, dySpr, dzSpr, rxSpr, rySpr, rzSpr)):
+            if isinstance(value, dict):
+                raise ValueError(f'node {iNode} direction {direction}: nonlinear supports require FemModel')
         self.iNode = iNode
         self.dxFix = dxFix
         self.dyFix = dyFix

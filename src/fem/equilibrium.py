@@ -361,11 +361,11 @@ def newton_iteration(
             if iteration == 0 or relative_du < tol:
                 # Zero residual does not establish uniqueness in an unrestrained
                 # system. Check the constrained tangent before accepting it.
-                if iteration == 0:
+                if iteration == 0 or resolved.nonlinear_springs:
                     tangent = self._assemble_tangent_stiffness(
                         mesh, material, elements, u, max_dof_per_node)
                     constrained, rhs = resolved.constrain(
-                        resolved.add_spring_stiffness(tangent), equilibrium.residual, u,
+                        resolved.add_spring_stiffness(tangent, u), equilibrium.residual, u,
                         load_factor=load_factor)
                     try:
                         self._solve_newton_system(constrained, rhs)
@@ -380,7 +380,7 @@ def newton_iteration(
 
         # 境界条件の適用
         K_mod, R_mod = resolved.constrain(
-            resolved.add_spring_stiffness(K_tan), equilibrium.residual, u,
+            resolved.add_spring_stiffness(K_tan, u, direction_hint=equilibrium.residual), equilibrium.residual, u,
             load_factor=load_factor)
 
         # 変位増分の計算
@@ -449,10 +449,10 @@ def displacement_control_iteration(
     selector = np.zeros(len(active))
     selector[control_column] = 1.0
 
-    def augmented_tangent(displacement):
+    def augmented_tangent(displacement, direction_hint=None):
         tangent = self._assemble_tangent_stiffness(
             mesh, material, elements, displacement, max_dof_per_node)
-        supported = resolved.add_spring_stiffness(tangent)
+        supported = resolved.add_spring_stiffness(tangent, displacement, direction_hint=direction_hint)
         return bmat([
             [supported[active][:, active], csr_matrix(-load_pattern[active, None])],
             [csr_matrix(selector[None, :]), csr_matrix((1, 1))],
@@ -508,7 +508,7 @@ def displacement_control_iteration(
             if iteration == 0 or relative_du < tol:
                 # As in load control, a zero residual is accepted only after
                 # proving that the augmented tangent has numerical rank.
-                if iteration == 0:
+                if iteration == 0 or resolved.nonlinear_springs:
                     augmented = augmented_tangent(u)
                     try:
                         self._solve_newton_system(augmented, np.zeros(len(active)+1))
@@ -517,7 +517,9 @@ def displacement_control_iteration(
                 self._last_internal_force = F_int.copy()
                 return True, u, iteration+1, load_factor
 
-        augmented = augmented_tangent(u)
+        predictor = equilibrium.residual.copy()
+        predictor[control_dof] = constraint
+        augmented = augmented_tangent(u, predictor)
         rhs = np.r_[residual_free, constraint]
         try:
             increment = self._solve_newton_system(augmented, rhs)

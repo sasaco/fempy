@@ -4,6 +4,20 @@
 
 継続してモデルを扱う場合はJSONを使います。既存データを読み込むために `.fem` と `.fw3` の入口もありますが、対応範囲が異なります。
 
+## スリップ支持ばねの保存
+
+JSONでは定義を`boundary_conditions.nonlinear_spring_supports`へ保存します。
+線形ばねの`spring_supports`は従来の数値辞書のままです。
+
+```json
+{"boundary_conditions":{"nonlinear_spring_supports":{"30":{"x":{"type":"slip","K1":1000,"K2":100,"delta_1":0.01}}}}}
+```
+
+モデルJSONはばね定義と解析条件を保存し、再読込・再解析で履歴を再現します。
+確定履歴は結果JSONの`support_response`に保存されます。モデルを途中から再開するcheckpointではありません。
+FW3へスリップばねを含むモデルを保存しようとすると、書込み前にエラーになります。
+[履歴例](../examples/slip-support-history.json)・[結果の説明](results.md#スリップ支持の履歴結果)を参照してください。
+
 ## 対応形式
 
 | 形式 | 読込 | 書込 | 用途と範囲 |

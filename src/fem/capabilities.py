@@ -62,6 +62,10 @@ def _validate_registry(registry: dict[str, Any]) -> None:
     analysis_types = set(registry.get("analysis_types", {}))
     load_types = set(registry.get("load_types", {}))
     result_types = set(registry.get("result_types", {}))
+    for name, entry in registry.get('support_types', {}).items():
+        _validate_entry_status(entry, f'support_types.{name}')
+        if not set(entry.get('analysis_types', ())) <= analysis_types:
+            raise RuntimeError(f'Invalid analysis types for support {name}')
     aliases: dict[str, str] = {}
     for canonical, capability in registry.get("elements", {}).items():
         if canonical in aliases:
@@ -154,6 +158,8 @@ def validate_analysis_capabilities(
     registry = _registry()
     if analysis_type not in registry["analysis_types"]:
         raise ValueError(f"Unknown analysis type: {analysis_type}")
+    from .nonlinear.support_springs import validate_support_analysis
+    validate_support_analysis(boundary, analysis_type)
 
     definitions = getattr(boundary, 'spatial_loads', None)
     if definitions is not None and definitions.loads and analysis_type != 'static':

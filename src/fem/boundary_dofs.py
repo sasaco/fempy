@@ -29,11 +29,17 @@ class BoundaryDofs:
     stride: int
     prescribed: dict
     springs: dict
+    nonlinear_springs: dict = field(default_factory=dict)
+    support_state: object = field(default=None, repr=False)
     free: np.ndarray = field(init=False, repr=False)
 
     def __post_init__(self):
         self.prescribed = dict(self.prescribed)
         self.springs = dict(self.springs)
+        self.nonlinear_springs = dict(self.nonlinear_springs)
+        if self.nonlinear_springs and self.support_state is None:
+            from .nonlinear.support_springs import SupportSprings
+            self.support_state = SupportSprings(self.nonlinear_springs)
         free = np.ones(self.size, dtype=bool)
         free[list(self.prescribed)] = False
         self.free = np.flatnonzero(free)
@@ -41,6 +47,7 @@ class BoundaryDofs:
     @classmethod
     def from_boundary(cls, boundary, size, stride, node_start):
         """Resolve external node IDs and the legacy abs(value)>1000 convention."""
+        from .nonlinear.hysteresis.slip import parse_slip_spring
         if stride not in (3, 6):
             raise ValueError('max_dof_per_node must be 3 or 6')
         prescribed, springs = {}, {}
@@ -70,16 +77,43 @@ class BoundaryDofs:
                 if dof in prescribed or dof in springs:
                     raise ValueError('Conflicting restraint and spring at same DOF')
                 springs[dof] = stiffness
-        return cls(size, stride, prescribed, springs)
+        nonlinear = {}
+        for node_id, supports in getattr(boundary, 'nonlinear_spring_supports', {}).items():
+            if not isinstance(supports, dict):
+                raise ValueError(f'nonlinear_spring_supports node {node_id}: expected direction object')
+            for direction, definition in supports.items():
+                location = f'nonlinear_spring_supports node {node_id} direction {direction}'
+                try:
+                    base = node_start(node_id)
+                except (KeyError, ValueError) as error:
+                    raise ValueError(f'{location}: unknown node') from error
+                if base < 0 or base + stride > size:
+                    raise ValueError(f'{location}: node is outside the DOF vector')
+                if direction not in SPRING_DIRECTIONS or SPRING_DIRECTIONS[direction] >= stride:
+                    raise ValueError(f'{location}: invalid direction for {stride} DOFs')
+                dof = base + SPRING_DIRECTIONS[direction]
+                if dof in prescribed or dof in springs or dof in nonlinear:
+                    raise ValueError(f'{location}: conflicting restraint or spring at same DOF')
+                nonlinear[dof] = (node_id, direction, parse_slip_spring(definition, location=location))
+        return cls(size, stride, prescribed, springs, nonlinear)
 
-    def add_spring_stiffness(self, tangent):
+    def add_spring_stiffness(self, tangent, u=None, *, direction_hint=None):
         supported = lil_matrix(tangent, copy=True)
         for dof, stiffness in self.springs.items():
             supported[dof, dof] += stiffness
+        if self.support_state is not None:
+            if u is None:
+                raise ValueError('Nonlinear support tangent requires a displacement')
+            for dof, state in self.support_state.evaluate(u, direction_hint).items():
+                supported[dof, dof] += state.tangent
         return supported.tocsr()
 
     def spring_force(self, u, correction=None):
-        return spring_force(u, self.springs, correction)
+        force = spring_force(u, self.springs, correction)
+        if self.support_state is not None:
+            for dof, state in self.support_state.evaluate(u if correction is None else u+correction).items():
+                force[dof] += state.force
+        return force
 
     def residual(self, structural_residual, u, correction=None):
         """Subtract support forces from external minus element internal forces.
@@ -94,6 +128,9 @@ class BoundaryDofs:
             for dof, stiffness in self.springs.items():
                 residual[dof] = fsum([residual[dof], -stiffness*u[dof],
                                       -stiffness*correction[dof]])
+            if self.support_state is not None:
+                for dof, state in self.support_state.evaluate(u+correction).items():
+                    residual[dof] -= state.force
         return residual
 
     def project(self, vector):

@@ -33,6 +33,10 @@ class Support(FA_Support):
             rzSup (float): 全体座標系Z軸まわり回転の拘束条件{0:自由,1:拘束,それ以外:バネ値(kNm/rad)}
             for2D (bool): 2Dモード用の補助支点か否か
         """
+        for direction, value in zip(('x', 'y', 'z', 'rx', 'ry', 'rz'),
+                                    (dxSup, dySup, dzSup, rxSup, rySup, rzSup)):
+            if isinstance(value, dict):
+                raise ValueError(f'node {iNode} direction {direction}: nonlinear supports require FemModel')
         dxFix = True if dxSup == 1 else False
         dyFix = True if dySup == 1 else False
         dzFix = True if dzSup == 1 else False

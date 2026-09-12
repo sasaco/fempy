@@ -10,6 +10,18 @@
     "material_nonlinear": {"label_ja": "材料非線形解析"},
     "modal": {"label_ja": "固有値解析"}
   },
+  "support_types": {
+    "slip": {
+      "label_ja": "スリップ支持ばね",
+      "status": "verified",
+      "analysis_types": ["material_nonlinear"],
+      "directions": ["x", "y", "z", "rx", "ry", "rz"],
+      "verified_elements": ["bar", "nonlinear_bar", "shell", "tetra"],
+      "parameters": ["K1", "K2", "delta_1"],
+      "result": "support_response",
+      "note": "Global grounded symmetric slip spring. K1>0, delta_1>0, 0<=K2<=K1. Rotations require 6 DOFs. Other element combinations follow the material_nonlinear element registry; dedicated verification is listed above."
+    }
+  },
   "load_types": {
     "nodal": {"label_ja": "節点荷重"},
     "prescribed_displacement": {"label_ja": "強制変位"},

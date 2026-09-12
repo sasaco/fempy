@@ -571,6 +571,9 @@ def make_supports(supRaws: list[dict], nodes: list[Node], mode: int) -> list[Sup
     """
     supports: list[Support] = []
     for supRaw in supRaws:
+        for direction in ('tx', 'ty', 'tz', 'rx', 'ry', 'rz'):
+            if isinstance(supRaw.get(direction), dict):
+                raise ValueError(f'node {supRaw.get("n")} direction {direction}: nonlinear supports require FemModel')
         # 節点の取得
         nNode = convInt(supRaw['n']) if ('n' in supRaw) and isInt(supRaw['n']) else 0
         iNode = get_nodeIndex(nNode, nodes)

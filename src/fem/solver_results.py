@@ -105,6 +105,8 @@ def build_result_metadata(model, analysis_type):
         "input_sha256": hashlib.sha256(canonical).hexdigest(),
         "analysis": {
             "type": analysis_type,
+            **({'support_models': ['slip_v1']}
+               if model.boundary.nonlinear_spring_supports else {}),
             **({'beam_formulation': (
                     'jr_axial_force_updated_inertia_v1'
                     if any(getattr(e, 'axial_force_tables', {}) for e in model.elements.values())
@@ -152,6 +154,8 @@ def snapshot(solver, mesh, boundary, elements, solution, force, step, factor, no
         converged=True, iterations=iterations,
     )
     if nonlinear:
+        if solver.support_springs is not None:
+            result['support_response'] = solver.support_springs.snapshot()
         result['element_stresses'] = solver._element_end_forces(elements, u, solver.layout.stride)
         result['curvature'] = solver._element_curvatures(elements, u, solver.layout.stride)
         result['section_response'] = {
@@ -190,7 +194,7 @@ def final_result(solver, nonlinear):
         # The historical low-level result has no final element_stresses key;
         # FemModel consumes the accepted end-force snapshot during postprocess.
         keys = ('displacement', 'node_displacements', 'reaction_forces', 'curvature',
-                'section_response', 'converged')
+                'section_response', 'support_response', 'converged')
         if last.get('control_mode') == 'displacement':
             keys += ('lambda', 'control_mode', 'control_node', 'control_dof',
                      'control_displacement')

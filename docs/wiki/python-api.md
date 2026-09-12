@@ -4,6 +4,26 @@
 
 通常は`FemModel`を入口にします。節点・材料・断面・要素・支持・荷重を作り、`run()`で解析します。要素の追加時に材料や座標を参照するため、以下の順序で設定してください。
 
+## スリップ支持ばね
+
+節点と構造要素を作成したモデルへ、全体座標の方向ごとに追加します。
+
+```python
+model.add_slip_spring_support(30, "x", K1=1000, K2=100, delta_1=0.01)
+model.add_load(30, fx=1.0)
+model.analysis_params["displacement_control"] = {
+    "node": 30, "dof": "dx", "targets": [0.005, 0.03, 0.024, 0.018, 0.01]
+}
+result = model.run()
+force = result["support_response"][30]["x"]["force"]
+```
+
+方向は`x/y/z/rx/ry/rz`です。回転は6DOFモデルに限ります。
+`K1>0, delta_1>0, 0<=K2<=K1`の有限数値を受け付け、同一自由度の他の支持・拘束と競合するとエラーになります。
+線形支持は従来の`add_spring_support()`を使います。ばねを含むモデルで解析種別を省略すると
+`material_nonlinear`を選び、明示`static`・`modal`は拒否します。再実行時は支持履歴も初期化します。
+[完全なJSON例](../examples/slip-support-history.json)・[履歴則](nonlinear-analysis.md#スリップ支持ばね)も参照してください。
+
 指定位置の線荷重・面荷重は`fem.spatial_loads`の不変定義型を作り、
 `model.set_spatial_loads(definitions)`で設定して`model.run("static")`で解析します。
 線の強度は力/長さ、面の強度は力/長さ²、省略時の正方向は全体+Zです。

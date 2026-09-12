@@ -4,6 +4,27 @@
 
 まず節点変位と支点反力を確認し、次に梁の端力やシェル・ソリッドの応力を読みます。入力と同じ単位系で返り、変位をmm、回転をミリラジアンへ自動変換する処理はありません。
 
+## スリップ支持の履歴結果
+
+スリップ支持がある解析では、各`step_results`と最終結果に`support_response[node][direction]`を返します。
+Pythonのnodeキーは整数、JSONでは文字列です。方向は`x/y/z/rx/ry/rz`です。
+
+| フィールド | 意味 |
+|---|---|
+| `type` | `slip` |
+| `deformation`, `force`, `tangent` | 確定変位・回転角、復元力・モーメント、接線剛性 |
+| `branch`, `direction` | `elastic`, `skeleton_pos/neg`, `unload_pos/neg`, `reload_pos/neg`, `slip`と進行方向（-1/0/+1） |
+| `delta_max_pos/neg`, `force_at_max_pos/neg` | 正負の実最大経験変形と、その位置の力。未経験側は0、負側は符号付き |
+| `zero_pos/neg`, `yielded_pos/neg` | ゼロ力位置と正負各側の降伏経験 |
+
+`force`は全体内力側の正方向で、節点に作用する支持反力は`-force`です。
+接線がゼロでも力がゼロとは限りません（K2=0の骨格）。力を`tangent * deformation`から求めないでください。
+出力は確定履歴のコピーで、結果の編集・保存は解析履歴を進めません。
+通常／圧縮HTTPと結果JSONにも同じ情報を渡します。
+`metadata.analysis.support_models`は`["slip_v1"]`になり、入力ハッシュにはばね定義も含みます。
+未収束の診断`details.support_response`には停止時の試行支持状態、`step`には失敗段階が入ります。
+局所評価そのものが失敗した場合の支持状態は直前の確定状態です。
+
 線荷重・面荷重の解析では`spatial_load_contribution`に荷重配分と保存性監査を、
 `element_nodal_equilibrium_forces`にシェルの全体座標での`K_e u_e - f_e`を追加します。
 既存の応力・断面合力との違いは[線荷重・面荷重の出力](spatial-loads.md)を参照してください。
