@@ -9,6 +9,8 @@ same length before it is combined with rotations.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 
 
@@ -77,3 +79,35 @@ def relative_measure(numerator: float, reference: float) -> float:
     if reference > 0:
         return numerator / reference
     return 0.0 if numerator == 0 else float("inf")
+
+
+@dataclass
+class EquilibriumState:
+    residual: np.ndarray
+    residual_norm: float
+    residual_scale: float
+    relative_residual: float
+
+
+def evaluate_equilibrium(boundary_dofs, external, internal, u, *, length,
+                         reference_load=None, correction=None, dof_indices=None):
+    """Evaluate the same supported equilibrium for solvers and diagnostics.
+
+    The returned residual retains every DOF for subsequent constraint handling.
+    Norms exclude prescribed DOFs; reduced strategies retain their original DOF
+    indices so rotations and translations keep the correct dimensional scaling.
+    """
+    def norm(vector):
+        values = (boundary_dofs.project(vector) if dof_indices is None
+                  else vector[dof_indices])
+        return generalized_force_norm(values, stride=boundary_dofs.stride,
+                                      length=length, dof_indices=dof_indices)
+
+    residual = boundary_dofs.residual(external-internal, u, correction)
+    restoring = internal + boundary_dofs.spring_force(u, correction)
+    residual_norm = norm(residual)
+    scale = max(norm(external), norm(restoring))
+    if reference_load is not None:
+        scale = max(scale, norm(reference_load))
+    return EquilibriumState(residual, residual_norm, scale,
+                            relative_measure(residual_norm, scale))

@@ -26,7 +26,7 @@
 | 入力形式 5.1, 7.3 | JSON・原 .fem、厳密な行番号付き拒否、G 省略、材料ケース、厚さ。`io/test_source_input.py`, `test_structural_input.py` | 検証済み（記載契約）。任意の旧データ互換性は一般 FEM 残件 |
 | 保存・公開経路 5.1, 5.2, 13.1 | Python/JSON/ファイル/Flask handler の同値、保存読込、結果消去、400/422/500。`io/test_http.py`, `test_model_roundtrip.py`, `test_model_lifecycle.py`, `integration/test_input_routes.py` | 検証済み。配備後のネットワーク E2E ではない |
 | 入力・数値エラー 5.2, 7.3, 13.1 | 不正節点・接続・材料、特異系、失敗再解析・後処理例外の伝播。`io`, `solvers`, `materials` | 一部。全 API のエラー分類・全メッセージは未検証 |
-| 支持条件 7.4, 7.10, 10.2, 10.3 | 6/3 DOF stride、最後の節点、強制変位 RHS、ばね・反力、Newton 残り変位。`solvers/test_boundary_conditions.py` | 検証済み（記載条件） |
+| 支持条件 7.4, 7.10, 10.2, 10.3 | 6/3 DOF stride、最後の節点、強制変位 RHS、ばね・反力、Newton 残り変位。並進・回転ばね付きの荷重／変位制御、ゼロ・除荷・負勾配、接線と残差の整合、補償成分。`solvers/test_boundary_conditions.py`, `solvers/test_support_equilibrium.py` | 検証済み（記載条件） |
 | 材端・基礎 7.4, 7.10, 10.3 | 材端解放、分布ばね、定場パッチ・双曲関数／半無限解。`integration/test_linear_beam.py`, `test_beam_foundation.py`, `elements/beam/test_foundation.py` | 一部。任意の半剛接合・非線形接合を一般化しない |
 | 梁荷重 7.4, 7.10, 10.6 | 集中・分布・モーメント・部分荷重、無効 mark、分割と剛域。`integration/test_linear_beam.py`, `io/test_structural_input.py` | 一部。一般 FEM の保存サンプルに残件あり |
 | 温度荷重 7.4, 7.9, 7.10 | 自由熱膨張・拘束熱軸力。`integration/test_linear_beam.py` | 一部。物性の温度依存、一般熱ひずみテンソルは未検証 |

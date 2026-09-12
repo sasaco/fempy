@@ -15,9 +15,9 @@ from .material import Material
 from .boundary_condition import BoundaryCondition
 from .precision import sparse_product, add_correction
 from .convergence import (
+    evaluate_equilibrium,
     generalized_displacement_norm,
     generalized_force_norm,
-    relative_measure,
 )
 from .diagnostics import (
     InputValidationError,
@@ -219,11 +219,11 @@ def _refine_beam_equilibrium(self, mesh, boundary, elements, constrained_k, load
         if getattr(self, 'assembled_stiffness_correction', None) is not None:
             return _refine_stiffness_parts(self, boundary, constrained_k, loads, u, low, absent)
         return low, sparse_product(self.assembled_stiffness, u, low)
-    prescribed, springs = self._get_boundary_dofs(boundary, len(u), 6)
-    free = np.array([i for i in range(len(u)) if i not in prescribed and not absent[i]], dtype=int)
+    resolved = self._resolve_boundary_dofs(boundary, len(u), 6)
+    free = resolved.free[~absent[resolved.free]]
     if basis is not None:
         basis = basis.tolil()
-        basis[list(prescribed), :] = 0.
+        basis[list(resolved.prescribed), :] = 0.
         basis = basis.tocsr()
         basis = basis[:, np.flatnonzero(np.asarray(abs(basis).sum(axis=0)).ravel())]
     indices = {key: ix for key, _, ix in self.layout.elements(elements)}
@@ -238,9 +238,7 @@ def _refine_beam_equilibrium(self, mesh, boundary, elements, constrained_k, load
             for dof, value in zip(ix, values):
                 terms[dof].append(value)
         internal = np.array([fsum(row) for row in terms])
-        residual = loads-internal
-        for dof, stiffness in springs.items():
-            residual[dof] = fsum([residual[dof], -stiffness*u[dof], -stiffness*low[dof]])
+        residual = resolved.residual(loads-internal, u, correction=low)
         projected = residual[free] if basis is None else basis.T@residual
         if not len(projected) or np.max(np.abs(projected)) <= 1e-11*force_scale:
             return low, internal
@@ -258,16 +256,13 @@ def _refine_beam_equilibrium(self, mesh, boundary, elements, constrained_k, load
 
 def _refine_stiffness_parts(self, boundary, constrained_k, loads, u, low, absent):
     from scipy.sparse.linalg import splu
-    from math import fsum
-    prescribed, springs = self._get_boundary_dofs(boundary, len(u), self.layout.stride)
-    free = np.array([i for i in range(len(u)) if i not in prescribed and not absent[i]], dtype=int)
+    resolved = self._resolve_boundary_dofs(boundary, len(u), self.layout.stride)
+    free = resolved.free[~absent[resolved.free]]
     lu = None
     for _ in range(16):
         internal = sparse_product(self.assembled_stiffness, u, low)
         internal += sparse_product(self.assembled_stiffness_correction, u, low)
-        residual = loads-internal
-        for dof, stiffness in springs.items():
-            residual[dof] = fsum([residual[dof], -stiffness*u[dof], -stiffness*low[dof]])
+        residual = resolved.residual(loads-internal, u, correction=low)
         # Loads or reactions on prescribed DOFs must not hide an error on
         # an independently loaded free DOF.
         scale_force = max(1., max(np.abs(loads[free]), default=0.))
@@ -312,9 +307,9 @@ def newton_iteration(
     u = u_init.copy()
     du = np.zeros_like(u)
     length = self.characteristic_length
-    prescribed, _ = self._get_boundary_dofs(boundary, len(u), max_dof_per_node)
+    resolved = self._resolve_boundary_dofs(boundary, len(u), max_dof_per_node)
     # このステップの強制変位を先に満たす。反復ごとに加算しない。
-    for dof, value in prescribed.items():
+    for dof, value in resolved.prescribed.items():
         u[dof] = load_factor * value
 
     for iteration in range(max_iter):
@@ -325,33 +320,10 @@ def newton_iteration(
         R = F_ext - F_int
         if not np.all(np.isfinite(R)):
             return False, u, iteration + 1
-        R_mod = self._equilibrium_residual(R, u, boundary, max_dof_per_node)
-
-        # 収束判定
-        R_norm = generalized_force_norm(
-            R_mod, stride=max_dof_per_node, length=length
-        )
-        # 固定DOFへ直接加えた荷重は自由DOFの釣合い精度の尺度に含めない。
-        F_free = self._apply_bc_to_residual(F_ext, boundary, max_dof_per_node)
-        restoring = self._apply_bc_to_residual(
-            F_int + self._spring_force(u, self._get_boundary_dofs(
-                boundary, len(u), max_dof_per_node
-            )[1]),
-            boundary,
-            max_dof_per_node,
-        )
-        F_norm = max(
-            generalized_force_norm(F_free, stride=max_dof_per_node, length=length),
-            generalized_force_norm(restoring, stride=max_dof_per_node, length=length),
-            generalized_force_norm(
-                self._apply_bc_to_residual(
-                    self.load_vector, boundary, max_dof_per_node
-                ),
-                stride=max_dof_per_node,
-                length=length,
-            ),
-        )
-        relative_residual = relative_measure(R_norm, F_norm)
+        equilibrium = evaluate_equilibrium(
+            resolved, F_ext, F_int, u, length=length, reference_load=self.load_vector)
+        R_norm, F_norm = equilibrium.residual_norm, equilibrium.residual_scale
+        relative_residual = equilibrium.relative_residual
 
         # 変位増分ノルム（初回以降）
         if iteration > 0:
@@ -392,9 +364,9 @@ def newton_iteration(
                 if iteration == 0:
                     tangent = self._assemble_tangent_stiffness(
                         mesh, material, elements, u, max_dof_per_node)
-                    constrained, rhs = self.apply_boundary_conditions(
-                        tangent, R, boundary, max_dof_per_node,
-                        current_displacement=u, load_factor=load_factor)
+                    constrained, rhs = resolved.constrain(
+                        resolved.add_spring_stiffness(tangent), equilibrium.residual, u,
+                        load_factor=load_factor)
                     try:
                         self._solve_newton_system(constrained, rhs)
                     except ValueError:
@@ -407,9 +379,9 @@ def newton_iteration(
         K_tan = self._assemble_tangent_stiffness(mesh, material, elements, u, max_dof_per_node)
 
         # 境界条件の適用
-        K_mod, R_mod = self.apply_boundary_conditions(
-            K_tan, R, boundary, max_dof_per_node,
-            current_displacement=u, load_factor=load_factor)
+        K_mod, R_mod = resolved.constrain(
+            resolved.add_spring_stiffness(K_tan), equilibrium.residual, u,
+            load_factor=load_factor)
 
         # 変位増分の計算
         try:
@@ -427,9 +399,7 @@ def newton_iteration(
             candidate_force = self._assemble_internal_forces(
                 mesh, elements, candidate, max_dof_per_node)
             candidate_norm = generalized_force_norm(
-                self._equilibrium_residual(
-                    F_ext - candidate_force, candidate, boundary, max_dof_per_node
-                ),
+                resolved.project(resolved.residual(F_ext-candidate_force, candidate)),
                 stride=max_dof_per_node,
                 length=length,
             )
@@ -469,55 +439,41 @@ def displacement_control_iteration(
     u = u_init.copy()
     load_factor = float(initial_load_factor)
     length = self.characteristic_length
-    prescribed, springs = self._get_boundary_dofs(
+    resolved = self._resolve_boundary_dofs(
         boundary, len(u), max_dof_per_node
     )
-    active = np.array([i for i in range(len(u)) if i not in prescribed], dtype=int)
+    active = resolved.free
     if control_dof not in set(active):
         raise ValueError('Displacement control DOF must be free')
     control_column = int(np.flatnonzero(active == control_dof)[0])
     selector = np.zeros(len(active))
     selector[control_column] = 1.0
+
+    def augmented_tangent(displacement):
+        tangent = self._assemble_tangent_stiffness(
+            mesh, material, elements, displacement, max_dof_per_node)
+        supported = resolved.add_spring_stiffness(tangent)
+        return bmat([
+            [supported[active][:, active], csr_matrix(-load_pattern[active, None])],
+            [csr_matrix(selector[None, :]), csr_matrix((1, 1))],
+        ], format='csr')
+
     du = np.zeros_like(u)
     dlambda = 0.0
 
     for iteration in range(max_iter):
         F_int = self._assemble_internal_forces(mesh, elements, u, max_dof_per_node)
-        spring_force = self._spring_force(u, springs)
-        residual = load_factor*load_pattern-F_int-spring_force
-        residual_free = residual[active]
+        equilibrium = evaluate_equilibrium(
+            resolved, load_factor*load_pattern, F_int, u, length=length,
+            reference_load=load_pattern, dof_indices=active)
+        residual_free = equilibrium.residual[active]
         constraint = target-u[control_dof]
-        residual_norm = generalized_force_norm(
-            residual_free,
-            stride=max_dof_per_node,
-            length=length,
-            dof_indices=active,
-        )
-        force_scale = max(
-            generalized_force_norm(
-                load_factor*load_pattern[active],
-                stride=max_dof_per_node,
-                length=length,
-                dof_indices=active,
-            ),
-            generalized_force_norm(
-                (F_int+spring_force)[active],
-                stride=max_dof_per_node,
-                length=length,
-                dof_indices=active,
-            ),
-            generalized_force_norm(
-                load_pattern[active],
-                stride=max_dof_per_node,
-                length=length,
-                dof_indices=active,
-            ),
-        )
+        residual_norm, force_scale = equilibrium.residual_norm, equilibrium.residual_scale
         control_scale = length if control_dof % max_dof_per_node < 3 else 1.0
         displacement_scale = max(
             abs(target)/control_scale, abs(u[control_dof])/control_scale, 1.0
         )
-        relative_residual = relative_measure(residual_norm, force_scale)
+        relative_residual = equilibrium.relative_residual
         relative_constraint = abs(constraint)/control_scale/displacement_scale
         if iteration:
             du_norm = generalized_displacement_norm(
@@ -553,16 +509,7 @@ def displacement_control_iteration(
                 # As in load control, a zero residual is accepted only after
                 # proving that the augmented tangent has numerical rank.
                 if iteration == 0:
-                    tangent = self._assemble_tangent_stiffness(
-                        mesh, material, elements, u, max_dof_per_node
-                    ).tolil()
-                    for dof, stiffness in springs.items():
-                        tangent[dof, dof] += stiffness
-                    reduced = tangent.tocsr()[active][:, active]
-                    augmented = bmat([
-                        [reduced, csr_matrix(-load_pattern[active, None])],
-                        [csr_matrix(selector[None, :]), csr_matrix((1, 1))],
-                    ], format='csr')
+                    augmented = augmented_tangent(u)
                     try:
                         self._solve_newton_system(augmented, np.zeros(len(active)+1))
                     except ValueError:
@@ -570,16 +517,7 @@ def displacement_control_iteration(
                 self._last_internal_force = F_int.copy()
                 return True, u, iteration+1, load_factor
 
-        tangent = self._assemble_tangent_stiffness(
-            mesh, material, elements, u, max_dof_per_node
-        ).tolil()
-        for dof, stiffness in springs.items():
-            tangent[dof, dof] += stiffness
-        reduced = tangent.tocsr()[active][:, active]
-        augmented = bmat([
-            [reduced, csr_matrix(-load_pattern[active, None])],
-            [csr_matrix(selector[None, :]), csr_matrix((1, 1))],
-        ], format='csr')
+        augmented = augmented_tangent(u)
         rhs = np.r_[residual_free, constraint]
         try:
             increment = self._solve_newton_system(augmented, rhs)

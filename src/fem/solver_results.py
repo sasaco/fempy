@@ -7,7 +7,7 @@ import json
 import numpy as np
 
 from ._version import __version__
-from .convergence import generalized_force_norm, relative_measure
+from .convergence import evaluate_equilibrium
 
 
 RESULT_SCHEMA_VERSION = "1.0"
@@ -87,43 +87,15 @@ def build_result_metadata(model, analysis_type):
         relative_residual = float(history[-1]["relative_residual"])
     elif analysis_type == "static" and solver.displacement is not None:
         applied = solver.load_factor * solver.load_vector
-        residual = solver._equilibrium_residual(
-            applied - solver._last_internal_force,
-            solver.displacement,
-            model.boundary,
-            solver.layout.stride,
-        )
-        residual_norm = generalized_force_norm(
-            residual,
-            stride=solver.layout.stride,
-            length=solver.characteristic_length,
-        )
-        free_load = solver._apply_bc_to_residual(
-            applied, model.boundary, solver.layout.stride
-        )
-        _, springs = solver._get_boundary_dofs(
+        resolved = solver._resolve_boundary_dofs(
             model.boundary, len(solver.displacement), solver.layout.stride
         )
-        restoring = solver._apply_bc_to_residual(
-            solver._last_internal_force + solver._spring_force(
-                solver.displacement, springs
-            ),
-            model.boundary,
-            solver.layout.stride,
-        )
-        residual_scale = max(
-            generalized_force_norm(
-                free_load,
-                stride=solver.layout.stride,
-                length=solver.characteristic_length,
-            ),
-            generalized_force_norm(
-                restoring,
-                stride=solver.layout.stride,
-                length=solver.characteristic_length,
-            ),
-        )
-        relative_residual = relative_measure(residual_norm, residual_scale)
+        equilibrium = evaluate_equilibrium(
+            resolved, applied, solver._last_internal_force, solver.displacement,
+            length=solver.characteristic_length)
+        residual_norm = equilibrium.residual_norm
+        residual_scale = equilibrium.residual_scale
+        relative_residual = equilibrium.relative_residual
     elif analysis_type == "modal" and model.results.get("eigenpair_residuals"):
         relative_residual = float(max(model.results["eigenpair_residuals"]))
 
@@ -169,14 +141,10 @@ def build_result_metadata(model, analysis_type):
 
 def snapshot(solver, mesh, boundary, elements, solution, force, step, factor, nonlinear):
     u, internal, correction, iterations = solution
-    reaction = internal - force
-    if not nonlinear:
-        if getattr(solver,'precise_reactions',None) is not None:
-            reaction=solver.precise_reactions.copy()
-        _, springs = solver._get_boundary_dofs(boundary, len(u), solver.layout.stride)
-        # Preserve the direct solve's compensated spring reaction convention.
-        for dof, stiffness in springs.items():
-            reaction[dof] = -stiffness * (u[dof] + correction[dof])
+    resolved = solver._resolve_boundary_dofs(boundary, len(u), solver.layout.stride)
+    reaction = resolved.reactions(
+        internal, force, u, correction=correction if not nonlinear else None,
+        precise=solver.precise_reactions if not nonlinear else None)
     result = dict(
         step=step, **{'lambda': factor}, displacement=u.copy(),
         node_displacements=solver._format_node_displacements(u, mesh),

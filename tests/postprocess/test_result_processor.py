@@ -61,3 +61,58 @@ def test_displacement_length_mismatch_is_not_hidden_by_zero_fill():
         ResultProcessor().process_displacement(
             np.arange(5), mesh_with_nodes("tetra")
         )
+
+
+class LocalDisplacementElement:
+    def __init__(self, nodes, width):
+        self.node_ids, self.width = nodes, width
+
+    def get_dof_per_node(self):
+        return self.width
+
+    def calculate_stress_strain(self, displacement):
+        return {"local_displacement": displacement.tolist()}
+
+
+@pytest.mark.parametrize("kind,width", [("tetra", 3), ("bar", 6)])
+def test_stress_extraction_uses_full_mesh_including_unconnected_nodes(kind, width):
+    mesh = mesh_with_nodes(kind)
+    mesh.add_node(5, [-1, 0, 0])
+    element = LocalDisplacementElement([10, 30], width)
+    result = ResultProcessor().process_stress({7: element}, np.arange(3*width), mesh=mesh)
+    assert result[7]["local_displacement"] == list(range(width, 3*width))
+
+
+def test_stress_extraction_for_mixed_element_widths_uses_global_six_dof_stride():
+    mesh = mesh_with_nodes("tetra")
+    mesh.add_node(50, [2, 0, 0])
+    mesh.add_element(8, "bar", [30, 50], 1)
+    elements = {7: LocalDisplacementElement([10, 30], 3),
+                8: LocalDisplacementElement([30, 50], 6)}
+    result = ResultProcessor().process_stress(elements, np.arange(18), mesh=mesh)
+    assert result[7]["local_displacement"] == [0, 1, 2, 6, 7, 8]
+    assert result[8]["local_displacement"] == list(range(6, 18))
+
+
+def test_two_argument_stress_api_preserves_legacy_six_dof_node_numbering():
+    element = LocalDisplacementElement([1, 3], 6)
+    result = ResultProcessor().process_stress({7: element}, np.arange(18))
+    assert result[7]["local_displacement"] == list(range(6))+list(range(12, 18))
+
+
+def test_stress_extraction_rejects_truncated_mesh_displacements():
+    with pytest.raises(ValueError, match="expected 6.*received 5"):
+        ResultProcessor().process_stress(
+            {7: LocalDisplacementElement([10, 30], 3)}, np.arange(5),
+            mesh=mesh_with_nodes("tetra"))
+
+
+def test_beam_end_force_api_is_not_hidden_by_unimplemented_base_stress_api():
+    from tests.support.builders.nonlinear_solver import axial_bar
+
+    mesh, _, _, elements = axial_bar()
+    displacement = np.zeros(12)
+    displacement[6] = .01
+    result = ResultProcessor().process_stress(elements, displacement, mesh=mesh)
+    assert result[1]["i_end"][0] == pytest.approx(-30)
+    assert result[1]["j_end"][0] == pytest.approx(30)

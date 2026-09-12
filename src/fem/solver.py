@@ -6,10 +6,11 @@ from typing import Dict, Any, List, Tuple, Optional
 from copy import deepcopy
 import numpy as np
 from scipy.linalg import eigh
-from scipy.sparse import lil_matrix, csr_matrix
+from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import ArpackNoConvergence, eigsh
 from .mesh import MeshModel
 from .boundary_condition import BoundaryCondition
+from .boundary_dofs import BoundaryDofs, SPRING_DIRECTIONS, spring_force
 from .material import Material
 from .dof import DofLayout
 from .diagnostics import ModalConvergenceError, UnsupportedAnalysisError
@@ -226,36 +227,15 @@ class Solver:
 
     def _get_boundary_dofs(self, boundary: BoundaryCondition, n_dof: int,
                            max_dof_per_node: int) -> Tuple[Dict[int, float], Dict[int, float]]:
-        """固定/強制変位と支持ばねを区別する。値>1000の旧入力仕様を保持。"""
-        prescribed, springs = {}, {}
-        if max_dof_per_node not in (3, 6):
-            raise ValueError('max_dof_per_node must be 3 or 6')
-        for node_id, restraint in boundary.restraints.items():
-            base = self._node_dof_start(node_id, max_dof_per_node)
-            if base < 0 or base + max_dof_per_node > n_dof:
-                raise ValueError(f'Restraint node {node_id} is outside the DOF vector')
-            for i, fixed in enumerate(restraint.dof_restraints[:max_dof_per_node]):
-                if fixed:
-                    value = restraint.get_value(i)
-                    if not np.isfinite(value):
-                        raise ValueError(f'Non-finite restraint value at node {node_id}')
-                    if abs(value) > 1000:
-                        springs[base + i] = abs(value)
-                    else:
-                        prescribed[base + i] = value
-        directions = {'x': 0, 'y': 1, 'z': 2, 'rx': 3, 'ry': 4, 'rz': 5}
-        for node_id, supports in getattr(boundary, 'spring_supports', {}).items():
-            base = self._node_dof_start(node_id, max_dof_per_node)
-            for direction, stiffness in supports.items():
-                if direction not in directions or directions[direction] >= max_dof_per_node:
-                    raise ValueError(f'Invalid spring direction: {direction}')
-                if not np.isfinite(stiffness) or stiffness <= 0:
-                    raise ValueError('Spring stiffness must be finite and positive')
-                dof = base + directions[direction]
-                if dof in prescribed or dof in springs:
-                    raise ValueError('Conflicting restraint and spring at same DOF')
-                springs[dof] = stiffness
-        return prescribed, springs
+        """Compatibility view of the normalized boundary conditions."""
+        resolved = self._resolve_boundary_dofs(boundary, n_dof, max_dof_per_node)
+        return resolved.prescribed, resolved.springs
+
+    def _resolve_boundary_dofs(self, boundary, n_dof, stride):
+        # Resolve per operation/step so reanalysis and edited boundaries cannot
+        # reuse a stale mapping. Iterations keep their own normalized snapshot.
+        return BoundaryDofs.from_boundary(
+            boundary, n_dof, stride, lambda node: self._node_dof_start(node, stride))
 
     def _prepare_displacement_control(self, control, boundary, n_steps):
         """Validate public displacement-control input and resolve its global DOF."""
@@ -312,32 +292,14 @@ class Solver:
         """固定DOFを対称消去する。Newtonでは目標変位との差を拘束する。
 
         Fは構造要素の外力−内力（静解析では外力）。支持ばねの内力はここで引く。
-        penalty=Trueは既存の固有値解析専用（質量行列を縮約しない経路）。
+        penalty=Trueは旧APIとの互換用。現在の固有値解析は自由DOFへ縮約する。
         """
-        prescribed, springs = self._get_boundary_dofs(boundary, len(F), max_dof_per_node)
-        K_mod = lil_matrix(K, copy=True)
-        F_mod = np.array(F, dtype=float, copy=True)
+        resolved = self._resolve_boundary_dofs(boundary, len(F), max_dof_per_node)
         u = np.zeros(len(F)) if current_displacement is None else current_displacement
-        for dof, stiffness in springs.items():
-            K_mod[dof, dof] += stiffness
-        F_mod -= self._spring_force(u, springs)
-        if prescribed:
-            indices = list(prescribed)
-            increments = np.array([load_factor * prescribed[d] - u[d] for d in indices])
-            if penalty:
-                scale = max(float(np.max(np.abs(K.diagonal()))), 1.0) * 1e15
-                for dof, value in zip(indices, increments):
-                    K_mod[dof, dof] = scale
-                    F_mod[dof] = scale * value
-            else:
-                # 全固定列の寄与を、列を消去する前に一度だけ移す。
-                F_mod -= K_mod.tocsr()[:, indices] @ increments
-                K_mod[:, indices] = 0
-                K_mod[indices, :] = 0
-                for dof, value in zip(indices, increments):
-                    K_mod[dof, dof] = 1.0
-                    F_mod[dof] = value
-        return K_mod.tocsr(), F_mod
+        scale = max(float(np.max(np.abs(K.diagonal()))), 1.0)*1e15 if penalty else None
+        return resolved.constrain(
+            resolved.add_spring_stiffness(K), resolved.residual(F, u), u,
+            load_factor=load_factor, penalty_scale=scale)
         
     def solve_linear_system(self, K, F):
         """Legacy stateful boundary around pure compensated direct algebra."""
@@ -543,16 +505,10 @@ class Solver:
         if not np.isfinite(K.data).all() or not np.isfinite(M.data).all():
             raise ValueError('Stiffness and mass matrices must be finite')
 
-        prescribed, springs = self._get_boundary_dofs(
+        resolved = self._resolve_boundary_dofs(
             boundary, self.layout.size, self.layout.stride)
-        supported_stiffness = lil_matrix(K, copy=True)
-        for dof, stiffness in springs.items():
-            supported_stiffness[dof, dof] += stiffness
-        supported_stiffness = supported_stiffness.tocsr()
-
-        free = np.ones(self.layout.size, dtype=bool)
-        free[list(prescribed)] = False
-        free_dofs = np.flatnonzero(free)
+        supported_stiffness = resolved.add_spring_stiffness(K)
+        free_dofs = resolved.free
         if len(free_dofs) == 0:
             raise ValueError('Modal analysis has no free DOFs after applying restraints')
 
@@ -666,10 +622,8 @@ class Solver:
     def _format_node_displacements(self, u, mesh):
         """Canonical six-component output; legacy projections live at API edges."""
         self._set_dof_layout(mesh)
-        names = ('dx', 'dy', 'dz', 'rx', 'ry', 'rz')
-        return {node: {name: float(u[start+i]) if i < self.layout.stride else 0.0
-                       for i, name in enumerate(names)}
-                for node in mesh.nodes for start in (self.layout.node_offsets[node],)}
+        formatted = self.layout.format_displacements(u)
+        return {node: formatted[node] for node in mesh.nodes}
 
     def _calculate_reaction_forces(self, K, u, F, boundary, max_dof_per_node=6):
         return self._format_reactions(K @ u - F, boundary, max_dof_per_node)
@@ -686,11 +640,10 @@ class Solver:
                       for i, fixed in enumerate(restraint.dof_restraints[:stride]) if fixed}
             if values:
                 result[node_id] = values
-        directions = {'x': 0, 'y': 1, 'z': 2, 'rx': 3, 'ry': 4, 'rz': 5}
         for node_id, supports in getattr(boundary, 'spring_supports', {}).items():
             values = result.setdefault(node_id, {})
             for direction in supports:
-                i = directions[direction]
+                i = SPRING_DIRECTIONS[direction]
                 values[names[i]] = float(reaction[self._node_dof_start(node_id, stride) + i])
         return result
 
@@ -731,20 +684,14 @@ class Solver:
         return self.layout.assemble_matrix(elements, evaluate)
 
     def _spring_force(self, u, springs):
-        force = np.zeros_like(u)
-        for dof, stiffness in springs.items():
-            force[dof] = stiffness * u[dof]
-        return force
+        return spring_force(u, springs)
 
     def _apply_bc_to_residual(self, R, boundary, max_dof_per_node):
-        residual = R.copy()
-        prescribed, _ = self._get_boundary_dofs(boundary, len(R), max_dof_per_node)
-        residual[list(prescribed)] = 0.0
-        return residual
+        return self._resolve_boundary_dofs(boundary, len(R), max_dof_per_node).project(R)
 
     def _equilibrium_residual(self, R, u, boundary, stride):
-        _, springs = self._get_boundary_dofs(boundary, len(R), stride)
-        return self._apply_bc_to_residual(R - self._spring_force(u, springs), boundary, stride)
+        resolved = self._resolve_boundary_dofs(boundary, len(R), stride)
+        return resolved.project(resolved.residual(R, u))
 
     def _format_eigenmodes(self, eigenvectors: np.ndarray, mesh: MeshModel) -> List[Dict[int, Dict[str, float]]]:
         """固有モードを整形

@@ -2,6 +2,10 @@
 
 2026-09-10。66ファイル・386関数定義・2,026展開ケース。`material_nonlinear` markerは909ケース。一般FEMの修復に加え、PQ-01〜10・PQ-12の固有値、配布、機能表、VTK、診断、メッシュ収束、単位不変性、性能計測契約を反映した。関数数とパラメータ展開数を混同しない。
 
+2026-09-12の[支持条件・釣合い共通化](../report/support-equilibrium-refactoring.md)で、
+支持条件11ケース・公開後処理6ケースを追加。上記の件数は2026-09-10時点の記録であり、
+今回の全件実測は実施記録を参照する。
+
 [項目表](test_items.md) / [実行方法](../../tests/README.md) / [移行・統合記録](../report/test-reorganization.md)。整理前の全 264 関数・112 ファイルの移管先と hash は [機械可読な移行記録](../report/test-reorganization-evidence.json) にある。
 
 | ファイル | 関数 | ケース | 主区分 |
@@ -49,13 +53,14 @@
 | [io/test_vtk.py](../../tests/io/test_vtk.py) | 5 | 7 | integration |
 | [materials/test_jr_hysteresis.py](../../tests/materials/test_jr_hysteresis.py) | 26 | 152 | unit |
 | [postprocess/test_beam_equilibrium.py](../../tests/postprocess/test_beam_equilibrium.py) | 4 | 11 | unit |
-| [postprocess/test_result_processor.py](../../tests/postprocess/test_result_processor.py) | 4 | 4 | unit |
+| [postprocess/test_result_processor.py](../../tests/postprocess/test_result_processor.py) | 9 | 10 | unit |
 | [postprocess/test_shell_results.py](../../tests/postprocess/test_shell_results.py) | 10 | 33 | unit |
 | [postprocess/test_solid_stress.py](../../tests/postprocess/test_solid_stress.py) | 1 | 3 | unit |
 | [regression/test_cantilever_history.py](../../tests/regression/test_cantilever_history.py) | 4 | 5 | regression |
 | [regression/test_displacement_control_history.py](../../tests/regression/test_displacement_control_history.py) | 4 | 7 | regression |
 | [regression/test_structural_samples.py](../../tests/regression/test_structural_samples.py) | 1 | 323 | regression |
 | [solvers/test_boundary_conditions.py](../../tests/solvers/test_boundary_conditions.py) | 6 | 6 | unit |
+| [solvers/test_support_equilibrium.py](../../tests/solvers/test_support_equilibrium.py) | 7 | 11 | unit |
 | [solvers/test_capabilities.py](../../tests/solvers/test_capabilities.py) | 9 | 14 | unit |
 | [solvers/test_linear.py](../../tests/solvers/test_linear.py) | 3 | 5 | unit |
 | [solvers/test_modal_analysis.py](../../tests/solvers/test_modal_analysis.py) | 12 | 17 | unit |
@@ -833,6 +838,26 @@ Legacy VTKのセル型、ID、節点順、結果整列と明示的失敗。
 | `test_six_dof_displacements_preserve_existing_schema` | 1 |
 | `test_mixed_three_and_six_dof_elements_use_one_six_dof_layout` | 1 |
 | `test_displacement_length_mismatch_is_not_hidden_by_zero_fill` | 1 |
+| `test_stress_extraction_uses_full_mesh_including_unconnected_nodes` | 2 |
+| `test_stress_extraction_for_mixed_element_widths_uses_global_six_dof_stride` | 1 |
+| `test_two_argument_stress_api_preserves_legacy_six_dof_node_numbering` | 1 |
+| `test_stress_extraction_rejects_truncated_mesh_displacements` | 1 |
+| `test_beam_end_force_api_is_not_hidden_by_unimplemented_base_stress_api` | 1 |
+
+### solvers/test_support_equilibrium.py
+
+2026-09-12追加。支持ばねと制御方式の共通釣合い契約。
+[実施記録](../report/support-equilibrium-refactoring.md)にTDDの失敗・成功結果を記載する。
+
+| 検証関数 | 展開ケース |
+|---|---:|
+| `test_load_and_displacement_control_balance_translation_and_rotation_springs` | 4 |
+| `test_displacement_control_keeps_spring_balance_past_the_load_peak` | 1 |
+| `test_normalized_boundary_keeps_sparse_ids_legacy_springs_and_free_rotations` | 1 |
+| `test_support_tangent_is_the_negative_derivative_of_equilibrium_residual` | 1 |
+| `test_constraint_elimination_uses_already_assembled_support_equilibrium_once` | 1 |
+| `test_compensated_support_residual_retains_sub_float_displacement` | 1 |
+| `test_equilibrium_measure_excludes_fixed_loads_and_scales_rotational_springs` | 2 |
 
 ### regression/test_displacement_control_history.py
 

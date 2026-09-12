@@ -42,60 +42,36 @@ class ResultProcessor:
     
     def process_displacement(self, displacement: np.ndarray, mesh: Any) -> Dict[int, Dict[str, float]]:
         """Format one exact solver-layout displacement vector by node."""
-        layout = DofLayout.from_mesh(mesh)
-        values = np.asarray(displacement, dtype=float)
-        if values.ndim != 1 or len(values) != layout.size:
-            received = len(values) if values.ndim == 1 else values.shape
-            raise ValueError(
-                f'Displacement size mismatch: expected {layout.size}, received {received}')
-        if not np.isfinite(values).all():
-            raise ValueError('Displacements must be finite')
+        return DofLayout.from_mesh(mesh).format_displacements(displacement)
 
-        names = ('dx', 'dy', 'dz', 'rx', 'ry', 'rz')
-        return {
-            node_id: {
-                name: float(values[start + component])
-                if component < layout.stride else 0.0
-                for component, name in enumerate(names)
-            }
-            for node_id, start in layout.node_offsets.items()
-        }
-
-    def process_stress(self, elements: Dict[int, Any], displacement: np.ndarray) -> Dict[int, Any]:
+    def process_stress(self, elements: Dict[int, Any], displacement: np.ndarray,
+                       *, mesh: Any = None) -> Dict[int, Any]:
         """要素応力を計算
         
         Args:
             elements: 要素オブジェクトの辞書
             displacement: 変位ベクトル
+            mesh: ソルバーと同じDOF対応を使うメッシュ。省略時は旧APIの
+                  1始まり節点番号・各節点6自由度の配列として扱う。
             
         Returns:
             要素ID -> 応力結果の辞書
         """
+        layout = (DofLayout.from_mesh(mesh) if mesh is not None
+                  else DofLayout.legacy_six_dof_vector(elements, len(displacement)))
+        values = layout.displacement_vector(displacement)
         element_stresses = {}
         
         for elem_id, element in elements.items():
             try:
-                # 要素タイプに応じた変位抽出
-                node_ids = element.node_ids if hasattr(element, 'node_ids') else []
-                elem_disp = []
+                elem_disp = values[layout.element_dofs(elem_id, element)]
                 
-                for node_id in node_ids:
-                    base_dof = (node_id - 1) * 6
-                    dof_per_node = element.get_dof_per_node() if hasattr(element, 'get_dof_per_node') else 6
-                    
-                    for i in range(dof_per_node):
-                        if base_dof + i < len(displacement):
-                            elem_disp.append(displacement[base_dof + i])
-                        else:
-                            elem_disp.append(0.0)
-                
-                # 応力計算（実装されている要素のみ）
-                if hasattr(element, 'calculate_stress_strain'):
-                    stress_strain = element.calculate_stress_strain(np.array(elem_disp))
-                    element_stresses[elem_id] = stress_strain
-                elif hasattr(element, 'calculate_forces'):
-                    forces = element.calculate_forces(np.array(elem_disp))
-                    element_stresses[elem_id] = forces
+                # As in FemModel, the beam API takes precedence over the base
+                # element's unimplemented stress-strain method.
+                if hasattr(element, 'calculate_forces'):
+                    element_stresses[elem_id] = element.calculate_forces(elem_disp)
+                elif hasattr(element, 'calculate_stress_strain'):
+                    element_stresses[elem_id] = element.calculate_stress_strain(elem_disp)
                 else:
                     # 未実装の要素タイプはスキップ
                     element_stresses[elem_id] = {"status": "Not implemented"}
