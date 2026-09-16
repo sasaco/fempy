@@ -1,0 +1,25 @@
+{
+  "name": "pq-icons",
+  "version": "1.10.3",
+  "description": "font based icons for jqueryui derived from official open source icon library for Bootstrap",
+  "author": "mdo",
+  "license": "MIT",
+  "homepage": "https://icons.getbootstrap.com/",
+  "keywords": [
+    "paramquery",
+    "jqueryui",
+    "bootstrap",
+    "icons"
+  ],
+  "files": [
+    "pq.woff",
+    "pq.woff2",
+    "pq.css",   
+    "index.htm", 
+    "LICENSE.md"
+  ],
+  "maintainers":[{
+    "name": "Paramvir Dhindsa",
+    "web": "https://paramquery.com"
+  }]
+}

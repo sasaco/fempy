@@ -1,0 +1,103 @@
+<!-- <div *ngFor="let r of KEYS; index as i">
+  <div *ngIf="i === cal">
+    <div class="wrapper">
+      <div class="result_table">
+        <table #userinput id="userinput">
+          <thead>
+            <div *ngIf="dimension === 3">
+              <tr>
+                <th class="result-sm">
+                  <p translate>result.result-pickup-fsec.memberNo</p>
+                </th>
+                <th class="result-sm">
+                  <p translate>result.result-pickup-fsec.nodeNo</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-fsec.stationLocation</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-fsec.axialForce</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-fsec.y_shear</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-fsec.z_shear</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-fsec.x_torsion</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-fsec.y_moment</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-fsec.z_moment</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-fsec.comb</p>
+                </th>
+              </tr>
+            </div>
+            <div *ngIf="dimension === 2">
+              <tr>
+                <th class="result-sm">
+                  <p translate>result.result-pickup-fsec.memberNo</p>
+                </th>
+                <th class="result-sm">
+                  <p translate>result.result-pickup-fsec.nodeNo</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-fsec.stationLocation</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-fsec.axialForce</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-fsec.shear</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-fsec.moment</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-fsec.comb</p>
+                </th>
+              </tr>
+            </div>
+          </thead>
+          <tbody>
+            <div [style.height.px]="height" *ngIf="dimension === 3">
+              <tr *ngFor="let resultData of dataset[i]; index as i">
+                <td class="result-sm">{{ resultData.m }}</td>
+                <td class="result-sm">{{ resultData.n }}</td>
+                <td class="result-lg">{{ resultData.l }}</td>
+                <td class="result-lg">{{ resultData.fx }}</td>
+                <td class="result-lg">{{ resultData.fy }}</td>
+                <td class="result-lg">{{ resultData.fz }}</td>
+                <td class="result-lg">{{ resultData.mx }}</td>
+                <td class="result-lg">{{ resultData.my }}</td>
+                <td class="result-lg">{{ resultData.mz }}</td>
+                <td class="result-lg">{{ resultData.case }}</td>
+              </tr>
+            </div>
+            <div [style.height.px]="height" *ngIf="dimension === 2">
+              <tr *ngFor="let resultData of dataset[i]; index as i">
+                <td class="result-sm">{{ resultData.m }}</td>
+                <td class="result-sm">{{ resultData.n }}</td>
+                <td class="result-lg">{{ resultData.l }}</td>
+                <td class="result-lg">{{ resultData.fx }}</td>
+                <td class="result-lg">{{ resultData.fy }}</td>
+                <td class="result-lg">{{ resultData.mz }}</td>
+                <td class="result-lg">{{ resultData.case }}</td>
+              </tr>
+            </div>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+
+<div id="datasheet_inner" class="datasheet_inner">
+  <app-sheet #grid [options]="options"></app-sheet>
+</div>

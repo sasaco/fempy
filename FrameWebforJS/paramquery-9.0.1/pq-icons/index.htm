@@ -1,0 +1,44 @@
+<html>
+<head>
+    <link rel="stylesheet" href="pq.css" />
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+    </style>
+    <script>
+        function fn(){
+            
+            const ruleList = document.styleSheets[0].cssRules;
+            var tbl = "<table >";
+            for (let i = 5; i < ruleList.length; i++) {
+            
+                var rule = ruleList[i], text = rule.selectorText, subsrules = text.split(",");
+                tbl += "<tr>"
+                subsrules.forEach(function(sr){
+                    
+                    sr = sr.trim();
+                    var match = sr.match(/^\.(\S+)::before$/);
+                    var cls = match[1];
+                    cls = cls.split(".").join(" ");
+                    if( cls.indexOf("ui-icon") >= 0 ){
+                        cls = "ui-icon " + cls;
+                    }
+                    tbl += "<td><span class='" + cls + "' style='font-size:20px;'></span><p>"+ cls +"</p></td>";
+                })
+                tbl += "</tr>";                
+            }
+            tbl += "</table>";
+            document.getElementById("myTable").innerHTML = tbl;
+        }
+
+        document.addEventListener('DOMContentLoaded', fn, false);
+
+    </script>        
+</head>
+<body>
+    <div id="myTable"></div>
+</body>
+
+</html>

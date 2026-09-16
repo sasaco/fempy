@@ -1,0 +1,13 @@
+<div class="datasheet_inner" >
+    <!-- [style.width.px]="width" -->
+    <div *ngIf="LL_flg === true">
+        <div class="LL_area">
+            <label class="label">連行荷重（β版）</label>
+            <label class="label">ピッチ</label>
+            <input type="number" min="0.1" step="0.1" matInput matType="number" 
+                (change)="change_pich()" class="input"  [(ngModel)]="LL_pitch">
+                <label class="label">m</label>
+        </div>
+    </div>
+    <app-sheet #grid [options]="options"></app-sheet>
+</div>

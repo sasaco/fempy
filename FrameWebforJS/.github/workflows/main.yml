@@ -1,0 +1,62 @@
+name: Deploy Angular App
+
+on:
+  push:
+    branches-ignore:
+      - '**'
+    tags-ignore:
+    - 'v*.*.*'
+    # tags:
+    #   - v*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.16.0"
+          
+      - name: Set environment.prod
+        env:
+          JSON_DECODE: ${{ secrets.environment_prod }}
+        run: |
+          echo $JSON_DECODE | base64 --decode > ./src/environments/environment.prod.ts
+          
+      - name: Set environment
+        env:
+          JSON_DECODE: ${{ secrets.environment }}
+        run: |
+          echo $JSON_DECODE | base64 --decode > ./src/environments/environment.ts
+
+      - name: Install dependencies
+        run: npm install -g @angular/cli@12.2.7 && npm install
+
+      - name: Build Angular app
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
+        run: npm run build-action
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: "dist"
+
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1

@@ -1,0 +1,185 @@
+<!-- <div *ngIf="LL_page == false">
+  <div class="wrapper">
+    <div class="result_table">
+      <table #userinput id="userinput">
+        <thead>
+          <div *ngIf="dimension === 3">
+            <tr>
+              <th class="result-sm">
+                <p translate>result.result-disg.No</p>
+              </th>
+              <th class="result-lg">
+                <p translate>result.result-disg.x_movement</p>
+              </th>
+              <th class="result-lg">
+                <p translate>result.result-disg.y_movement</p>
+              </th>
+              <th class="result-lg">
+                <p translate>result.result-disg.z_movement</p>
+              </th>
+              <th class="result-lg">
+                <p translate>result.result-disg.x_rotation</p>
+              </th>
+              <th class="result-lg">
+                <p translate>result.result-disg.y_rotation</p>
+              </th>
+              <th class="result-lg">
+                <p translate>result.result-disg.z_rotation</p>
+              </th>
+            </tr>
+          </div>
+          <div *ngIf="dimension === 2">
+            <tr>
+              <th class="result-sm">
+                <p translate>result.result-disg.No</p>
+              </th>
+              <th class="result-lg">
+                <p translate>result.result-disg.x_movement</p>
+              </th>
+              <th class="result-lg">
+                <p translate>result.result-disg.y_movement</p>
+              </th>
+              <th class="result-lg">
+                <p translate>result.result-disg.z_rotation</p>
+              </th>
+            </tr>
+          </div>
+        </thead>
+        <tbody>
+          <div [style.height.px]="height" *ngIf="dimension === 3">
+            <tr *ngFor="let resultData of dataset; index as i">
+              <td class="result-sm">{{ resultData.id }}</td>
+              <td class="result-lg">{{ resultData.dx }}</td>
+              <td class="result-lg">{{ resultData.dy }}</td>
+              <td class="result-lg">{{ resultData.dz }}</td>
+              <td class="result-lg">{{ resultData.rx }}</td>
+              <td class="result-lg">{{ resultData.ry }}</td>
+              <td class="result-lg">{{ resultData.rz }}</td>
+            </tr>
+          </div>
+          <div [style.height.px]="height" *ngIf="dimension === 2">
+            <tr *ngFor="let resultData of dataset; index as i">
+              <td class="result-sm">{{ resultData.id }}</td>
+              <td class="result-lg">{{ resultData.dx }}</td>
+              <td class="result-lg">{{ resultData.dy }}</td>
+              <td class="result-lg">{{ resultData.rz }}</td>
+            </tr>
+          </div>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div *ngIf="LL_page == true">
+  <div *ngFor="let r of KEYS; index as i">
+    <div *ngIf="i === cal">
+      <div class="wrapper">
+        <div class="carousel" id="carousel">
+          <div class="card" id="pick">
+            <div class="card-header">
+              <p class="loadName">{{ load_name }}</p>
+              <div class="detailName">
+                <a
+                  id="prev"
+                  link="130"
+                  (click)="calPage('-1')"
+                  class="move"
+                  aria-label="previous"
+                  ><i class="fas fa-caret-left"></i
+                ></a>
+                <ul class="move_case">
+                  <li *ngFor="let i of circleBox">
+                    <a class="circle" (click)="calPage(i)" [id]="i + 20"></a>
+                  </li>
+                </ul>
+                <p class="detailTitle">{{ TITLES[i] }}</p>
+                <a
+                  id="next"
+                  link="136"
+                  (click)="calPage('1')"
+                  class="move"
+                  aria-label="Next"
+                  ><i class="fas fa-caret-right"></i
+                ></a>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="result_table">
+                <table #userinput id="userinput">
+                  <thead>
+                    <div *ngIf="dimension === 3">
+                      <tr>
+                        <th class="result-sm">
+                          <p translate>result.result-disg.No</p>
+                        </th>
+                        <th class="result-lg">
+                          <p translate>result.result-disg.x_movement</p>
+                        </th>
+                        <th class="result-lg">
+                          <p translate>result.result-disg.y_movement</p>
+                        </th>
+                        <th class="result-lg">
+                          <p translate>result.result-disg.z_movement</p>
+                        </th>
+                        <th class="result-lg">
+                          <p translate>result.result-disg.x_rotation</p>
+                        </th>
+                        <th class="result-lg">
+                          <p translate>result.result-disg.y_rotation</p>
+                        </th>
+                        <th class="result-lg">
+                          <p translate>result.result-disg.z_rotation</p>
+                        </th>
+                      </tr>
+                    </div>
+                    <div *ngIf="dimension === 2">
+                      <tr>
+                        <th class="result-sm">
+                          <p translate>result.result-disg.No</p>
+                        </th>
+                        <th class="result-lg">
+                          <p translate>result.result-disg.x_movement</p>
+                        </th>
+                        <th class="result-lg">
+                          <p translate>result.result-disg.y_movement</p>
+                        </th>
+                        <th class="result-lg">
+                          <p translate>result.result-disg.z_rotation</p>
+                        </th>
+                      </tr>
+                    </div>
+                  </thead>
+                  <tbody>
+                    <div [style.height.px]="height" *ngIf="dimension === 3">
+                      <tr *ngFor="let resultData of dataset[i]">
+                        <td class="result-sm">{{ resultData.id }}</td>
+                        <td class="result-lg">{{ resultData.dx }}</td>
+                        <td class="result-lg">{{ resultData.dy }}</td>
+                        <td class="result-lg">{{ resultData.dz }}</td>
+                        <td class="result-lg">{{ resultData.rx }}</td>
+                        <td class="result-lg">{{ resultData.ry }}</td>
+                        <td class="result-lg">{{ resultData.rz }}</td>
+                      </tr>
+                    </div>
+                    <div [style.height.px]="height" *ngIf="dimension === 2">
+                      <tr *ngFor="let resultData of dataset[i]">
+                        <td class="result-sm">{{ resultData.id }}</td>
+                        <td class="result-lg">{{ resultData.dx }}</td>
+                        <td class="result-lg">{{ resultData.dy }}</td>
+                        <td class="result-lg">{{ resultData.rz }}</td>
+                      </tr>
+                    </div>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+<div id="datasheet_inner" class="datasheet_inner">
+  <app-sheet #grid [options]="options"></app-sheet>
+</div>

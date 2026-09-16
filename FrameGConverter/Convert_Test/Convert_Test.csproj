@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyVersion>0.0.5.0</AssemblyVersion>
+    <FileVersion>0.0.1.0</FileVersion>
+    <PackageId>FrameGConverter</PackageId>
+    <Version>0.0.8</Version>
+    <Authors>笹澤陽佑</Authors>
+    <Company>㈱Malme</Company>
+    <Product>FrameGConverter</Product>
+    <AssemblyName>FrameGConverter</AssemblyName>
+    <StartupObject>GConvert_Test.Program</StartupObject>
+  </PropertyGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties testdata_4test001_1json__JsonSchema="https://appsemble.app/api.json" testdata_4test008_1json__JsonSchema="https://appsemble.app/api.json" /></VisualStudio></ProjectExtensions>
+
+  <ItemGroup>
+    <Compile Remove="TestData\**" />
+    <EmbeddedResource Remove="TestData\**" />
+    <None Remove="TestData\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Convert_Manager\Convert_Manager.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

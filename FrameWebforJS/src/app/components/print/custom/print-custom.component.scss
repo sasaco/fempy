@@ -1,0 +1,310 @@
+.result {
+    .resultWrap {
+        padding-left: 16px;
+        margin-top: 16px;
+        margin-right: 16px;
+        width: 60%;
+    }
+}
+
+$height_header: 32px;
+$height_semiHeader: 32px;
+$height_content: 16px;
+// .invoice {
+//   page-break-after: always;
+// }
+// .invoice:last-child {
+//   page-break-after: avoid;
+// }
+@media print {
+    .title-and-menu {
+        display: none;
+    }
+    #contents-dialog-id {
+        display: none;
+    }
+    @page {
+        size: A4;
+        margin: 80px 0;
+    }
+}
+
+.pagerBreak {
+    size: A4;
+    page-break-after: always;
+}
+
+.pagerBreakB {
+    size: A4;
+    page-break-before: always;
+}
+
+.show {
+    display: none;
+}
+
+//h2が3行、h3が2行、th/tdが1行
+.invoicetTable {
+    display: block;
+    text-align: left;
+}
+
+// margin-top:96px;
+h2 {
+    display: block;
+    //height: $height_header;
+    // margin-top: 80px;
+    //padding: 0 0 32px 0;
+    //line-height: 32px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: "ＭＳ Ｐゴシック";
+    color: #fff;
+    margin-top: 16px;
+}
+
+h3 {
+    // height: $height_semiHeader;
+    display: block;
+    // padding-top: 32px;
+    line-height: 32px;
+    font-size: 16px;
+    font-family: "ＭＳ 明朝";
+}
+
+table {
+    font-family: "ＭＳ 明朝";
+    font-size: 16px;
+    margin-bottom: 16px;
+    text-align: left;
+    break-inside: auto;
+    thead {
+        display: table-header-group;
+        // break-inside: avoid;
+        //     // break-after: avoid;
+        //  tr { page-break-inside: avoid; }
+    }
+    tbody {
+        margin-bottom: 32px;
+    }
+    th {
+        padding: 4px 8px;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 400;
+        &.title {
+            text-align: left;
+            font-weight: bold;
+            font-family: "MS UI Gothic";
+        }
+        &.type {
+            text-align: left;
+        }
+    }
+    td {
+        padding: 4px 8px;
+        font-size: 16px;
+        text-align: right;
+        &.name {
+            text-align: left;
+        }
+        &.word {
+            max-width: 400px;
+            min-width: 200px;
+            word-wrap: break-word;
+            text-align: left;
+        }
+        &.comb {
+            max-width: 150px;
+            word-wrap: break-word;
+            text-align: left;
+        }
+    }
+    th,
+    td {
+        &.y1 {
+            padding: 4px 12px;
+        }
+    }
+}
+
+//印刷結果表示のtableのpadding
+.print-sm {
+    break-inside: avoid;
+    th,
+    td {
+        padding: 4px 16px;
+    }
+}
+
+.print-md {
+    break-inside: avoid;
+    th,
+    td {
+        padding: 4px 24px;
+    }
+}
+
+.print-lg {
+    break-inside: avoid;
+    th,
+    td {
+        padding: 4px 28px;
+    }
+}
+
+//input-load
+.print-load {
+    th,
+    td {
+        padding: 4px 20px;
+    }
+}
+
+table,
+tr,
+td,
+th,
+tbody,
+thead,
+tfoot {
+    page-break-inside: avoid !important;
+}
+
+// 選択画面
+.print-choice {
+//    margin: 16px;
+    font-size: 16px;
+    margin-top: 16px;
+    h2 {
+        margin-left: 16px;
+    }
+    ul:not(:has(li.Handle)) {
+        border: none;
+    }
+    ul {
+        text-align: left;
+        margin: 0;
+        padding: 0;
+        border-bottom: 1px solid #63676C;
+        width: 60%;
+        li {
+            border-top: 1px solid #63676C;
+            // margin-bottom: 16px;
+            &:last-child {
+                margin-bottom: 0 !important;
+            }
+            label {
+                margin: 0 15px 0 0;
+                background-color: #404347;
+                border-radius: 3px;
+            }
+            .three-label {
+                background-color: transparent;
+            }
+            p {
+                font-size: 12px;
+                font-weight: 700;
+                color: #fff;
+                margin: 0 0 0 8px;
+                min-width: 200px;
+            }
+            .checkbox-input {
+                display: none;
+            }
+            .checkbox-parts,
+            .checkbox-parts-disabled {
+                position: relative;
+                display: flex;
+                align-items: center;                
+                width: 100%;
+                color: #fff;
+                height: 24px;
+                padding: 0 8px 0 24px;
+            }
+            .checkbox-parts::before,
+            .checkbox-parts-disabled::before {
+                content: "";
+                display: block;
+                position: absolute;
+                top: 50%;
+                left: 6px;
+                transform: translateY(-50%);
+                width: 12px;
+                height: 12px;
+                border: 1px solid #2B2D30;
+                background-color: #2B2D30;
+                border-radius: 2px;
+            }
+            .checkbox-parts-disabled {
+                opacity: 0.3;
+            }
+            .checkbox-parts-disabled::before {
+                disabled: 1;
+            }
+            .checkbox-input:hover+.checkbox-parts:hover {
+                cursor: pointer;
+                opacity: 0.7;
+            }
+            .checkbox-input:checked+.checkbox-parts {
+                color: #5095fc;
+            }
+            .checkbox-input:checked+.checkbox-parts::after {
+                content: "";
+                display: block;
+                position: absolute;
+                top: 50%;
+                left: 10px;
+                width: 5px;
+                height: 11px;
+                transform: translateY(-50%) rotate(40deg);
+                border-bottom: 2px solid #5095fc;
+                border-right: 2px solid #5095fc;
+            }
+        }
+        &.fsec,
+        &.reac,
+        &.disg {
+            li {
+                display: flex;
+                justify-content: flex-start;
+                align-items: center;
+                height: 40px;
+                white-space: nowrap;
+                font-size: 12px;
+            }
+        }
+    }
+}
+
+#cutom-three {
+    ul {
+        li {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            white-space: nowrap;
+            height: 40px;
+            font-size: 12px;
+            padding-left: 8px;
+            .three-label {
+                background-color: transparent;
+                &.scale {
+                    display: flex;
+                    justify-content: space-between;
+                }
+            }
+            .number-input {
+                width: 46px;
+                height: 24px;
+                text-align: center;
+                background-color: #fff;
+                border: none;
+                border-radius: 3px;
+                padding: 0;
+                margin-left: 4px;
+                color: #2B2D30;
+            }
+        }
+    }
+}

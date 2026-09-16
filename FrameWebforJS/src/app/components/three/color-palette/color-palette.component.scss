@@ -1,0 +1,37 @@
+.rulerColorList{
+    position: absolute;
+    z-index: 2;
+    background-color: #1a1a1a;
+    left: 0px;
+    top: 115px;
+    border-radius: 4px;
+    padding: 4px;
+    max-height: calc(100vh - 270px);
+    overflow-y: auto;
+    .rulerItem{
+        display: flex;
+        border-bottom: 1px solid #2c2c2c;
+        .rulerColor{
+            width: 100px;
+            height: 26px;
+            line-height: 26px;
+        }
+
+        .rulerValue{
+            line-height: 26px;
+            color: #eee;
+            padding: 0 8px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: "Noto Sans JP", sans-serif;
+        }
+    }
+    .rulerItem:last-child{
+        border-bottom: none;
+    }
+}
+.rulerControl{
+    position: absolute;
+    top: 82px;
+    z-index: 2;
+}

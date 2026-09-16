@@ -1,0 +1,143 @@
+<div style="padding: 8px;">
+  <div class="control"  (click)="inputMemberDetailService.setShowHideDetail(false)">
+    <svg fill="#ffffff" version="1.1" baseProfile="tiny" id="Layer_1" xmlns:x="&amp;ns_extend;" xmlns:i="&amp;ns_ai;"
+      xmlns:graph="&amp;ns_graphs;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+      xmlns:a="http://ns.adobe.com/AdobeSVGViewerExtensions/3.0/" width="12px" height="12px" viewBox="0 0 42 42"
+      xml:space="preserve" stroke="#ffffff">
+      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <polygon fill-rule="evenodd" points="27.066,1 7,21.068 26.568,40.637 31.502,35.704 16.865,21.068 32,5.933 ">
+        </polygon>
+      </g>
+    </svg>
+    <span translate>menu.back</span>
+  </div>
+  <table class="member-detail">
+    <tbody>
+      <tr>
+        <td class="member-title" translate>input.input-members.member</td>
+        <td class="member-unit" translate>input.input-members.No</td>
+        <td class="member-value">{{inputMemberDetailService.entity.id}}</td>
+      </tr>
+      <tr>
+        <td class="member-title" rowspan="4" translate>input.input-members.node_i</td>
+        <td class="member-unit" translate>input.input-members.No</td>
+        <!-- <td class="member-value">{{inputMemberDetailService.entity.ni}}</td> -->
+        <td class="member-value-2"><input type="number" 
+          onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))" 
+          [(ngModel)]="inputMemberDetailService.entity.ni" name="ni" id="ni" 
+          (ngModelChange)="onChangeNodeI($event, 0)"/></td>
+      </tr>
+      <tr>
+        <td class="member-unit">X</td>
+        <!-- <td class="member-value">{{inputMemberDetailService.entity.nix}}</td> -->
+        <td class="member-value"><input type="number" [(ngModel)]="inputMemberDetailService.entity.nix" name="nix" id="nix" /></td>
+      </tr>
+      <tr>
+        <td class="member-unit">Y</td>
+        <!-- <td class="member-value">{{inputMemberDetailService.entity.niy}}</td> -->
+        <td class="member-value"><input type="number" [(ngModel)]="inputMemberDetailService.entity.niy" name="niy" id="niy" /></td>
+      </tr>
+      <tr>
+        <td class="member-unit">Z</td>
+        <!-- <td class="member-value">{{inputMemberDetailService.entity.niz}}</td> -->
+        <td class="member-value"><input type="number" [(ngModel)]="inputMemberDetailService.entity.niz" name="niz" id="niz" /></td>
+      </tr>
+      <tr>
+        <td class="member-title" rowspan="4" translate>input.input-members.node_j</td>
+        <td class="member-unit" translate>input.input-members.No</td>
+        <!-- <td class="member-value">{{inputMemberDetailService.entity.nj}}</td> -->
+        <td class="member-value"><input type="number" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))" 
+           [(ngModel)]="inputMemberDetailService.entity.nj" name="nj" id="nj" (ngModelChange)="onChangeNodeI($event, 1)"/></td>
+      </tr>
+      <tr>
+        <td class="member-unit">X</td>
+        <!-- <td class="member-value">{{inputMemberDetailService.entity.njx}}</td> -->
+        <td class="member-value"><input type="number" [(ngModel)]="inputMemberDetailService.entity.njx" name="njx" id="njx" /></td>
+      </tr>
+      <tr>
+        <td class="member-unit">Y</td>
+        <!-- <td class="member-value">{{inputMemberDetailService.entity.njy}}</td> -->
+        <td class="member-value"><input type="number" [(ngModel)]="inputMemberDetailService.entity.njy" name="njy" id="njy" /></td>
+      </tr>
+      <tr>
+        <td class="member-unit">Z</td>
+        <!-- <td class="member-value">{{inputMemberDetailService.entity.njz}}</td> -->
+        <td class="member-value"><input type="number" [(ngModel)]="inputMemberDetailService.entity.njz" name="njz" id="njz" /></td>
+      </tr>
+      <tr>
+        <td class="member-title" translate>input.input-members.distance</td>
+        <td class="member-unit">m</td>
+        <td class="member-value">{{inputMemberDetailService.entity.L}}</td>
+      </tr>
+      <tr>
+        <td class="member-title" translate>input.input-members.codeAngle</td>
+        <td class="member-unit">°</td>
+        <!-- <td class="member-value">{{inputMemberDetailService.entity.cg}}</td> -->
+        <td class="member-value"><input type="number" [(ngModel)]="inputMemberDetailService.entity.cg" name="cg" id="cg" /></td>
+      </tr>
+      <tr>
+        <td class="member-title" translate>input.input-members.material</td>
+        <td class="member-unit" translate>input.input-members.No</td>
+        <!-- <td class="member-value">{{inputMemberDetailService.entity.e}}</td> -->
+        <td class="member-value"><input type="number" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))" 
+                                          [(ngModel)]="inputMemberDetailService.entity.e" name="e" id="e" 
+                                          (ngModelChange)="onChangeMaterial($event)"/></td>
+      </tr>
+      <tr>
+        <td class="member-title" translate>input.input-elements.elastic</td>
+        <td class="member-unit">kN/m2</td>
+        <!-- <td class="member-value">{{ inputMemberDetailService.entity.eastic}}</td> -->
+        <td class="member-value"><input type="text" [(ngModel)]="inputMemberDetailService.entity.eastic" name="eastic" id="eastic" /></td>
+      </tr>
+      <tr>
+        <td class="member-title" translate>input.input-elements.shear_elastic</td>
+        <td class="member-unit">kN/m2</td>
+        <!-- <td class="member-value">{{inputMemberDetailService.entity.steelElastic }}</td> -->
+        <td class="member-value"><input type="text" [(ngModel)]="inputMemberDetailService.entity.steelElastic" name="steelElastic" id="steelElastic" /></td>
+      </tr>
+      <tr>
+        <td class="member-title" translate>input.input-elements.cte</td>
+        <td class="member-unit"></td>
+        <!-- <td class="member-value">{{inputMemberDetailService.entity.cte }}</td> -->
+        <td class="member-value"><input type="text" [(ngModel)]="inputMemberDetailService.entity.cte" name="cte" id="cte" /></td>
+      </tr>
+      <tr>
+        <td class="member-title" translate>input.input-elements.area</td>
+        <td class="member-unit">m2</td>
+        <!-- <td class="member-value">{{inputMemberDetailService.entity.area }}</td> -->
+        <td class="member-value"><input type="text" [(ngModel)]="inputMemberDetailService.entity.area" name="area" id="area" /></td>
+      </tr>
+      <tr>
+        <td class="member-title" translate>input.input-elements.torsionConstant</td>
+        <td class="member-unit">m4</td>
+        <!-- <td class="member-value">{{inputMemberDetailService.entity.torsionConstant }}</td> -->
+        <td class="member-value"><input type="text" [(ngModel)]="inputMemberDetailService.entity.torsionConstant" name="torsionConstant" id="torsionConstant" /></td>
+      </tr>
+      <tr>
+        <td class="member-title" rowspan="2" translate>input.input-elements.inertia</td>
+        <td class="member-unit">Iy</td>
+        <!-- <td class="member-value">{{ inputMemberDetailService.entity.inertiaIy }}</td> -->
+        <td class="member-value"><input type="text" [(ngModel)]="inputMemberDetailService.entity.inertiaIy" name="inertiaIy" id="inertiaIy" /></td>
+      </tr>
+      <tr>
+        <td class="member-unit">Iz</td>
+        <!-- <td class="member-value">{{inputMemberDetailService.entity.inertiaIz}}</td> -->
+        <td class="member-value"><input type="text" [(ngModel)]="inputMemberDetailService.entity.inertiaIz" name="inertiaIz" id="inertiaIz" /></td>
+      </tr>
+      <tr>
+        <td class="member-title" translate>input.input-members.material_name</td>
+        <td class="member-unit"></td>
+        <!-- <td class="member-value">{{inputMemberDetailService.entity.nameOfMaterial }}</td> -->
+        <td class="member-value"><input type="text" [(ngModel)]="inputMemberDetailService.entity.nameOfMaterial" name="nameOfMaterial" id="nameOfMaterial" /></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="control control-save" (click)="updateDetail()">
+    <svg width="16px" height="16px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M18.1716 1C18.702 1 19.2107 1.21071 19.5858 1.58579L22.4142 4.41421C22.7893 4.78929 23 5.29799 23 5.82843V20C23 21.6569 21.6569 23 20 23H4C2.34315 23 1 21.6569 1 20V4C1 2.34315 2.34315 1 4 1H18.1716ZM4 3C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21L5 21L5 15C5 13.3431 6.34315 12 8 12L16 12C17.6569 12 19 13.3431 19 15V21H20C20.5523 21 21 20.5523 21 20V6.82843C21 6.29799 20.7893 5.78929 20.4142 5.41421L18.5858 3.58579C18.2107 3.21071 17.702 3 17.1716 3H17V5C17 6.65685 15.6569 8 14 8H10C8.34315 8 7 6.65685 7 5V3H4ZM17 21V15C17 14.4477 16.5523 14 16 14L8 14C7.44772 14 7 14.4477 7 15L7 21L17 21ZM9 3H15V5C15 5.55228 14.5523 6 14 6H10C9.44772 6 9 5.55228 9 5V3Z" fill="#FFFFFF"/>
+      </svg>
+      <span translate>menu.save</span>
+  </div>
+</div>

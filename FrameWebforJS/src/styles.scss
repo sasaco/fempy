@@ -1,0 +1,426 @@
+@import "variables";
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: "Noto Sans JP", sans-serif;
+  // font-family: 'Lato', 'Noto Sans JP', 'ヒラギノ角ゴ ProN', 'Hiragino Kaku Gothic ProN', 'メイリオ', Meiryo, 'ＭＳ Ｐゴシック', 'MS PGothic', sans-serif;
+}
+
+html,
+body {
+  overflow: hidden;
+}
+
+.pq-resize-iframe {
+  display: none;
+}
+
+a[href="http://paramquery.com/pro"] {
+  display: none;
+}
+
+a[href="https://paramquery.com/pro"] {
+  display: none;
+}
+
+.obit-controls-gizmo {
+  position: absolute;
+  top: 109px;
+  left: 230px;
+  z-index: 1;
+}
+
+select:focus-visible {
+  outline: none;
+}
+
+.dropdownmenu,
+.dropdown {
+  margin-right: 10px;
+  .dropdown-toggle {
+    &::after {
+      border: none;
+      top: 60%;
+      right: -4px;
+      transform: translateY(-50%) rotate(0);
+      background-image: url("./assets/icons/icon-arrow.svg");
+      background-size: contain;
+      width: 8px;
+      height: 8px;
+      position: absolute;
+      background-repeat: no-repeat;
+      transition: all 0.5s cubic-bezier(0.075, 0.82, 0.165, 1);
+    }
+  }
+  &.show {
+    .dropdown-toggle {
+      &::after {
+        top: 40%;
+        transform: translateY(-50%) rotate(180deg);
+      }
+    }
+  }
+}
+
+//three.js
+#screenArea div {
+  z-index: 1;
+}
+//dock-spawn-ts
+.dialog-floating {
+  &.hidden {
+    opacity: 0;
+    z-index: -999999 !important;
+  }
+}
+.panel-titlebar {
+  background-color: var(--base);
+}
+.panel-element-content-container {
+  z-index: 2;
+  background-color: transparent !important;
+  &.hidden {
+    opacity: 0;
+    z-index: -999999 !important;
+  }
+}
+.panel-titlebar-button-close:hover {
+  color: #aaa;
+}
+.splitter-container-horizontal,
+.splitter-container-vertical {
+  z-index: 2;
+}
+.dock-container-fill {
+  z-index: 0;
+}
+.panel-titlebar-text {
+  font-size: 11px;
+  font-family: "Noto Sans JP";
+}
+
+.splitbar-vertical,
+.splitbar-horizontal,
+.splitbar-vertical:hover,
+.splitbar-horizontal:hover {
+  background: transparent;
+  z-index: 1;
+  width: 10px;
+  height: 10px;
+}
+.dock-wheel-fill-icon,
+.dock-wheel-top-icon,
+.dock-wheel-left-icon {
+  background: none;
+  visibility: collapse;
+  display: none;
+}
+
+.dockspan-panel-active {
+  background: var(--base);
+}
+
+.dock-container,
+.dockspan-tab-host,
+.dockspan-tab-content {
+  background-color: transparent;
+}
+
+#my_dock_manager .dock-wheel-base:nth-child(2) {
+  .dock-wheel-right-icon {
+    background: none;
+    visibility: collapse;
+    display: none;
+  }
+}
+
+.draggable-dragging-active {
+  opacity: 0.7;
+}
+
+.panel-titlebar-text,
+.dockspan-panel-active {
+  background: #222222;
+}
+
+.dock-wheel-panel-preview {
+  background: var(--base);
+  opacity: 0.2;
+}
+
+//grid
+body {
+  div.pq-editor-outer {
+    //background: transparent !important;
+    background: var(--table_empty_bg) !important;
+  }
+  div.pq-theme {
+    color: var(--primary);
+    border-color: #63676c !important;
+    background: none;
+  }
+  .pq-body-outer .pq-cont-left {
+    border-color: #63676c !important;
+  }
+  .pq-header-outer {
+    background: none;
+    border-bottom-color: #63676c !important;
+  }
+
+  .pq-header-outer .pq-cont-inner {
+    background-image: none;
+  }
+
+  .pq-td-border-right > .pq-grid-row > .pq-grid-cell {
+    border-right-color: #63676c !important;
+  }
+  .pq-td-border-top > .pq-grid-row > .pq-grid-cell,
+  .pq-cont-inner > .pq-td-border-top > .pq-grid-row {
+    border-bottom-color: #63676c !important;
+  }
+  .pq-grid-row > .pq-grid-number-cell,
+  .pq-grid-number-col {
+    border-color: #63676c !important;
+  }
+  .pq-body-outer .pq-grid-number-cell,
+  .pq-summary-outer .pq-grid-number-cell {
+    background: none !important;
+  }
+  .pq-grid-col {
+    border-color: #63676c !important;
+  }
+  .pq-grid-col:hover {
+    background: none !important;
+  }
+  .pq-grid-row.pq-striped,
+  .pq-grid-row.pq-striped .pq-align-right {
+    background: #434547 !important;
+    color: #fff;
+  }
+  .pq-grid-row,
+  .pq-grid-cell.pq-align-right {
+    background: #56585c !important;
+    color: #fff;
+  }
+  .cdk-virtual-scroll-viewport {
+    contain: none;
+  }
+  div.pq-cmenu {
+    color: black !important;
+  }
+}
+
+// bootstrap
+.modal-backdrop {
+  background-color: transparent !important;
+  cursor: default !important;
+}
+.modal {
+  cursor: default !important;
+  &.show {
+    z-index: 100002 !important;
+    background-color: rgba(0, 0, 0, 0.8) !important;
+  }
+}
+
+// print
+.print {
+  .datasheet {
+    span,
+    div {
+      font-size: 12px;
+    }
+  }
+  .ui-widget.ui-widget-content,
+  .pq-grid-col,
+  .pq-cont-inner > .pq-table > .pq-grid-row,
+  .pq-theme .ui-widget-header {
+    border-color: #797f87;
+  }
+  .pq-td-border-top > .pq-grid-row > .pq-grid-cell,
+  .pq-cont-inner > .pq-td-border-top > .pq-grid-row,
+  .pq-td-div,
+  .pq-header-outer .pq-cont-inner,
+  .pq-body-outer,
+  .ui-state-default,
+  .ui-widget-content .ui-state-default,
+  .ui-widget-header .ui-state-default,
+  .ui-button,
+  html .ui-button.ui-state-disabled:hover,
+  html .ui-button.ui-state-disabled:active {
+    background-color: transparent !important;
+    border-color: rgb(99, 103, 108) !important;
+  }
+  .pq-theme .ui-state-default,
+  .pq-theme .ui-button {
+    background-image: none;
+  }
+  .pq-theme input[type="checkbox"],
+  .pq-theme input[type="radio"] {
+    width: 12px;
+    height: 12px;
+    border: 1px solid #2b2d30;
+    background-color: #2b2d30;
+    border-radius: 2px;
+  }
+}
+
+//override boostrap
+.dropdown-menu.show {
+  background-color: #333333;
+  overflow: hidden;
+}
+#disTitle .dropdown-item {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px;
+  &:hover {
+    background-color: #333333;
+    color: var(--primary);
+    opacity: 1;
+  }
+}
+
+.pq-td-div {
+  background: #56585c !important;
+  text-overflow: unset !important;
+  white-space: unset !important;
+}
+.pq-title-span {
+  color: white;
+}
+
+.dock-wheel-down-icon {
+  background: url(./assets/icons/dock_bottom.png) 0 0;
+}
+.dock-wheel-right-icon {
+  background: url(./assets/icons/dock_right.png) 0 0;
+}
+
+// dat.GUI
+body {
+  .dg {
+    &.ac {
+      top: 80px;
+      z-index: 2;
+    }
+    .property-name {
+      font-size: 12px;
+      font-weight: 700;
+      font-family: "Noto Sans JP", sans-serif;
+      width: 55%;
+    }
+    .c{
+      width: 45%;
+      input[type="checkbox"]{
+        margin-left: 4px;
+      }
+    }
+    .cr {
+      &.boolean {
+        border-left-color: transparent;
+      }
+      &.number {
+        border-left: none;
+        input[type="text"] {
+          font-family: "Noto Sans JP", sans-serif;
+          color: #ffffff;
+          height: 19px;
+          margin-top: 4px;
+          font-size: 13px;
+          font-weight: 700;
+        }
+      }
+    }
+    &.main {
+      border-radius: 4px;
+      overflow: hidden;
+      .close-button {
+        display: none;
+      }
+    }
+    .c {
+      input[type="text"] {
+        background: #555555;
+        border-radius: 0px 2px 2px 0px;
+      }
+      .slider {
+        background: #555555;
+        &:hover {
+          .slider-fg {
+            background: #ffffff;
+          }
+        }
+        .slider-fg {
+          background: #ffffff;
+          border-radius: 2px 0 0 2px;
+          overflow: hidden;
+        }
+      }
+    }
+  }
+}
+#load-strength-info{
+  text-align: center;
+  margin-top: 8px;
+}
+//chat
+#eye_catcher {
+  display: none !important;
+}
+
+@media print {
+  .pq-resize-iframe {
+    display: none;
+  }
+  a[href="http://paramquery.com/pro"] {
+    display: none;
+  }
+  a[href="https://paramquery.com/pro"] {
+      display: none;
+  }
+  .obit-controls-gizmo {
+    display: none;
+  }
+  #chatplusview {
+    display: none !important;
+  }
+}
+
+@media print {
+  body {
+    overflow-y: visible;
+    overflow-x: visible;
+    page-break-after: always;
+  }
+}
+
+@page {
+  size: A4;
+}
+
+@media print {
+  .isPrinting>* {
+    display: none;
+  }
+  .isPrinting app-print-layout {
+    display: block;
+  }
+}
+
+
+/* Add application styles & imports to this file! */
+
+@import url("https://unpkg.com/pqgrid@9.0.1/pqgrid.min.css");
+@import "~pqgrid/pqgrid.ui.min.css";
+@import "~pqgrid/themes/steelblue/pqgrid.css";
+@import "../node_modules/dock-spawn-ts/lib/css/dock-manager.css";
+@import "../node_modules/dock-spawn-ts/lib/css/dock-manager-style.css";
+
+#chatplusview.chatplusview-basic.closed #outline{
+  display: none;
+}

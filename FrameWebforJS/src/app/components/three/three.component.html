@@ -1,0 +1,17 @@
+<!-- <a class="camera" (click)="downloadImage()"><i class="fas fa-camera"></i></a> -->
+<div #screen id="screen">
+    <div id="screenArea">
+        <canvas #myCanvas id="myCanvas" style="overflow: hidden; position: absolute">
+        </canvas>
+        <div id="graphics-locator" style="left: 396px; top: 456.106px; ">
+            <div id="graphics-locator-child" style="width: 60%; height: 60%; top: 20%; left: 20%;"></div>
+        </div>
+    </div>
+</div>
+<div id="download">
+    <img #img />
+    <a #downloadLink></a>
+</div>
+<div class="home-button" (click)="onToggleHome()">
+    <svg _ngcontent-bhs-c74="" xmlns="http://www.w3.org/2000/svg" version="1.0" width="25pt" height="25pt" viewBox="0 0 256.000000 256.000000" preserveAspectRatio="xMidYMid meet"><g _ngcontent-bhs-c74="" stroke="none" fill="#000000" transform="translate(0.000000,256.000000) scale(0.100000,-0.100000)"><path _ngcontent-bhs-c74="" d="M810 1731 l-495 -489 34 -36 c19 -20 43 -38 53 -42 14 -4 119 93 462 430 244 240 448 436 452 436 5 0 208 -199 451 -442 l442 -442 37 30 c74 59 108 15 -431 554 -269 270 -494 490 -500 490 -5 0 -233 -220 -505 -489z"></path><path _ngcontent-bhs-c74="" d="M895 1497 l-420 -422 3 -347 2 -348 305 0 305 0 0 335 0 334 216 3 c119 2 218 1 220 -1 2 -2 4 -154 4 -338 l0 -333 308 2 307 3 3 350 2 350 -417 417 -418 418 -420 -423z"></path></g></svg>
+  </div>

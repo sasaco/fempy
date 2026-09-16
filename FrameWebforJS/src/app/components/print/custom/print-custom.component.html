@@ -1,0 +1,29 @@
+<!-- 変位量データ -->
+<!-- 基本ケースを除きoption表示-->
+<div *ngIf="(printService.flg == 1 && printCustomService.LL_exist === true)
+            || printService.flg == 2
+            || printService.flg == 3"
+     class="print-custom-fsec">
+    <app-print-custom-disg class="result"> </app-print-custom-disg>
+</div>
+
+<!-- 反力データ -->
+<!-- 基本ケースを除きoption表示-->
+<div *ngIf="(printService.flg == 4 && printCustomService.LL_exist === true)
+            || printService.flg == 5
+            || printService.flg == 6"
+     class="print-custom-fsec">
+    <app-print-custom-reac class="result"> </app-print-custom-reac>
+</div>
+
+<!-- 断面力データ -->
+<div *ngIf="printService.flg == 7 || printService.flg == 8 || printService.flg == 9"
+     class="print-custom-fsec">
+    <app-print-custom-fsec class="result"> </app-print-custom-fsec>
+</div>
+
+<!-- 画面印刷 -->
+<div *ngIf="printService.flg == 11 || printService.flg == 12 || printService.flg == 13 || printService.flg == 14 || printService.flg == 15 || printService.flg == 16">
+
+    <app-print-custom-three class="result"> </app-print-custom-three>
+</div>

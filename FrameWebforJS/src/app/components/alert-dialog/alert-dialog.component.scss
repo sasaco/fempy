@@ -1,0 +1,48 @@
+.modal-wrapper {
+  padding: 24px 40px;
+  text-align: center;
+  white-space: pre-line;
+  .button-wrapper {
+    display: flex;
+    justify-content: center;
+  }
+  .text {
+    color: #222;
+    font-size: 16px;
+    font-family: "Noto Sans JP", sans-serif;
+    font-weight: 700;
+  }
+
+  .title { 
+    text-align: left !important;
+  }
+
+  .message {
+    font-weight: 500 !important;
+    text-align: left !important;
+  }
+
+  .button {
+    display: inline-block;
+    font-size: 12px;
+    font-family: "Noto Sans JP", sans-serif;
+    font-weight: 700;
+    border-radius: 2px;
+    padding: 8px 16px;
+    margin-top: 16px;
+    text-decoration: none;
+    cursor: pointer;
+    &.primary {
+      background-color: var(--primary);
+      border: 1px solid var(--primary);
+      color: var(--text_main);
+    }
+    &.secondary {
+      color: var(text_sub);
+      margin-right: 8px;
+    }
+    &:hover {
+      opacity: 0.85;
+    }
+  }
+}

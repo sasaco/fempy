@@ -1,0 +1,44 @@
+<div class="rulerControl control" 
+(click)="onToggleControl()" 
+[ngClass]="{ 'control-active': isControlOpen }" 
+*ngIf="colorPaletteService.isControlShow">
+    <ng-container *ngIf="!isControlOpen">
+        <svg height="24px" width="24px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.007 512.007" xml:space="preserve" fill="#d9d9d9"
+            stroke="#d9d9d9">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+                <path
+                    d="M313.364,9.94C97.3,59.364-36.684,194.612,8.884,335.268C61.892,498.9,400.692,551.924,491.412,476.644 S336.98,302.788,449.684,169.748C518.228,88.868,490.58-30.604,313.364,9.94z">
+                </path>
+                <circle style="fill:#919191;" cx="346.34" cy="89.396" r="41.072"></circle>
+                <circle style="fill:#919191;" cx="223.572" cy="154.148" r="41.072"></circle>
+                <circle style="fill:#919191;" cx="121.828" cy="254.372" r="41.072"></circle>
+                <circle style="fill:#919191;" cx="199.124" cy="371.364" r="41.072"></circle>
+            </g>
+        </svg>
+    </ng-container>
+    <ng-container *ngIf="isControlOpen">
+        <svg height="24px" width="24px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.007 512.007" xml:space="preserve" fill="#000000">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+                <path
+                    d="M313.364,9.94C97.3,59.364-36.684,194.612,8.884,335.268C61.892,498.9,400.692,551.924,491.412,476.644 S336.98,302.788,449.684,169.748C518.228,88.868,490.58-30.604,313.364,9.94z">
+                </path>
+                <circle style="fill:#E04F5F;" cx="346.34" cy="89.396" r="41.072"></circle>
+                <circle style="fill:#32BEA6;" cx="223.572" cy="154.148" r="41.072"></circle>
+                <circle style="fill:#25B6D2;" cx="121.828" cy="254.372" r="41.072"></circle>
+                <circle style="fill:#F2B851;" cx="199.124" cy="371.364" r="41.072"></circle>
+            </g>
+        </svg>
+    </ng-container>
+</div>
+<div class="rulerColorList" *ngIf="(colorRulerList && colorRulerList.length > 0) && isControlOpen && colorPaletteService.isControlShow">
+    <div class="rulerItem" *ngFor="let item of colorRulerList">
+        <div class="rulerColor" [style]="getBackground(item)"></div>
+        <div class="rulerValue">{{item.t}}</div>
+    </div>
+</div>

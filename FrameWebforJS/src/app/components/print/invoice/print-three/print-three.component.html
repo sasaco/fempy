@@ -1,0 +1,19 @@
+<ng-container *ngFor="let printCase of print_case; index as index">
+  <div class="pagerBreak"></div>
+  <h2>{{ printCase.title1 }}</h2>
+  <ng-container *ngFor="let item of printCase.print_target; index as i">
+    <div *ngIf="item.judge" class="pagerBreak"></div>
+    <h3>{{ item.title }}</h3>
+    <h4>{{ item.type }}</h4>
+    <h4>Max:{{ item.max_three }}</h4>
+    <h4>Min:{{ item.min_three }}</h4>
+
+    <!-- 変位図用の表示枠 -->
+    <div class="small">{{ item.disgSubInfo1 }}</div>
+    <div class="small">{{ item.disgSubInfo2 }}</div>
+
+    <div class="fit-picture">
+      <img src="{{ item.src }}" />
+    </div>
+  </ng-container>
+</ng-container>

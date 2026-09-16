@@ -1,0 +1,62 @@
+$table-border-color: #63676c;
+
+.member-detail{
+  border-right: 1px solid $table-border-color;
+  border-bottom: 1px solid $table-border-color;
+  background-color: #56585c;
+  color: #fff;
+  td{
+    border-top: 1px solid $table-border-color;
+    border-left: 1px solid $table-border-color;
+  }
+  .member-value{
+    width: 100px;
+    text-align: right;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+    text-align: right;
+    width: 100px;
+  }
+  .member-unit{
+    width: 80px;
+  }
+  .member-title{
+    width: 200px;
+    padding-left: 10px;
+  }
+  input[type='text']{
+    text-align: right;
+    width: 100px;
+  }
+}
+
+.control{
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width: 70px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 1px;
+  padding: 0 8px;
+  border-radius: 4px;
+  background-color: #222222;
+  color: #fff;
+  height: 27px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  span{
+    margin: 0 auto;
+  }
+}
+
+.control-save{
+  background-color: #5095fc;
+}

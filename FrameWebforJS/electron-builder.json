@@ -1,0 +1,58 @@
+{
+  "productName": "frame-web-for-js",
+  "directories": {
+    "output": "release/"
+  },
+  "files": [
+    "**/*",
+    "!**/*.ts",
+    "!*.code-workspace",
+    "!LICENSE.md",
+    "!package.json",
+    "!package-lock.json",
+    "!src/",
+    "!e2e/",
+    "!hooks/",
+    "!angular.json",
+    "!_config.yml",
+    "!karma.conf.js",
+    "!tsconfig.json",
+    "!tslint.json"
+  ],
+  "extraResources": [
+    {
+      "from": "dist",
+      "to": "app",
+      "filter": [
+        "**/*"
+      ]
+    }
+  ],
+  "win": {
+    "icon": "dist/assets/icons",
+    "publisherName": "MALME INC.",
+    "target": "nsis",
+    "asar": false,
+    "verifyUpdateCodeSignature": false 
+  },
+  "mac": {
+    "icon": "dist",
+    "target": [
+      "dmg"
+    ]
+  },
+  "linux": {
+    "icon": "dist",
+    "target": [
+      "AppImage"
+    ]
+  },
+  "publish": [
+    {
+      "releaseType": "release",
+      "provider": "github",
+      "owner": "structuralengine",
+      "repo": "FrameWebforJS"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+.datasheet_inner {
+    // width: 1020px;
+}
+
+.btn-group {
+    float: left;
+    padding: 16px 16px;
+}
+
+.pager {
+    float: left;
+    margin-top: 4px;
+    margin-left: 0.5px;
+    margin-right: 0.5px;
+}
+
+.load-name {
+    margin-top: 16px;
+    padding-top: 14px;
+    float: left;
+}
+
+.boxContainer{
+    overflow: hidden;
+}
+
+.LL_area {
+    overflow: hidden;
+    .title {
+        float: left;
+        margin: 0 0 0 16px;
+        color:aliceblue;
+    }
+    .label {
+        float: left;
+        margin: 0 0 0 16px;
+        color:aliceblue;
+    }
+    .input{
+        float: left;
+        margin: 0 0 0 16px;
+        width: 80px;
+        text-align: right;
+        color:aliceblue;
+    }
+}

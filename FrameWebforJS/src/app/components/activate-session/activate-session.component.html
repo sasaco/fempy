@@ -1,0 +1,7 @@
+<div *ngIf="userInfoService.userProfile && userInfoService.activeSession && userInfoService.clientId != userInfoService.activeSession" class="activate-session">
+    <div class="activate-session-inner">
+        <p>別の場所からこのアカウントでログインされました。</p>
+        <p>この端末でログイン状態を継続するためには再接続ボタンを押してください。</p>
+        <button (click)="userInfoService.setActiveSession()">再接続</button>
+    </div>
+</div>

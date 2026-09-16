@@ -1,0 +1,161 @@
+.pagerArea {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  height: 40px;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.1);
+  &.leftArea {
+   padding-left: 37.8vw;
+   justify-content: start;
+  }
+  .pagerWrap {
+    display: flex;
+    gap: 16px;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+
+    &.left {
+      justify-content: flex-start;
+    }
+  }
+
+  .upDownArea {
+    display: flex;
+    flex-direction: column;
+  }
+  .btn-group-show{
+    position: absolute;
+    left: 14px;
+  }
+  .buttonShow{
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+    button {
+      height: 30px;
+      width: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      &.left-button{
+        border-radius: 4px 0 0 4px;
+      }
+      &.right-button{
+        border-radius: 0 4px 4px 0;
+      }
+      &.active span {
+        color: #5095fc;
+      }
+
+      span {
+        color: #fff;
+        font-size: 12px;
+      }
+    }
+  }
+  .buttonSelect {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+
+    button {
+      height: 27px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+
+      &.active {
+        background-color: #5095fc;
+      }
+
+      span {
+        color: #fff;
+        font-size: 12px;
+      }
+    }
+  }
+
+  .noActive {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  button {
+    display: inherit;
+    margin: 0;
+    border: none;
+    padding: 3px 9px;
+    background-color: #222222;
+
+    &:nth-child(1) {
+      border-radius: 2px 0 0 0;
+      margin-bottom: 1px;
+    }
+
+    &:nth-child(2) {
+      border-radius: 0 0 0 2px;
+    }
+
+    &:disabled {
+      img {
+        opacity: 0.3;
+      }
+    }
+  }
+
+  .bottom {
+    transform: rotate(180deg);
+  }
+
+  .selectArea {
+    margin-left: 1px;
+    padding: 0 8px;
+    border-radius: 0 4px 4px 0;
+    background-color: #222222;
+    height: 27px;
+    display: flex;
+    align-items: center;
+
+    select {
+      border: none;
+      background-color: #222222;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      appearance: none;
+      margin-left: 8px;
+    }
+  }
+}
+
+.control {
+  position: absolute;
+  right: 16px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 1px;
+  padding: 0 8px;
+  border-radius: 4px;
+  background-color: #222222;
+  color: #fff;
+  height: 27px;
+  display: flex;
+  align-items: center;
+
+  &.control-active {
+    color: #5095fc;
+
+    path {
+      fill: #5095fc;
+    }
+  }
+
+  cursor: pointer;
+
+  span {
+    margin-left: 4px;
+  }
+}

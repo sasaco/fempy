@@ -1,0 +1,87 @@
+<!-- <div *ngFor="let r of KEYS; index as i">
+  <div *ngIf="i === cal">
+    <div class="wrapper">
+      <div class="result_table">
+        <table #userinput id="userinput">
+          <thead>
+            <div *ngIf="dimension === 3">
+              <tr>
+                <th class="result-sm">
+                  <p translate>result.result-pickup-disg.No</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-disg.x_movement</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-disg.y_movement</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-disg.z_movement</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-disg.x_rotation</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-disg.y_rotation</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-disg.z_rotation</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-disg.comb</p>
+                </th>
+              </tr>
+            </div>
+            <div *ngIf="dimension === 2">
+              <tr>
+                <th class="result-sm">
+                  <p translate>result.result-pickup-disg.No</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-disg.x_movement</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-disg.y_movement</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-disg.z_rotation</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-pickup-disg.comb</p>
+                </th>
+              </tr>
+            </div>
+          </thead>
+          <tbody>
+            <div [style.height.px]="height" *ngIf="dimension === 3">
+              <tr *ngFor="let resultData of dataset[i]; index as i">
+                <td class="result-sm">{{ resultData.id }}</td>
+                <td class="result-lg">{{ resultData.dx }}</td>
+                <td class="result-lg">{{ resultData.dy }}</td>
+                <td class="result-lg">{{ resultData.dz }}</td>
+                <td class="result-lg">{{ resultData.rx }}</td>
+                <td class="result-lg">{{ resultData.ry }}</td>
+                <td class="result-lg">{{ resultData.rz }}</td>
+                <td class="result-lg">{{ resultData.case }}</td>
+              </tr>
+            </div>
+            <div [style.height.px]="height" *ngIf="dimension === 2">
+              <tr *ngFor="let resultData of dataset[i]; index as i">
+                <td class="result-sm">{{ resultData.id }}</td>
+                <td class="result-lg">{{ resultData.dx }}</td>
+                <td class="result-lg">{{ resultData.dy }}</td>
+                <td class="result-lg">{{ resultData.rz }}</td>
+                <td class="result-lg">{{ resultData.case }}</td>
+              </tr>
+            </div>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+
+<div id="datasheet_inner" class="datasheet_inner">
+  <app-sheet #grid [options]="options"></app-sheet>
+</div>

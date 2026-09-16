@@ -1,0 +1,95 @@
+<!-- <div *ngFor="let r of KEYS; index as i">
+  <div *ngIf="i === cal">
+    <div class="wrapper">
+      <div class="result_table">
+        <table #userinput id="userinput">
+          <thead>
+            <div *ngIf="dimension === 3">
+              <tr>
+                <th class="result-sm">
+                  <p translate>result.result-combine-reac.nodeNo</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-combine-reac.x_SupportReaction</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-combine-reac.y_SupportReaction</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-combine-reac.z_SupportReaction</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>
+                    result.result-combine-reac.x_RotationalReaction
+                  </p>
+                </th>
+                <th class="result-lg">
+                  <p translate>
+                    result.result-combine-reac.y_RotationalReaction
+                  </p>
+                </th>
+                <th class="result-lg">
+                  <p translate>
+                    result.result-combine-reac.z_RotationalReaction
+                  </p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-combine-reac.comb</p>
+                </th>
+              </tr>
+            </div>
+            <div *ngIf="dimension === 2">
+              <tr>
+                <th class="result-sm">
+                  <p translate>result.result-combine-reac.nodeNo</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-combine-reac.x_SupportReaction</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-combine-reac.y_SupportReaction</p>
+                </th>
+                <th class="result-lg">
+                  <p translate>
+                    result.result-combine-reac.rotationalRestraint
+                  </p>
+                </th>
+                <th class="result-lg">
+                  <p translate>result.result-combine-reac.comb</p>
+                </th>
+              </tr>
+            </div>
+          </thead>
+          <tbody>
+            <div [style.height.px]="height" *ngIf="dimension === 3">
+              <tr *ngFor="let resultData of dataset[i]; index as i">
+                <td class="result-sm">{{ resultData.id }}</td>
+                <td class="result-lg">{{ resultData.tx }}</td>
+                <td class="result-lg">{{ resultData.ty }}</td>
+                <td class="result-lg">{{ resultData.tz }}</td>
+                <td class="result-lg">{{ resultData.mx }}</td>
+                <td class="result-lg">{{ resultData.my }}</td>
+                <td class="result-lg">{{ resultData.mz }}</td>
+                <td class="result-lg">{{ resultData.case }}</td>
+              </tr>
+            </div>
+            <div [style.height.px]="height" *ngIf="dimension === 2">
+              <tr *ngFor="let resultData of dataset[i]; index as i">
+                <td class="result-sm">{{ resultData.id }}</td>
+                <td class="result-lg">{{ resultData.tx }}</td>
+                <td class="result-lg">{{ resultData.ty }}</td>
+                <td class="result-lg">{{ resultData.mz }}</td>
+                <td class="result-lg">{{ resultData.case }}</td>
+              </tr>
+            </div>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+
+<div id="datasheet_inner" class="datasheet_inner">
+  <app-sheet #grid [options]="options"></app-sheet>
+</div>

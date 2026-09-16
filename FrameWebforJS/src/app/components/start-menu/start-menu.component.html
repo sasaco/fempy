@@ -1,0 +1,34 @@
+<div class="preset">
+  <div class="presetArea">
+    <div class="headArea">
+      <h2 translate>Start menu</h2>
+      <a routerLink="/" (click)="onPageBack()">×</a>
+    </div>
+    <div class="bodyArea">
+      <div class="presetdata-choice">
+        <div class="presetdata-choice-child" (click)="clickStartNew()">
+          <div class="out-mat-icon">
+            <mat-icon class="mat-start">control_point</mat-icon>
+            <span class="radio-parts" translate>menu.newEntry</span>
+          </div>
+        </div>
+        <div class="presetdata-choice-child">
+          <label style="width: 100%; margin: 0px">
+            <span class="out-mat-icon">
+              <mat-icon class="mat-file">folder_open</mat-icon>
+              <span class="radio-parts" translate>menu.openFile</span>
+              <input type="file" accept="application/json" (change)="clickOpenFile($event)" style="display: none" />
+            </span>
+          </label>
+        </div>
+
+        <div class="presetdata-choice-child" (click)="clickSelectPreset()">
+          <div class="out-mat-icon">
+            <mat-icon class="mat-perset">view_module</mat-icon>
+            <span class="radio-parts" translate>menu.select_preset</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

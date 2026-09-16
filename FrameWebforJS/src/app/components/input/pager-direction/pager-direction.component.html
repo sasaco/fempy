@@ -1,0 +1,21 @@
+<div class="pagerArea">
+  <div class="upDownArea">
+    <button (click)="previousPage()" [disabled]="selectedPage == pages[0]">
+      <img src="./assets/icons/icon-vector.svg" class="top" />
+    </button>
+    <button
+      (click)="nextPage()"
+      [disabled]="selectedPage == pages[pages.length - 1]"
+    >
+      <img src="./assets/icons/icon-vector.svg" class="bottom" />
+    </button>
+  </div>
+  <div class="selectArea">
+    <img src="./assets/icons/icon-list.svg" />
+    <select [(ngModel)]="selectedPage" (change)="updatePages()">
+      <option *ngFor="let page of pages_name; let i = index" [value]="i + 1">
+        {{ pages_name[i] }}
+      </option>
+    </select>
+  </div>
+</div>

@@ -1,0 +1,43 @@
+name: Codesign Windows App
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:   
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set environment.prod
+        env:
+          JSON_DECODE: ${{ secrets.environment_prod }}
+        shell: bash
+        run: |
+          echo $JSON_DECODE | base64 --decode > ./src/environments/environment.prod.ts
+          
+      - name: Set environment
+        env:
+          JSON_DECODE: ${{ secrets.environment }}
+        shell: bash
+        run: |
+          echo $JSON_DECODE | base64 --decode > ./src/environments/environment.ts
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.16.0"
+          
+      - name: Install dependencies
+        run: npm install -g @angular/cli@12.2.7 && npm install
+
+      - name: Build Windows app
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
+        uses: samuelmeuli/action-electron-builder@v1.6.0
+        with:
+          build_script_name: "electron:windows"
+          github_token: ${{ secrets.github_token }}
+          release: ${{ startsWith(github.ref, 'refs/tags/v') }}

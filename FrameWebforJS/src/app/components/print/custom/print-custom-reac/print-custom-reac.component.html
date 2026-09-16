@@ -1,0 +1,157 @@
+<div class="resultWrap">
+  <h2 translate class="title">print.custom.print-custom-three.selectTarget</h2>
+  <div class="print-choice">
+    <ul class="reac">
+      <li>
+        <p translate>print.custom.print-custom-reac.x_SupportReaction</p>
+        <label>
+          <input
+            type="checkbox"
+            name="checkbox-print"
+            class="checkbox-input"
+            id="printCus0"
+            [(ngModel)]="printCustomReacService.reacEditable.tx_max"
+            (click)="printService.newPrintJson()"
+          />
+          <span class="checkbox-parts" translate>print.custom.print-custom-reac.max</span>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            name="checkbox-print"
+            class="checkbox-input"
+            id="printCus0"
+            [(ngModel)]="printCustomReacService.reacEditable.tx_min"
+            (click)="printService.newPrintJson()"
+          />
+          <span class="checkbox-parts" translate>print.custom.print-custom-reac.min</span>
+        </label>
+      </li>
+      <li>
+        <p translate>print.custom.print-custom-reac.y_SupportReaction</p>
+        <label>
+          <input
+            type="checkbox"
+            name="checkbox-print"
+            class="checkbox-input"
+            id="printCus1"
+            [(ngModel)]="printCustomReacService.reacEditable.ty_max"
+            (click)="printService.newPrintJson()"
+          />
+          <span class="checkbox-parts" translate>print.custom.print-custom-reac.max</span>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            name="checkbox-print"
+            class="checkbox-input"
+            id="printCus1"
+            [(ngModel)]="printCustomReacService.reacEditable.ty_min"
+            (click)="printService.newPrintJson()"
+          />
+          <span class="checkbox-parts" translate>print.custom.print-custom-reac.min</span>
+        </label>
+      </li>
+      <li *ngIf="helper.dimension != 2">
+        <p translate>print.custom.print-custom-reac.z_SupportReaction</p>
+        <label>
+          <input
+            type="checkbox"
+            name="checkbox-print"
+            class="checkbox-input"
+            id="printCus1"
+            [(ngModel)]="printCustomReacService.reacEditable.tz_max"
+            (click)="printService.newPrintJson()"
+          />
+          <span class="checkbox-parts" translate>print.custom.print-custom-reac.max</span>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            name="checkbox-print"
+            class="checkbox-input"
+            id="printCus1"
+            [(ngModel)]="printCustomReacService.reacEditable.tz_min"
+            (click)="printService.newPrintJson()"
+          />
+          <span class="checkbox-parts" translate>print.custom.print-custom-reac.min</span>
+        </label>
+      </li>
+      <li *ngIf="helper.dimension != 2">
+        <p translate>print.custom.print-custom-reac.x_RotationalReaction</p>
+        <label>
+          <input
+            type="checkbox"
+            name="checkbox-print"
+            class="checkbox-input"
+            id="printCus1"
+            [(ngModel)]="printCustomReacService.reacEditable.mx_max"
+            (click)="printService.newPrintJson()"
+          />
+          <span class="checkbox-parts" translate>print.custom.print-custom-reac.max</span>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            name="checkbox-print"
+            class="checkbox-input"
+            id="printCus1"
+            [(ngModel)]="printCustomReacService.reacEditable.mx_min"
+            (click)="printService.newPrintJson()"
+          />
+          <span class="checkbox-parts" translate>print.custom.print-custom-reac.min</span>
+        </label>
+      </li>
+      <li *ngIf="helper.dimension != 2">
+        <p translate>print.custom.print-custom-reac.y_RotationalReaction</p>
+        <label>
+          <input
+            type="checkbox"
+            name="checkbox-print"
+            class="checkbox-input"
+            id="printCus1"
+            [(ngModel)]="printCustomReacService.reacEditable.my_max"
+            (click)="printService.newPrintJson()"
+          />
+          <span class="checkbox-parts" translate>print.custom.print-custom-reac.max</span>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            name="checkbox-print"
+            class="checkbox-input"
+            id="printCus1"
+            [(ngModel)]="printCustomReacService.reacEditable.my_min"
+            (click)="printService.newPrintJson()"
+          />
+          <span class="checkbox-parts" translate>print.custom.print-custom-reac.min</span>
+        </label>
+      </li>
+      <li>
+        <p translate>print.custom.print-custom-reac.z_RotationalReaction</p>
+        <label>
+          <input
+            type="checkbox"
+            name="checkbox-print"
+            class="checkbox-input"
+            id="printCus1"
+            [(ngModel)]="printCustomReacService.reacEditable.mz_max"
+            (click)="printService.newPrintJson()"
+          />
+          <span class="checkbox-parts" translate>print.custom.print-custom-reac.max</span>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            name="checkbox-print"
+            class="checkbox-input"
+            id="printCus1"
+            [(ngModel)]="printCustomReacService.reacEditable.mz_min"
+            (click)="printService.newPrintJson()"
+          />
+          <span class="checkbox-parts" translate>print.custom.print-custom-reac.min</span>
+        </label>
+      </li>
+    </ul>
+  </div>
+</div>

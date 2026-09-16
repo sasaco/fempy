@@ -1,0 +1,39 @@
+#dock_wrapper {
+  width: calc(100% - 126px);
+  height: 100%;
+  margin: 0 0 0 auto;
+  position: relative;
+  height: 100vh;
+}
+#dock_div {
+  height: calc(100% - 40px);
+  width: 100%;
+  left: 0;
+  z-index: 1;
+  top: -5px;
+  // overflow: scroll;
+}
+.dockspan-tab-handle-text {
+  margin-top: 3px;
+  margin-left: 6px;
+  margin-right: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  float: left;
+  text-overflow: ellipsis;
+  width: calc(100% - 3px);
+  display: block;
+}
+
+#my_dock_manager {
+  position: relative;
+  &.hidden {
+    z-index: -999999;
+    opacity: 0;
+  }
+}
+#edt1 {
+  background-color: var(--table_empty_bg);
+  // overflow-y: scroll;
+  // overflow-x: scroll;
+}

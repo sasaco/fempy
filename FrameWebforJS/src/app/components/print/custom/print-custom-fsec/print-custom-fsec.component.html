@@ -1,0 +1,94 @@
+<div class="container">
+  <div class="sheetWrap">
+    <h2 translate>print.custom.print-custom-fsec.selectArea</h2>
+    <app-sheet #grid [options]="options" (click)="printService.newPrintJson()"></app-sheet>
+  </div>
+  <div
+    *ngIf="(printService.flg == 7 && printCustomService.LL_exist === true)
+           || printService.flg == 8
+           || printService.flg == 9"
+    class="resultWrap">
+    <div class="print-choice">
+      <ul class="fsec">
+        <li>
+          <p translate>print.custom.print-custom-fsec.axialForce</p>
+          <label style="width: 100%">
+            <input type="checkbox" name="checkbox-print" class="checkbox-input" id="printCus0"
+              [(ngModel)]="printCustomFsecService.fsecEditable.fx_max" (click)=" printService.newPrintJson()" />
+            <span class="checkbox-parts" translate>print.custom.print-custom-fsec.max</span>
+          </label>
+          <label style="width: 100%">
+            <input type="checkbox" name="checkbox-print" class="checkbox-input" id="printCus0"
+              [(ngModel)]="printCustomFsecService.fsecEditable.fx_min" (click)=" printService.newPrintJson()" />
+            <span class="checkbox-parts" translate>print.custom.print-custom-fsec.min</span>
+          </label>
+        </li>
+        <li>
+          <p translate>print.custom.print-custom-fsec.y_shear</p>
+          <label style="width: 100%">
+            <input type="checkbox" name="checkbox-print" class="checkbox-input" id="printCus1"
+              [(ngModel)]="printCustomFsecService.fsecEditable.fy_max" (click)=" printService.newPrintJson()" />
+            <span class="checkbox-parts" translate>print.custom.print-custom-fsec.max</span>
+          </label>
+          <label style="width: 100%">
+            <input type="checkbox" name="checkbox-print" class="checkbox-input" id="printCus1"
+              [(ngModel)]="printCustomFsecService.fsecEditable.fy_min" (click)=" printService.newPrintJson()" />
+            <span class="checkbox-parts" translate>print.custom.print-custom-fsec.min</span>
+          </label>
+        </li>
+        <li *ngIf="helper.dimension != 2">
+          <p translate>print.custom.print-custom-fsec.z_shear</p>
+          <label style="width: 100%">
+            <input type="checkbox" name="checkbox-print" class="checkbox-input" id="printCus1"
+              [(ngModel)]="printCustomFsecService.fsecEditable.fz_max" (click)=" printService.newPrintJson()" />
+            <span class="checkbox-parts" translate>print.custom.print-custom-fsec.max</span>
+          </label>
+          <label style="width: 100%">
+            <input type="checkbox" name="checkbox-print" class="checkbox-input" id="printCus1"
+              [(ngModel)]="printCustomFsecService.fsecEditable.fz_min" (click)=" printService.newPrintJson()" />
+            <span class="checkbox-parts" translate>print.custom.print-custom-fsec.min</span>
+          </label>
+        </li>
+        <li *ngIf="helper.dimension != 2">
+          <p translate>print.custom.print-custom-fsec.x_torsion</p>
+          <label style="width: 100%">
+            <input type="checkbox" name="checkbox-print" class="checkbox-input" id="printCus1"
+              [(ngModel)]="printCustomFsecService.fsecEditable.mx_max" (click)=" printService.newPrintJson()" />
+            <span class="checkbox-parts" translate>print.custom.print-custom-fsec.max</span>
+          </label>
+          <label style="width: 100%">
+            <input type="checkbox" name="checkbox-print" class="checkbox-input" id="printCus1"
+              [(ngModel)]="printCustomFsecService.fsecEditable.mx_min" (click)=" printService.newPrintJson()" />
+            <span class="checkbox-parts" translate>print.custom.print-custom-fsec.min</span>
+          </label>
+        </li>
+        <li *ngIf="helper.dimension != 2">
+          <p translate>print.custom.print-custom-fsec.y_moment</p>
+          <label style="width: 100%">
+            <input type="checkbox" name="checkbox-print" class="checkbox-input" id="printCus1"
+              [(ngModel)]="printCustomFsecService.fsecEditable.my_max" (click)=" printService.newPrintJson()" />
+            <span class="checkbox-parts" translate>print.custom.print-custom-fsec.max</span>
+          </label>
+          <label style="width: 100%">
+            <input type="checkbox" name="checkbox-print" class="checkbox-input" id="printCus1"
+              [(ngModel)]="printCustomFsecService.fsecEditable.my_min" (click)=" printService.newPrintJson()" />
+            <span class="checkbox-parts" translate>print.custom.print-custom-fsec.min</span>
+          </label>
+        </li>
+        <li>
+          <p translate>print.custom.print-custom-fsec.z_moment</p>
+          <label style="width: 100%">
+            <input type="checkbox" name="checkbox-print" class="checkbox-input" id="printCus1"
+              [(ngModel)]="printCustomFsecService.fsecEditable.mz_max" (click)=" printService.newPrintJson()" />
+            <span class="checkbox-parts" translate>print.custom.print-custom-fsec.max</span>
+          </label>
+          <label style="width: 100%">
+            <input type="checkbox" name="checkbox-print" class="checkbox-input" id="printCus1"
+              [(ngModel)]="printCustomFsecService.fsecEditable.mz_min" (click)=" printService.newPrintJson()" />
+            <span class="checkbox-parts" translate>print.custom.print-custom-fsec.min</span>
+          </label>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

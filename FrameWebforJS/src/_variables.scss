@@ -1,0 +1,36 @@
+$primary: #5095fc;
+$base_dark: #1e252c;
+$base_dim: #444444;
+
+$text_dark: #222222;
+$text_disabled_dark: #888888;
+$text_light: #ffffff;
+
+$table_dark_border: #63676c;
+$table_dark_row_even_bg: #4a4c50;
+$table_dark_row_odd_bg: #56585c;
+$table_dark_empty_bg: #54585e;
+$table_dark_empty_bg: #54585e;
+$table_dark_disabled_bg: #33363c;
+
+$menu_bg_dark: #333333;
+$disabled_dark: #535353;
+$sepalater_dark: #888888;
+
+:root {
+  --primary: #{$primary};
+  --base: #{$base_dark};
+  --base_dim: #{$base_dim};
+  --text_main: #{$text_light};
+  --text_sub: #{$text_dark};
+  --text_disabled: #{$text_disabled_dark};
+  --table_border: #{$table_dark_border};
+  --table_row_even_bg: #{$table_dark_row_even_bg};
+  --table_row_odd_bg: #{$table_dark_row_odd_bg};
+  --table_empty_bg: #{$table_dark_empty_bg};
+  --table_empty_bg: #{$table_dark_empty_bg};
+  --table_disabled_bg: #{$table_dark_disabled_bg};
+  --menu_bg: #{$menu_bg_dark};
+  --disabled: #{$disabled_dark};
+  --sepalater: #{$sepalater_dark};
+}

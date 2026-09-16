@@ -1,0 +1,33 @@
+<div class="modal-wrapper">
+  <div class="text title" *ngIf="title">{{ title }}</div>
+  <!-- <div [innerHTML]="message"></div> -->
+  <div class="text" [ngClass]="{ 'message': title }">{{ message }}</div>
+  <div class="button-wrapper" *ngIf="dialogMode === 'confirm'">
+    <div
+      type="button"
+      class="button secondary"
+      (click)="modal.close('no')"
+      translate
+    >
+      modal.cancel
+    </div>
+    <div
+      type="button"
+      class="button primary"
+      (click)="modal.close('yes')"
+      translate
+    >
+      modal.ok
+    </div>
+  </div>
+  <div class="button-wrapper" *ngIf="dialogMode !== 'confirm'">
+    <div
+      type="button"
+      class="button primary"
+      (click)="modal.close('ok')"
+      translate
+    >
+      modal.close
+    </div>
+  </div>
+</div>

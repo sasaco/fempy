@@ -1,0 +1,75 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 3.1.x
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    
+    - name: Test
+      run: dotnet test --no-build --verbosity normal --configuration Release
+    
+    - name: Publish
+      run: dotnet publish Convert_Test/Convert_Test.csproj --configuration Release --output ./publish --no-build
+    
+    - name: Create artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: FrameGConverter-${{ github.sha }}
+        path: ./publish
+    
+    - name: Get version from project file
+      id: get_version
+      run: |
+        $version = Select-Xml -Path "Convert_Test/Convert_Test.csproj" -XPath "//Version" | Select-Object -ExpandProperty Node | Select-Object -ExpandProperty InnerText
+        echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+        echo "Tag will be: v$version"
+    
+    - name: Create ZIP archive
+      run: |
+        Compress-Archive -Path "./publish/*" -DestinationPath "./FrameGConverter-v${{ steps.get_version.outputs.VERSION }}.zip"
+    
+    - name: Create Release
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ steps.get_version.outputs.VERSION }}
+        name: FrameGConverter v${{ steps.get_version.outputs.VERSION }}
+        body: |
+          ## FrameGConverter v${{ steps.get_version.outputs.VERSION }}
+          
+          ### 変更内容
+          - 自動ビルドリリース
+          
+          ### ダウンロード
+          - Windows用実行ファイル: FrameGConverter-v${{ steps.get_version.outputs.VERSION }}.zip
+          
+          ### システム要件
+          - Windows 10 以上
+          - .NET Core 3.1 Runtime
+        files: |
+          ./FrameGConverter-v${{ steps.get_version.outputs.VERSION }}.zip
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

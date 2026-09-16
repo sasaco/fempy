@@ -1,0 +1,984 @@
+<div [class.isPrinting]="printService.isPrinting">
+  <div class="header">
+    <div class="container">
+      <div class="liner">
+        <!--            <img src="./assets/img/logo.png" />-->
+        <app-menu></app-menu>
+      </div>
+    </div>
+  </div>
+  <app-optional-header></app-optional-header>
+
+  <!-- <app-pager (event)="onReceiveEventFromChild($event)"></app-pager> -->
+  <!-- <app-optional-header></app-optional-header> -->
+  <div class="body-container">
+    <div class="btn-group" [ngClass]="{ toggled: isToggled }">
+      <app-max-min style="position: absolute;right: -8px;top: 8px;white-space: nowrap;"></app-max-min>
+      <app-color-palette style="position: absolute;right: -8px;top: 5px;white-space: nowrap;"></app-color-palette>
+      <nav class="nav-left-body-container" (scroll)="onScroll($event)">
+        <div class="input-area">
+          <a (click)="calcrate()" class="btn-md btn-calc">
+            <div class="icon-calc">
+              <svg
+                width="20"
+                height="24"
+                viewBox="0 0 20 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M17.7865 0H2.21354C1.6059 0 1.08507 0.234464 0.651042 0.7034C0.217012 1.17234 0 1.73505 0 2.39156V21.6084C0 22.2649 0.217012 22.8277 0.651042 23.2966C1.08507 23.7655 1.6059 24 2.21354 24H17.7865C18.3941 24 18.9149 23.7655 19.349 23.2966C19.783 22.8277 20 22.2649 20 21.6084V2.39156C20 1.73505 19.783 1.17234 19.349 0.7034C18.9149 0.234464 18.3941 0 17.7865 0ZM2.21354 21.6084V2.39156H17.7865V21.6084H2.21354ZM4.45312 11.9859H6.66667V14.4056H4.45312V11.9859ZM4.45312 16.7972H6.66667V19.1887H4.45312V16.7972ZM8.88021 11.9859H11.1198V14.4056H8.88021V11.9859ZM4.45312 4.78312H15.5469V9.59437H4.45312V4.78312ZM8.88021 16.7972H11.1198V19.1887H8.88021V16.7972ZM13.3333 11.9859H15.5469V19.1887H13.3333V11.9859Z"
+                  fill="white"
+                />
+              </svg>
+            </div>
+            <p translate>app.calculate</p>
+          </a>
+          <hr class="hr" />
+          <div class="btn-wrap">
+            <a
+              routerLink="./input-elements"
+              (click)="contentsDailogShow(3)"
+              routerLinkActive="selected-item"
+              id="3"
+              class="btn-md btn-blue"
+            >
+              <div class="icon-img">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 32 32"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M24 10L8.00021 10"
+                    stroke="black"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M16 21.5L16 10.5"
+                    stroke="black"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M24 22L8.00021 22"
+                    stroke="black"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+              <p translate>app.element</p>
+            </a>
+            <div class="explain-area" [style.transform]="translateY">
+              <div class="item-name" translate>app.element</div>
+              <div class="item-description" translate>
+                app.description.element
+              </div>
+              <a target="_blank" rel="noopener" href="https://fresh-tachometer-148.notion.site/FrameWeb-3b1432e6a03647bc85e20c55ade84e96#700a77e978eb4530839bbf06d0693e53" class="btn" translate>app.description.detail</a>
+            </div>
+          </div>
+          <div class="btn-wrap">
+            <a
+              routerLink="./input-nodes"
+              (click)="contentsDailogShow(0)"
+              routerLinkActive="selected-item"
+              id="0"
+              class="btn-md btn-blue"
+            >
+              <div class="icon-img ppt">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 32 32"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect
+                    x="3"
+                    y="15"
+                    width="26"
+                    height="2"
+                    rx="1"
+                    fill="black"
+                  />
+                  <circle
+                    cx="16"
+                    cy="16"
+                    r="4"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                </svg>
+              </div>
+              <p translate>app.node</p>
+            </a>
+            <div class="explain-area" [style.transform]="translateY">
+              <div class="item-name" translate>app.node</div>
+              <div class="item-description" *ngIf="helper.dimension == 3" translate>
+                app.description.node-3D
+              </div>
+              <div class="item-description"  *ngIf="helper.dimension == 2" translate>
+                app.description.node-2D
+              </div>
+              <a target="_blank" rel="noopener" href="https://fresh-tachometer-148.notion.site/FrameWeb-3b1432e6a03647bc85e20c55ade84e96#8ecbfb63786f4c6cad35fd1cebd123e7" class="btn" translate>app.description.detail</a>
+            </div>
+          </div>
+          <div class="btn-wrap">
+            <a
+              routerLink="./input-fix_nodes"
+              (click)="contentsDailogShow(1)"
+              routerLinkActive="selected-item"
+              id="1"
+              class="btn-md btn-blue"
+            >
+              <div class="icon-img ppt">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 32 32"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M16 11L23.7942 24.5H8.20577L16 11Z"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                  <circle
+                    cx="16"
+                    cy="11"
+                    r="4"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                </svg>
+              </div>
+              <p translate>app.fixNode</p>
+            </a>
+            <div class="explain-area" [style.transform]="translateY">
+              <div class="item-name" translate>app.fixNode</div>
+              <div class="item-description" translate>
+                app.description.fixNode
+              </div>
+              <a target="_blank" rel="noopener" href="https://fresh-tachometer-148.notion.site/FrameWeb-3b1432e6a03647bc85e20c55ade84e96#9e16008964d047b5b6f1a9e8556e59be" class="btn" translate>app.description.detail</a>
+            </div>
+          </div>
+          <div class="btn-wrap">
+            <a
+              routerLink="./input-members"
+              (click)="contentsDailogShow(2)"
+              routerLinkActive="selected-item"
+              id="2"
+              class="btn-md btn-blue"
+            >
+              <div class="icon-img ppt">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 32 32"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect
+                    x="7"
+                    y="15"
+                    width="18"
+                    height="2"
+                    rx="1"
+                    fill="black"
+                  />
+                  <circle
+                    cx="8"
+                    cy="16"
+                    r="3.5"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="3"
+                  />
+                  <circle
+                    cx="8"
+                    cy="16"
+                    r="3.5"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="3"
+                  />
+                  <circle
+                    cx="8"
+                    cy="16"
+                    r="4"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                  <circle
+                    cx="24"
+                    cy="16"
+                    r="4"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                </svg>
+              </div>
+              <p translate>app.member</p>
+            </a>
+            <div class="explain-area" [style.transform]="translateY">
+              <div class="item-name" translate>app.member</div>
+              <div class="item-description" translate>
+                app.description.member
+              </div>
+              <a target="_blank" rel="noopener" href="https://fresh-tachometer-148.notion.site/FrameWeb-3b1432e6a03647bc85e20c55ade84e96#9d2a70154643444492345136d9b6299d" class="btn" translate>app.description.detail</a>
+            </div>
+          </div>
+          <ng-container *ngIf="helper.dimension == 3">
+            <div class="btn-wrap">
+              <a
+                routerLink="./input-panel"
+                (click)="contentsDailogShow(4)"
+                routerLinkActive="selected-item"
+                id="4"
+                class="btn-md btn-blue"
+              >
+                <div class="icon-img ppt">
+                  <svg
+                    width="32"
+                    height="32"
+                    viewBox="0 0 32 32"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7.16801 19L8.88319 8H19.832L18.1168 19H7.16801Z"
+                      fill="white"
+                      stroke="black"
+                      stroke-width="2"
+                    />
+                    <path
+                      d="M12.168 24L13.8832 13H24.832L23.1168 24H12.168Z"
+                      fill="white"
+                      stroke="black"
+                      stroke-width="2"
+                    />
+                  </svg>
+                </div>
+                <p translate>app.panel</p>
+              </a>
+              <div class="explain-area" [style.transform]="translateY">
+                <div class="item-name" translate>app.panel</div>
+                <div class="item-description" translate>
+                  app.description.panel
+                </div>
+                <a target="_blank" rel="noopener" href="https://fresh-tachometer-148.notion.site/FrameWeb-3b1432e6a03647bc85e20c55ade84e96#bc7a9d88de1941928d1337bcec66f48e" class="btn" translate>app.description.detail</a>
+              </div>
+            </div>
+          </ng-container>
+          <!-- Hide until FrameWeb structuralengine/FrameWeb#3 is finished -->
+          <div class="btn-wrap">
+            <a
+              routerLink="./input-joints"
+              (click)="contentsDailogShow(5)"
+              routerLinkActive="selected-item"
+              id="5"
+              class="btn-md btn-blue"
+            >
+              <div class="icon-img ppt">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 32 32"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M8 11L16 25L24 11"
+                    stroke="black"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M5 11H26"
+                    stroke="black"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <circle
+                    cx="16"
+                    cy="24"
+                    r="3"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                  <circle
+                    cx="8"
+                    cy="11"
+                    r="3"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                  <circle
+                    cx="24"
+                    cy="11"
+                    r="3"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                </svg>
+              </div>
+              <p translate>app.joint</p>
+            </a>
+            <div class="explain-area">
+              <div class="item-name" translate>app.joint</div>
+              <div class="item-description" translate>
+                app.description.joint
+              </div>
+              <a target="_blank" rel="noopener" href="https://fresh-tachometer-148.notion.site/FrameWeb-3b1432e6a03647bc85e20c55ade84e96#f9f35a3c9ee2417fa39b6bbc46b0bb58" class="btn" translate>app.description.detail</a>
+            </div>
+          </div>
+          <div class="btn-wrap">
+            <a
+              routerLink="./input-notice_points"
+              (click)="contentsDailogShow(6)"
+              routerLinkActive="selected-item"
+              id="6"
+              class="btn-md btn-blue"
+            >
+              <div class="icon-img">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 32 32"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M25 16C25 17.1676 24.206 18.3955 22.5566 19.3851C20.9271 20.3629 18.6113 21 16 21C13.3887 21 11.0729 20.3629 9.44343 19.3851C7.794 18.3955 7 17.1676 7 16C7 14.8324 7.794 13.6045 9.44343 12.6149C11.0729 11.6371 13.3887 11 16 11C18.6113 11 20.9271 11.6371 22.5566 12.6149C24.206 13.6045 25 14.8324 25 16Z"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                  <circle
+                    cx="16"
+                    cy="16"
+                    r="3"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                  <path
+                    d="M25 16C25 17.1676 24.206 18.3955 22.5566 19.3851C20.9271 20.3629 18.6113 21 16 21C13.3887 21 11.0729 20.3629 9.44343 19.3851C7.794 18.3955 7 17.1676 7 16C7 14.8324 7.794 13.6045 9.44343 12.6149C11.0729 11.6371 13.3887 11 16 11C18.6113 11 20.9271 11.6371 22.5566 12.6149C24.206 13.6045 25 14.8324 25 16Z"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                  <circle
+                    cx="16"
+                    cy="16"
+                    r="3"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                </svg>
+              </div>
+              <p translate>app.noticePoint</p>
+            </a>
+            <div class="explain-area" [style.transform]="translateY">
+              <div class="item-name" translate>app.noticePoint</div>
+              <div class="item-description" translate>
+                app.description.noticePoint
+              </div>
+              <a target="_blank" rel="noopener" href="https://fresh-tachometer-148.notion.site/FrameWeb-3b1432e6a03647bc85e20c55ade84e96#339a9f318283435bac459987233d4860" class="btn" translate>app.description.detail</a>
+            </div>
+          </div>
+          <div class="btn-wrap">
+            <a
+              routerLink="./input-fix_members"
+              (click)="contentsDailogShow(7)"
+              routerLinkActive="selected-item"
+              id="7"
+              class="btn-md btn-blue"
+            >
+              <div class="icon-img ppt">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 32 32"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 8L21 12H12L21 16H12L21 20H12L21 24"
+                    stroke="black"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+              <p translate>app.fixMember</p>
+            </a>
+            <div class="explain-area" [style.transform]="translateY">
+              <div class="item-name" translate>app.fixMember</div>
+              <div class="item-description" translate>
+                app.description.fixMember
+              </div>
+              <a target="_blank" rel="noopener" href="https://fresh-tachometer-148.notion.site/FrameWeb-3b1432e6a03647bc85e20c55ade84e96#2170dd76e2a3470f9ea7b82ce8314e42" class="btn" translate>app.description.detail</a>
+            </div>
+          </div>
+          <div class="btn-wrap">
+            <a
+              routerLink="./input-load-name"
+              (click)="contentsDailogShow(8)"
+              routerLinkActive="selected-item"
+              id="8"
+              class="btn-md btn-blue"
+            >
+              <div class="icon-img ppt">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 32 32"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.7079 12.8356C10.7882 12.3534 11.2054 12 11.6943 12H20.3057C20.7946 12 21.2118 12.3534 21.2921 12.8356L22.6255 20.8356C22.7271 21.4451 22.257 22 21.6391 22H10.3609C9.74298 22 9.27294 21.4451 9.37453 20.8356L10.7079 12.8356Z"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                  <circle
+                    cx="16"
+                    cy="10"
+                    r="2"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                </svg>
+              </div>
+              <p translate>app.loadName</p>
+            </a>
+            <div class="explain-area" [style.transform]="translateY">
+              <div class="item-name" translate>app.loadName</div>
+              <div class="item-description" translate>
+                app.description.loadName
+              </div>
+              <a target="_blank" rel="noopener" href="https://fresh-tachometer-148.notion.site/FrameWeb-3b1432e6a03647bc85e20c55ade84e96#3fd17e94c0104ea3b38182fe3bfd2bc2" class="btn" translate>app.description.detail</a>
+            </div>
+          </div>
+          <div class="btn-wrap">
+            <a
+              routerLink="./input-define"
+              (click)="contentsDailogShow(9)"
+              routerLinkActive="selected-item"
+              id="9"
+              class="btn-md btn-blue"
+            >
+              <div class="icon-img ppt">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 32 32"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M5.70786 10.8356C5.78822 10.3534 6.20541 10 6.69425 10H15.3057C15.7946 10 16.2118 10.3534 16.2921 10.8356L17.6255 18.8356C17.7271 19.4451 17.257 20 16.6391 20H5.36092C4.74298 20 4.27294 19.4451 4.37453 18.8356L5.70786 10.8356Z"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                  <circle
+                    cx="11"
+                    cy="8"
+                    r="2"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                  <path
+                    d="M14.7079 14.8356C14.7882 14.3534 15.2054 14 15.6943 14H24.3057C24.7946 14 25.2118 14.3534 25.2921 14.8356L26.6255 22.8356C26.7271 23.4451 26.257 24 25.6391 24H14.3609C13.743 24 13.2729 23.4451 13.3745 22.8356L14.7079 14.8356Z"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                  <circle
+                    cx="20"
+                    cy="12"
+                    r="2"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                </svg>
+              </div>
+              <p translate>app.inputDefine</p>
+            </a>
+            <div class="explain-area" [style.transform]="translateY">
+              <div class="item-name" translate>app.inputDefine</div>
+              <div class="item-description" translate>
+                app.description.inputDefine
+              </div>
+              <a target="_blank" rel="noopener" href="https://fresh-tachometer-148.notion.site/FrameWeb-3b1432e6a03647bc85e20c55ade84e96#4e369d333da44eea86d5e31026292fb7" class="btn" translate>app.description.detail</a>
+            </div>
+          </div>
+        </div>
+        <hr class="hr" />
+        <div class="output-area">
+          <div class="btn-wrap">
+            <a
+              [routerLink]="getDisgLink()"
+              (click)="ResultData.isCalculated && contentsDailogShow(10)"
+              id="10"
+              class="btn-md btn-blue"
+              [class.disabled]="!ResultData.isCalculated"
+            >
+              <div class="icon-img ppt">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 32 32"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12.6838 17.3979L17.3978 17.3979L17.3978 12.6839"
+                    stroke="#222222"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M16.8087 16.8086L10.1667 10.1665"
+                    stroke="#222222"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <circle
+                    cx="10.1668"
+                    cy="10.1667"
+                    r="3.16667"
+                    fill="white"
+                    stroke="#222222"
+                    stroke-width="2"
+                  />
+                  <circle
+                    cx="21.8334"
+                    cy="21.8332"
+                    r="3.16667"
+                    fill="white"
+                    stroke="#222222"
+                    stroke-width="2"
+                  />
+                </svg>
+              </div>
+              <p translate>app.displacement</p>
+            </a>
+          </div>
+          <div class="btn-wrap">
+            <a
+              [routerLink]="getReacLink()"
+              (click)="ResultData.isCalculated && contentsDailogShow(11)"
+              id="11"
+              class="btn-md btn-blue"
+              [class.disabled]="!ResultData.isCalculated"
+            >
+              <div class="icon-img ppt">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 32 32"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19.4074 10.4072L16 6.99982L12.5926 10.4072"
+                    stroke="black"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M8.33331 13.8149L4.92591 17.2223L8.33331 20.6298"
+                    stroke="black"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M23.6666 20.6294L27.074 17.222L23.6666 13.8146"
+                    stroke="black"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M16 7.42578L16 16.7962"
+                    stroke="black"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M26.2222 17.2222L5.77772 17.2222"
+                    stroke="black"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M16 18.3706L20.1697 25.5928L11.8302 25.5928L16 18.3706Z"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                  <circle
+                    cx="16"
+                    cy="17.2221"
+                    r="3.25926"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                </svg>
+              </div>
+              <p translate>app.reaction</p>
+            </a>
+          </div>
+          <div class="btn-wrap">
+            <a
+              [routerLink]="getFsecLink()"
+              (click)="ResultData.isCalculated && contentsDailogShow(12)"
+              routerLinkActive="selected-item"
+              id="12"
+              class="btn-md btn-blue"
+              [class.disabled]="!ResultData.isCalculated"
+            >
+              <div class="icon-img ppt">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 32 32"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19.3846 9.23096L16 5.84634L12.6154 9.23096"
+                    stroke="black"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M12.6154 22.769L16 26.1537L19.3846 22.769"
+                    stroke="black"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M16 6.26904V24.4614"
+                    stroke="black"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <rect
+                    x="8.38464"
+                    y="15.1538"
+                    width="15.2308"
+                    height="1.69231"
+                    rx="0.846154"
+                    fill="black"
+                  />
+                  <circle
+                    cx="9.23077"
+                    cy="15.9998"
+                    r="2.73077"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="3"
+                  />
+                  <circle
+                    cx="9.23077"
+                    cy="15.9998"
+                    r="2.73077"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="3"
+                  />
+                  <circle
+                    cx="9.23077"
+                    cy="15.9998"
+                    r="3.23077"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                  <circle
+                    cx="22.7692"
+                    cy="15.9998"
+                    r="3.23077"
+                    fill="white"
+                    stroke="black"
+                    stroke-width="2"
+                  />
+                </svg>
+              </div>
+              <p translate>app.memberSectionForce</p>
+            </a>
+          </div>
+        </div>
+        <a (click)="toggle()" class="toggle-button btn-blue close">
+          <div>
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 32 32"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21.2499 15.2697L13.9691 8.36515C13.4557 7.87828 12.9424 7.87828 12.429 8.36515C12.1956 8.58645 12.0789 8.84094 12.0789 9.12863C12.0789 9.41632 12.1956 9.64869 12.429 9.82573L18.8697 16L12.429 22.1743C11.8689 22.6611 11.8572 23.148 12.394 23.6349C12.9307 24.1217 13.4557 24.1217 13.9691 23.6349L21.2499 16.7303C21.4833 16.5532 21.6 16.3098 21.6 16C21.6 15.6902 21.4833 15.4468 21.2499 15.2697Z"
+                fill="black"
+              />
+            </svg>
+          </div>
+          <p translate>app.close</p>
+        </a>
+      </nav>
+    </div>
+    <div id="print-loading">
+      <svg
+        width="50px"
+        height="50px"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="xMidYMid"
+        class="uil-spin"
+      >
+        <rect
+          x="0"
+          y="0"
+          width="100"
+          height="100"
+          fill="none"
+          class="bk"
+        ></rect>
+        <g transform="translate(50 50)">
+          <g transform="rotate(0) translate(34 0)">
+            <circle cx="0" cy="0" r="8" fill="#000">
+              <animate
+                attributeName="opacity"
+                from="1"
+                to="0.1"
+                begin="0s"
+                dur="1s"
+                repeatCount="indefinite"
+              ></animate>
+              <animateTransform
+                attributeName="transform"
+                type="scale"
+                from="1.5"
+                to="1"
+                begin="0s"
+                dur="1s"
+                repeatCount="indefinite"
+              ></animateTransform>
+            </circle>
+          </g>
+          <g transform="rotate(45) translate(34 0)">
+            <circle cx="0" cy="0" r="8" fill="#000">
+              <animate
+                attributeName="opacity"
+                from="1"
+                to="0.1"
+                begin="0.12s"
+                dur="1s"
+                repeatCount="indefinite"
+              ></animate>
+              <animateTransform
+                attributeName="transform"
+                type="scale"
+                from="1.5"
+                to="1"
+                begin="0.12s"
+                dur="1s"
+                repeatCount="indefinite"
+              ></animateTransform>
+            </circle>
+          </g>
+          <g transform="rotate(90) translate(34 0)">
+            <circle cx="0" cy="0" r="8" fill="#000">
+              <animate
+                attributeName="opacity"
+                from="1"
+                to="0.1"
+                begin="0.25s"
+                dur="1s"
+                repeatCount="indefinite"
+              ></animate>
+              <animateTransform
+                attributeName="transform"
+                type="scale"
+                from="1.5"
+                to="1"
+                begin="0.25s"
+                dur="1s"
+                repeatCount="indefinite"
+              ></animateTransform>
+            </circle>
+          </g>
+          <g transform="rotate(135) translate(34 0)">
+            <circle cx="0" cy="0" r="8" fill="#000">
+              <animate
+                attributeName="opacity"
+                from="1"
+                to="0.1"
+                begin="0.37s"
+                dur="1s"
+                repeatCount="indefinite"
+              ></animate>
+              <animateTransform
+                attributeName="transform"
+                type="scale"
+                from="1.5"
+                to="1"
+                begin="0.37s"
+                dur="1s"
+                repeatCount="indefinite"
+              ></animateTransform>
+            </circle>
+          </g>
+          <g transform="rotate(180) translate(34 0)">
+            <circle cx="0" cy="0" r="8" fill="#000">
+              <animate
+                attributeName="opacity"
+                from="1"
+                to="0.1"
+                begin="0.5s"
+                dur="1s"
+                repeatCount="indefinite"
+              ></animate>
+              <animateTransform
+                attributeName="transform"
+                type="scale"
+                from="1.5"
+                to="1"
+                begin="0.5s"
+                dur="1s"
+                repeatCount="indefinite"
+              ></animateTransform>
+            </circle>
+          </g>
+          <g transform="rotate(225) translate(34 0)">
+            <circle cx="0" cy="0" r="8" fill="#000">
+              <animate
+                attributeName="opacity"
+                from="1"
+                to="0.1"
+                begin="0.62s"
+                dur="1s"
+                repeatCount="indefinite"
+              ></animate>
+              <animateTransform
+                attributeName="transform"
+                type="scale"
+                from="1.5"
+                to="1"
+                begin="0.62s"
+                dur="1s"
+                repeatCount="indefinite"
+              ></animateTransform>
+            </circle>
+          </g>
+          <g transform="rotate(270) translate(34 0)">
+            <circle cx="0" cy="0" r="8" fill="#000">
+              <animate
+                attributeName="opacity"
+                from="1"
+                to="0.1"
+                begin="0.75s"
+                dur="1s"
+                repeatCount="indefinite"
+              ></animate>
+              <animateTransform
+                attributeName="transform"
+                type="scale"
+                from="1.5"
+                to="1"
+                begin="0.75s"
+                dur="1s"
+                repeatCount="indefinite"
+              ></animateTransform>
+            </circle>
+          </g>
+          <g transform="rotate(315) translate(34 0)">
+            <circle cx="0" cy="0" r="8" fill="#000">
+              <animate
+                attributeName="opacity"
+                from="1"
+                to="0.1"
+                begin="0.87s"
+                dur="1s"
+                repeatCount="indefinite"
+              ></animate>
+              <animateTransform
+                attributeName="transform"
+                type="scale"
+                from="1.5"
+                to="1"
+                begin="0.87s"
+                dur="1s"
+                repeatCount="indefinite"
+              ></animateTransform>
+            </circle>
+          </g>
+        </g>
+      </svg>
+      <p translate>app.preparing</p>
+    </div>
+  </div>
+  <div id="body-container-id">
+    <div class="three-container" id="three-container-id">
+      <app-three></app-three>
+    </div>
+  </div>
+  <app-doc-layout
+    cdkDrag
+    [cdkDragFreeDragPosition]="dragPosition"
+    id="contents-dialog-id"
+  >
+    <div *ngIf="helper.isContentsDailogShow">
+      <router-outlet></router-outlet>
+    </div>
+  </app-doc-layout>
+  <router-outlet name="print"></router-outlet>
+</div>
+<router-outlet name="printOutlet"></router-outlet>
+<router-outlet name="presetOutlet"></router-outlet>
+<router-outlet name="startOutlet"></router-outlet>
+
+<!-- チャットボタン -->
+<div class="over-three right-buttom">
+  <app-chat></app-chat>
+  <!-- <a class="chat" (click)="openChat()"><i class="fas fa-comments"></i></a> -->
+</div>
+
+<app-activate-session></app-activate-session>

@@ -1,0 +1,28 @@
+.container {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  // margin-top: 16px;
+  padding-left: 0px;
+
+  .datasheet {
+    margin: 0;
+  }
+
+  .print-choice {
+    margin: 0;
+    ul {
+      width: 100%;
+    }
+  }
+
+  .sheetWrap {
+    width: 55%;
+  }
+  .resultWrap {
+    width: 40%;
+    margin-left: 1%;
+    margin-right: 1%;
+    padding-top: 38px;
+  }
+}

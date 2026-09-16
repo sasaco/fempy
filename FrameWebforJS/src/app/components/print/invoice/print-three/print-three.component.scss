@@ -1,0 +1,47 @@
+$height_header: 32px;
+$height_semiHeader: 32px;
+
+h2 {
+    // height: $height_header;
+    // padding:80px 0 32px 0;
+    line-height: 32px;
+    font-size: 16px;
+    font-weight: 400;
+    font-family: "ＭＳ Ｐゴシック";
+}
+
+h3 {
+    // height: $height_semiHeader;
+    padding: 8px 0;
+    // line-height: 32px;
+    font-size: 16px;
+    font-family: "ＭＳ 明朝";
+}
+
+h4 {
+    // height: $height_semiHeader;
+    padding-bottom: 8px;
+    // line-height: 32px;
+    font-size: 16px;
+    font-family: "MS UI Gothic";
+}
+
+.pagerBreak {
+    size: A4;
+    page-break-before: always;
+}
+
+.fit-picture {
+    margin-bottom: 8px;
+
+    img {
+        width: 780px;
+        height: 500px;
+        object-fit: cover;
+        object-position: 0 0;
+    }
+}
+
+.small {
+    font-size: xx-small;
+}

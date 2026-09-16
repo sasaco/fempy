@@ -1,0 +1,5 @@
+<div class="datasheet_inner member-sheet">
+  <!-- [style.width.px]="width" -->
+  <app-input-member-detail *ngIf="inputMemberDetailService.isMemberDetailShow" class="app-member-detail"></app-input-member-detail>
+  <app-sheet *ngIf="!inputMemberDetailService.isMemberDetailShow" #grid [options]="options"></app-sheet>
+</div>
