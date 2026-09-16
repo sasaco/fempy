@@ -1,0 +1,57 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36327.8
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FrameWeb.Startup", "tools\FrameWeb.Startup\FrameWeb.Startup.csproj", "{C6272D2C-D810-4B61-8CA0-F10D5764B7AE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FramePrintAzure", "FramePrintPDF\FramePrintAzure\FramePrintAzure.csproj", "{670A45DA-4AE8-4721-9F3C-DE2CB43BB2A6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PDF_Manager", "FramePrintPDF\PDF_Manager\PDF_Manager.csproj", "{77607410-4861-4357-952F-E76A0CACD5C2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FrameWeb (Python)", "FrameWeb", "{E9B45591-894B-43FC-890F-8C9BD81F9571}"
+	ProjectSection(SolutionItems) = preProject
+		FrameWeb\main.py = FrameWeb\main.py
+		FrameWeb\pyproject.toml = FrameWeb\pyproject.toml
+		FrameWeb\README.md = FrameWeb\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FrameWebforJS (Angular)", "FrameWebforJS", "{D77B8F0C-1875-4733-BD0B-935103F59354}"
+	ProjectSection(SolutionItems) = preProject
+		FrameWebforJS\angular.json = FrameWebforJS\angular.json
+		FrameWebforJS\package.json = FrameWebforJS\package.json
+		FrameWebforJS\src\environments\environment.local.example.ts = FrameWebforJS\src\environments\environment.local.example.ts
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Local setup", "Local setup", "{2C69A8DB-C2DE-4859-BB9C-3BC44B5A602C}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+		scripts\setup-local.ps1 = scripts\setup-local.ps1
+		FrameWeb.slnLaunch = FrameWeb.slnLaunch
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C6272D2C-D810-4B61-8CA0-F10D5764B7AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6272D2C-D810-4B61-8CA0-F10D5764B7AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6272D2C-D810-4B61-8CA0-F10D5764B7AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6272D2C-D810-4B61-8CA0-F10D5764B7AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{670A45DA-4AE8-4721-9F3C-DE2CB43BB2A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{670A45DA-4AE8-4721-9F3C-DE2CB43BB2A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{670A45DA-4AE8-4721-9F3C-DE2CB43BB2A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{670A45DA-4AE8-4721-9F3C-DE2CB43BB2A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77607410-4861-4357-952F-E76A0CACD5C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77607410-4861-4357-952F-E76A0CACD5C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77607410-4861-4357-952F-E76A0CACD5C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77607410-4861-4357-952F-E76A0CACD5C2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {68A3B702-87F2-4DAB-B659-8FC92FBD6473}
+	EndGlobalSection
+EndGlobal

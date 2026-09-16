@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --host=127.0.0.1",
+    "start:local": "ng serve --configuration local --host=127.0.0.1 --port=4200",
     "build": "ng build --configuration production --base-href \"https://frameweb.malme.app/\" && npm run filecopy3",
     "build-action": "ng build --configuration production --base-href \"https://frameweb.malme.app/\" && npm run filecopy3",
     "build-docker:local": "ng build --configuration production --base-href ./ && npm run filecopy3",

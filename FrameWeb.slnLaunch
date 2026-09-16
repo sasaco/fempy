@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "FrameWeb - all services",
+    "Projects": [
+      {
+        "Path": "tools\\FrameWeb.Startup\\FrameWeb.Startup.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

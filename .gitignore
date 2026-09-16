@@ -1,0 +1,9 @@
+/.vs/
+/.local/
+**/bin/
+**/obj/
+__pycache__/
+/tools/local-tools/node_modules/
+*.suo
+*.csproj.user
+*.slnLaunch.user
