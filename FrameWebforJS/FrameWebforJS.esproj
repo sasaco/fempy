@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/1.0.6578810">
+  <PropertyGroup>
+    <!-- FrameWeb.Startup prepares dependencies and starts the Angular development server. -->
+    <ShouldRunNpmInstall>false</ShouldRunNpmInstall>
+    <ShouldRunBuildScript>false</ShouldRunBuildScript>
+    <StartupCommand>&quot;$(MSBuildProjectDirectory)\..\tools\local-tools\node_modules\node\bin\node.exe&quot; node_modules/@angular/cli/bin/ng.js serve --configuration local --host 127.0.0.1 --port 4200</StartupCommand>
+    <BuildOutputFolder>$(MSBuildProjectDirectory)\dist</BuildOutputFolder>
+    <!-- The SDK includes source files automatically and excludes node_modules and hidden directories. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;dist\**;out-tsc\**;coverage\**;tmp\**;app-builds\**;release\**</DefaultItemExcludes>
+  </PropertyGroup>
+</Project>

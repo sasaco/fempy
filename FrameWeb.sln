@@ -15,12 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FrameWeb (Python)", "FrameW
 		FrameWeb\README.md = FrameWeb\README.md
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FrameWebforJS (Angular)", "FrameWebforJS", "{D77B8F0C-1875-4733-BD0B-935103F59354}"
-	ProjectSection(SolutionItems) = preProject
-		FrameWebforJS\angular.json = FrameWebforJS\angular.json
-		FrameWebforJS\package.json = FrameWebforJS\package.json
-		FrameWebforJS\src\environments\environment.local.example.ts = FrameWebforJS\src\environments\environment.local.example.ts
-	EndProjectSection
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "FrameWebforJS", "FrameWebforJS\FrameWebforJS.esproj", "{D77B8F0C-1875-4733-BD0B-935103F59354}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Local setup", "Local setup", "{2C69A8DB-C2DE-4859-BB9C-3BC44B5A602C}"
 	ProjectSection(SolutionItems) = preProject
@@ -47,6 +42,10 @@ Global
 		{77607410-4861-4357-952F-E76A0CACD5C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77607410-4861-4357-952F-E76A0CACD5C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{77607410-4861-4357-952F-E76A0CACD5C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D77B8F0C-1875-4733-BD0B-935103F59354}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D77B8F0C-1875-4733-BD0B-935103F59354}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D77B8F0C-1875-4733-BD0B-935103F59354}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D77B8F0C-1875-4733-BD0B-935103F59354}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

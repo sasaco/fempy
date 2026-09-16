@@ -6,4 +6,5 @@ __pycache__/
 /tools/local-tools/node_modules/
 *.suo
 *.csproj.user
+*.esproj.user
 *.slnLaunch.user

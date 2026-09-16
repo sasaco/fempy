@@ -25,6 +25,16 @@
 
 共有プロファイルが表示されない Visual Studio では `FrameWeb.Startup` を右クリックして「スタートアップ プロジェクトに設定」を選んでください。複数のスタートアッププロジェクトを手作業で登録する必要はありません。[Visual Studio の共有起動プロファイルについて](https://learn.microsoft.com/en-us/visualstudio/ide/how-to-set-multiple-startup-projects)。
 
+## フロントエンドのソースを編集する
+
+`FrameWeb.sln` のソリューション エクスプローラーで **`FrameWebforJS`** プロジェクトを展開すると、`src/app` 以下の TypeScript・HTML・SCSS、`src/assets`、`src/environments`、各種設定ファイルを編集できます。新しく追加したソースファイルも自動で表示されます。`node_modules`、`.angular`、`dist` などの依存関係・生成物は表示対象から除外しています。
+
+`FrameWebforJS` が「非互換」と表示される場合は、まず Visual Studio Installer で **「ASP.NET と Web 開発」** と **JavaScript / TypeScript のプロジェクト対応**が導入済みか確認してください。[Microsoft の Angular プロジェクトの前提条件](https://learn.microsoft.com/en-us/visualstudio/javascript/tutorial-asp-net-core-with-angular#prerequisites)も参照してください。
+
+開発ツールが導入済みでも、ソリューションに以前の読み込み失敗の状態が残ることがあります。`FrameWebforJS` を右クリックして「プロジェクトの再読み込み」を試してください。改善しない場合は Visual Studio を閉じ、`.vs/FrameWeb/v18/.suo`（Visual Studio 2022 では `v17`）を別名に退避してから `FrameWeb.sln` を開き直します。`.suo` には起動対象やブレークポイントなどのユーザー設定も含まれるため、バックアップを残してください。再生成後は起動対象の **`FrameWeb.Startup`** または **`FrameWeb - all services`** を選び直します。
+
+起動対象は **`FrameWeb.Startup`** または **`FrameWeb - all services`** を選んでください。依存関係の導入と Angular 開発サーバーの起動は従来どおり起動プロジェクトが担当するため、`FrameWebforJS.esproj` のビルド時には `npm install` や本番用の `npm run build` を実行しません。
+
 ## ローカル設定とログ
 
 初回起動で `scripts/setup-local.ps1` が次を準備します。
