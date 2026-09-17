@@ -8,3 +8,5 @@ __pycache__/
 *.csproj.user
 *.esproj.user
 *.slnLaunch.user
+*.log
+tmp/

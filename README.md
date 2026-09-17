@@ -46,6 +46,8 @@
 
 Visual Studio から起動する Angular は `local` 構成を使い、**`FrameWebforJS/src/environments/environment.local.ts`** を読み込みます。接続先や認証設定を変更する場合はこのファイルを編集してください。このファイルは Git 管理対象外です。テンプレート内の認証値は起動用の仮設定であり、ログイン機能を提供するものではありません。
 
+F5 または `npm run start:local` で使う `local` 構成では、`environment.visualstudio.ts` が上記設定を引き継ぎ、`allowAnonymousCalculation: true` によりログインなしで計算を開始できます。未ログイン時のユーザー ID は空文字列で送信し、ログイン済みの場合は従来のユーザー ID を使います。通常構成と本番構成ではログインが必要です。ログイン機能自体は従来どおり利用できます。
+
 ログは Visual Studio の出力／コンソールと `.local/logs/{setup,engine,frontend}.log` に出ます。ブラウザの起動状況ページにも準備完了や失敗理由が表示されます。Python の起動には仮想環境の activate は不要です。
 
 CLI でも同じ構成を起動できます。

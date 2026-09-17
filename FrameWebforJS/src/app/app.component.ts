@@ -196,7 +196,10 @@ export class AppComponent implements OnInit, AfterViewInit {
   public async calcrate(): Promise<void> {
     // const user = await this.auth.currentUser;
     const user = this.user.userProfile;
-    if (!user) {
+    const allowAnonymousCalculation = !environment.production &&
+      "allowAnonymousCalculation" in environment &&
+      environment.allowAnonymousCalculation === true;
+    if (!user && !allowAnonymousCalculation) {
       this.helper.alert(this.translate.instant("menu.P_login"));
       return;
     }
@@ -215,7 +218,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     const modalRef = this.modalService.open(WaitDialogComponent, {
       backdrop: 'static'
     });
-    jsonData["uid"] = user.uid;
+    jsonData["uid"] = user?.uid ?? "";
     jsonData["production"] = environment.production;
 
     this.ResultData.clear(); // 解析結果情報をクリア
