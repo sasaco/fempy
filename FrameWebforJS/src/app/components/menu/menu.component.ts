@@ -68,6 +68,13 @@ export class MenuComponent implements OnInit {
   loginDisplay = false;
   private readonly _destroying$ = new Subject<void>();
 
+  public get canSaveFile(): boolean {
+    return Boolean(this.user.userProfile) ||
+      (!environment.production &&
+        "allowAnonymousCalculation" in environment &&
+        environment.allowAnonymousCalculation === true);
+  }
+
   constructor(
     private router: Router,
     private modalService: NgbModal,

@@ -33,11 +33,11 @@
                         </button>
 
                         <!-- ファイルを保存 -->
-                        <button class="save-file" [class.active-save]="user.userProfile" ngbDropdownItem (click)="save()"translate>menu.saveFile</button>
+                        <button class="save-file" [class.active-save]="canSaveFile" ngbDropdownItem (click)="save()"translate>menu.saveFile</button>
 
                         <a [routerLink]="[{ outlets: { presetOutlet: ['preset'] } }]" routerLinkActive="selected-item" ngbDropdownItem (click)="preset()" translate>menu.select_preset</a>
                         <!--  -->
-                        <button class="save-file" [class.active-save]="user.userProfile" *ngIf="electronService.isElectron" ngbDropdownItem (click)="overWrite()"
+                        <button class="save-file" [class.active-save]="canSaveFile" *ngIf="electronService.isElectron" ngbDropdownItem (click)="overWrite()"
                             translate>menu.overwrite</button>
 
                         <!--  -->
