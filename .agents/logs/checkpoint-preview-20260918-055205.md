@@ -1,0 +1,585 @@
+# Checkpoint 2026-09-18-055205
+
+<!-- PROGRESS-SUMMARY:START -->
+## サマリ
+
+### 何をしたのか
+
+- FrameWebforJSのCt桁計算で発生していた通信エラーを、旧clientのBase64(括弧なし10進CSV)と現行Base64(JSON byte array)の両方を安全に受けるbackend decoderで修正した。`eval` / `literal_eval` は使わず、厳格なbyte検証を維持した。
+- `FrameWeb/main.py`、`FrameWeb/tests/io/test_compressed_transport.py`、Node/pako fixture、HTTP endpoint文書を更新した。focused 110件、関連185件がPASSし、`main.py` coverageは84%。小規模modelでは旧/current envelopeがともにHTTP 200かつ同値だった。
+- 通信修正後に「計算できたがfrontendへ表示されない」問題を旧版 `C:/Users/sasai/Documents/FrameWeb2` と比較診断した。現行responseは単一caseのflat schema、旧frontendは全case mapの各valueに `disg` / `reac` / `fsec` を要求しており、workerが不一致を空成功として黙って捨てることをdirect reproductionで確認した。
+- Ct桁にはload case 1～11があるが、現行legacy loaderは先頭caseだけを選択するため、単純にcase 1で包むだけでは修復できないと確定した。
+- 診断、root-cause、impact、bug reportを作成し、`STATE.md`へ構造化したbug-fix blockを追加した。表示互換adapter自体は未実装。
+
+### どういうやり取りをユーザーと行ったのか
+
+- ユーザーは最初にCt桁計算の通信エラー調査を依頼し、旧版backendとの差を平易に説明した後、旧版に合わせる修正方針を承認して実装を依頼した。
+- 通信修正後、ユーザーから「計算はできたようだがfrontendに表示されない」と追加報告があり、旧版を参照した問題診断を依頼された。
+- 今回は表示問題を診断し、次セッションへ `handoff` することが明示されたため、製品実装には進まず、原因・安全な修正境界・受入テスト・未確定事項を引き継いだ。
+
+### どうやったのか
+
+- 旧backendの `main.py`、`Controller`、`Result` と、現行backendの `main.py`、`file_io.py`、`legacy_beam.py`、frontendのresult providerおよびdisplacement/reaction/section-force workersをコード行単位で比較した。
+- 実transport fixtureを現行backendへ直接送る再現scriptを作り、HTTP 200、flat result key、frontend互換case 0件をassertして、transport後のresponse-contract failureを切り分けた。
+- git historyと既存HTTP test/wikiを調べ、現行flat schemaが公開済みcontractであることを確認した。推奨方針は、既定flatを保ち、FrameWebforJSが明示的に要求するversioned `legacy-cases-v1` compatibility pathで全caseを解析・旧schemaへ投影する方法。
+- frontend側にはschema fail-fastを加え、不適合responseを `isCalculated=true` の空成功にしない計画とした。Ct 11 case、単位・符号・rate・P順序、途中失敗の原子性、実browser表示を受入gateにした。
+- troubleshootのroot-cause/impact分担調査を統合し、diagnosis contractとworkspace artifact contractを検証した。
+
+### 途中でどういう課題が起こったのか
+
+- Codex read-only consultationはlead 2回、root-cause 1回、impact 1回がtimeoutまたは空responseで、正式な検証verdictを得られなかった。診断はdirect reproduction、旧/current/frontend code、git history、既存testsの証拠のみを根拠とした。
+- troubleshootの汎用repro wrapperはWindowsで長い `-c` のquoting、cp932 decode、WSL `/bin/bash` 不在により利用できなかったため、direct Python scriptの結果だけを製品証拠とした。
+- Browser backendが接続されていないため、Ct桁の実画面navigationはまだ確認できていない。
+- `shell_fsec` は旧契約に存在するがCt桁にはshellがなく、現行test helperも異なるschemaである。一般shell互換を名乗るには別の旧backend oracleが必要。
+- 全11 caseを順次解析するruntime/memory/timeoutと、case途中失敗時のpolicyは実装時に計測・固定が必要。
+
+### 将来のアクション
+
+- まず `.agents/logs/troubleshoot-framewebforjs-results-not-displayed-diagnosis.md` とroot-cause/impact reportを読み、`legacy-cases-v1` の選択方法（専用endpoint、media type、version header）を確定する。
+- test-firstで「既定flat response不変」と「明示version時だけordered case map」を追加し、Ctがexactにcase 1～11を返し、全caseの `disg` / `reac` / `fsec` がnon-emptyかつ旧backend代表値と一致することを固定する。
+- backendへ全case orchestrationとproduction legacy projectorを追加する。fresh model/case、入力順、単位、符号、rate、member `P1..Pn`、原子的errorを守る。
+- FrameWebforJSをversioned responseへopt-inさせ、worker前schema validationとユーザー向けerrorを追加する。
+- transport/HTTP/backend/frontend testに加え、実browserでCtのcase 1と11の変位・反力・断面力、DEFINE/COMBINE/PICKUP、console/worker errorなしを確認してから表示修正完了とする。
+<!-- PROGRESS-SUMMARY:END -->
+
+## Summary
+
+- **Branch**: `main`
+- **Commits**: 69
+- **Files changed**: 1135 (2 modified, 1131 created, 2 deleted)
+- **Codex consultations**: 0
+- **Teammate work logs**: 9
+
+## Collector Status
+
+All collectors succeeded.
+
+## Git Activity
+
+### Commits
+
+- `2ee50f4` skill設定
+- `90ea69c` ログインでも PDF 出力・解析を実行できます。通常・本番構成ではログインが必要です。
+- `e3ac11b` visual studio 用の設定
+- `971f98f` FrameWeb.sln を作成しました。Visual Studio で開き、FrameWeb.Startup を選んで F5 で起動できます。
+- `be59bd4`  monorepo
+- `ba84dd5` 実施記録に合わせて計画を修正し、スリップばねをTDDで実装しました。荷重・変位制御、履歴管理、反力、保存、HTTPまで対応しています。
+- `7fc6ef5` TDDで実装しました。
+- `a3f43d4`  指摘2件を修正しました。
+- `e3f96a3` 実装をすべて完了しました。第4～6段階および計画の最終受入条件はすべて完了扱いです。
+- `5c96bf1` 第3段階を完了しました。
+- `8214662` 第3段階を進め、非ゼロβかつ移動曲率点を含む離脱探索を実装しました。
+- `44be8e2` 第3段階を進め、直線の曲率–Nd同時変動に沿う固定枝の接触・追従・離脱を実装しました。
+- `2d32c2d` 第3段階の「Nd一定での移動骨格への直接復帰」を実装しました。
+- `8debed3`  第3段階の実装を進めました。
+- `0efa37e` 曲率保持中のNd変動について、骨格への接触・追従・離脱を実装しました。複数交点、負K4、離脱時のKd保持にも対応しています。
+- `e05f038` 改善点を反映しました。
+- `6f57fba` 設計実務向けの利用手順を整備しました。
+- `3bc0ae9` 第5段階の一般平面・非凸領域を実装しました。
+- `f275b4e` 第4段階を完了し、線荷重・面荷重の公開静解析を有効にしました。Python／JSON／HTTPの結果一致を確認済みです。
+- `144b867` 第3段階の荷重組立・内部ソルバー接続を実装しました。
+- `2748921` 第2段階の幾何・補間・求積を実装しました。
+- `643ca81` 実装計画書 (/C:/Users/sasai/Documents/FrameWeb3/docs/plans/面荷重実装計画.md)を更新し、第1段階の入力処理を実装しました。
+- `4fed5ad` PQ-12「性能基準と計測」を完了しました。
+- `1057788`  PQ-10「単位換算と非線形収束判定」を完了し、ロードマップを次の PQ-12 へ   進めました。
+- `b3d33d9` PQ-09「メッシュ誤差と適用範囲」を完了し、次項目をPQ-10へ更新しました。
+- `c5e3035` ### PQ-08: 診断と結果メタデータ
+- `6085418` PQ-07を完了しました。PQ-04は保留、段階2は未完了のままです。次はPQ-06で   す。
+- `f17c65d` 実装計画を作成しました。
+- `18479e1` riron
+- `a4392b9`  PQ-04の実装とローカル検証を完了し、ロードマップを「外部接続確認待ち」まで進めました。
+- ... and 39 more commits
+
+### File Changes
+
+**Created:**
+- `.agents/INDEX.md` (+34, -0)
+- `.agents/STATE.md` (+294, -0)
+- `.agents/agents/codex-debugger.md` (+117, -0)
+- `.agents/agents/fable-advisor.md` (+80, -0)
+- `.agents/agents/general-purpose-opus.md` (+86, -0)
+- `.agents/agents/general-purpose-sonnet.md` (+70, -0)
+- `.agents/change_main.md` (+68, -0)
+- `.agents/check.sh` (+421, -0)
+- `.agents/docs/CODEX_HANDOFF_PLAYBOOK.md` (+160, -0)
+- `.agents/docs/DESIGN.md` (+132, -0)
+- `.agents/docs/research/.gitkeep` (+0, -0)
+- `.agents/docs/reviews/.gitkeep` (+0, -0)
+- `.agents/hooks/agent-router.py` (+291, -0)
+- `.agents/hooks/check-codex-after-plan.py` (+85, -0)
+- `.agents/hooks/check-codex-before-write.py` (+146, -0)
+- `.agents/hooks/error-to-codex.py` (+182, -0)
+- `.agents/hooks/lint-on-save.py` (+125, -0)
+- `.agents/hooks/log-cli-tools.py` (+244, -0)
+- `.agents/hooks/post-bash-check.py` (+99, -0)
+- `.agents/hooks/post-implementation-review.py` (+166, -0)
+- ... and 1111 more files
+
+**Modified:**
+- `.gitignore` (+9, -32)
+- `README.md` (+52, -122)
+
+**Deleted:**
+- `src/fem/nonlinear/axial_force_path.py`
+- `tests/postprocess/test_result_processor.py`
+
+## CLI Consultations
+
+No CLI consultations recorded.
+
+## Teammate Work Logs
+
+### Team: team-execute-legacy-compressed-input-compatibility
+
+#### backend-tdd
+*Source: `.agents/logs/agent-teams/team-execute-legacy-compressed-input-compatibility/backend-tdd.md`*
+
+# Work Log: backend-tdd
+
+## Summary
+
+承認済み計画に沿って、圧縮入力のJSON整数配列と旧ブラウザー十進CSVを厳格に受理するdual parserを実装した。製品変更前の有効なRedから、focused 107件・指定回帰182件のGreenを確認した。
+
+## Tasks Completed
+
+- [x] context-loader、linksee-memory、TDDおよび指定の計画・ルールを読み、担当範囲を確認。
+- [x] Node v24.13.0 / pako 2.2.0の実式 `btoa(pako.gzip(JSON.stringify(payload)))` で固定fixtureを生成し、保存後の再生成完全一致も確認。
+- [x] テスト・fixtureのみを先に追加し、main.py未変更の状態で有効なRedを取得。
+- [x] Base64厳格検証、JSON先行・JSONDecodeErrorのみCSV fallback、ASCII・1〜3桁・0〜255・厳密整数検証を実装。
+- [x] 段階別の既知例外をInputValidationErrorへ変換し、展開後dict契約と予期しない例外の500維持を検証。
+- [x] gzip / gzip,base64 × JSON配列 / CSVの4組についてHTTP 200と通常JSONとの結果完全一致を検証。
+- [x] 型、字句、コード風入力、Base64、gzip破損、内側UTF-8/JSON/object契約の拒否を検証。
+- [x] 指定6ファイル回帰、新規テストlint/format、禁止式検索、diff checkを実行。
+- [x] 最終verify.shを実行し、既存環境に起因する起動失敗を記録。
+
+## Validation and Files Modified
+
+### TDD evidence
+
+共通runnerコマンドはリポジトリ直下から `uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/run_tests.py` を使用した。rootにはpyproject.tomlがないため、既存FrameWeb環境を選ぶ `--project FrameWeb` を明示した。
+
+| Label | Expected / observed | Runner exit | pytest result | Log |
+|---|---|---|---|---|
+| legacy-compressed-red | fail / failed | 0 | exit 1; 72 failed, 35 passed | `.agents/logs/legacy-compressed-red.log` |
+| legacy-compressed-green | pass / passed | 0 | exit 0; 107 passed | `.agents/logs/legacy-compressed-green.log` |
+| legacy-compressed-refactor | pass / passed | 0 | exit 0; 107 passed | `.agents/logs/legacy-compressed-refactor.log` |
+| legacy-compressed-final | pass / passed | 0 | exit 0; 107 passed | `.agents/logs/legacy-compressed-final.log` |
+| legacy-compressed-regression | pass / passed | 0 | exit 0; 182 passed | `.agents/logs/legacy-compressed-regression.log` |
+
+Redでは旧ブラウザーfixtureと旧CSVのHTTP 2組が `Extra data: line 1 column 3` で失敗し、現行JSON配列・通常JSON・コード風入力非実行は成功した。型、厳格Base64、既知エラー分類、内側object契約の失敗も予定境界内だった。collection errorはなかった。
+
+回帰対象: `FrameWeb/tests/io/test_compressed_transport.py`、`FrameWeb/tests/integration/test_input_routes.py`、`FrameWeb/tests/integration/test_spatial_general_plane.py`、`FrameWeb/tests/io/test_axial_force_input.py`、`FrameWeb/tests/regression/test_slip_support_history.py`、`FrameWeb/tests/io/test_http.py`。
+
+### Static and environment gates
+
+- `uv run --locked --extra dev ruff check/format --check ...`: ruffが既存dev環境に未収録のため起動失敗。依存ファイルは変更せず、`uv tool run ruff`を使用した。
+- `uv tool run ruff check tests/io/test_compressed_transport.py`: exit 0 / All checks passed。
+- `uv tool run ruff format --check tests/io/test_compressed_transport.py`: exit 0 / 1 file already formatted。
+- `uv tool run ruff check main.py tests/io/test_compressed_transport.py --output-format concise`: exit 1 / main.pyの既存9件。I001 × 3、F401 × 3、BLE001 × 2、UP039 × 1。`git show HEAD:FrameWeb/main.py`を同じruffへ渡し、同じ9件を確認。新規テストの指摘なし。
+- `uv tool run ruff format --check main.py tests/io/test_compressed_transport.py --output-format concise`: exit 1 / main.py would be reformatted、test already formatted。HEADのmain.pyもformat check不一致。親担当の指示によりmain.py全体format・既存import・broad catch整理は行わず、変更した新規ロジック内の折り返しのみ整えた。
+- `git diff --check -- FrameWeb/main.py`: exit 0。LF/CRLF変換のgit warningのみ。
+- `rg -n 'eval\(|literal_eval' FrameWeb/main.py FrameWeb/tests/io/test_compressed_transport.py`: exit 1 / 該当なし。
+- 保存fixtureをNode/pakoで読み直し、同じ生成式によるbodyとの完全一致を確認: exit 0。
+- 最終 `bash .agents/skills/_shared/verify.sh`: **exit 1**。WSLの `execvpe(/bin/bash) failed: No such file or directory` によりscript開始前に失敗。JSONは未生成なので **overall=null（未観測）、tools=null（未観測）**。verify.sh成功・no_gatesとは解釈しない。今回の変更に起因するテスト失敗はないが、包括ゲート完走は未確認。
+
+### Changed files and deviations
+
+... [truncated, 72 total lines — see full log at `.agents/logs/agent-teams/team-execute-legacy-compressed-input-compatibility/backend-tdd.md`]
+
+#### http-docs
+*Source: `.agents/logs/agent-teams/team-execute-legacy-compressed-input-compatibility/http-docs.md`*
+
+# Work Log: http-docs
+## Summary
+FrameWebの公開HTTP契約を、正規のJSON整数配列形式とFrameWebforJS向け括弧なしCSV互換形式の両方が明確になるよう更新しました。安全境界、対象ヘッダー、要求・応答の非対称性、不許可形式も文書化しています。
+## Tasks Completed
+- [x] 圧縮要求の二形式を文書化: 正規形式をBase64(JSON整数配列 of gzip bytes)、互換形式をBase64(括弧なしASCII十進CSV of gzip bytes)として区別しました。
+- [x] 互換パーサーの安全境界を文書化: `eval`を使わず、ASCII数字とカンマからなる0～255の値だけを厳格に解析し、Python式などを拒否することを明記しました。
+- [x] 現行ルーティングを文書化: `Content-Encoding: gzip`と`Content-Encoding: gzip,base64`が圧縮経路へ入ることを明記しました。
+- [x] 既存契約を維持: 通常JSON経路の推奨、圧縮要求と成功応答の非対称性、エラー応答が通常JSONであること、raw Base64(gzip JSON)と生gzipが不許可であることを維持しました。
+- [x] 個別検証: `git diff --check -- FrameWeb/docs/wiki/endpoints.md`はexit 0、`rg -n "JSON整数配列|括弧なしCSV|eval|gzip,base64" FrameWeb/docs/wiki/endpoints.md`はexit 0でした。
+- [x] 共有ゲート実行: `bash .agents/skills/_shared/verify.sh`はexit 1でした。WSLが`execvpe(/bin/bash) failed: No such file or directory`で停止したため、verifierの`overall`と`tools`は生成されていません。これは既知のWindows/WSL環境ベースラインであり、文書差分の検査結果ではありません。
+## Files Modified
+- `FrameWeb/docs/wiki/endpoints.md`: 圧縮HTTP要求の正規形式、旧互換形式、安全境界、対象ヘッダー、不許可形式を明確化しました。
+## Key Decisions
+- JSON整数配列を正規形式として維持し、括弧なしCSVは既存FrameWebforJSとの互換形式としてのみ説明しました。
+- `eval`互換ではなく厳格な字句・バイト範囲検証であることを明記し、任意のPython式との互換性を否定しました。
+- 要求・応答の非対称性と通常JSON推奨を変更せず、今回の文書範囲を輸送契約に限定しました。
+## Communication with Teammates
+- → `/root`: 文書更新の完了、個別検証exit 0、共有ゲートがWSL `/bin/bash` 不在でexit 1になりJSONを生成できなかったことを報告しました。
+## Issues Encountered
+- 共有検証スクリプトを起動できないWindows/WSLベースラインがありました。製品差分とは切り分け、利用可能な個別検証をexit code付きで実施しました。
+
+
+#### quality-reviewer
+*Source: `.agents/logs/agent-teams/team-execute-legacy-compressed-input-compatibility/quality-reviewer.md`*
+
+# Work Log: quality-reviewer
+
+## Summary
+
+Reviewed the four compressed-transport compatibility files for correctness,
+maintainability, type/error boundaries, fallback discipline, tests, and docs.
+The post-fix change passes with no open findings; the previously reported Medium
+exception-normalization edge is resolved and independently verified.
+
+## Review Scope
+
+- `FrameWeb/main.py`: dual envelope parser, strict validation, exception mapping,
+  and legacy fallback boundary.
+- `FrameWeb/tests/io/test_compressed_transport.py`: happy paths, invalid values,
+  code-shaped input, HTTP error classification, and unexpected-error behavior.
+- `FrameWeb/tests/data/transport/legacy-browser-envelope.json`: saved Node/pako
+  producer fixture and metadata.
+- `FrameWeb/docs/wiki/endpoints.md`: canonical/legacy request formats, response
+  asymmetry, and safety claims.
+- Independent checks: 107 focused tests, Ruff check/format, diff check, no
+  executable parser search, and outer/inner over-limit integer probes.
+- Post-fix checks: 110 focused tests, Ruff check/format, diff check, inspection
+  of the three added boundary cases, and direct outer/inner exception probes.
+
+## Findings
+
+None. The prior Medium at `FrameWeb/main.py:171,189` is resolved: the outer
+`ValueError` is converted to `InputValidationError` after, and separately from,
+the `JSONDecodeError` CSV fallback; the inner error is normalized to its input
+JSON error. Three focused cases cover the outer path and both inner envelopes.
+
+## Codex Consultations
+
+- Asked Codex to review the four-file diff for correctness, maintainability,
+  exception/type boundaries, fallback discipline, and docs/test accuracy. It
+  completed read-only with `PASS` and confirmed fallback is limited to
+  `JSONDecodeError`; an independent runtime probe found the Medium direct-error
+  normalization edge that the consultation did not flag. Response:
+  `.agents/logs/codex/20260918T041227Z-quality-review-legacy-compressed-input.md`.
+
+## Communication with Teammates
+
+- → `/root`: sent the Medium finding, its exact runtime behavior, the passing
+  focused gates, and the difference from the Codex consultation before writing
+  the final report.
+- ← `/root`: received the strict-TDD fix evidence and request for post-fix
+  re-review.
+- → `/root`: final post-fix review reports PASS with no open findings.
+
+## Issues Encountered
+... [truncated, 55 total lines — see full log at `.agents/logs/agent-teams/team-execute-legacy-compressed-input-compatibility/quality-reviewer.md`]
+
+#### security-reviewer
+*Source: `.agents/logs/agent-teams/team-execute-legacy-compressed-input-compatibility/security-reviewer.md`*
+
+# Work Log: Security Reviewer
+
+## Summary
+
+Reviewed the compressed-input compatibility implementation and tests for input
+execution, validation, error leakage, and availability risks. Recommendation is
+PASS with no open Critical, High, or Medium findings; one pre-existing Low
+resource-limit gap is documented for follow-up.
+
+## Review Scope
+
+- `FrameWeb/main.py`: Base64, JSON/CSV, gzip, UTF-8, inner JSON, exception, and
+  response boundaries.
+- `FrameWeb/tests/io/test_compressed_transport.py`: malicious/boundary input and
+  HTTP classification coverage.
+- `FrameWeb/tests/data/transport/legacy-browser-envelope.json`: fixture metadata,
+  payload sensitivity, and legacy wire shape.
+- `FrameWeb/docs/wiki/endpoints.md`: documented compatibility and safety boundary.
+
+## Findings
+
+- [Low] `FrameWeb/main.py:156` — request and decompressed JSON sizes are not
+  bounded at the application layer; this exposure predates the CSV fallback and
+  is recommended as a separate availability-hardening change.
+- [Resolved Low] `FrameWeb/main.py:172` — Python integer digit-limit `ValueError`
+  is now normalized at both JSON stages and cannot enter CSV fallback.
+- [Positive] `FrameWeb/main.py:156-213` — strict Base64, ASCII/token, exact-int,
+  byte-range, gzip, UTF-8, and object validation is non-executable and returns
+  sanitized error responses.
+
+## Communication with Teammates
+
+- → `/root`: reported context-loader status and the direct security-review route.
+- ← `/root`: received focused/regression/coverage evidence and notification of
+  the integer digit-limit fix; reviewed the updated implementation and tests.
+
+## Issues Encountered
+
+- The shared Bash verification entry point is unavailable in this Windows/WSL
+  environment because `/bin/bash` is missing. The lead supplied successful
+  project-specific test, coverage, fixture, and no-`eval` evidence instead.
+
+
+#### test-reviewer
+*Source: `.agents/logs/agent-teams/team-execute-legacy-compressed-input-compatibility/test-reviewer.md`*
+
+# Work Log: test-reviewer
+## Summary
+Reviewed the compressed-input compatibility tests, then re-reviewed the final integer-digit-limit fix. Independently verified focused coverage, the related regression suite, and actual Node/pako fixture provenance. The final implementation receives a PASS recommendation with no open test findings.
+
+## Review Scope
+- `FrameWeb/main.py`: compressed request parsing, error classification, and unchanged JSON route.
+- `FrameWeb/tests/io/test_compressed_transport.py`: happy-path matrix, rejection boundaries, safety, response equivalence, and test isolation.
+- `FrameWeb/tests/data/transport/legacy-browser-envelope.json`: generator metadata and reproducibility.
+- `FrameWeb/docs/wiki/endpoints.md`: documented request/response contract against executable coverage.
+- Coverage: 84% for `main.py` from the final focused 110-test suite.
+
+## Findings
+None. The intermediate Quality Review finding about outer/inner `json.loads()` integer-digit-limit `ValueError` classification is fixed and covered by three new tests.
+
+## Test Execution Results
+- Total: 110 final focused tests, Passed: 110, Failed: 0; 0.83 seconds.
+- Related regression: 185 tests, Passed: 185, Failed: 0; 18.55 seconds.
+- Coverage: 84% for `main.py` (118 statements, 19 missed), above the 80% project target; no new parser line appeared in the missing-lines list.
+- Integer digit-limit coverage: outer JSON is rejected without CSV fallback; inner JSON is rejected for both JSON-array and legacy-CSV envelopes.
+- Fixture provenance: Node v24.13.0 / pako 2.2.0 regeneration matched the saved Base64 body exactly.
+
+## Communication with Teammates
+- → `/root`: Reported context-loader gaps and the direct Team Execute test-review route at review start; final PASS evidence will be returned with the report path.
+- → `/root`: Accepted the post-quality-fix review request and independently re-ran the final 110/185 test gates.
+
+## Issues Encountered
+- The first inline `node -e` probe lost nested quotes under PowerShell and failed before executing. Re-ran the same read-only check through a PowerShell here-string piped to `node -`; it exited 0 and confirmed exact fixture reproduction.
+
+
+### Team: troubleshoot-framewebforjs-calculation-communication-error
+
+#### impact-investigator
+*Source: `.agents/logs/agent-teams/troubleshoot-framewebforjs-calculation-communication-error/impact-investigator.md`*
+
+# Work Log: Impact Investigator
+
+## Summary
+
+Traced the transport regression to `29df328`, enumerated calculation and print wire contracts, audited the missing cross-stack coverage, and evaluated compatibility/security/performance risks without changing product code.
+
+## Tasks Completed
+
+- [x] History: used `git show`, `git log`, and `git blame` to identify the strict-parser change, its security intent, the prior permissive behavior, and the later docs/tests that masked the real browser producer.
+- [x] Blast radius: classified calculation, print, ordinary JSON, canonical compressed, response, launcher, cached-client, and deployment-skew paths.
+- [x] Coverage audit: identified four backend tests that recreate only the canonical envelope, zero Angular unit specs, and the local smoke test's failure to exercise compressed browser calculation.
+- [x] Compatibility/risk: proved the old/new frontend/backend matrix, assessed four fix candidates, quantified the high-water preset's allocation risk, and specified exact regressions.
+- [x] Codex protocol: ran both mandatory read-only consultations with 300-second bounds and medium reasoning, read every response file, recorded unusable/timeout outcomes as unavailable evidence, and independently verified two usable single-line supplemental risk assessments.
+- [x] Durable output: wrote `.agents/docs/research/troubleshoot-framewebforjs-calculation-communication-error-impact.md`.
+
+## Git History
+
+- Introducing commit: `29df328eb29d1a17b91f706eb1b7f6dd16a0fa78` - replaced `eval(b)` with `json.loads(b)` in the compressed calculation decoder, intentionally eliminating request-text execution but narrowing the accepted envelope.
+- Related commits: `d111a02` documented the canonical JSON byte array; `f275b4e` added Python-generated canonical compressed tests; `be59bd4` imported the already-legacy frontend into the monorepo; `971f98f` added a smoke test that skipped compressed calculation; `90ea69c` exposed local anonymous calculation without changing the encoder.
+- Available history cannot date the frontend producer before `be59bd4`; the combined repository was definitely incompatible from that import onward.
+
+## Blast Radius
+
+- Affected code paths: every `AppComponent.calcrate()` request against the current backend; every other bracketless-CSV calculation client against post-`29df328` backend.
+- Affected features/users: all calculation models/presets for authenticated and allowed-local-anonymous users; Ct is only the reported example.
+- Potentially affected: cached/deployed older frontend bundles and external clients if paired with a newer backend.
+- Unaffected: ordinary JSON, canonical compressed clients, GET/OPTIONS, response decompression, and the separate print API. Print must remain bracketless CSV because its C# consumers split on commas.
+- Secondary blocker: current backend result keys do not match the frontend's per-case `disg`/`reac`/`fsec` expectation, so transport success alone does not establish UI success.
+
+## External Research
+
+None. Repository code, git history, and executable probes completely resolve the transport defect; no dependency or upstream issue research was necessary.
+
+## Regression Risk
+
+- Existing test coverage: four Python request tests cover only a hand-built canonical array; there are no Angular specs; the local smoke test uses ordinary JSON for calculation and CSV only for print.
+- Preferred change: calculation-only canonical array output using a calc-specific helper; leave print unchanged. The semantic wire recommendation is low risk with old and current calculation backends.
+- Performance correction: avoid `Array.from` for the 2,025,295-byte compressed high-water preset; a typed-array `join(',')` wrapped in JSON brackets avoids boxing roughly two million numbers.
+- Optional compatibility branch: medium risk and rollout-only; safe only with strict non-executable grammar/range/size/gzip validation, telemetry, and removal plan.
+- Rejected broad changes: shared calculation/print canonical helper would break print; raw-gzip protocol replacement creates unnecessary coordinated-deployment risk.
+- Required tests: real JS producer to Python decoder, print contract preservation, actual Ct UI/result consumption, large-preset browser memory/performance, and strict malformed-input tests if fallback is added.
+
+## Codex Risk Analysis
+
+- Required-label status: `troubleshoot-frameweb-regression` returned only context-loader status, its follow-up timed out, and `troubleshoot-frameweb-fix-safety` received only the prompt's first physical line. These responses are unavailable evidence; every response file was read and the timed-out call was not retried.
+- Regression-risk supplemental (`troubleshoot-frameweb-regression-oneline`): rated the unresolved mismatch HIGH overall, the calculation-only canonical producer LOW risk, a strict temporary server fallback MEDIUM risk, and shared calculation/print encoding HIGH risk. It also required the real JS-to-Python contract, large-preset, print-isolation, route-isolation, mixed-version, and malformed-input regressions.
+- Fix-safety supplemental (`troubleshoot-frameweb-fix-safety-oneline`): rated the calc-only typed-array `join` producer functionally/security safe but the release CAUTION because transport repair may expose the independent result-schema mismatch. It endorsed a frontend-only rollout unless legacy cached clients require a bounded, instrumented, time-limited fallback.
+- Both usable supplements completed read-only within 300 seconds at medium reasoning. Their details were independently checked against repository code/history; the primary findings remain evidence-led rather than consultation-dependent.
+
+## Communication with Teammates
+... [truncated, 61 total lines — see full log at `.agents/logs/agent-teams/troubleshoot-framewebforjs-calculation-communication-error/impact-investigator.md`]
+
+#### root-cause-analyst
+*Source: `.agents/logs/agent-teams/troubleshoot-framewebforjs-calculation-communication-error/root-cause-analyst.md`*
+
+# Work Log: Root Cause Analyst
+
+## Summary
+
+Established the exact producer/consumer wire-contract regression, proved the parser boundary with a same-byte accepted-envelope control, evaluated every initial hypothesis, and compared secure compatibility strategies without changing product code.
+
+## Tasks Completed
+
+- [x] Loaded repository rules, state/design context, troubleshoot instructions, Bug Report, Phase-1 context, and reproduction artifact.
+- [x] Traced `calcrate()` through `post_compress()`, Flask routing, `Compressor.decompress()`, diagnostic classification, and the Angular error callback.
+- [x] Proved why `json.loads()` reports character 2 / column 3.
+- [x] Ran a same-byte Ct-derived accepted-envelope control and bounded Ct model content out of the observed transport failure.
+- [x] Inspected commit `29df328`, existing compressed tests, calculation/print consumers, current result schema, and large-preset encoding size.
+- [x] Completed all four mandatory uniquely labelled Codex consultations; marked the timed-out hypothesis run unavailable as evidence.
+- [x] Communicated root-cause, compatibility, print isolation, performance, and post-transport findings bidirectionally with the Impact Investigator.
+- [x] Wrote the detailed root-cause artifact.
+
+## Hypotheses Evaluated
+
+- [confirmed] Compressed-request contract regression: current calculation producer sends Base64 of bracketless decimal CSV, while current backend requires Base64 of a JSON integer array.
+- [eliminated as required current cause; historically inconclusive] Deployment-version skew: old backend behavior explains prior compatibility, but mixed versions are unnecessary for the checked-in current failure and deployed version inventory is absent.
+- [eliminated for observed error] Ct-girder content/model validation: parsing fails before gzip or model inspection.
+- [eliminated] URL/service availability: the application receives and answers the POST.
+- [eliminated] CORS: backend parsing is reached and a non-browser client reproduces the same application error.
+- [eliminated] Authentication/anonymous UID: the endpoint performs no authentication before decompression and empty UID reproduces the same failure.
+- [eliminated] Green backend tests refute the mismatch: the tests construct the canonical envelope and do not exercise the JavaScript producer.
+
+## Root Cause
+
+- Defect: `btoa(pako.gzip(json))` stringifies `Uint8Array` as `31,139,...`; the backend's secure `json.loads()` decoder requires `[31,139,...]`.
+- Location: `FrameWebforJS/src/app/app.component.ts:233-245` and `FrameWeb/main.py:153-160`; regression trigger `29df328eb29d1a17b91f706eb1b7f6dd16a0fa78`.
+- Trigger condition: any current compressed calculation request sent to a post-`29df328` backend. The comma after the valid JSON number `31` is zero-based char 2 / one-based column 3.
+
+## Proposed Fixes
+
+- Approach A: calculation-only canonical producer using `[${compressed.join(',')}]` before `btoa` — directly conforms to the documented contract, works with old/current backends, avoids the `Array.from` boxed-number spike, and leaves print unchanged; does not repair cached legacy clients.
+- Approach B: temporary strict backend dual parser — restores legacy clients but adds grammar, validation, decompression-limit, observability, and removal obligations; never use `eval` or `literal_eval`.
+- Approach C: versioned Base64(raw gzip) or standards-based gzip — more efficient long-term but requires a coordinated protocol migration and is too broad for the incident fix.
+- Recommended: Approach A as the durable fix; deploy B first only when supported legacy/cached calculation clients require a mixed-version rollout. Full completion also requires resolving or explicitly scoping the separate result-schema/load-case incompatibility.
+
+## Codex Consultations
+
+- Execution flow (`troubleshoot-frameweb-flow`): exit 0; confirmed exact transforms and line/column calculation.
+- Hypothesis evaluation (`troubleshoot-frameweb-hypothesis`): timed out after the 300-second bound; response read but treated as unavailable evidence.
+- Fix design (`troubleshoot-frameweb-fix-design`): exit 0; favored backend-first dual compatibility then canonical producer when old deployed clients must work.
+- Fix correctness (`troubleshoot-frameweb-fix-verify`): exit 0, verdict INCOMPLETE; transport fix is correct, but exact Angular-normalized Ct plus result-consumption/UI verification is mandatory before claiming the user outcome fixed.
+
+## Communication with Teammates
+
+- → `/root/impact_investigator`: shared the confirmed root cause, exact parser boundary, conditional producer/server compatibility recommendation, print isolation, and required end-to-end Ct/result verification.
+... [truncated, 59 total lines — see full log at `.agents/logs/agent-teams/troubleshoot-framewebforjs-calculation-communication-error/root-cause-analyst.md`]
+
+### Team: troubleshoot-framewebforjs-results-not-displayed
+
+#### impact-investigator
+*Source: `.agents/logs/agent-teams/troubleshoot-framewebforjs-results-not-displayed/impact-investigator.md`*
+
+# Work Log: Impact Investigator
+
+## Summary
+
+旧FrameWeb2と現行FrameWeb/FrameWebforJSのgit履歴、response consumer、test helper、Ct presetを照合し、既定flat APIを維持した明示的versioned compatibility responseが最小回帰の修正境界だと評価した。transport、backend representation、frontend fail-fast、Ct browser displayを分離した受入条件を作成した。
+
+## Tasks Completed
+
+- [x] git log/blameで旧case-map、現行flat API、先頭case選択、flat契約の文書/test固定、frontend importの導入commitを特定した。
+- [x] 現行flat結果のbackend consumerと旧case-mapのfrontend consumer/test helperをinventoryし、backend全面置換・frontend単独変換・versioned互換responseのblast radiusを比較した。
+- [x] Ct presetの荷重case ID `1..11`とcase別荷重を確認し、単純wrapperが不十分であることを確認した。
+- [x] 単位、符号、member segment順、`rate`、case error、modern client保護を含む最小TDD/E2E受入testを定義した。
+- [x] 低effort・bounded read-only Codex consultationを1回実施したが回答不能だったため、再試行せずrepository evidenceで完了した。
+
+## Git History
+
+- Introducing contract: `12b8ab9f0d457ae52967d9d66296aeb34fac690d` — 2026-01-30の現行FrameWeb初期commitで単一flat `FemModel.run()` HTTP responseを導入。
+- First-case selection: `29b9c32b04519870445038602af5c0f9dbe786db` — 2026-09-08に`select_case(data)`を導入し、既定で先頭loadのみを保持。
+- Modern contract lock-in: `46441c5bb6df04e70519f68a19dda0e2eaa027c3` — flat HTTP assertions、`d111a0277718f5df81fa3c6c74bfbecff4d423b6` — flat/no-case-hierarchyの文書化。
+- Frontend integration: `be59bd48974b6fd02963ec306b327fad1293fac3` — 旧case-map consumerを既存状態のままmonorepoへimport。
+- Old reference: FrameWeb2 `da44b42e99ad7097918b0471c278e0f36e5c03d4` — 全load caseを`disg`/`reac`/`fsec` mapへする旧契約。
+
+## Blast Radius
+
+- Affected code paths: FrameWebforJSの基本変位・反力・断面力worker、後段のDEFINE/COMBINE/PICKUP、結果表、3D描画、帳票用結果。
+- Affected features/users: 旧入力を送るbrowser/Electron client全般。Ctは11 caseのうち現状1 caseしか解かれず、全結果表示が空になる。
+- Regression-sensitive modern paths: flat keyを直接参照する43 backend test file、11 source/tool/script file、HTTP test、local smoke、公開Wiki/client。
+- Reusable but unsafe-as-is path: `tests/support/section_cut_view.py`は変換規則の証拠だが、`rate`欠落、shell key差、2D synthetic reaction、production error contract欠落がある。
+
+## External Research
+
+None. 第三者libraryではなくrepository内の独自API契約不一致のため不要だった。
+
+## Regression Risk
+
+- Existing test coverage: flat solver/HTTPは広く固定され、test-only legacy viewにはsample比較がある。一方、production case-map、Ct 11 case、frontend schema rejection、worker/UI表示testはない。
+- Risk areas: flat default破壊、case別定義の誤選択、mutable solver state共有、11倍の計算量、`rate`の二重/未適用、reaction/fsec符号とsegment順、shell互換、部分成功の誤表示。
+- Recommended safeguard: flat defaultを保存し、明示的`legacy-cases-v1`表現だけを全case solve/projectし、frontend側もworker前にschema fail-fastする。
+
+## Codex Risk Analysis
+
+- Regression risk assessment: Codex unavailable。`framewebforjs-results-impact-risk` consultationは有効なresponseを返さず、response artifactは0 bytes。
+- Fix safety assessment: Codex verdictではなく、git history・旧/current code・既存test・再現証拠に基づき、全面置換/ frontend-onlyはhigh risk、explicit versioned backend compatibility boundaryはmedium riskかつ推奨と評価した。
+
+## Communication with Teammates
+
+- → `/root/result_root_cause`: flat API/first-case selection/旧case-mapのcommit履歴、modern flat replacementのblast radiusを共有し、単位・符号・順序・rate変換仕様を依頼した。
+- ← `/root/result_root_cause`: 旧rate適用、disg単位、reaction rename/sign、fsec sign vector/P順、test helperのshell/synthetic reaction差、および同じversioned boundary推奨を受領した。
+- → `/root`: Codex再試行を停止し、repository evidenceでimpact report/work logを完成する方針に従った。
+
+... [truncated, 55 total lines — see full log at `.agents/logs/agent-teams/troubleshoot-framewebforjs-results-not-displayed/impact-investigator.md`]
+
+#### root-cause-analyst
+*Source: `.agents/logs/agent-teams/troubleshoot-framewebforjs-results-not-displayed/root-cause-analyst.md`*
+
+# Work Log: Root Cause Analyst
+
+## Summary
+Traced the old and current backend-to-frontend result paths, confirmed a silent response-schema mismatch plus first-case loss, eliminated async timing as the primary cause, and specified the legacy projection and safest compatibility boundary.
+
+## Tasks Completed
+- [x] Traced old execution: all surviving load cases are solved and returned as an ordered case map.
+- [x] Traced current execution: one selected legacy case is solved and returned as a flat modern result.
+- [x] Verified frontend failure mode: all three workers skip incompatible entries and report empty success.
+- [x] Defined exact case IDs/order, rate, displacement, reaction, and beam section-force projection semantics.
+- [x] Compared unversioned replacement, frontend adaptation, and an explicit versioned compatibility adapter.
+- [x] Wrote `.agents/docs/research/troubleshoot-framewebforjs-results-not-displayed-root-cause.md`.
+
+## Hypotheses Evaluated
+- [confirmed] Response-schema mismatch: the backend emits flat `node_displacements/reaction_forces/element_stresses`; the frontend requires an outer case map containing `disg/reac/fsec`.
+- [confirmed] First-case loss: `_read_json_model` invokes `select_case` without an ID, so Ct cases 2–11 are absent before calculation.
+- [eliminated] Async readiness timing as primary cause: it affects status sequencing, but waiting cannot restore fields already skipped by workers.
+
+## Root Cause
+- Defect: An unversioned producer/consumer contract mismatch is compounded by single-case selection before solve.
+- Location: `FrameWeb/main.py:106-118`; `FrameWeb/src/fem/file_io.py:70-79`; `FrameWeb/src/fem/legacy_beam.py:6-20`; `FrameWebforJS/src/app/components/result/result-disg/result-disg1.worker.ts:29-40` (same pattern in reaction and section-force workers).
+- Trigger condition: Any successful legacy FrameWebforJS request reaches the modern flat response; multi-case input additionally loses every case after the first.
+
+## Proposed Fixes
+- Approach A: Replace the current `/` response with the old case map — minimal frontend change, but breaks documented modern HTTP consumers and tests; rejected.
+- Approach B: Adapt the frontend to flat modern fields — preserves the modern API, but cannot recover cases discarded before solve and duplicates mesh-derived conversion; rejected as primary fix.
+- Approach C: Add an explicit/versioned `legacy-cases-v1` backend adapter requested by FrameWebforJS — preserves the flat default, owns per-case solve/projection at the correct boundary, and is independently testable; recommended.
+- Recommended: Approach C, plus frontend fail-fast validation when no valid legacy case is returned.
+
+## Codex Consultations
+- Asked Codex to review the execution flow, three hypotheses, A/B/C tradeoffs, and exact projection correctness. The bounded low-effort read-only call timed out and left an empty response at `.agents/logs/codex/20260918T053932Z-troubleshoot-results-display-root-cause.md`; per lead instruction, Codex was marked unavailable and not retried. No Codex output was used as evidence.
+
+## Communication with Teammates
+- → `/root/result_impact`: Shared exact `rate`, displacement-unit, reaction-name/sign, and fsec end-sign mappings; warned that `section_cut_view.py` is not production-equivalent for rate, shell key, or 2D reaction key.
+- ← `/root/result_impact`: Received history that flat HTTP predates the recent transport fix, first-case selection was introduced later, and replacing the flat schema has broad documented/test/tool blast radius; teammate independently recommended an explicit compatibility boundary.
+- → `/root/result_impact`: Sent completed report path and final boundary recommendation.
+
+## Issues Encountered
+- Codex CLI timed out after the single bounded attempt; recorded exact prompt/empty response artifacts and continued from direct repository evidence without retry.
+- Linksee-memory MCP operations were not available in this delegated runtime; no product files were edited.
+
+
+## Design Decisions (Changes)
+
+- # Design Document — 要件定義書 (Requirements & Macro Design)
+- > **Role:** Macro-level requirements and design — *what* this project builds and *why*.
+- > Written at `/init`, kept current by `/design-tracker` (also invoked from `/checkpointing`).
+- >
+- > **Document map:** Shared rules → [rules/](../rules/) ·
+- > Shared bootstrap → [AGENTS.md](../../AGENTS.md) · State → [STATE.md](../STATE.md) · Claude symlink → [CLAUDE.md](../../CLAUDE.md) ·
+- > Micro work progress (latest 5 checkpoints) → [PROGRESS.md](../../PROGRESS.md)
+- ## 背景・目的 (Background & Purpose)
+- <!-- Why does this project exist? What problem does it solve, for whom?
+- State the business/technical context and the goal in a few sentences. -->
+- ## スコープ (Scope)
+- ### In Scope
+- <!-- What this project explicitly delivers. -->
+- -
+- ### Out of Scope
+- <!-- What is explicitly NOT covered, to prevent scope creep. -->
+- -
+- ## 機能要件 (Functional Requirements)
+- <!-- What the system must do. Each requirement gets a stable ID (FR-1, FR-2, ...). -->
+- | ID | Requirement | Priority | Notes |
+
+---
+*Generated by checkpointing skill at 2026-09-18-055205*

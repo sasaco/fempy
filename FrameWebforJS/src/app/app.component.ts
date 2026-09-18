@@ -1,7 +1,11 @@
 import { Component, OnInit, EventEmitter, Output, ViewChild, AfterViewInit, ElementRef } from "@angular/core";
 import { Router } from "@angular/router";
 import { UserInfoService } from "./providers/user-info.service";
-import { ResultDataService } from "./providers/result-data.service";
+import {
+  LegacyCasesResultValidationError,
+  ResultDataService,
+  validateLegacyCasesResult,
+} from "./providers/result-data.service";
 import { PrintService } from "./components/print/print.service";
 
 import { ResultFsecService } from "./components/result/result-fsec/result-fsec.service";
@@ -228,6 +232,11 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   private post_compress(jsonData: {}, modalRef: NgbModalRef) {
     const url = environment.calcURL;
+    const loadData = jsonData["load"];
+    const expectedCaseIds =
+      typeof loadData === "object" && loadData !== null && !Array.isArray(loadData)
+        ? Object.keys(loadData)
+        : [];
 
     // json string にする
     const json = JSON.stringify(jsonData, null, 0);
@@ -240,6 +249,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.http
       .post(url, base64Encoded, {
         headers: new HttpHeaders({
+          Accept: "application/vnd.frameweb.legacy-cases-v1+json",
           "Content-Type": "application/json",
           "Content-Encoding": "gzip,base64",
         }),
@@ -282,6 +292,7 @@ export class AppComponent implements OnInit, AfterViewInit {
               }
             }
 
+            validateLegacyCasesResult(_jsonData, expectedCaseIds);
             this.InputData.getResult(jsonData);
 
             // 解析結果を集計する
@@ -291,10 +302,21 @@ export class AppComponent implements OnInit, AfterViewInit {
           } catch (e) {
             // "error" または "exceeded"を含む場合のエラー
             check = false;  // 計算異常終了フラグ
-            if (e.includes("error") && this.language.browserLang == "ja") {
+            this.ResultData.isCalculated = false;
+            if (e instanceof LegacyCasesResultValidationError) {
+              this.helper.alert(e.message);
+            } else if (
+              typeof e === "string" &&
+              e.includes("error") &&
+              this.language.browserLang == "ja"
+            ) {
               // "error" を含み言語設定が日本語の場合のみエラー内容を出力
-              const errJson = JSON.parse(e)
-              this.helper.alert(errJson.error)
+              try {
+                const errJson = JSON.parse(e);
+                this.helper.alert(errJson.error);
+              } catch {
+                this.helper.alert(this.translate.instant("message.calc"));
+              }
             } else {
               // 上記以外は一律に計算エラーメッセージを出力
               this.helper.alert(this.translate.instant("message.calc"));

@@ -23,6 +23,71 @@ import { DataHelperModule } from "./data-helper.module";
 import { InputDataService } from "./input-data.service";
 import { TranslateService } from "@ngx-translate/core";
 
+export const INVALID_LEGACY_CASES_RESULT_MESSAGE =
+  "計算結果の形式が不正です。";
+
+export class LegacyCasesResultValidationError extends Error {
+  constructor() {
+    super(INVALID_LEGACY_CASES_RESULT_MESSAGE);
+    this.name = "LegacyCasesResultValidationError";
+  }
+}
+
+export interface LegacyCaseResult {
+  disg: Record<string, unknown>;
+  reac: Record<string, unknown>;
+  fsec: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export type LegacyCasesResult = Record<string, LegacyCaseResult>;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export function validateLegacyCasesResult(
+  value: unknown,
+  expectedCaseIds?: readonly string[]
+): asserts value is LegacyCasesResult {
+  if (!isRecord(value)) {
+    throw new LegacyCasesResultValidationError();
+  }
+
+  const caseIds = Object.keys(value);
+  if (caseIds.length === 0) {
+    throw new LegacyCasesResultValidationError();
+  }
+
+  if (
+    expectedCaseIds !== undefined &&
+    (caseIds.length !== expectedCaseIds.length ||
+      caseIds.some((caseId, index) => caseId !== expectedCaseIds[index]))
+  ) {
+    throw new LegacyCasesResultValidationError();
+  }
+
+  for (const caseId of caseIds) {
+    const caseResult = value[caseId];
+    if (!isRecord(caseResult)) {
+      throw new LegacyCasesResultValidationError();
+    }
+
+    const { disg, reac, fsec } = caseResult;
+    if (!isRecord(disg) || !isRecord(reac) || !isRecord(fsec)) {
+      throw new LegacyCasesResultValidationError();
+    }
+
+    if (
+      Object.keys(disg).length === 0 &&
+      Object.keys(reac).length === 0 &&
+      Object.keys(fsec).length === 0
+    ) {
+      throw new LegacyCasesResultValidationError();
+    }
+  }
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -84,7 +149,10 @@ export class ResultDataService {
   }
 
   // 計算結果を読み込む
-  public loadResultData(jsonData: object): void {
+  public loadResultData(jsonData: unknown): void {
+    this.isCalculated = false;
+    validateLegacyCasesResult(jsonData);
+
     // 組み合わせケースを集計する
     this.setCombinePickup(Object.keys(jsonData));
 

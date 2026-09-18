@@ -1,0 +1,17 @@
+{
+  "owners": {
+    "backend-implementer": [
+      "FrameWeb/main.py",
+      "FrameWeb/src/fem/legacy_results.py",
+      "FrameWeb/docs/wiki/endpoints.md"
+    ],
+    "frontend-implementer": [
+      "FrameWebforJS/src/app/app.component.ts",
+      "FrameWebforJS/src/app/providers/result-data.service.ts",
+      "FrameWebforJS/src/app/providers/result-data.service.spec.ts"
+    ],
+    "backend-tester": [
+      "FrameWeb/tests/io/test_legacy_cases_api.py"
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "owners": {
+    "backend-tdd": [
+      "FrameWeb/main.py",
+      "FrameWeb/tests/io/test_compressed_transport.py",
+      "FrameWeb/tests/data/transport/legacy-browser-envelope.json"
+    ],
+    "http-docs": [
+      "FrameWeb/docs/wiki/endpoints.md"
+    ]
+  }
+}

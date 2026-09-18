@@ -1,0 +1,25 @@
+{
+  "title": "framewebforjs-results-not-displayed",
+  "sections": [
+    {
+      "heading": "Context",
+      "content": "- Symptom: Ct桁プリセットはHTTP 200で計算できるようになったが、FrameWebforJSの変位・反力・断面力が表示されない。\n- Direct reproduction: 現行backendの復号結果はnode_displacements/reaction_forces/element_stresses等のflat schemaで、frontend互換のdisg/reac/fsec caseは0件。\n- Root cause: 旧backendは全load caseを入力順で解いて{caseId: {disg,reac,fsec,shell_fsec,size}}を返す。現行backendはselect_caseで先頭caseだけを選び、1回のFemModel.run()のflat resultを返す。frontend workerはfield不一致を黙ってskipし、空mapをerror:nullで成功扱いする。\n- Scope: Ct固有ではなくFrameWebforJSから送る旧node/load形式全体。Ctはcase 1～11のため、単なるshape wrapperではcase 2～11が欠落する。"
+    },
+    {
+      "heading": "Fix Approach",
+      "content": "- 既定の現行flat HTTP/Python contractは維持する。FrameWebforJSが明示的に要求するversioned compatibility representation（仮称legacy-cases-v1）をbackend HTTP境界へ追加する。\n- compatibility pathでは全load caseを入力順にfresh modelで解析し、旧disg/reac/fsec/shell_fsec/sizeへproduction projectorで変換する。単位、符号、rate、member P1..Pn順序は旧backend goldenで固定する。\n- FrameWebforJSはversionを明示し、worker起動前にnon-empty case-mapと必須3 fieldを検証する。不適合時はisCalculatedをtrueにせず、明示errorを表示する。\n- test-firstで既定flat不変、Ct 11 case、case固有definition、rate、途中失敗の原子性、browser表示を検証する。"
+    },
+    {
+      "heading": "Codex Validation",
+      "content": "- UNAVAILABLE: lead 2回、root-cause analyst 1回、impact investigator 1回のbounded read-only相談はいずれもtimeoutまたは空responseで、正式なverdictなし。\n- 診断はdirect HTTP reproduction、旧/current/frontend code、git history、既存testsを突合して確定。Codex outputを根拠として使用していない。"
+    },
+    {
+      "heading": "Regression Risks",
+      "content": "- 既定HTTP responseを旧case-mapへ置換すると文書化済みflat contract、現行client、広範なbackend testsを破壊するため禁止。\n- frontend-only変換では解析されていないcase 2～11を復元できず、mesh由来のsign/order規則をTypeScriptへ重複するため不採用。\n- Ctは11 sequential solveとなるためruntime/memory/timeoutを測定し、case間で可変FemModel stateを共有しない。\n- shell_fsecはCtに含まれず現行helperともschemaが違う。旧契約互換を名乗る前に別oracleが必要。\n- HTTP 200、transport test、success alert、isCalculated=trueだけでは表示修正完了と判定しない。"
+    },
+    {
+      "heading": "Decisions",
+      "content": "- 推奨案は、既定flatを保持した明示的/versioned backend compatibility adapterとfrontend fail-fastの組み合わせ。\n- transport/input形式からresponse versionを暗黙推測しない。plain/canonical compressed/legacy compressedはいずれもtransportでありschema selectorではない。\n- 本セッションは診断とhandoffまで。表示互換adapterは未実装。次セッションはlegacy-cases-v1の選択方法を確定し、contract testから開始する。\n- 詳細は.agents/logs/troubleshoot-framewebforjs-results-not-displayed-diagnosis.md、root-cause/impact reportを参照。"
+    }
+  ]
+}

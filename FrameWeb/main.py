@@ -8,7 +8,9 @@ if src_path not in sys.path:
 
 import json
 import base64
+import binascii
 import gzip
+import zlib
 import numpy as np
 # functions_framework may import symbols not available in some local Python/site-packages
 # (for example when package expects a newer Python stdlib). Import defensively and
@@ -32,8 +34,13 @@ from fem.model import FemModel
 from fem.file_io import _read_json_model, read_model
 from fem.file_io import result_to_jsonable
 from fem.diagnostics import InputValidationError, diagnostic_payload
+from fem.legacy_results import solve_legacy_cases
 from fem.nonlinear.nonlinear_solver import NonlinearConvergenceError
-from werkzeug.exceptions import BadRequest, UnsupportedMediaType
+from werkzeug.exceptions import BadRequest, NotAcceptable, UnsupportedMediaType
+
+
+LEGACY_CASES_MEDIA_TYPE = "application/vnd.frameweb.legacy-cases-v1+json"
+LEGACY_CASES_MEDIA_TYPE_PREFIX = "application/vnd.frameweb.legacy-cases-"
 
 # Flaskアプリの作成
 app = Flask(__name__)
@@ -95,17 +102,27 @@ def FEMPython(request):
 
     # region メイン計算の実行部
     try:
+        legacy_cases_requested = _legacy_cases_requested(request.headers.get("Accept"))
+
         # 入力データの取得（圧縮されている場合は解凍）
         if encoding == "json":
             inputJson: dict = request.get_json()
         else:  # 圧縮されている場合
             inputJson: dict = Compressor.decompress(request.data)
 
-         # FemModelで解析実行
-        model_data = _read_json_model(inputJson)
-        fem_model = FemModel()
-        fem_model.read_json_model(model_data)
-        result: dict = fem_model.run()
+        if legacy_cases_requested:
+            result = solve_legacy_cases(inputJson)
+            success_headers = {
+                **headers,
+                "Content-Type": f"{LEGACY_CASES_MEDIA_TYPE}; charset=utf-8",
+            }
+        else:
+            # FemModelで解析実行
+            model_data = _read_json_model(inputJson)
+            fem_model = FemModel()
+            fem_model.read_json_model(model_data)
+            result = fem_model.run()
+            success_headers = headers
 
          # 結果を返送する
         resultStr: str = json.dumps(result_to_jsonable(result), allow_nan=False)
@@ -113,7 +130,7 @@ def FEMPython(request):
             response = resultStr
         else:  # 圧縮する場合
             response = Compressor.compress(resultStr)
-        return (response, 200, headers)
+        return (response, 200, success_headers)
     
     # 以下、エラー処理
     except MyCritical as e:  # システム起因と思われる例外
@@ -127,6 +144,9 @@ def FEMPython(request):
     except (BadRequest, UnsupportedMediaType) as e:
         payload, status = diagnostic_payload(InputValidationError(str(e)))
         return (json.dumps(payload, ensure_ascii=False), status, headers)
+    except NotAcceptable as e:
+        payload, _ = diagnostic_payload(InputValidationError(e.description))
+        return (json.dumps(payload, ensure_ascii=False), e.code, headers)
     except Exception as e:  # その他の予期せぬエラー
         payload, status = diagnostic_payload(e)
         return (json.dumps(payload, ensure_ascii=False), status, headers)
@@ -136,29 +156,99 @@ def FEMPython(request):
 # Compatibility name used by earlier functions-framework deployments.
 FrameWeb3 = FEMPython
 
-# データの圧縮用クラスの定義（旧FWそのまま）
+
+def _legacy_cases_requested(accept_header: str | None) -> bool:
+    """Select only the explicit v1 media type and reject unknown legacy versions."""
+    if not accept_header:
+        return False
+    media_types = [
+        item.partition(";")[0].strip().lower()
+        for item in accept_header.split(",")
+    ]
+    unknown = [
+        media_type
+        for media_type in media_types
+        if media_type.startswith(LEGACY_CASES_MEDIA_TYPE_PREFIX)
+        and media_type != LEGACY_CASES_MEDIA_TYPE
+    ]
+    if unknown:
+        raise NotAcceptable(f"Unsupported result representation: {unknown[0]}")
+    return LEGACY_CASES_MEDIA_TYPE in media_types
+
+# JSON整数配列と旧ブラウザーの十進CSVを安全に扱う圧縮互換層
 class Compressor():
     """データの圧縮・解凍用クラス"""
 
     @staticmethod
-    def decompress(data) -> dict:
+    def decompress(data: bytes) -> dict:
         """jsonデータを解凍し辞書型にフォーマットする
 
         Args:
-            data (Any): 圧縮されたjsonデータ
+            data (bytes): 圧縮されたjsonデータ
 
         Returns:
             _ (dict): 辞書型にフォーマットしたjsonデータ
         """
-        # base64型を元に戻す
-        b = base64.b64decode(data)
-        # str型に変換し、カンマでばらしてint配列に変換する
-        l = json.loads(b)  # legacy JSON byte-array transport, never execute input
-        # gzipを解凍する
-        fstr = gzip.decompress(bytes(l))
-        # jsonを辞書型にフォーマット
-        js = json.loads(fstr, object_pairs_hook=dict)
-        return js
+        try:
+            decoded = base64.b64decode(data, validate=True)
+        except binascii.Error as exc:
+            raise InputValidationError("Invalid compressed input Base64") from exc
+
+        compressed = Compressor._parse_byte_sequence(decoded)
+        try:
+            content = gzip.decompress(compressed)
+        except (gzip.BadGzipFile, EOFError, zlib.error) as exc:
+            raise InputValidationError("Invalid compressed input gzip data") from exc
+
+        try:
+            text = content.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise InputValidationError("Compressed input JSON must be UTF-8") from exc
+        try:
+            result = json.loads(text)
+        except (json.JSONDecodeError, ValueError) as exc:
+            raise InputValidationError("Invalid compressed input JSON") from exc
+        if not isinstance(result, dict):
+            raise InputValidationError("Compressed input JSON must be an object")
+        return result
+
+    @staticmethod
+    def _parse_byte_sequence(data: bytes) -> bytes:
+        """Parse canonical JSON first, falling back only to strict decimal CSV."""
+        try:
+            text = data.decode("ascii")
+        except UnicodeDecodeError as exc:
+            raise InputValidationError(
+                "Compressed byte sequence must be ASCII"
+            ) from exc
+
+        try:
+            values = json.loads(text)
+        except json.JSONDecodeError as exc:
+            tokens = text.split(",")
+            if any(
+                not 1 <= len(token) <= 3
+                or any(char < "0" or char > "9" for char in token)
+                for token in tokens
+            ):
+                raise InputValidationError(
+                    "Invalid compressed byte sequence CSV"
+                ) from exc
+            values = [int(token, 10) for token in tokens]
+        except ValueError as exc:
+            # Python's integer-string digit limit is reported as ValueError,
+            # not JSONDecodeError. It is invalid JSON input, not legacy CSV.
+            raise InputValidationError(
+                "Invalid compressed byte sequence JSON"
+            ) from exc
+
+        if not isinstance(values, list) or any(
+            type(value) is not int or not 0 <= value <= 255 for value in values
+        ):
+            raise InputValidationError(
+                "Compressed byte sequence must contain integers from 0 to 255"
+            )
+        return bytes(values)
     
     @staticmethod
     def compress(js: str) -> str:

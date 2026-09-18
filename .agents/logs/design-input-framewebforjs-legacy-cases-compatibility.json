@@ -1,0 +1,17 @@
+{
+  "requirements": [
+    {
+      "id": "FR-FRAMEWEB-LEGACY-CASES-1",
+      "requirement": "FrameWebforJS can explicitly request every legacy load case as a case map containing displacement, reaction, and member-force results without changing the default FrameWeb flat response.",
+      "priority": "High",
+      "notes": "The compatibility representation is legacy-cases-v1 and the browser must reject incompatible or empty result schemas before starting result workers."
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Expose FrameWebforJS result compatibility through the explicit Accept media type application/vnd.frameweb.legacy-cases-v1+json while preserving the unselected flat API.",
+      "rationale": "Accept is already allowed by CORS, keeps transport encoding independent from result representation, and avoids changing deployment routing. The compatibility path solves each input load case with a fresh FemModel and projects the legacy case schema atomically.",
+      "alternatives": "Replace the default response with the old case map; infer the response from compressed transport; adapt only in TypeScript; add a custom header or separate endpoint. General shell compatibility remains separate until an old-backend oracle is available."
+    }
+  ]
+}

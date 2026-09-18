@@ -1,0 +1,25 @@
+{
+  "title": "framewebforjs-calculation-communication-error",
+  "sections": [
+    {
+      "heading": "Context",
+      "content": "- Error: Ct桁プリセットの計算で汎用通信エラー。ブラウザーと直接HTTPで再現し、POSTはHTTP 400 invalid_input / Extra data: line 1 column 3を返す。\n- Root cause: FrameWebforJSはgzip Uint8Arrayをbtoaへ直接渡してBase64(括弧なしCSV)を送るが、29df328以降のFrameWebは安全なjson.loadsでBase64(JSON整数配列)を要求する。失敗はモデル解析前。\n- Affected files: FrameWebforJS/src/app/app.component.ts、FrameWeb/main.py。印刷側は別C#契約で括弧なしCSVが正規形式。\n- Separate blocker: transport修復後もバックエンドのflat結果とフロントのcase別disg/reac/fsec契約が不一致の疑いがあり、Ctの複数荷重ケース仕様決定が必要。"
+    },
+    {
+      "heading": "Fix Approach",
+      "content": "- Milestone T: 計算専用の純粋エンコーダーを抽出し、btoa(`[${compressed.join(',')}]`)相当で現行JSON整数配列契約へ適合。バックエンド、ヘッダー、印刷エンコーダーは変更しない。実装結果は transport repaired とだけ報告する。\n- Milestone U: 荷重ケース数・ID/順序・変位/反力/断面力の単位/符号/キー/変換所有者を先に決定し、case別disg/reac/fsecの失敗テストとアダプター/応答変換を別承認で実装する。Ct E2E通過のみをユーザー向け修復完了とする。\n- 旧配布済み計算クライアント対応が明示的に必要な場合だけ、厳格制限・計測・削除条件付きCSV互換分岐を一時導入する。eval/literal_evalは禁止。"
+    },
+    {
+      "heading": "Codex Validation",
+      "content": "- 初回計画検証はNEEDS_REVISION: transport成功とuser成功を分離し、複数荷重ケース結果契約を実装前ゲートにするよう指摘。\n- 改訂二段階計画はPASS。Milestone T PASS=transport repaired、Milestone U未承認/未通過=全体未完了、Milestone U E2E PASS=ユーザー向け修復完了。\n- 追加必須: 実HTTPヘッダー検証、flat結果を成功扱いしない回帰、結果契約決定時の具体的ランナー/サービス起動コマンド。"
+    },
+    {
+      "heading": "Regression Risks",
+      "content": "- 計算専用正規化は低リスク。共有エンコーダーで印刷まで変更するとC# Convert.ToByte契約を壊すため高リスク。\n- 大型ラーメン高架橋プリセットはgzip約2,025,295 bytes、Base64約9.65 MB。Array.fromで約202万要素をBox化せずjoinを使い、Chrome完走と性能を確認する。\n- HTTP 200、ダイアログ消失、isCalculated=true、空worker結果は完了根拠にならない。\n- 互換サーバー分岐は入力面とgzip bomb面を広げるため、必要性が証明された場合のみ。"
+    },
+    {
+      "heading": "Decisions",
+      "content": "- 29df328のeval除去は正しいセキュリティ修正であり、戻さない。\n- 今回の観測エラーは全圧縮計算に共通するtransport契約不一致で、Ct固有データは直接原因ではない。\n- 製品コードは調査段階では変更しない。実装は二段階計画の承認後に行う。"
+    }
+  ]
+}

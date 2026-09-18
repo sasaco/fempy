@@ -64,17 +64,52 @@ POSTは編集用`node/member/element`形式と、保存用`nodes/elements/materi
 
 JSONのIDは文字列です。`case1.disg/reac/fsec`を返す旧説明とは異なります。単位・符号・任意項目は[結果の読み方](results.md)を参照してください。
 
+### FrameWebforJS用の全ケース互換表現
+
+通常のPOSTは上記のflat結果を返します。FrameWebforJSが旧版と同じ全荷重ケース結果を必要とする場合だけ、次の`Accept`を明示します。
+
+```http
+Accept: application/vnd.frameweb.legacy-cases-v1+json
+```
+
+この表現は、非空の`node`・`member`・`load`を持ち、shell/solid要素を含まない旧beam入力専用です。1 requestで受理する荷重ケースは最大256件で、257件以上は解析を開始する前に400 `invalid_input`で拒否します。`nodes`を使う現行入力、shell/solid入力、空の荷重ケース集合も400で拒否します。未対応の`application/vnd.frameweb.legacy-cases-*` versionは、通常のflat結果へフォールバックせず406を返します。
+
+成功時は元の`load`キーを入力順に保持したcase mapを返します。各caseは独立したモデルで解析され、値は次の5項目だけです。
+
+```json
+{
+  "1": {
+    "disg": {},
+    "reac": {},
+    "fsec": {},
+    "shell_fsec": {},
+    "size": 0
+  }
+}
+```
+
+- `disg`: 変位・回転の`dx,dy,dz,rx,ry,rz`。単位はm/radで、caseの`rate`を解析後に1回適用します。
+- `reac`: `tx,ty,tz,mx,my,mz`を常に持つ支点反力。2Dの補助拘束は出力せず、`tz,mx,my`は0です。
+- `fsec`: 元部材のi端からj端へ`P1..Pn`でまとめた梁断面力です。力はkN、モーメントはkNm、`L`はmで、`L`に`rate`は適用しません。
+- `shell_fsec`: beam-onlyのv1では常に空objectです。shell入力そのものを受理する意味ではありません。
+- `size`: 全caseの荷重点を使って分割した解析meshの節点数です。`rate`は適用しません。
+
+どれか1caseでも選択・解析・投影に失敗した場合、途中までのcase mapは返さず、request全体を既存の診断JSONで失敗させます。この`Accept`による結果表現の選択は、次節の`Content-Encoding`による転送形式とは独立です。
+
 ## 互換用の圧縮転送
 
 通常のJSON送信から始めることを推奨します。既存クライアントとの互換用に圧縮経路もありますが、**標準HTTPのgzip転送とは異なり、要求と応答の包み方も非対称**です。
 
 | 方向 | 実際の形式 |
 |---|---|
-| 要求 | JSONをUTF-8化 → gzip → バイト値の配列をJSON文字列化 → Base64 |
+| 要求（正規形式） | JSONをUTF-8化 → gzip → バイト値のJSON整数配列（`[31,139,...]`）→ Base64 |
+| 要求（互換形式） | JSONをUTF-8化 → gzip → バイト値の括弧なしCSV（`31,139,...`）→ Base64 |
 | 成功応答 | 結果JSONをUTF-8化 → gzip → Base64 |
 | エラー応答 | 通常のJSON。圧縮しない |
 
-要求に`Content-Encoding: gzip`を付けるとこの互換経路に入ります。`Base64(gzip(JSON))`だけの要求や、生のgzipバイト列は現行の要求形式ではありません。
+新しいクライアントはJSON整数配列を使う正規形式にしてください。括弧なしCSVは、既存のFrameWebforJSが送る形式との互換性のために受理します。この互換処理は`eval`を復活させるものではありません。ASCIIの数字とカンマからなる10進バイト値だけを厳格に解析し、Python式、空白、符号、少数、0～255の範囲外の値などは受理しません。
+
+要求に`Content-Encoding: gzip`または実FrameWebforJSが使う`Content-Encoding: gzip,base64`を付けると、現行ルーティングではこの圧縮経路に入ります。どちらのヘッダーでも要求本体は上記の二形式のいずれかである必要があります。`Base64(gzip(JSON))`だけの要求や、生のgzipバイト列は現行の要求形式ではありません。
 
 <!-- run: http-compressed -->
 ```python

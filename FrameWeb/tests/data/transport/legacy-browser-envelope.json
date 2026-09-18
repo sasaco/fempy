@@ -1,0 +1,15 @@
+{
+  "generator": {
+    "expression": "btoa(pako.gzip(JSON.stringify(payload)))",
+    "node": "v24.13.0",
+    "pako": "2.2.0"
+  },
+  "payload": {
+    "node": {"1": {"x": 0, "y": 0, "z": 0}, "2": {"x": 2, "y": 0, "z": 0}},
+    "member": {"1": {"ni": 1, "nj": 2, "e": 1, "cg": 0}},
+    "element": {"1": {"1": {"E": 1000, "G": 1, "A": 2, "Iy": 3, "Iz": 4, "J": 5}}},
+    "fix_node": {"1": [{"n": 1, "tx": 1, "ty": 1, "tz": 1, "rx": 1, "ry": 1, "rz": 1}]},
+    "load": {"1": {"load_node": [{"n": 2, "ty": 3}]}}
+  },
+  "body": "MzEsMTM5LDgsMCwwLDAsMCwwLDAsMyw4NSw3OCwyMDMsMTQsMTk0LDMyLDE2LDI1MiwxNTEsNjEsMTE1LDE2MCw4NCw0NywyMjAsNjAsMjQsMTYzLDE5MSw5NiwyNiwxNjMsMTE4LDUzLDUzLDEzMywzOCwxNjQsNywyMTgsMTM0LDEyNywxMTksMjE3LDM3LDY4LDQ3LDUxLDIxNyw5NywzMCwxMDgsMjI0LDE2NywzMCwxOTMsMTEwLDIwOCwxMDAsMTM2LDk2LDE4MSwxMzAsMTMzLDExMywzNyw3NiwxMCw3NiwyMDksMjA1LDE1OSw3OCwxNSwxNCwyMjEsMyw2NywxNDEsMjUwLDEsMTA4LDE2MywxOTIsMTI3LDIxNiwxMzgsMTI0LDYwLDIyMywxOTcsMTM5LDM1LDU4LDI0NCwxMTUsNTMsNTEsMjgsMjAxLDE2Myw1Myw1MywxNTgsMjE2LDEyNCwyMjQsMjI0LDE1Myw3MCw5MCwzNCw5MCwyMTcsNDEsMTg0LDEyOCwyMjEsMTY3LDkyLDI0MCwyNiwyMjYsMjM3LDIzMSwxNjcsODcsMjE4LDIyNywyMDgsMjgsMTMzLDIyLDE2MSwxNDksNDEsMTM2LDI0LDY4LDEyLDg5LDc2LDI5LDE0OSwxNDAsMjExLDE4OSwxNzUsMjM1LDI0OSw0MCwxNDksMjEwLDEwMiwxNjQsMTY2LDM3LDEwNyw3NCw5NSwyMzEsMTAsMTg4LDIxLDI0LDEsMCww"
+}
