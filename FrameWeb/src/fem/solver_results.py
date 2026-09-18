@@ -1,8 +1,12 @@
-"""Accepted snapshots and explicit compatibility projections for static APIs."""
+"""Accepted solver snapshots and canonical snapshot normalization."""
 
 from copy import deepcopy
+from dataclasses import dataclass
 import hashlib
 import json
+import math
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 import numpy as np
 
@@ -24,6 +28,15 @@ DEFAULT_MODEL_METADATA = {
         "time": "unspecified",
     },
 }
+
+
+@dataclass(frozen=True)
+class SolverSnapshot:
+    """One independent accepted solver state, before public-ID projection."""
+
+    state: dict[str, Any]
+    values: Mapping[str, Any]
+    diagnostics: dict[str, Any]
 
 
 def normalize_model_metadata(metadata):
@@ -58,7 +71,7 @@ def _effective_analysis_parameters(analysis_type, parameters):
     }
 
 
-def build_result_metadata(model, analysis_type):
+def build_result_metadata(model, analysis_type, solver_snapshot):
     """Build deterministic provenance and final solver diagnostics."""
     from .file_io import model_to_jsonable
 
@@ -96,8 +109,8 @@ def build_result_metadata(model, analysis_type):
         residual_norm = equilibrium.residual_norm
         residual_scale = equilibrium.residual_scale
         relative_residual = equilibrium.relative_residual
-    elif analysis_type == "modal" and model.results.get("eigenpair_residuals"):
-        relative_residual = float(max(model.results["eigenpair_residuals"]))
+    elif analysis_type == "modal" and solver_snapshot.get("eigenpair_residuals"):
+        relative_residual = float(max(solver_snapshot["eigenpair_residuals"]))
 
     return {
         "schema_version": RESULT_SCHEMA_VERSION,
@@ -141,6 +154,232 @@ def build_result_metadata(model, analysis_type):
     }
 
 
+def normalize_solver_snapshots(
+    result: Mapping[str, Any], *, warnings: Sequence[str] = ()
+) -> list[SolverSnapshot]:
+    """Return a flat, case-local sequence of accepted solver states.
+
+    The low-level solver retains its historical final-result envelope until the
+    HTTP cutover.  Canonical consumers use this function and therefore never
+    expose that envelope or nested ``step_results``.
+    """
+    analysis_type = result.get("analysis_type", "static")
+    warning_list = [str(warning) for warning in warnings]
+    if analysis_type == "material_nonlinear":
+        steps = result.get("step_results")
+        if not isinstance(steps, Sequence) or isinstance(steps, (str, bytes)) or not steps:
+            raise ValueError("Nonlinear analysis has no accepted solver steps")
+        snapshots = []
+        root_history = result.get("convergence_history", ())
+        for index, step in enumerate(steps):
+            if not isinstance(step, Mapping):
+                raise ValueError(f"Nonlinear step {index} is not an object")
+            factor = _finite_number(step.get("lambda"), f"nonlinear step {index} load factor")
+            records = step.get("convergence_history")
+            if records is None:
+                records = [
+                    record
+                    for record in root_history
+                    if isinstance(record, Mapping) and record.get("step") == index + 1
+                ]
+            iterations = _canonical_iterations(records, index)
+            snapshots.append(
+                SolverSnapshot(
+                    state={
+                        "kind": "load_step",
+                        "index": index,
+                        "load_factor": factor,
+                        "is_final": index == len(steps) - 1,
+                    },
+                    values=step,
+                    diagnostics={"warnings": warning_list.copy(), "iterations": iterations},
+                )
+            )
+        return snapshots
+    if analysis_type == "modal":
+        modes = result.get("modes")
+        eigenvalues = result.get("eigenvalues")
+        frequencies = result.get("frequencies")
+        if not all(
+            isinstance(values, Sequence) and not isinstance(values, (str, bytes))
+            for values in (modes, eigenvalues, frequencies)
+        ):
+            raise ValueError("Modal result is missing modes, eigenvalues, or frequencies")
+        if not modes or len(modes) != len(eigenvalues) or len(modes) != len(frequencies):
+            raise ValueError("Modal result arrays must have the same nonzero length")
+        return [
+            SolverSnapshot(
+                state={
+                    "kind": "mode",
+                    "index": index,
+                    "eigenvalue": _finite_number(eigenvalue, f"mode {index} eigenvalue"),
+                    "frequency": _finite_number(frequencies[index], f"mode {index} frequency"),
+                },
+                values={"node_mode_shapes": modes[index]},
+                diagnostics={"warnings": warning_list.copy()},
+            )
+            for index, eigenvalue in enumerate(eigenvalues)
+        ]
+    if analysis_type != "static":
+        raise ValueError(f"Unsupported solver snapshot analysis type: {analysis_type}")
+    return [
+        SolverSnapshot(
+            state={"kind": "static", "index": 0},
+            values=result,
+            diagnostics={"warnings": warning_list.copy()},
+        )
+    ]
+
+
+def canonicalize_modal_solution(model, result, solver_node_order):
+    """Canonicalize modal vectors without changing the eigensolver algorithm.
+
+    Returns ``(eigenvalues, eigenvectors, degeneracy_groups, zero_tolerance)``.
+    Vectors are full solver-DOF columns, mass normalized, deterministic within
+    degenerate subspaces, and sign canonicalized by public-node lexical order.
+    """
+    solver = model.solver
+    values = np.asarray(result.get("eigenvalues"), dtype=float)
+    vectors = np.asarray(result.get("eigenvectors"), dtype=float)
+    if values.ndim != 1 or vectors.shape != (solver.layout.size, len(values)):
+        raise ValueError("Modal eigenvalue/eigenvector dimensions are inconsistent")
+    if not np.isfinite(values).all() or not np.isfinite(vectors).all():
+        raise ValueError("Modal eigenpairs must be finite")
+
+    resolved = solver._resolve_boundary_dofs(
+        model.boundary, solver.layout.size, solver.layout.stride
+    )
+    supported_stiffness = resolved.add_spring_stiffness(solver.assembled_stiffness)
+    free = np.asarray(resolved.free, dtype=int)
+    reduced_stiffness = supported_stiffness[free][:, free]
+    reduced_mass = solver.assembled_mass[free][:, free]
+    mass_scale = float(np.max(np.abs(reduced_mass.diagonal()), initial=0.0))
+    if mass_scale <= 0:
+        raise ValueError("Modal canonicalization requires positive free-DOF mass")
+    eigenvalue_scale = (
+        float(np.max(np.abs(reduced_stiffness.diagonal()), initial=0.0)) / mass_scale
+    )
+    zero_tolerance = max(
+        np.finfo(float).eps * len(free) * eigenvalue_scale,
+        1e-14 * eigenvalue_scale,
+    )
+    if np.any(values <= zero_tolerance):
+        raise ValueError(
+            "Canonical modal output requires every eigenvalue to be positive "
+            f"and greater than {zero_tolerance:.6g}"
+        )
+
+    order = np.argsort(values, kind="stable")
+    values = values[order]
+    vectors = vectors[:, order].copy()
+    mass = solver.assembled_mass.tocsr()
+    groups = _degeneracy_groups(values, zero_tolerance)
+    lexical_dofs = _lexical_dofs(solver, solver_node_order)
+
+    for group in sorted(set(groups)):
+        columns = [index for index, value in enumerate(groups) if value == group]
+        basis = vectors[:, columns]
+        basis = _mass_orthonormalize(basis, mass)
+        if len(columns) > 1:
+            canonical = []
+            for dof in lexical_dofs:
+                coefficients = basis.T @ np.asarray(mass[:, dof].toarray()).ravel()
+                candidate = basis @ coefficients
+                for accepted in canonical:
+                    candidate -= accepted * float(accepted @ (mass @ candidate))
+                norm = float(candidate @ (mass @ candidate))
+                if norm > np.finfo(float).eps * max(1, solver.layout.size):
+                    canonical.append(candidate / math.sqrt(norm))
+                if len(canonical) == len(columns):
+                    break
+            if len(canonical) != len(columns):
+                raise ValueError("Could not construct a deterministic degenerate modal basis")
+            basis = np.column_stack(canonical)
+        for local_index in range(basis.shape[1]):
+            vector = basis[:, local_index]
+            ordered = np.abs(vector[lexical_dofs])
+            pivot = lexical_dofs[int(np.argmax(ordered))]
+            if vector[pivot] < 0:
+                vector *= -1
+        vectors[:, columns] = basis
+    return values, vectors, groups, float(zero_tolerance)
+
+
+def _canonical_iterations(records, step_index):
+    if not isinstance(records, Sequence) or isinstance(records, (str, bytes)):
+        raise ValueError(f"Nonlinear step {step_index} convergence history is not an array")
+    canonical = []
+    for index, record in enumerate(records):
+        if not isinstance(record, Mapping):
+            raise ValueError(f"Nonlinear step {step_index} iteration {index} is not an object")
+        correction = record.get("increment_norm")
+        if correction is None:
+            correction = 0.0
+        canonical.append(
+            {
+                "index": index,
+                "residual_norm": _finite_number(
+                    record.get("residual_norm"),
+                    f"nonlinear step {step_index} iteration {index} residual",
+                ),
+                "correction_norm": _finite_number(
+                    correction,
+                    f"nonlinear step {step_index} iteration {index} correction",
+                ),
+                "converged": index == len(records) - 1,
+            }
+        )
+    if not canonical:
+        raise ValueError(f"Nonlinear step {step_index} has no convergence diagnostics")
+    return canonical
+
+
+def _finite_number(value, label):
+    if isinstance(value, (bool, np.bool_)):
+        raise ValueError(f"{label} must be a finite number")
+    try:
+        result = float(value)
+    except (TypeError, ValueError) as error:
+        raise ValueError(f"{label} must be a finite number") from error
+    if not math.isfinite(result):
+        raise ValueError(f"{label} must be a finite number")
+    return result
+
+
+def _degeneracy_groups(values, zero_tolerance):
+    relative_tolerance = 1e-8
+    groups = [0]
+    for previous, current in zip(values[:-1], values[1:]):
+        same = abs(current - previous) <= relative_tolerance * max(
+            abs(previous), abs(current), zero_tolerance
+        )
+        groups.append(groups[-1] if same else groups[-1] + 1)
+    return groups
+
+
+def _mass_orthonormalize(vectors, mass):
+    accepted = []
+    for column in vectors.T:
+        vector = column.copy()
+        for previous in accepted:
+            vector -= previous * float(previous @ (mass @ vector))
+        norm = float(vector @ (mass @ vector))
+        if not math.isfinite(norm) or norm <= 0:
+            raise ValueError("Modal vector has a nonpositive mass norm")
+        accepted.append(vector / math.sqrt(norm))
+    return np.column_stack(accepted)
+
+
+def _lexical_dofs(solver, solver_node_order):
+    result = []
+    for node in solver_node_order:
+        start = solver.layout.node_offsets[node]
+        result.extend(range(start, start + solver.layout.stride))
+    if len(result) != solver.layout.size or len(set(result)) != solver.layout.size:
+        raise ValueError("Modal public-node order does not cover every solver DOF")
+    return result
+
+
 def snapshot(solver, mesh, boundary, elements, solution, force, step, factor, nonlinear):
     u, internal, correction, iterations = solution
     resolved = solver._resolve_boundary_dofs(boundary, len(u), solver.layout.stride)
@@ -152,6 +391,10 @@ def snapshot(solver, mesh, boundary, elements, solution, force, step, factor, no
         node_displacements=solver._format_node_displacements(u, mesh),
         reaction_forces=solver._format_reactions(reaction, boundary, solver.layout.stride),
         converged=True, iterations=iterations,
+        convergence_history=deepcopy([
+            record for record in solver.convergence_history
+            if record.get('step') == step
+        ]),
     )
     if nonlinear:
         if solver.support_springs is not None:

@@ -51,7 +51,7 @@ def test_jr_k4_history_comparison_rejects_old_all_zero_curvature_fixture():
     data = json.loads(SAMPLE.read_text(encoding="utf8"))
     model = FemModel()
     model.load_model(str(SAMPLE))
-    result = model.run()
+    result = model._run_solver_snapshot()
     all_zero = deepcopy(data["result"])
     for step in all_zero.values():
         step["curvature"]["7"]["z"] = 0.0
@@ -75,7 +75,7 @@ def test_jr_k4_history_comparison_rejects_changed_softening_values(step, path):
     data = json.loads(SAMPLE.read_text(encoding="utf8"))
     model = FemModel()
     model.load_model(str(SAMPLE))
-    result = model.run()
+    result = model._run_solver_snapshot()
     changed = deepcopy(data["result"])
     value = changed[step]
     for key in path[:-1]:

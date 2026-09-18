@@ -115,7 +115,7 @@ def test_public_solver_uses_nonlinear_axial_law_before_Nd_bending():
     model.add_restraint(1, True, True, True, True, True, True)
     model.add_load(2, fx=-.6, mz=.08)
     model.analysis_params.update(n_load_steps=4, max_iterations=30, tolerance=1e-10)
-    result = model.run("material_nonlinear")
+    result = model._run_solver_snapshot("material_nonlinear")
     section = result["section_response"][7]["center"]["z"]
     assert section["N"] == pytest.approx(-.6, abs=1e-10)
     assert section["Nd"] == pytest.approx(.6, abs=1e-10)
@@ -136,7 +136,7 @@ def test_two_element_frame_balances_with_shared_definition_and_owned_states():
     model.add_restraint(1, True, True, True, True, True, True)
     model.add_load(3, fx=-.5, mz=.075)
     model.analysis_params.update(n_load_steps=4, max_iterations=30, tolerance=1e-10)
-    result = model.run("material_nonlinear")
+    result = model._run_solver_snapshot("material_nonlinear")
     for element_id in (7, 8):
         section = result["section_response"][element_id]["center"]["z"]
         assert section["Nd"] == pytest.approx(.5, abs=1e-10)
@@ -164,10 +164,12 @@ def test_legacy_laws_and_http_use_the_same_definition():
     response = app.test_client().post("/", json=legacy_data())
     assert response.status_code == 200
     body = json.loads(response.data)
-    section = body["section_response"]["7"]["center"]["z"]
-    assert section["N"] == pytest.approx(-.5)
-    assert section["Nd"] == pytest.approx(.5)
-    assert section["interpolation"] == {"lower_Nd": 0., "upper_Nd": 2., "fraction": .25}
+    assert body["kind"] == "analysis_result_set"
+    final = body["results"][-1]
+    assert final["state"]["is_final"] is True
+    segment = final["member_section_forces"][0]["segments"][0]
+    assert segment["i_end"]["fx"] == pytest.approx(-.5)
+    assert segment["j_end"]["fx"] == pytest.approx(-.5)
 
 
 def test_compressed_http_preserves_Nd_definition_and_result():
@@ -179,9 +181,9 @@ def test_compressed_http_preserves_Nd_definition_and_result():
     )
     assert response.status_code == 200
     body = json.loads(gzip.decompress(base64.b64decode(response.data)).decode("utf-8"))
-    section = body["section_response"]["7"]["center"]["z"]
-    assert section["Nd"] == pytest.approx(.5)
-    assert section["interpolation"]["fraction"] == pytest.approx(.25)
+    assert body["kind"] == "analysis_result_set"
+    segment = body["results"][-1]["member_section_forces"][0]["segments"][0]
+    assert segment["i_end"]["fx"] == pytest.approx(-.5)
 
 
 @pytest.mark.parametrize("steps", [1, 2, 4])
@@ -190,7 +192,7 @@ def test_public_solver_balances_simultaneous_compression_and_bending(steps):
     model.add_restraint(1, True, True, True, True, True, True)
     model.add_load(2, fx=-.5, mz=.075)
     model.analysis_params.update(n_load_steps=steps, max_iterations=30, tolerance=1e-10)
-    result = model.run("material_nonlinear")
+    result = model._run_solver_snapshot("material_nonlinear")
 
     section = result["section_response"][7]["center"]["z"]
     assert section["N"] == pytest.approx(-.5, abs=1e-10)
@@ -209,7 +211,7 @@ def test_out_of_range_trial_reports_context_and_rolls_back_all_section_state():
     model.add_load(2, fx=-3.)
     model.analysis_params.update(n_load_steps=2, max_iterations=30, tolerance=1e-10)
     with pytest.raises(InputValidationError) as failure:
-        model.run("material_nonlinear")
+        model._run_solver_snapshot("material_nonlinear")
     assert failure.value.details == {
         "reason": "axial_force_out_of_range", "Nd": 3., "range": [-2., 2.],
         "element_id": 7, "axis": "z", "step": 2, "load_factor": 1.,

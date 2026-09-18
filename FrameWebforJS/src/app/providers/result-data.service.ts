@@ -22,70 +22,19 @@ import { ThreeDisplacementService } from "../components/three/geometry/three-dis
 import { DataHelperModule } from "./data-helper.module";
 import { InputDataService } from "./input-data.service";
 import { TranslateService } from "@ngx-translate/core";
+import {
+  AnalysisResult,
+  AnalysisResultSetIndex,
+  analysisResultSelectionKey,
+  analysisResultSelectionLabel,
+  validateAndIndexAnalysisResultSet,
+} from "./analysis-result-set";
+import { buildAnalysisResultPages, createSafeRecord } from "./analysis-result-presentation";
 
-export const INVALID_LEGACY_CASES_RESULT_MESSAGE =
-  "計算結果の形式が不正です。";
-
-export class LegacyCasesResultValidationError extends Error {
-  constructor() {
-    super(INVALID_LEGACY_CASES_RESULT_MESSAGE);
-    this.name = "LegacyCasesResultValidationError";
-  }
-}
-
-export interface LegacyCaseResult {
-  disg: Record<string, unknown>;
-  reac: Record<string, unknown>;
-  fsec: Record<string, unknown>;
-  [key: string]: unknown;
-}
-
-export type LegacyCasesResult = Record<string, LegacyCaseResult>;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-export function validateLegacyCasesResult(
-  value: unknown,
-  expectedCaseIds?: readonly string[]
-): asserts value is LegacyCasesResult {
-  if (!isRecord(value)) {
-    throw new LegacyCasesResultValidationError();
-  }
-
-  const caseIds = Object.keys(value);
-  if (caseIds.length === 0) {
-    throw new LegacyCasesResultValidationError();
-  }
-
-  if (
-    expectedCaseIds !== undefined &&
-    (caseIds.length !== expectedCaseIds.length ||
-      caseIds.some((caseId, index) => caseId !== expectedCaseIds[index]))
-  ) {
-    throw new LegacyCasesResultValidationError();
-  }
-
-  for (const caseId of caseIds) {
-    const caseResult = value[caseId];
-    if (!isRecord(caseResult)) {
-      throw new LegacyCasesResultValidationError();
-    }
-
-    const { disg, reac, fsec } = caseResult;
-    if (!isRecord(disg) || !isRecord(reac) || !isRecord(fsec)) {
-      throw new LegacyCasesResultValidationError();
-    }
-
-    if (
-      Object.keys(disg).length === 0 &&
-      Object.keys(reac).length === 0 &&
-      Object.keys(fsec).length === 0
-    ) {
-      throw new LegacyCasesResultValidationError();
-    }
-  }
+export interface ResultSelection {
+  readonly key: string;
+  readonly label: string;
+  readonly result: AnalysisResult;
 }
 
 @Injectable({
@@ -95,6 +44,8 @@ export class ResultDataService {
   public isCalculated: boolean;
   public page: number;
   public case: string;
+  public resultSet: AnalysisResultSetIndex | null;
+  public resultSelections: readonly ResultSelection[];
 
   private defList: any = null;
   private combList: any = null;
@@ -131,6 +82,8 @@ export class ResultDataService {
     this.isCalculated = false;
     this.page = 1;
     this.case = "basic"
+    this.resultSet = null;
+    this.resultSelections = [];
 
     this.disg.clear();
     this.reac.clear();
@@ -149,24 +102,71 @@ export class ResultDataService {
   }
 
   // 計算結果を読み込む
-  public loadResultData(jsonData: unknown): void {
+  public loadResultData(jsonData: unknown): Promise<AnalysisResultSetIndex> {
     this.isCalculated = false;
-    validateLegacyCasesResult(jsonData);
-
-    // 組み合わせケースを集計する
-    this.setCombinePickup(Object.keys(jsonData));
-
-    // 基本ケース の集計 -> 組み合わせの集計まで じゅずツナギ
-    this.disg.setDisgJson(jsonData, this.defList, this.combList, this.pickList);
-    this.reac.setReacJson(jsonData, this.defList, this.combList, this.pickList);
-    this.fsec.setFsecJson(jsonData, this.defList, this.combList, this.pickList);
+    const index = validateAndIndexAnalysisResultSet(jsonData);
+    return this.loadIndexedResultData(index);
   }
 
-  private setCombinePickup(load_keys: string[]): void {
+  private async loadIndexedResultData(index: AnalysisResultSetIndex): Promise<AnalysisResultSetIndex> {
+    this.isCalculated = false;
+    const staticCaseIds = new Set(
+      index.resultsInOrder
+        .filter((result) => result.state.kind === "static")
+        .map((result) => result.case_id)
+    );
+    this.setCombinePickup(index.caseOrder as string[], new Set(index.caseOrder), staticCaseIds);
+    const selections = buildAnalysisResultPages(index).map((page) => ({
+      key: analysisResultSelectionKey(page.result),
+      label: analysisResultSelectionLabel(page.resultCase, page.result),
+      result: page.result,
+    }));
+
+    // 基本ケース の集計 -> 組み合わせの集計まで じゅずツナギ
+    try {
+      await Promise.all([
+        this.disg.setDisgJson(index, this.defList, this.combList, this.pickList, staticCaseIds.size > 0),
+        this.reac.setReacJson(index, this.defList, this.combList, this.pickList, staticCaseIds.size > 0),
+        this.fsec.setFsecJson(index, this.defList, this.combList, this.pickList, staticCaseIds.size > 0),
+      ]);
+      this.resultSet = index;
+      this.resultSelections = selections;
+      this.disg.isCalculated = true;
+      this.reac.isCalculated = true;
+      this.fsec.isCalculated = true;
+      this.isCalculated = true;
+      return index;
+    } catch (error) {
+      this.disg.clear();
+      this.reac.clear();
+      this.fsec.clear();
+      this.isCalculated = false;
+      throw error;
+    }
+  }
+
+  public getResultPageCount(): number {
+    return this.resultSelections.length;
+  }
+
+  public getResultPageLabel(page: number): string {
+    return this.resultSelections[page - 1]?.label ?? `${page}ページ`;
+  }
+
+  public getResultAtPage(page: number): AnalysisResult | null {
+    return this.resultSelections[page - 1]?.result ?? null;
+  }
+
+  private setCombinePickup(
+    load_keys: string[],
+    allCaseIds: ReadonlySet<string>,
+    staticCaseIds: ReadonlySet<string>
+  ): void {
     const load = this.load.getLoadNameJson(1);
     const define = this.define.getDefineJson();
     const combine = this.combine.getCombineJson();
     const pickup = this.pickup.getPickUpJson();
+    this.assertStaticDerivedOperands(define, combine, pickup, allCaseIds, staticCaseIds);
 
     // DEFINEに入力があるかどうか(入力の有効/無効は考慮しない)
     const isEmptyDefine = Object.keys(define).length === 0;
@@ -174,18 +174,18 @@ export class ResultDataService {
     const isEmptyCombine = Object.keys(combine).length === 0;
 
     // 有効なDEFINEの抽出
-    const validDefine = {};
+    const validDefine = createSafeRecord<any>();
     for (const defNo of Object.keys(define)) {
       const d = define[defNo];
-      const validated = this.define.validate(d, Object.keys(load));
+      const validated = this.define.validate(d, [...staticCaseIds]);
       if (validated !== null) {
         validDefine[defNo] = validated;
       }
     }
 
     // 有効なCOMBINEの抽出
-    const validCombine = {};
-    const defineKeys = Object.keys(isEmptyDefine ? load : validDefine);
+    const validCombine = createSafeRecord<any>();
+    const defineKeys = isEmptyDefine ? [...staticCaseIds] : Object.keys(validDefine);
     for (const combNo of Object.keys(combine)) {
       const c = combine[combNo];
       const validated = this.combine.validate(c, defineKeys);
@@ -195,8 +195,10 @@ export class ResultDataService {
     }
 
     // 有効なPICKUPの抽出
-    const validPickup = {};
-    const combineKeys = Object.keys(isEmptyCombine ? load : validCombine);
+    const validPickup = createSafeRecord<any>();
+    const combineKeys = isEmptyCombine
+      ? (isEmptyDefine ? [...staticCaseIds] : Object.keys(validDefine))
+      : Object.keys(validCombine);
     for (const pickNo of Object.keys(pickup)) {
       const p = pickup[pickNo];
       const validated = this.pickup.validate(p, combineKeys);
@@ -206,7 +208,7 @@ export class ResultDataService {
     }
 
     // define を集計
-    this.defList = {};
+    this.defList = createSafeRecord<any>();
     if (!isEmptyDefine) {
       // define データが あるとき
       for (const defNo of Object.keys(validDefine)) {
@@ -222,7 +224,8 @@ export class ResultDataService {
       }
     } else {
       // define データがない時は基本ケース＝defineケースとなる
-      for (const caseNo of Object.keys(load)) {
+      for (const caseNo of staticCaseIds) {
+        if (!(caseNo in load)) continue;
         const n: number = this.helper.toNumber(caseNo);
         this.defList[caseNo] = n === null ? [] : [n];
       }
@@ -258,7 +261,7 @@ export class ResultDataService {
     }
 
     // combine を集計
-    this.combList = {};
+    this.combList = createSafeRecord<any>();
     for (const combNo of Object.keys(validCombine)) {
       const c: object = validCombine[combNo];
       const defines = new Array();
@@ -281,7 +284,7 @@ export class ResultDataService {
     }
 
     // pickup を集計
-    this.pickList = {};
+    this.pickList = createSafeRecord<any>();
     for (const pickNo of Object.keys(validPickup)) {
       const p: object = validPickup[pickNo];
       const combines = new Array();
@@ -302,6 +305,55 @@ export class ResultDataService {
   }
 
   // ピックアップファイル出力
+  private assertStaticDerivedOperands(
+    define: Record<string, any>,
+    combine: Record<string, any>,
+    pickup: Record<string, any>,
+    allCaseIds: ReadonlySet<string>,
+    staticCaseIds: ReadonlySet<string>
+  ): void {
+    const rejectNonStatic = (operation: string, operand: unknown): void => {
+      if (!Number.isInteger(operand)) return;
+      const caseId = Math.abs(operand as number).toString();
+      if (allCaseIds.has(caseId) && !staticCaseIds.has(caseId)) {
+        throw new Error(`${operation} references non-static case ${caseId}.`);
+      }
+    };
+
+    const definitionIds = Object.keys(define);
+    if (definitionIds.length > 0) {
+      definitionIds.forEach((definitionId) => {
+        Object.entries(define[definitionId]).forEach(([key, value]) => {
+          if (key.startsWith("C")) rejectNonStatic(`DEFINE ${definitionId}`, value);
+        });
+      });
+      return;
+    }
+
+    const combinationIds = Object.keys(combine);
+    if (combinationIds.length > 0) {
+      combinationIds.forEach((combinationId) => {
+        Object.entries(combine[combinationId]).forEach(([key, value]) => {
+          const coefficient = typeof value === "number"
+            ? value
+            : typeof value === "string" ? this.helper.toNumber(value) : null;
+          if (!key.startsWith("C") || coefficient === null || coefficient === 0) return;
+          const caseId = key.substring(1);
+          if (allCaseIds.has(caseId) && !staticCaseIds.has(caseId)) {
+            throw new Error(`COMBINE ${combinationId} references non-static case ${caseId}.`);
+          }
+        });
+      });
+      return;
+    }
+
+    Object.keys(pickup).forEach((pickupId) => {
+      Object.entries(pickup[pickupId]).forEach(([key, value]) => {
+        if (key.startsWith("C")) rejectNonStatic(`PICKUP ${pickupId}`, value);
+      });
+    });
+  }
+
   public GetPicUpText(): string {
     const p = this.pickfsec.fsecPickup;
 

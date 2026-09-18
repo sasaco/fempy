@@ -24,7 +24,7 @@ def test_public_legacy_ids_are_insertion_indices_and_modern_ids_are_retained():
     m.mesh.add_element(42, "shell", [10, 20, 30], 1, thickness=0.1, formulation="dkt")
     m.mesh.add_element(17, "shell", [10, 30, 40], 1, thickness=0.1, formulation="dkt")
     for mode in ["static", "material_nonlinear"]:
-        result = m.run(mode)
+        result = m._run_solver_snapshot(mode)
         assert set(result["shell_results"]) == {42, 17}
         assert set(result["legacy_shell_results"]) == {0, 1}
         for step in result.get("step_results", []):
@@ -41,7 +41,7 @@ def test_public_shell_output_with_noncontiguous_ids(analysis):
     m.add_material(1, "test", 1200, 0.2)
     m.add_element(17, "shell", [10, 20, 30, 40], 1, thickness=0.2)
     m.analysis_params["load_factors"] = [0.5, 1.0]
-    r = result_to_jsonable(m.run(analysis))
+    r = result_to_jsonable(m._run_solver_snapshot(analysis))
     assert set(r["shell_results"]) == {"17"}
     assert r["shell_results"]["17"]["raw_result"]["elemStress1"][0] == pytest.approx(2.5)
     assert np.isfinite(r["shell_results"]["17"]["strain_energy"])
@@ -65,7 +65,7 @@ def test_nonconsecutive_node_ids_preserve_reactions_and_displacements(analysis_t
     model = FemModel()
     model.mesh, model.material, model.boundary = mesh, material, boundary
     material.add_bar_parameter(1, BarParameter(3, 1, 1, 1))
-    result = model.run(analysis_type)
+    result = model._run_solver_snapshot(analysis_type)
     assert result["node_displacements"][307]["dx"] == pytest.approx(0.01)
     assert result["node_displacements"][10]["dx"] == pytest.approx(0, abs=1e-14)
     assert result["reaction_forces"][10]["fx"] == pytest.approx(-30)

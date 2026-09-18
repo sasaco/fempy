@@ -24,7 +24,7 @@ FrameWeb3は、構造モデルの編集、骨組有限要素解析、結果確�
 - `tools/FrameWeb.Startup/`のローカルセットアップ、解析・フロント起動、readiness、印刷HTTPホスト。
 - `FramePrintPDF/`のローカル/Azure印刷およびPDF生成。
 - `FrameGConverter/`の独立した変換機能と、`FrameWeb.sln`を中心とするVisual Studio開発経路。
-- 単一荷重ケースと複数荷重ケースの解析結果、およびFrameWebforJS向け表示投影の明示的な契約。
+- 単一・複数ケース、静的・非線形・モーダル解析の成功出力を共通化する`AnalysisResultSet`の単一契約。
 
 ### Out of Scope
 
@@ -37,24 +37,21 @@ FrameWeb3は、構造モデルの編集、骨組有限要素解析、結果確�
 
 | ID | Requirement | Priority | Notes |
 |----|-------------|----------|-------|
-| FR-FRAMEWEB-1 | Accept supported structural-model input, run frame analysis, and return displacement, reaction, and element-result data. | High | The default modern response remains the documented single-case representation. |
 | FR-FRAMEWEB-2 | Let the Angular client edit models, request calculations, and display calculation results and actionable errors. | High | The client validates required result fields before starting result workers. |
 | FR-FRAMEWEB-3 | Start the analysis API, Angular development server, and local print host through the .NET startup project. | High | Visual Studio F5 and `dotnet run --project tools/FrameWeb.Startup` are supported local entry points. |
 | FR-FRAMEWEB-4 | Produce print/PDF output through the existing .NET printing handlers without conflating their transport contract with the calculation API. | High | Azure deployment continues to use the dedicated printing project. |
-| FR-FRAMEWEB-LEGACY-CASES-1 | FrameWebforJS can explicitly request every legacy load case as a case map containing displacement, reaction, and member-force results without changing the default FrameWeb flat response. | High | The compatibility representation is legacy-cases-v1 and the browser must reject incompatible or empty result schemas before starting result workers. |
-| FR-FRAMEWEB-RESULT-SET-1 | Provide Load Case Set Analysis as a first-class operation that produces an ordered AnalysisResultSet containing one canonical AnalysisResult for every requested load case. | High | The existing single-case response remains AnalysisResult. Case identifiers and input order are preserved, and each case is solved with an isolated model instance. |
-| FR-FRAMEWEB-FRAME-RESULT-SET-1 | Provide FrameResultSet as an explicit presentation projection of AnalysisResultSet for FrameWebforJS consumers. | High | FrameResultSet contains the display-oriented disg/reac/fsec/shell_fsec/size fields. It is not the canonical solver result and must not be described as the old result format. |
+| FR-FRAMEWEB-RESULT-SET-2 | Return AnalysisResultSet as the sole successful calculation response for static, nonlinear, modal, single-case, and multi-case analysis. | High | Each AnalysisResult is one case/state snapshot; nonlinear accepted steps are separate results rather than nested step_results. No compatibility or display-specific success schema is retained before release. |
 
 ## 非機能要件 (Non-Functional Requirements)
 
 | Category | Requirement | Metric / Target |
 |----------|-------------|-----------------|
-| Compatibility | Preserve the default AnalysisResult response and select collection or presentation representations explicitly. | Existing unversioned contract tests remain green; incompatible schemas fail visibly in the client. |
-| Result-set correctness | Multi-case execution preserves input order, isolates solver state per case, applies each case rate exactly once, validates every result schema, and fails atomically without returning a partial set. | Maximum 256 cases per request; zero partial-success responses; exact case-ID/order match between request and response. |
 | Reproducibility | Use the committed Python, npm, and .NET project metadata and locks from their component directories. | Canonical commands run without relying on a root-level Python or npm project. |
 | Security | Decode untrusted compressed calculation input without evaluating code and keep local secrets out of tracked files. | No `eval`-style decoder; local environment files remain untracked. |
 | Maintainability | Keep analysis, frontend, startup, printing, conversion, and agent-infrastructure responsibilities independently testable. | Component-specific gates report their working directory and failing command. |
 | Platform | Keep the supported local workflow executable from Windows PowerShell. | Bootstrap, setup, and verification paths do not require WSL or Bash. |
+| Result contract | Expose exactly one validated AnalysisResultSet success schema, with no compatibility or display-specific alternatives; keep calculation input redesign outside this refactor. | Zero alternate success schemas; zero runtime result adapters; unique case/state coordinates; atomic response; deterministic case-major order. |
+| Result-set correctness v1 | Preserve deterministic input-derived case order and accepted state order, isolate mutable solver state per case, preserve case-specific support sets, validate every snapshot variant, apply no post-solve display multiplier, and fail atomically. | Maximum 256 cases; zero partial responses; zero duplicate case/state coordinates; exactly one final load-step per nonlinear case; identical geometric public topology across cases. |
 
 ## アーキテクチャ (Architecture)
 
@@ -68,14 +65,18 @@ FrameWeb3は次の境界を持つコンポーネント指向モノレポであ�
 
 ### Result Contracts
 
-- `AnalysisResult`: 一つの荷重ケースに対するcanonical solver result。既定の単一ケース応答はこの契約を維持する。
-- `AnalysisResultSet`: 要求順とcase IDを保持した`AnalysisResult`の順序付きcollection。`application/vnd.frameweb.analysis-result-set-v1+json`で明示的に選択する。
-- `FrameResultSet`: `AnalysisResultSet`をFrameWebforJSの表示用fieldへ投影したrepresentation。`application/vnd.frameweb.frame-result-set-v1+json`で明示的に選択する。
-- `application/vnd.frameweb.legacy-cases-v1+json`は移行期間だけのdeprecated compatibility aliasとし、canonical名称には使用しない。
+- 計算入力は既存の検証済みschemaを継続利用し、本リファクタリングでは再設計しない。入力caseの順序を結果順序の基準とする。
+- `AnalysisResultSet`: 唯一の成功response root。順序付き`cases`、一度だけ出力するcanonical `topology`、case-major順の`results`を持つ。
+- `AnalysisResult`: `(case_id, state.kind, state.index)`で一意になるimmutable snapshot。staticはcaseごとに1件、material nonlinearはaccepted stepごとに1件、modalはmodeごとに1件を出力する。
+- legacy入力は`load` mapの全entryを挿入順でcase化し、modern入力は現行どおり単一case `"1"`とする。支持節点はcase固有の`support_node_ids`として保持し、共有topologyはgeometryに限定する。
+- legacy caseの解析種別はtop-level、case、model inferenceの順、解析parameterはdefault、case、top-level overrideの順という現行precedenceを維持する。
+- `state`は`static`、`load_step`、`mode`のdiscriminated unionとする。非線形のnested `step_results`と最終状態の二重格納は行わず、caseごとに最後のload stepだけをfinalとする。
+- canonical result fieldは`node_displacements`、`support_reactions`、`member_section_forces`、`shell_results`、`solid_results`、`diagnostics`とする。modal variantは`node_mode_shapes`を持ち、force-bearing fieldを持たない。
+- member/shellのlocal frameとshell/solidのsampling locationをtopologyへ明示し、resultはそのID/orderを完全にcoverする。modal frequencyはHz固定ではなく宣言time unitの逆数とし、zero/degeneracy toleranceを契約で固定する。
+- legacyの表示・解析後倍率`rate`は削除し、代替のrequest/result fieldは追加しない。DEFINE/COMBINE/PICKUPの係数は派生結果の概念としてbase resultを変更しない。
+- 単位は既存のnormalized `model_metadata.units`をそのまま出力し、省略時は`consistent_user_defined`/`unspecified`とする。単位推定・変換は行わない。
 
-計算と印刷は別のtransport契約である。representation adapterは明示的なservice境界に置き、frontend workerは必須field欠落を空成功へ変換しない。
-
-Clarification (2026-09-18): `FrameResultSet`は`AnalysisResultSet` wire payloadの直接変換ではなく、同じephemeral per-case `CaseSolution`から生成する兄弟representationである。`CaseSolution`はcase ID、canonical `AnalysisResult`、solved model、projection metadata、compatibility rateを一case分だけ保持するnon-wire境界であり、全caseの`FemModel`をmaterializeしない。load casesは外側のcollection axis、非線形`step_results`と`convergence_history`は各caseの`AnalysisResult`内に保持し、Frame representationはtop-levelの最終受理状態だけを投影する。新しいresult-set envelopeはordered `cases` arrayを使用し、deprecated aliasだけが既存bare case mapを維持する。
+計算成功時のschemaはこの一組だけとし、result representation negotiation、compatibility adapter、display-specific backend contractは設けない。計算と印刷は別のtransport契約であり、frontendはcanonical schemaを一度だけ検証して直接利用する。
 
 ## 技術選定 (Tech Stack & Rationale)
 
@@ -91,7 +92,7 @@ Clarification (2026-09-18): `FrameResultSet`は`AnalysisResultSet` wire payload�
 
 - Python製品・agent toolingは`uv run --project FrameWeb --locked --extra dev python ...`で実行し、bare `python`が`PATH`にあることを前提にしない。
 - ローカルsetupはPython 3.12とNode 18/npm 9を対象とし、各componentが宣言するversion範囲を尊重する。
-- FrameWebforJS向け投影のために既定の`AnalysisResult`契約を暗黙変更しない。collectionとpresentation projectionは明示的かつversionedに選択する。
+- 計算APIは成功時に`AnalysisResultSet v1`以外のresult schemaを提供せず、UI専用のbackend representationを追加しない。
 - 計算encoderとC#印刷APIのwire契約が同値と証明されるまで共有しない。
 - `.venv`、`node_modules`、`dist`、`bin`、`obj`、cache、vendor frontend資産はsource componentではない。
 - local environment/authentication fileはmachine固有値を含み得るため、bootstrap automationで上書き・commitしない。
@@ -103,15 +104,13 @@ Clarification (2026-09-18): `FrameResultSet`は`AnalysisResultSet` wire payload�
 |----------|-----------|------------------------|------|
 | Use Codex as the main repository agent and Windows PowerShell as the canonical administration path. | This matches the active runtime and the repository's supported local development environment. | Preserve copied runtime-first and Bash-first bootstrap assumptions. | 2026-09-18 |
 | Keep Python, Angular, startup, printing, and conversion as explicit component boundaries in one monorepo. | Each component has a different toolchain and public contract; explicit boundaries make setup and validation reproducible. | Treat the root as one Python project or collapse services into the startup host. | 2026-09-18 |
-| Expose FrameWebforJS result compatibility through the explicit Accept media type application/vnd.frameweb.legacy-cases-v1+json while preserving the unselected flat API. | Accept is already allowed by CORS, keeps transport encoding independent from result representation, and avoids changing deployment routing. The compatibility path solves each input load case with a fresh FemModel and projects the legacy case schema atomically. | Replace the default response with the old case map; infer the response from compressed transport; adapt only in TypeScript; add a custom header or separate endpoint. General shell compatibility remains separate until an old-backend oracle is available. | 2026-09-18 |
-| Replace old/new result-format terminology with AnalysisResult, AnalysisResultSet, and FrameResultSet, and name the capability Load Case Set Analysis. | The formats differ primarily by cardinality and representation, not by chronology. AnalysisResultSet is the ordered collection of canonical single-case results; FrameResultSet is a separate display projection that regroups members and maps field names and signs for FrameWebforJS. | Continue using legacy/new or flat/cases terminology; treat the display projection as merely an array of flat responses. | 2026-09-18 |
-| Use application/vnd.frameweb.analysis-result-set-v1+json for the canonical multi-case representation and application/vnd.frameweb.frame-result-set-v1+json for the FrameWebforJS projection; keep application/vnd.frameweb.legacy-cases-v1+json only as a deprecated compatibility alias during migration. | Separate media types make collection semantics and presentation projection explicit while preserving the default single-case API and existing deployed clients. | Rename the existing payload in place; replace the default application/json response; keep legacy in the permanent public name. | 2026-09-18 |
-| Generate AnalysisResultSet and FrameResultSet as sibling wire representations from one ephemeral per-case CaseSolution; do not implement FrameResultSet as a wire-to-wire conversion of AnalysisResultSet and do not retain a materialized collection of solved FemModel instances. | Frame projection needs solved-model and source metadata that is not contained in the canonical AnalysisResult wire payload. Processing one case at a time preserves this context while bounding memory to one solved model plus the requested response payload. Load cases remain the outer collection axis, while nonlinear step_results remain inside each case-level AnalysisResult. | Convert the AnalysisResultSet JSON directly; retain every solved FemModel in a CaseSolutionSet; flatten nonlinear steps into load cases. | 2026-09-18 |
 | Keep the repository agent infrastructure Codex-focused and remove copied Claude pseudo-links, runtime-specific agents and hooks, and the inactive Antigravity workflow. | Only Codex is an active repository runtime. Removing unreachable integration surfaces prevents stale instructions and duplicate execution paths while retaining runtime-neutral skills and rules. | Maintain parallel Claude and Codex bootstrap surfaces; retain inactive integrations as examples. | 2026-09-18 |
 | Default Codex to the read-only sandbox and require an explicit workspace-write opt-in for repository mutations. | Least-privilege defaults make read-only analysis safe while keeping authorized implementation work available through an explicit invocation choice. | Use workspace-write or danger-full-access as the repository default. | 2026-09-18 |
+| Use AnalysisResultSet as the only public calculation root and remove FrameResultSet, legacy-cases-v1, the default flat AnalysisResult response, and all compatibility adapters before release. | A single ordered snapshot collection eliminates representation negotiation, duplicate result models, UI-specific backend fields, nonlinear final-state duplication, and compatibility maintenance. Each result is identified by case_id plus a discriminated state; shared topology is emitted once, and domain member-force aggregation becomes canonical postprocessing. | Keep separate AnalysisResult, AnalysisResultSet, and FrameResultSet wire contracts; retain legacy-cases-v1; nest nonlinear step_results inside a case-level final result. | 2026-09-18 |
+| Limit the AnalysisResultSet refactor to the calculation success output; keep existing validated input schemas unchanged and remove the legacy rate display multiplier without introducing load_scale. | The objective is to establish one canonical result root. Redesigning the complete input contract adds unrelated migration risk and schema maintenance, while rate is post-solve display behavior that does not belong in the canonical analysis result. | Introduce AnalysisRequest v1 and rename rate to load_scale; keep post-solve rate behavior. | 2026-09-18 |
+| Enumerate existing legacy load-map entries as ordered result cases, keep modern input single-case as case 1, store support_node_ids per ResultCase, and reproduce normalized existing unit metadata without inference. | This makes output construction deterministic without redesigning input, permits cases to select different support definitions while sharing geometric topology, and remains truthful when current inputs omit unit declarations. | Invent a new multi-case input; require identical supports across cases; put supports in shared topology; assume fixed engineering units. | 2026-09-18 |
 
 ## TODO / Open Questions
 
-- Complete end-to-end browser verification of the versioned result-set path, including the first and last requested load cases.
-- Establish an old-backend oracle before claiming general shell-result compatibility.
+- Complete end-to-end browser verification of the sole `AnalysisResultSet` path, including first/last static cases and all accepted nonlinear steps.
 - Keep production authentication and deployment configuration separate from the anonymous local-development calculation path.

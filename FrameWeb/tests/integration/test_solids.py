@@ -17,7 +17,7 @@ def test_quadratic_public_prescribed_affine_solution(kind, reference, volume):
     for nid, xyz in m.mesh.nodes.items():
         m.add_restraint(nid, True, True, True)
         m.add_forced_displacement(nid, dx=0.001 * xyz[0], dy=0.002 * xyz[1], dz=-0.001 * xyz[2])
-    result = m.run()
+    result = m._run_solver_snapshot()
     np.testing.assert_allclose(
         result["element_stresses"][8]["stress"],
         np.tile([1.6, 2.4, 0.0, 0.0, 0.0, 0.0], (len(e.get_gauss_points()[0]), 1)),
@@ -39,7 +39,7 @@ def test_quadratic_reactions_with_large_rigid_displacement(kind, coords, volume,
     for nid, values in zip(model.mesh.nodes, displacement):
         model.add_restraint(nid, True, True, True)
         model.add_forced_displacement(nid, dx=values[0], dy=values[1], dz=values[2])
-    result = model.run()
+    result = model._run_solver_snapshot()
     np.testing.assert_array_equal(result["displacement"].reshape(-1, 3), displacement)
     if mode == "strain":
         source_kind = {"tetra2": "TetraElement2", "wedge2": "WedgeElement2", "hexa2": "HexaElement2"}[kind]

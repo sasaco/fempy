@@ -1,4 +1,4 @@
-"""HTTP contract for the explicit FrameWebforJS legacy case representation."""
+"""HTTP and orchestration contracts for the sole AnalysisResultSet response."""
 
 from __future__ import annotations
 
@@ -9,31 +9,18 @@ import pytest
 from flask import Response
 from main import app
 
-from fem import legacy_results
-from tests.support.builders.shell_input import data as shell_data
-from tests.support.builders.slip_support import slip_model_data
+from fem import analysis_result_sets
+from fem.result_contracts import (
+    MAX_ITERATIONS_PER_STEP,
+    MAX_NONLINEAR_ITERATIONS_PER_REQUEST,
+    MAX_NONLINEAR_STEPS_PER_CASE,
+    MAX_PROJECTED_STATES_PER_REQUEST,
+    MAX_RESULT_CASES,
+    validate_analysis_result_set,
+)
+from tests.support.builders.input_routes import axial_json
 
 pytestmark = pytest.mark.integration
-
-LEGACY_CASES_MEDIA_TYPE = "application/vnd.frameweb.legacy-cases-v1+json"
-CASE_FIELDS = ["disg", "reac", "fsec", "shell_fsec", "size"]
-VECTOR_FIELDS = ["dx", "dy", "dz", "rx", "ry", "rz"]
-REACTION_FIELDS = ["tx", "ty", "tz", "mx", "my", "mz"]
-SECTION_FIELDS = [
-    "fxi",
-    "fyi",
-    "fzi",
-    "mxi",
-    "myi",
-    "mzi",
-    "fxj",
-    "fyj",
-    "fzj",
-    "mxj",
-    "myj",
-    "mzj",
-    "L",
-]
 
 
 def _restraints() -> list[dict[str, int]]:
@@ -44,7 +31,6 @@ def _restraints() -> list[dict[str, int]]:
 
 
 def _legacy_two_case_beam() -> dict[str, object]:
-    """Return a hand-checkable beam with ordered cases and distinct references."""
     material_1 = {"E": 10_000, "G": 4_000, "A": 1, "Iy": 1, "Iz": 1, "J": 1}
     material_2 = {**material_1, "E": 20_000}
     return {
@@ -58,6 +44,8 @@ def _legacy_two_case_beam() -> dict[str, object]:
         "fix_node": {"1": _restraints(), "2": _restraints()},
         "load": {
             "positive": {
+                "name": "Positive case",
+                "symbol": "P",
                 "element": 1,
                 "fix_node": 1,
                 "rate": 1,
@@ -74,7 +62,6 @@ def _legacy_two_case_beam() -> dict[str, object]:
 
 
 def _post(data: dict[str, object], accept: str | None = None) -> Response:
-    """Send raw JSON so Flask's test helper cannot reorder legacy case keys."""
     headers = {"Accept": accept} if accept is not None else {}
     return app.test_client().post(
         "/",
@@ -92,121 +79,43 @@ def _with_case_count(data: dict[str, object], case_count: int) -> dict[str, obje
     return data
 
 
-def _assert_six_components(
-    actual: dict[str, float],
-    fields: list[str],
-    **expected: float,
-) -> None:
-    assert list(actual) == fields
-    values = {field: expected.get(field, 0.0) for field in fields}
-    assert actual == pytest.approx(values, abs=1e-12)
+def _node_components(result: dict, field: str, node_id: str) -> dict[str, float]:
+    return next(row["components"] for row in result[field] if row["node_id"] == node_id)
 
 
-def _assert_axial_case(
-    case: dict,
-    *,
-    end_displacement: float,
-    reaction: float,
-    section_force: float,
-) -> None:
-    assert list(case) == CASE_FIELDS
-    assert list(case["disg"]) == ["10", "30", "7n1"]
-    _assert_six_components(case["disg"]["10"], VECTOR_FIELDS)
-    _assert_six_components(
-        case["disg"]["7n1"],
-        VECTOR_FIELDS,
-        dx=end_displacement / 4,
-    )
-    _assert_six_components(
-        case["disg"]["30"],
-        VECTOR_FIELDS,
-        dx=end_displacement,
-    )
-
-    assert list(case["reac"]) == ["10", "30"]
-    _assert_six_components(case["reac"]["10"], REACTION_FIELDS, tx=reaction)
-    _assert_six_components(case["reac"]["30"], REACTION_FIELDS)
-
-    assert list(case["fsec"]) == ["7"]
-    assert list(case["fsec"]["7"]) == ["P1", "P2"]
-    for point, length in (("P1", 0.5), ("P2", 1.5)):
-        section = case["fsec"]["7"][point]
-        assert list(section) == SECTION_FIELDS
-        expected = {field: 0.0 for field in SECTION_FIELDS}
-        expected.update(fxi=section_force, fxj=section_force, L=length)
-        assert section == pytest.approx(expected, abs=1e-12)
-
-    assert case["shell_fsec"] == {}
-    assert case["size"] == 3
-
-
-@pytest.mark.parametrize("accept", [None, "application/json"])
-def test_default_response_remains_flat(accept: str | None) -> None:
+@pytest.mark.parametrize(
+    "accept",
+    [None, "application/json", "application/vnd.frameweb.legacy-cases-v1+json", "application/vnd.frameweb.legacy-cases-v2+json"],
+)
+def test_accept_never_negotiates_an_alternate_success_shape(accept: str | None) -> None:
     response = _post(_legacy_two_case_beam(), accept)
-
     assert response.status_code == 200
+    assert response.content_type == "application/json; charset=utf-8"
     body = response.get_json()
-    assert {"node_displacements", "reaction_forces", "element_stresses"} <= body.keys()
-    assert "positive" not in body
-    assert "negative-scaled" not in body
+    validate_analysis_result_set(body)
+    assert body["kind"] == "analysis_result_set"
+    assert "disg" not in json.dumps(body)
+    assert "fsec" not in json.dumps(body)
 
 
-def test_exact_accept_returns_ordered_projected_cases() -> None:
-    response = _post(_legacy_two_case_beam(), LEGACY_CASES_MEDIA_TYPE)
-
-    assert response.status_code == 200
-    assert response.mimetype == LEGACY_CASES_MEDIA_TYPE
-    body = response.get_json()
-    assert list(body) == ["positive", "negative-scaled"]
-    assert body["positive"] != body["negative-scaled"]
-    _assert_axial_case(
-        body["positive"],
-        end_displacement=0.0008,
-        reaction=-4,
-        section_force=4,
-    )
-    _assert_axial_case(
-        body["negative-scaled"],
-        end_displacement=-0.0015,
-        reaction=15,
-        section_force=-15,
-    )
-
-
-def test_case_solver_is_repeatable_and_does_not_mutate_input() -> None:
-    from fem.legacy_results import solve_legacy_cases
-
+def test_legacy_cases_are_solved_in_insertion_order_without_rate_scaling() -> None:
     data = _legacy_two_case_beam()
     original = copy.deepcopy(data)
-
-    first = solve_legacy_cases(data)
-    second = solve_legacy_cases(data)
-
+    response = _post(data)
+    assert response.status_code == 200, response.get_data(as_text=True)
+    body = response.get_json()
     assert data == original
-    assert first == second
-    assert first["positive"] != first["negative-scaled"]
-
-
-def test_unknown_legacy_vendor_media_type_is_rejected() -> None:
-    response = _post(
-        _legacy_two_case_beam(),
-        "application/vnd.frameweb.legacy-cases-v2+json",
-    )
-
-    assert response.status_code == 406
-    body = response.get_json()
-    assert body["converged"] is False
-    assert "positive" not in body
-
-
-@pytest.mark.parametrize("data", [slip_model_data(), shell_data()])
-def test_selector_rejects_unsupported_input_shapes(data: dict) -> None:
-    response = _post(data, LEGACY_CASES_MEDIA_TYPE)
-
-    assert response.status_code == 400
-    body = response.get_json()
-    assert body["error_code"] == "invalid_input"
-    assert body["converged"] is False
+    assert [case["case_id"] for case in body["cases"]] == ["positive", "negative-scaled"]
+    assert body["cases"][0]["name"] == "Positive case"
+    assert body["cases"][0]["symbol"] == "P"
+    assert body["cases"][1]["name"] == "negative-scaled"
+    assert [result["case_id"] for result in body["results"]] == ["positive", "negative-scaled"]
+    positive, negative = body["results"]
+    assert _node_components(positive, "node_displacements", "30")["dx"] == pytest.approx(0.0008)
+    assert _node_components(negative, "node_displacements", "30")["dx"] == pytest.approx(-0.0006)
+    assert _node_components(positive, "support_reactions", "10")["fx"] == pytest.approx(-4)
+    assert _node_components(negative, "support_reactions", "10")["fx"] == pytest.approx(6)
+    assert negative["member_section_forces"][0]["segments"][0]["i_end"]["fx"] == pytest.approx(-6)
 
 
 def test_later_invalid_case_is_atomic() -> None:
@@ -216,32 +125,42 @@ def test_later_invalid_case_is_atomic() -> None:
         "fix_node": 1,
         "load_node": [{"n": 30, "tx": 1}],
     }
-
-    response = _post(data, LEGACY_CASES_MEDIA_TYPE)
-
+    response = _post(data)
     assert response.status_code != 200
     body = response.get_json()
     assert body["converged"] is False
-    assert "positive" not in body
-    assert "negative-scaled" not in body
+    assert body["details"]["case_id"] == "broken-later"
+    assert "results" not in body
 
 
-@pytest.mark.parametrize(
-    "case_count",
-    [legacy_results.MAX_LEGACY_CASES - 1, legacy_results.MAX_LEGACY_CASES],
-)
-def test_case_count_guard_accepts_supported_boundary(case_count: int) -> None:
-    data = _with_case_count(_legacy_two_case_beam(), case_count)
+def test_isolated_case_topology_mismatch_is_an_atomic_internal_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    actual_builder = analysis_result_sets.build_result_topology
+    calls = 0
 
-    legacy_results._validate_legacy_beam_input(data)
+    def mismatching_builder(source_data: dict, model: object) -> dict:
+        nonlocal calls
+        topology = actual_builder(source_data, model)
+        calls += 1
+        if calls == 2:
+            topology["nodes"][0]["coordinates"]["x"] += 1
+        return topology
+
+    monkeypatch.setattr(
+        analysis_result_sets, "build_result_topology", mismatching_builder
+    )
+    response = _post(_legacy_two_case_beam())
+    assert response.status_code == 500
+    body = response.get_json()
+    assert body["converged"] is False
+    assert "results" not in body
 
 
 def test_case_count_guard_rejects_before_model_creation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    data = _with_case_count(
-        _legacy_two_case_beam(), legacy_results.MAX_LEGACY_CASES + 1
-    )
+    data = _with_case_count(_legacy_two_case_beam(), MAX_RESULT_CASES + 1)
     model_created = False
 
     class UnexpectedFemModel:
@@ -249,13 +168,223 @@ def test_case_count_guard_rejects_before_model_creation(
             nonlocal model_created
             model_created = True
 
-    monkeypatch.setattr(legacy_results, "FemModel", UnexpectedFemModel)
-
-    response = _post(data, LEGACY_CASES_MEDIA_TYPE)
-
+    monkeypatch.setattr(analysis_result_sets, "FemModel", UnexpectedFemModel)
+    response = _post(data)
     assert response.status_code == 400
-    body = response.get_json()
-    assert body["error_code"] == "invalid_input"
-    assert body["converged"] is False
-    assert str(legacy_results.MAX_LEGACY_CASES) in body["error"]
+    assert str(MAX_RESULT_CASES) in response.get_json()["error"]
     assert model_created is False
+
+
+def _assert_work_budget_rejected_before_model_creation(
+    monkeypatch: pytest.MonkeyPatch, data: dict[str, object]
+) -> dict:
+    model_created = False
+    model_data_read = False
+
+    class UnexpectedFemModel:
+        def __init__(self) -> None:
+            nonlocal model_created
+            model_created = True
+
+    def unexpected_read(_: dict) -> dict:
+        nonlocal model_data_read
+        model_data_read = True
+        return {}
+
+    monkeypatch.setattr(analysis_result_sets, "FemModel", UnexpectedFemModel)
+    monkeypatch.setattr(analysis_result_sets, "_read_json_model", unexpected_read)
+    response = _post(data)
+    assert response.status_code == 400
+    assert model_created is False
+    assert model_data_read is False
+    return response.get_json()
+
+
+def test_top_level_nonlinear_step_limit_rejects_before_model_creation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    data = _legacy_two_case_beam()
+    data["analysis_type"] = "material_nonlinear"
+    data["analysis_params"] = {
+        "n_load_steps": MAX_NONLINEAR_STEPS_PER_CASE + 1,
+    }
+    body = _assert_work_budget_rejected_before_model_creation(monkeypatch, data)
+    assert body["error_code"] == "invalid_input"
+    assert body["details"] == {
+        "case_id": "positive",
+        "budget": "nonlinear_steps",
+        "requested": MAX_NONLINEAR_STEPS_PER_CASE + 1,
+        "limit": MAX_NONLINEAR_STEPS_PER_CASE,
+    }
+
+
+def test_modern_max_iteration_limit_rejects_before_model_creation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    data = axial_json()
+    data["analysis_type"] = "material_nonlinear"
+    data["analysis_params"] = {"max_iterations": MAX_ITERATIONS_PER_STEP + 1}
+    body = _assert_work_budget_rejected_before_model_creation(monkeypatch, data)
+    assert body["details"]["case_id"] == "1"
+    assert body["details"]["budget"] == "max_iterations"
+
+
+@pytest.mark.parametrize(
+    "schedule",
+    [
+        {"load_factors": [1.0] * (MAX_NONLINEAR_STEPS_PER_CASE + 1)},
+        {
+            "displacement_control": {
+                "node": 30,
+                "dof": "dx",
+                "targets": [0.001] * (MAX_NONLINEAR_STEPS_PER_CASE + 1),
+            }
+        },
+    ],
+    ids=["load-factors", "displacement-targets"],
+)
+def test_explicit_nonlinear_schedule_limit_rejects_before_model_creation(
+    monkeypatch: pytest.MonkeyPatch, schedule: dict[str, object]
+) -> None:
+    data = _legacy_two_case_beam()
+    data["load"]["positive"].update(
+        analysis_type="material_nonlinear",
+        **schedule,
+    )
+    body = _assert_work_budget_rejected_before_model_creation(monkeypatch, data)
+    assert body["details"]["case_id"] == "positive"
+    assert body["details"]["budget"] == "nonlinear_steps"
+
+
+def test_multi_case_iteration_budget_rejects_at_crossing_case_before_model_creation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    data = _legacy_two_case_beam()
+    for case in data["load"].values():
+        case.update(
+            analysis_type="material_nonlinear",
+            n_load_steps=251,
+            max_iterations=MAX_ITERATIONS_PER_STEP,
+        )
+    body = _assert_work_budget_rejected_before_model_creation(monkeypatch, data)
+    assert body["details"] == {
+        "case_id": "negative-scaled",
+        "budget": "projected_nonlinear_iterations",
+        "requested": 502_000,
+        "limit": MAX_NONLINEAR_ITERATIONS_PER_REQUEST,
+    }
+
+
+def test_multi_case_state_budget_rejects_at_crossing_case_before_model_creation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    data = _legacy_two_case_beam()
+    for case in data["load"].values():
+        case.update(
+            analysis_type="modal",
+            n_modes=(MAX_PROJECTED_STATES_PER_REQUEST // 2) + 1,
+        )
+    body = _assert_work_budget_rejected_before_model_creation(monkeypatch, data)
+    assert body["details"] == {
+        "case_id": "negative-scaled",
+        "budget": "projected_states",
+        "requested": MAX_PROJECTED_STATES_PER_REQUEST + 2,
+        "limit": MAX_PROJECTED_STATES_PER_REQUEST,
+    }
+
+
+def test_work_budget_boundaries_are_inclusive() -> None:
+    nonlinear = _legacy_two_case_beam()
+    nonlinear["load"] = {"at-limit": nonlinear["load"]["positive"]}
+    nonlinear["load"]["at-limit"].update(
+        analysis_type="material_nonlinear",
+        load_factors=[1.0] * MAX_NONLINEAR_STEPS_PER_CASE,
+        max_iterations=MAX_ITERATIONS_PER_STEP + 1,
+    )
+    nonlinear["analysis_params"] = {
+        "max_iterations": (
+            MAX_NONLINEAR_ITERATIONS_PER_REQUEST
+            // MAX_NONLINEAR_STEPS_PER_CASE
+        )
+    }
+    analysis_result_sets._validate_request_work_budget(
+        analysis_result_sets._enumerate_cases(nonlinear)
+    )
+
+    max_iterations = _legacy_two_case_beam()
+    max_iterations["load"] = {
+        "at-limit": max_iterations["load"]["positive"]
+    }
+    max_iterations["load"]["at-limit"].update(
+        analysis_type="material_nonlinear",
+        n_load_steps=1,
+        max_iterations=MAX_ITERATIONS_PER_STEP,
+    )
+    analysis_result_sets._validate_request_work_budget(
+        analysis_result_sets._enumerate_cases(max_iterations)
+    )
+
+    modal = _with_case_count(_legacy_two_case_beam(), 10)
+    for case in modal["load"].values():
+        case["analysis_type"] = "modal"
+        case["n_modes"] = MAX_PROJECTED_STATES_PER_REQUEST // 10
+    analysis_result_sets._validate_request_work_budget(
+        analysis_result_sets._enumerate_cases(modal)
+    )
+
+
+def test_modern_input_remains_exactly_one_case_named_one() -> None:
+    response = app.test_client().post("/", json=axial_json())
+    assert response.status_code == 200
+    body = response.get_json()
+    assert [(case["case_id"], case["name"], case["symbol"]) for case in body["cases"]] == [("1", "1", "1")]
+    assert {result["case_id"] for result in body["results"]} == {"1"}
+
+
+def test_top_level_analysis_settings_override_each_legacy_case() -> None:
+    data = _legacy_two_case_beam()
+    data["load"]["positive"]["analysis_type"] = "material_nonlinear"
+    data["analysis_type"] = "static"
+    data["analysis_params"] = {"n_load_steps": 1}
+    response = _post(data)
+    assert response.status_code == 200
+    body = response.get_json()
+    assert [case["analysis_type"] for case in body["cases"]] == ["static", "static"]
+    assert [result["state"] for result in body["results"]] == [
+        {"kind": "static", "index": 0},
+        {"kind": "static", "index": 0},
+    ]
+
+
+def test_case_analysis_settings_support_ordered_mixed_analysis_types() -> None:
+    data = _legacy_two_case_beam()
+    data["load"]["positive"].update(
+        analysis_type="material_nonlinear", n_load_steps=2
+    )
+    data["load"]["negative-scaled"]["analysis_type"] = "static"
+    response = _post(data)
+    assert response.status_code == 200, response.get_data(as_text=True)
+    body = response.get_json()
+    assert [case["analysis_type"] for case in body["cases"]] == [
+        "material_nonlinear",
+        "static",
+    ]
+    assert [result["state"] for result in body["results"]] == [
+        {"kind": "load_step", "index": 0, "load_factor": 0.5, "is_final": False},
+        {"kind": "load_step", "index": 1, "load_factor": 1.0, "is_final": True},
+        {"kind": "static", "index": 0},
+    ]
+
+
+def test_case_specific_supports_are_not_promoted_to_shared_topology() -> None:
+    data = _legacy_two_case_beam()
+    data["dimension"] = 2
+    data["fix_node"]["2"] = [data["fix_node"]["2"][0]]
+    response = _post(data)
+    assert response.status_code == 200
+    body = response.get_json()
+    assert [case["support_node_ids"] for case in body["cases"]] == [
+        ["30", "10"],
+        ["10"],
+    ]
+    assert "support_node_ids" not in body["topology"]

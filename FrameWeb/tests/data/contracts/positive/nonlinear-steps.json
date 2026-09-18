@@ -1,0 +1,11 @@
+{
+  "kind": "analysis_result_set", "schema_version": "1.0",
+  "units": {"system": "consistent_user_defined", "length": "m", "force": "N", "mass": "kg", "time": "s"},
+  "coordinate_system": {"name": "global_cartesian", "handedness": "right", "axes": ["x", "y", "z"]},
+  "cases": [{"case_id": "NL", "name": "Nonlinear", "symbol": "NL", "analysis_type": "material_nonlinear", "support_node_ids": []}],
+  "topology": {"nodes": [{"node_id": "1", "coordinates": {"x": 0, "y": 0, "z": 0}, "source_node_id": "1", "generated": false}], "members": [], "shell_elements": [], "solid_elements": []},
+  "results": [
+    {"case_id": "NL", "state": {"kind": "load_step", "index": 0, "load_factor": 0.5, "is_final": false}, "node_displacements": [{"node_id": "1", "components": {"dx": 0.1, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0}}], "support_reactions": [], "member_section_forces": [], "shell_results": [], "solid_results": [], "diagnostics": {"warnings": [], "iterations": [{"index": 0, "residual_norm": 0.01, "correction_norm": 0.001, "converged": true}]}},
+    {"case_id": "NL", "state": {"kind": "load_step", "index": 1, "load_factor": 1, "is_final": true}, "node_displacements": [{"node_id": "1", "components": {"dx": 0.22, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0}}], "support_reactions": [], "member_section_forces": [], "shell_results": [], "solid_results": [], "diagnostics": {"warnings": [], "iterations": [{"index": 0, "residual_norm": 0.02, "correction_norm": 0.002, "converged": false}, {"index": 1, "residual_norm": 0.0001, "correction_norm": 0.00001, "converged": true}]}}
+  ]
+}

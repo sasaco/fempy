@@ -13,6 +13,11 @@ from fem.nonlinear.nonlinear_solver import NonlinearSolver
 from tests.support.builders.updated_inertia import specimen
 from tests.support.builders.input_routes import json_model
 from tests.support.builders.nonlinear_reference import configuration, solve
+from tests.integration._canonical_results import (
+    assert_step_diagnostics,
+    assert_uniform_result,
+    load_step_results,
+)
 
 pytestmark = [pytest.mark.integration, pytest.mark.material_nonlinear]
 
@@ -102,7 +107,7 @@ def test_condensation_failure_has_element_axis_step_and_restores_all_state(axis)
     assert element.committed_bending_states["moment_"+axis].curvature == pytest.approx(.002)
 
 
-@pytest.mark.parametrize("route", ["python", "json", "http"])
+@pytest.mark.parametrize("route", ["python", "json"])
 def test_accepted_section_output_records_updated_inertia_and_is_an_owned_snapshot(route):
     data = configuration("moment_z", force=1.)
     data["analysis_params"] = {"load_factors": [12., 10.]}
@@ -121,21 +126,36 @@ def test_accepted_section_output_records_updated_inertia_and_is_an_owned_snapsho
     assert last["moment"] == pytest.approx(10.)
 
 
+def test_http_updated_inertia_path_exposes_complete_sibling_snapshots():
+    data = configuration("moment_z", force=1.0)
+    data["analysis_params"] = {"load_factors": [12.0, 10.0]}
+
+    steps = load_step_results(solve(data, "http"))
+
+    assert len(steps) == 2
+    assert_uniform_result(steps[0], "moment_z", 1, 12.0, 0.002)
+    assert_uniform_result(steps[1], "moment_z", 1, 10.0, 0.0018)
+    for step in steps:
+        assert_step_diagnostics(step)
+
+
 def test_reference_static_and_modal_analyses_do_not_inherit_updated_inertia(tmp_path):
     data = configuration("moment_z", force=12.)
     model = json_model(data)
     model.analysis_params['n_modes'] = 2
-    reference = model.run("static")
-    reference_modal = model.run("modal")
-    nonlinear = model.run("material_nonlinear")
+    reference = model._run_solver_snapshot("static")
+    reference_modal = model._run_solver_snapshot("modal")
+    nonlinear = model._run_solver_snapshot("material_nonlinear")
+    assert nonlinear["section_response"][7]["center"]["z"]["moment"] == pytest.approx(12.)
+    public_result = model.run("material_nonlinear")
     saved = tmp_path/"response.json"
     model.save_results(str(saved))
     from fem.file_io import read_result
-    assert read_result(str(saved))["section_response"]["7"]["center"]["z"]["moment"] == pytest.approx(12.)
-    repeated = model.run("material_nonlinear")
+    assert read_result(str(saved)) == public_result
+    repeated = model._run_solver_snapshot("material_nonlinear")
     np.testing.assert_allclose(repeated["displacement"], nonlinear["displacement"], atol=1e-12)
-    elastic = model.run("static")
+    elastic = model._run_solver_snapshot("static")
     np.testing.assert_allclose(elastic["displacement"], reference["displacement"], atol=1e-12)
     assert "section_response" not in elastic
-    modal = model.run("modal")
+    modal = model._run_solver_snapshot("modal")
     np.testing.assert_allclose(modal["frequencies"], reference_modal["frequencies"], rtol=1e-12)

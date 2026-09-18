@@ -77,7 +77,7 @@ def test_real_jr_failure_restores_last_commit_and_fresh_run():
     m = python_axial(30)
     m.analysis_params["load_factors"] = [0.4, 1]
     with pytest.raises(RuntimeError, match="converge") as failure:
-        m.run()
+        m._run_solver_snapshot()
     assert failure.value.step == 2
     assert m.results is None
 
@@ -91,8 +91,8 @@ def test_real_jr_failure_restores_last_commit_and_fresh_run():
     m.boundary.loads.clear()
     m.add_load(30, fx=12)
     m.analysis_params.pop("load_factors")
-    assert_axial(m.run())
+    assert_axial(m._run_solver_snapshot())
     m.analysis_params["max_iterations"] = 1
     with pytest.raises(RuntimeError):
-        m.run()
+        m._run_solver_snapshot()
     assert m.results is None

@@ -11,7 +11,6 @@ import base64
 import binascii
 import gzip
 import zlib
-import numpy as np
 # functions_framework may import symbols not available in some local Python/site-packages
 # (for example when package expects a newer Python stdlib). Import defensively and
 # provide a minimal stub that implements the decorator used below so local
@@ -30,17 +29,11 @@ except Exception:
     functions_framework = _StubFunctionsFramework()
 from flask import Flask, request
 from app.error_handling import MyError, MyCritical
-from fem.model import FemModel
-from fem.file_io import _read_json_model, read_model
-from fem.file_io import result_to_jsonable
+from fem.analysis_result_sets import build_analysis_result_set
 from fem.diagnostics import InputValidationError, diagnostic_payload
-from fem.legacy_results import solve_legacy_cases
+from fem.model import FemModel  # Public import retained for embedding clients.
 from fem.nonlinear.nonlinear_solver import NonlinearConvergenceError
-from werkzeug.exceptions import BadRequest, NotAcceptable, UnsupportedMediaType
-
-
-LEGACY_CASES_MEDIA_TYPE = "application/vnd.frameweb.legacy-cases-v1+json"
-LEGACY_CASES_MEDIA_TYPE_PREFIX = "application/vnd.frameweb.legacy-cases-"
+from werkzeug.exceptions import BadRequest, UnsupportedMediaType
 
 # Flaskアプリの作成
 app = Flask(__name__)
@@ -102,35 +95,21 @@ def FEMPython(request):
 
     # region メイン計算の実行部
     try:
-        legacy_cases_requested = _legacy_cases_requested(request.headers.get("Accept"))
-
         # 入力データの取得（圧縮されている場合は解凍）
         if encoding == "json":
             inputJson: dict = request.get_json()
         else:  # 圧縮されている場合
             inputJson: dict = Compressor.decompress(request.data)
 
-        if legacy_cases_requested:
-            result = solve_legacy_cases(inputJson)
-            success_headers = {
-                **headers,
-                "Content-Type": f"{LEGACY_CASES_MEDIA_TYPE}; charset=utf-8",
-            }
-        else:
-            # FemModelで解析実行
-            model_data = _read_json_model(inputJson)
-            fem_model = FemModel()
-            fem_model.read_json_model(model_data)
-            result = fem_model.run()
-            success_headers = headers
+        result = build_analysis_result_set(inputJson)
 
          # 結果を返送する
-        resultStr: str = json.dumps(result_to_jsonable(result), allow_nan=False)
+        resultStr: str = json.dumps(result, allow_nan=False)
         if encoding == "json":
             response = resultStr
         else:  # 圧縮する場合
             response = Compressor.compress(resultStr)
-        return (response, 200, success_headers)
+        return (response, 200, headers)
     
     # 以下、エラー処理
     except MyCritical as e:  # システム起因と思われる例外
@@ -144,9 +123,6 @@ def FEMPython(request):
     except (BadRequest, UnsupportedMediaType) as e:
         payload, status = diagnostic_payload(InputValidationError(str(e)))
         return (json.dumps(payload, ensure_ascii=False), status, headers)
-    except NotAcceptable as e:
-        payload, _ = diagnostic_payload(InputValidationError(e.description))
-        return (json.dumps(payload, ensure_ascii=False), e.code, headers)
     except Exception as e:  # その他の予期せぬエラー
         payload, status = diagnostic_payload(e)
         return (json.dumps(payload, ensure_ascii=False), status, headers)
@@ -155,25 +131,6 @@ def FEMPython(request):
 
 # Compatibility name used by earlier functions-framework deployments.
 FrameWeb3 = FEMPython
-
-
-def _legacy_cases_requested(accept_header: str | None) -> bool:
-    """Select only the explicit v1 media type and reject unknown legacy versions."""
-    if not accept_header:
-        return False
-    media_types = [
-        item.partition(";")[0].strip().lower()
-        for item in accept_header.split(",")
-    ]
-    unknown = [
-        media_type
-        for media_type in media_types
-        if media_type.startswith(LEGACY_CASES_MEDIA_TYPE_PREFIX)
-        and media_type != LEGACY_CASES_MEDIA_TYPE
-    ]
-    if unknown:
-        raise NotAcceptable(f"Unsupported result representation: {unknown[0]}")
-    return LEGACY_CASES_MEDIA_TYPE in media_types
 
 # JSON整数配列と旧ブラウザーの十進CSVを安全に扱う圧縮互換層
 class Compressor():

@@ -5,6 +5,14 @@ import json
 import numpy as np
 import pytest
 
+from tests.integration._canonical_results import (
+    assert_step_diagnostics,
+    assert_uniform_result,
+    load_step_results,
+    member_results,
+    node_components,
+    reaction_components,
+)
 from tests.support.builders.nonlinear_reference import (
     DISP,
     FORCE,
@@ -17,6 +25,47 @@ from tests.support.oracles.uniform_beam import assert_uniform
 pytestmark = pytest.mark.integration
 
 
+def _snapshots(result, route):
+    return load_step_results(result) if route == "http" else result["step_results"]
+
+
+def _latest(result, route):
+    return _snapshots(result, route)[-1] if route == "http" else result
+
+
+def _node_displacements(result, route):
+    return node_components(result) if route == "http" else result["node_displacements"]
+
+
+def _reaction_forces(result, route):
+    return reaction_components(result) if route == "http" else result["reaction_forces"]
+
+
+def _raw_end_force(result, member_id, end):
+    values = member_results(result)[str(member_id)]["segments"][0][end]
+    vector = np.array([values[name] for name in FORCE])
+    if end == "i_end":
+        vector[[0, 3, 4]] *= -1
+    else:
+        vector[[1, 2, 5]] *= -1
+    return vector
+
+
+def _element_end_force(result, route, member_id, end):
+    if route == "http":
+        return _raw_end_force(result, member_id, end)
+    return np.asarray(result["element_stresses"][str(member_id)][end])
+
+
+def _assert_uniform_route(result, route, mode, member_count, force, deformation):
+    if route == "http":
+        snapshot = load_step_results(result)[-1]
+        assert_uniform_result(snapshot, mode, member_count, force, deformation)
+        assert_step_diagnostics(snapshot)
+        return
+    assert_uniform(result, mode, member_count, force, deformation)
+
+
 @pytest.mark.material_nonlinear
 @pytest.mark.parametrize("route", ["python", "json", "http"])
 @pytest.mark.parametrize("mode", MODES)
@@ -25,7 +74,7 @@ pytestmark = pytest.mark.integration
     "p,e,asymmetric", [(5, 0.0005, False), (12, 0.002, False), (-16, -0.004, True), (18, 0.006, False)]
 )
 def test_uniform_modes_independent_inverse_skeleton(route, mode, n, p, e, asymmetric):
-    assert_uniform(solve(configuration(mode, n, p, asymmetric), route), mode, n, p, e)
+    _assert_uniform_route(solve(configuration(mode, n, p, asymmetric), route), route, mode, n, p, e)
 
 
 @pytest.mark.material_nonlinear
@@ -72,14 +121,23 @@ def test_cyclic_polygon_residual_deformation_and_work(route, mode, control, asym
         factors = (strains / 0.001).tolist()
     d["analysis_params"] = {"load_factors": factors}
     r = solve(d, route)
-    assert len(r["step_results"]) == len(strains)
+    steps = _snapshots(r, route)
+    assert len(steps) == len(strains)
     observed_e, observed_p = [], []
-    for step, e, p in zip(r["step_results"], strains, forces):
-        assert_uniform(
-            dict(step, convergence_history=r["convergence_history"], step_results=[step]), mode, 1, p, e
-        )
-        observed_e.append(step["node_displacements"]["30"][MODES[mode][2]] / 2)
-        observed_p.append(step["element_stresses"]["7"]["j_end"][MODES[mode][0]])
+    for step, e, p in zip(steps, strains, forces):
+        if route == "http":
+            assert_uniform_result(step, mode, 1, p, e)
+            assert_step_diagnostics(step)
+        else:
+            assert_uniform(
+                dict(step, convergence_history=r["convergence_history"], step_results=[step]),
+                mode,
+                1,
+                p,
+                e,
+            )
+        observed_e.append(_node_displacements(step, route)["30"][MODES[mode][2]] / 2)
+        observed_p.append(_element_end_force(step, route, 7, "j_end")[MODES[mode][0]])
     # Closed deformation-force loop +2 -> ... -> +2. No claim that all internal
     # history variables return to initial values; signed external work is tested.
     start = 2 * subdivisions
@@ -98,12 +156,13 @@ def test_public_spring_api_participates_in_equilibrium(route):
     # .004 displacement -> N=12, spring=2000*.004=8, total=20.
     d["boundary_conditions"] = {"spring_supports": {"30": {"x": 2000}}}
     r = solve(d, route)
-    assert r["node_displacements"]["30"]["dx"] == pytest.approx(0.004, abs=1e-10)
-    assert r["reaction_forces"]["10"]["fx"] == pytest.approx(-12, abs=1e-8)
-    assert r["reaction_forces"]["30"]["fx"] == pytest.approx(-8, abs=1e-8)
-    assert r["reaction_forces"]["10"]["fx"] + r["reaction_forces"]["30"]["fx"] + 20 == pytest.approx(
-        0, abs=1e-8
-    )
+    result = _latest(r, route)
+    displacements = _node_displacements(result, route)
+    reactions = _reaction_forces(result, route)
+    assert displacements["30"]["dx"] == pytest.approx(0.004, abs=1e-10)
+    assert reactions["10"]["fx"] == pytest.approx(-12, abs=1e-8)
+    assert reactions["30"]["fx"] == pytest.approx(-8, abs=1e-8)
+    assert reactions["10"]["fx"] + reactions["30"]["fx"] + 20 == pytest.approx(0, abs=1e-8)
 
 
 @pytest.mark.material_nonlinear
@@ -174,15 +233,23 @@ def test_nested_reversal_and_damage_independent_polygon(route, mode, control, be
     r = solve(d, route)
     observed = []
     max_errors = dict(displacement=0.0, end_force=0.0, reaction=0.0)
-    for step, (e, p) in zip(r["step_results"], path):
-        errors = assert_uniform(
-            dict(step, convergence_history=r["convergence_history"], step_results=[step]), mode, 1, p, e
-        )
-        max_errors = {key: max(value, errors[key]) for key, value in max_errors.items()}
+    for step, (e, p) in zip(_snapshots(r, route), path):
+        if route == "http":
+            assert_uniform_result(step, mode, 1, p, e)
+            assert_step_diagnostics(step)
+        else:
+            errors = assert_uniform(
+                dict(step, convergence_history=r["convergence_history"], step_results=[step]),
+                mode,
+                1,
+                p,
+                e,
+            )
+            max_errors = {key: max(value, errors[key]) for key, value in max_errors.items()}
         observed.append(
             (
-                step["node_displacements"]["30"][MODES[mode][2]] / 2,
-                step["element_stresses"]["7"]["j_end"][MODES[mode][0]],
+                _node_displacements(step, route)["30"][MODES[mode][2]] / 2,
+                _element_end_force(step, route, 7, "j_end")[MODES[mode][0]],
             )
         )
     observed = np.array(observed)
@@ -212,14 +279,15 @@ def test_elastic_cantilever_force_moment_balance(route, direction):
     d = configuration("moment_z" if direction == "ty" else "moment_y", force=0)
     d["load"]["1"]["load_node"] = [dict(n=30, **{direction: 1})]
     r = solve(d, route)
+    result = _latest(r, route)
     # E I=10000, G k A=4000*5/6, L=2.
     v = 8 / 30000 + 2 / (4000 * 5 / 6)
-    disp = r["node_displacements"]["30"]
+    disp = _node_displacements(result, route)["30"]
     assert disp["dy" if direction == "ty" else "dz"] == pytest.approx(v, abs=1e-10)
     assert disp["rz" if direction == "ty" else "ry"] == pytest.approx(
         (1 if direction == "ty" else -1) * 0.0002, abs=1e-10
     )
-    fixed = r["reaction_forces"]["10"]
+    fixed = _reaction_forces(result, route)["10"]
     assert fixed["fy" if direction == "ty" else "fz"] == pytest.approx(-1, abs=1e-10)
     assert fixed["mz" if direction == "ty" else "my"] == pytest.approx(
         -2 if direction == "ty" else 2, abs=1e-10
@@ -233,7 +301,7 @@ def test_explicit_G_elastic_torsion(route):
     d["element"]["1"]["1"]["G"] = 2500
     nl = d["element"]["1"]["1"]["nonlinear"]
     nl.update(P_1=2.5, P_2=4, P_3=5.5)
-    assert_uniform(solve(d, route), "torsion", 1, 1, 1 / 2500)
+    _assert_uniform_route(solve(d, route), route, "torsion", 1, 1, 1 / 2500)
 
 
 @pytest.mark.material_nonlinear
@@ -243,14 +311,17 @@ def test_two_members_with_intermediate_load_have_independent_equilibrium(route):
     d["node"]["30"]["x"] = 0.5
     d["load"]["1"]["load_node"].append(dict(n=30, tx=4))
     r = solve(d, route)
-    assert r["node_displacements"]["30"]["dx"] == pytest.approx(0.5 * 0.004, abs=1e-10)
-    assert r["node_displacements"]["50"]["dx"] == pytest.approx(0.5 * 0.004 + 1.5 * 0.002, abs=1e-10)
-    assert r["reaction_forces"]["10"]["fx"] == pytest.approx(-16, abs=1e-9)
-    assert r["element_stresses"]["7"]["j_end"][0] == pytest.approx(16, abs=1e-9)
-    assert r["element_stresses"]["8"]["i_end"][0] == pytest.approx(-12, abs=1e-9)
-    assert r["element_stresses"]["7"]["j_end"][0] + r["element_stresses"]["8"]["i_end"][
-        0
-    ] - 4 == pytest.approx(0, abs=1e-9)
+    result = _latest(r, route)
+    displacements = _node_displacements(result, route)
+    reactions = _reaction_forces(result, route)
+    force_7 = _element_end_force(result, route, 7, "j_end")[0]
+    force_8 = _element_end_force(result, route, 8, "i_end")[0]
+    assert displacements["30"]["dx"] == pytest.approx(0.5 * 0.004, abs=1e-10)
+    assert displacements["50"]["dx"] == pytest.approx(0.5 * 0.004 + 1.5 * 0.002, abs=1e-10)
+    assert reactions["10"]["fx"] == pytest.approx(-16, abs=1e-9)
+    assert force_7 == pytest.approx(16, abs=1e-9)
+    assert force_8 == pytest.approx(-12, abs=1e-9)
+    assert force_7 + force_8 - 4 == pytest.approx(0, abs=1e-9)
 
 
 @pytest.mark.material_nonlinear
@@ -274,6 +345,7 @@ def test_rotated_member_global_displacements_and_equilibrium(mode, route, vertic
         dict(n=30, **dict(zip(("tx", "ty", "tz", "rx", "ry", "rz"), global_force)))
     ]
     r = solve(d, route)
+    result = _latest(r, route)
     local_u = np.zeros(6)
     local_u[MODES[mode][0]] = 0.004
     if mode == "moment_y":
@@ -281,12 +353,14 @@ def test_rotated_member_global_displacements_and_equilibrium(mode, route, vertic
     if mode == "moment_z":
         local_u[1] = 0.004
     expected_u = np.r_[q @ local_u[:3], q @ local_u[3:]]
-    np.testing.assert_allclose([r["node_displacements"]["30"][k] for k in DISP], expected_u, atol=1e-10)
-    reaction = np.array([r["reaction_forces"]["10"][k] for k in FORCE])
+    displacements = _node_displacements(result, route)
+    reactions = _reaction_forces(result, route)
+    np.testing.assert_allclose([displacements["30"][k] for k in DISP], expected_u, atol=1e-10)
+    reaction = np.array([reactions["10"][k] for k in FORCE])
     np.testing.assert_allclose(reaction, -global_force, atol=1e-8)
     np.testing.assert_allclose(reaction[:3] + global_force[:3], 0, atol=1e-8)
     np.testing.assert_allclose(
         reaction[3:] + global_force[3:] + np.cross(q @ [2, 0, 0], global_force[:3]), 0, atol=1e-8
     )
-    np.testing.assert_allclose(r["element_stresses"]["7"]["j_end"], force, atol=1e-8)
-    np.testing.assert_allclose(r["element_stresses"]["7"]["i_end"], -force, atol=1e-8)
+    np.testing.assert_allclose(_element_end_force(result, route, 7, "j_end"), force, atol=1e-8)
+    np.testing.assert_allclose(_element_end_force(result, route, 7, "i_end"), -force, atol=1e-8)

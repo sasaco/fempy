@@ -8,7 +8,9 @@ import json
 import numpy as np
 import pytest
 
+from fem.analysis_result_sets import build_analysis_result_set
 from fem.model import FemModel
+from fem.result_contracts import validate_analysis_result_set
 from fem.spatial_loads import (
     LoadDirection, LocalPlane, SpatialLoad, SpatialLoadDefinitions,
     SpatialLoadMeshNode, SpatialLoadPath,
@@ -47,14 +49,14 @@ def general_model(shell, area, fixed, normal):
 @pytest.mark.parametrize('normal', [False, True])
 def test_public_general_plane_matches_independent_nodal_loads_all_outputs(shell, area, fixed, normal):
     model, direction = general_model(shell, area, fixed, normal)
-    result = model.run()
+    result = model._run_solver_snapshot()
     expected, _ = general_model(shell, area, fixed, normal)
     expected.set_spatial_loads(SpatialLoadDefinitions())
     values = square_strip_loads(shell=shell, area=area)
     forces = values[:, None] * direction
     for node, f in zip(model.mesh.nodes, forces):
         expected.add_load(node, fx=f[0], fy=f[1], fz=f[2])
-    direct = expected.run()
+    direct = expected._run_solver_snapshot()
     for key in ('node_displacements', 'reaction_forces', 'element_stresses', 'shell_results', 'legacy_shell_results'):
         if key in direct:
             assert_dict_almost_equal(wire(result[key]), wire(direct[key]))
@@ -70,14 +72,14 @@ def test_public_general_plane_matches_independent_nodal_loads_all_outputs(shell,
             equilibrium = np.array(result['element_nodal_equilibrium_forces'][1]['forces'])
             np.testing.assert_allclose(equilibrium[:, :3], -forces, atol=1e-11)
             np.testing.assert_allclose(equilibrium[:, 3:], 0, atol=1e-11)
-    assert_dict_almost_equal(wire(model.run()), wire(result))
+    assert_dict_almost_equal(wire(model._run_solver_snapshot()), wire(result))
 
 
 @pytest.mark.parametrize('normal', [False, True])
 @pytest.mark.parametrize('shell', [False, True])
 def test_general_plane_python_dictionary_file_plain_compressed_http_and_retry(tmp_path, normal, shell):
     model, _ = general_model(shell, True, False, normal)
-    expected = model.run()
+    expected = model._run_solver_snapshot()
     path = tmp_path / 'general.json'
     model.save_model(str(path))
     payload = json.loads(path.read_text(encoding='utf8'))
@@ -85,7 +87,7 @@ def test_general_plane_python_dictionary_file_plain_compressed_http_and_retry(tm
     restored = FemModel()
     restored.load_model(str(path))
     assert restored.boundary.spatial_loads == model.boundary.spatial_loads
-    results = [restored.run(), json_model(payload).run()]
+    results = [restored._run_solver_snapshot(), json_model(payload)._run_solver_snapshot()]
     client = app.test_client()
     invalid = deepcopy(payload)
     invalid['spatial_loads']['panels'][0]['plane']['origin'][0] += 1
@@ -94,11 +96,15 @@ def test_general_plane_python_dictionary_file_plain_compressed_http_and_retry(tm
     assert 'panel 7' in response.get_data(as_text=True)
     response = client.post('/', json=payload)
     assert response.status_code == 200, response.get_data(as_text=True)
-    results.append(response.get_json())
+    public_result = response.get_json()
+    validate_analysis_result_set(public_result)
+    assert public_result == build_analysis_result_set(payload)
     packed = base64.b64encode(json.dumps(list(gzip.compress(json.dumps(payload).encode()))).encode())
     response = client.post('/', data=packed, headers={'Content-Encoding': 'gzip'})
     assert response.status_code == 200
-    results.append(json.loads(gzip.decompress(base64.b64decode(response.data))))
+    compressed_result = json.loads(gzip.decompress(base64.b64decode(response.data)))
+    validate_analysis_result_set(compressed_result)
+    assert compressed_result == public_result
     def comparable(result):
         value = wire(result)
         value['metadata']['input_sha256'] = '<route-specific>'
@@ -119,7 +125,7 @@ def test_independent_loading_mesh_runs_public_static_and_roundtrips_http(tmp_pat
              SpatialLoadPath(2, ((.25, 1.75, 0), (1.75, 1.75, 0))))
     model.set_spatial_loads(SpatialLoadDefinitions(
         (panel,), paths, (SpatialLoad(9, 7, (1, 2), ((2, 2), (2, 2))),)))
-    result = model.run()
+    result = model._run_solver_snapshot()
     np.testing.assert_allclose(result['spatial_load_contribution']['resultant'], [0, 0, 4.5], atol=1e-12)
     equilibrium = np.array(result['element_nodal_equilibrium_forces'][1]['forces'])
     np.testing.assert_allclose(equilibrium[:, 2], -1.125, atol=1e-12)
@@ -129,6 +135,5 @@ def test_independent_loading_mesh_runs_public_static_and_roundtrips_http(tmp_pat
     response = app.test_client().post('/', json=json.loads(path.read_text(encoding='utf8')))
     assert response.status_code == 200, response.get_data(as_text=True)
     actual = response.get_json()
-    for value in (result, actual):
-        value['metadata']['input_sha256'] = '<route-specific>'
-    assert_dict_almost_equal(wire(actual), wire(result))
+    validate_analysis_result_set(actual)
+    assert actual == build_analysis_result_set(json.loads(path.read_text(encoding='utf8')))

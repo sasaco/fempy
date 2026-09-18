@@ -26,7 +26,7 @@ def test_parallel_beam_support_balance_both_controls(direction, kb):
     expected = kb*np.array(targets)+FORCES
     model = FemModel()
     model.read_json_model(_read_json_model(raw))
-    controlled = model.run()
+    controlled = model._run_solver_snapshot()
     assert controlled['analysis_type'] == 'material_nonlinear'
     force_name = {'x': 'fx', 'y': 'fy', 'z': 'fz', 'rx': 'mx', 'ry': 'my', 'rz': 'mz'}[direction]
     index = ['x', 'y', 'z', 'rx', 'ry', 'rz'].index(direction)
@@ -38,7 +38,7 @@ def test_parallel_beam_support_balance_both_controls(direction, kb):
         assert step['element_stresses'][5]['j_end'][index] == pytest.approx(kb*target, abs=1e-9)
     raw['analysis_params'] = {'load_factors': expected.tolist(), 'tolerance': 1e-10}
     model.read_json_model(_read_json_model(raw))
-    loaded = model.run()
+    loaded = model._run_solver_snapshot()
     np.testing.assert_allclose([s['displacement'][6+index] for s in loaded['step_results']], targets, atol=1e-12)
     assert loaded['support_response'][30][direction]['force'] == pytest.approx(13.)
     assert loaded['metadata']['solver']['relative_residual'] < 1e-10
@@ -201,5 +201,5 @@ def test_support_capability_and_result_metadata_describe_the_law():
     assert capability['directions'] == ['x', 'y', 'z', 'rx', 'ry', 'rz']
     model = FemModel()
     model.read_json_model(_read_json_model(slip_model_data()))
-    result = model.run()
+    result = model._run_solver_snapshot()
     assert result['metadata']['analysis']['support_models'] == ['slip_v1']

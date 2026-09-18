@@ -84,11 +84,11 @@ def test_precise_snapshots_are_cleared_before_reusing_model():
     model, first = run(data)
     assert "precise_end_forces" in first
     model.boundary.add_load(2, [0, 3, 0, 0, 0, 0])
-    second = model.run()
+    second = model._run_solver_snapshot()
     assert second["node_displacements"][2]["dy"] == pytest.approx(0.004, abs=1e-12)
     assert second["element_stresses"][1]["i_end"][1] == pytest.approx(-6, abs=1e-10)
     model.read_json_model(_read_json_model(cantilever()))
-    ordinary = model.run()
+    ordinary = model._run_solver_snapshot()
     assert "precise_end_forces" not in ordinary
     assert ordinary["node_displacements"][2]["dy"] == pytest.approx(0.002, abs=1e-12)
 
@@ -162,7 +162,7 @@ def test_public_axial_force_survives_prescribed_rigid_translation(direction):
     m = FemModel()
     m.read_json_model(_read_json_model(data))
     m.add_forced_displacement(1, dx=0.75, dy=0.5, dz=0.25)
-    result = m.run()
+    result = m._run_solver_snapshot()
     raw = result["constitutive_element_stresses"][1]
     assert raw["j_end"][0] == pytest.approx(1e-8, rel=1e-8, abs=1e-16)
     assert np.any(result["displacement_correction"])
@@ -178,7 +178,7 @@ def test_short_segment_sample_reaches_constitutive_equilibrium(case):
     )
     m = FemModel()
     m.read_json_model(_read_json_model(select_case(data, case)))
-    result = m.run()
+    result = m._run_solver_snapshot()
     # No embedded legacy numbers: independently require nodal equilibrium
     # of the unmodified constitutive forces, before free-branch recovery.
     force = np.zeros_like(result["displacement"])

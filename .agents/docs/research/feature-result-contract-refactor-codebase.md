@@ -1,5 +1,7 @@
 # Result Contract Refactor — Codebase Scan
 
+> **Status: SUPERSEDED DESIGN RECOMMENDATION — current-state evidence only.** The compatibility-first recommendations, contract names, media types, and phased migration below predate the approved pre-release direction and must not be implemented. The normative direction is [the AnalysisResultSet-only plan](../plans/result-contract-refactor.md), [the v1 output contract](analysis-result-set-v1-contract.md), and [DESIGN.md](../DESIGN.md): one `AnalysisResultSet` success root, no `FrameResultSet` or `legacy-cases-v1`, no flat public result response, no compatibility adapter, accepted nonlinear steps as sibling results, and deletion of post-solve `rate` without replacement. This file remains only as a record of discovered current code paths and dependencies.
+
 ## Scope
 
 本調査は、解析結果を時間軸の「旧／新」で呼び分けず、次の独立した契約へ分離するための現状確認である。

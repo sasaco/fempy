@@ -32,7 +32,7 @@ def test_linear_shell_solid_and_beam_mix(kind, kb, with_beam):
         kb += 3000.
     model = FemModel()
     model.read_json_model(_read_json_model(raw))
-    result = model.run()
+    result = model._run_solver_snapshot()
     assert model.solver.layout.stride == stride
     assert [s['lambda'] for s in result['step_results']] == pytest.approx(kb*np.array([.03, .024, .01])+[12, 6, 0])
     assert result['reaction_forces'][30]['fx'] == pytest.approx(0., abs=1e-9)
@@ -51,7 +51,7 @@ def test_jr_axial_beam_and_slip_support_use_independent_histories():
     model = python_axial(force=1)
     model.add_slip_spring_support(30, 'x', 1000, 100, .001)
     model.analysis_params['displacement_control'] = dict(node=30, dof='dx', targets=[.001, .004, .012])
-    result = model.run()
+    result = model._run_solver_snapshot()
     # JR N(.0005,.002,.006) = 5,12,18. Slip F(.001,.004,.012) = 1,1.3,2.1.
     assert [s['lambda'] for s in result['step_results']] == pytest.approx([6, 13.3, 20.1])
     assert result['element_stresses'][7]['j_end'][0] == pytest.approx(18)

@@ -2,192 +2,157 @@
 
 [Wikiホーム](index.md) · [モデルの入力](data-structures.md) · [結果の読み方](results.md) · [エラーと対処](error-handling.md)
 
-HTTP APIは、Pythonの`FemModel`と同じ解析経路を使います。1回のPOSTで1つの荷重条件を解析し、結果をJSONで返します。
+計算APIの成功応答は、解析種別やケース数にかかわらず `AnalysisResultSet v1` の一形式だけです。結果表現を選ぶ `Accept` ヘッダー、vendor media type、旧case map、flat結果はありません。
 
 ## ローカルサーバーの起動
 
-リポジトリ直下で次を実行します。[環境の準備](getting-started.md)が済んでいることを確認してください。
+リポジトリ直下で次を実行します。
 
 ```console
-uv run --locked --extra dev python -m flask --app main:app run --host 127.0.0.1 --port 5000
+uv --directory FrameWeb run --locked --extra dev python -m flask --app main:app run --host 127.0.0.1 --port 5000
 ```
-
-別のターミナルから、以降のクライアント例を実行します。例ではPython標準ライブラリを使うため、追加のHTTPクライアントライブラリは不要です。
 
 ## エンドポイント
 
 | メソッド・パス | 応答 | 用途 |
 |---|---|---|
-| `POST /` | 成功時200と解析結果 | モデルを解析する |
-| `GET /` | 200、`{"results": "Hello World!"}` | HTTP経路の疎通確認。解析の健全性・バージョンを返す機能ではない |
-| `OPTIONS /` | 204、空ボディ | CORSのプリフライト |
+| `POST /` | 成功時200、`application/json; charset=utf-8` | モデルを解析する |
+| `GET /` | 200、`{"results": "Hello World!"}` | HTTP経路の疎通確認 |
+| `OPTIONS /` | 204、空ボディ | CORSプリフライト |
 
-通常のPOSTは`Content-Type: application/json`にします。`Content-Encoding`は省略するか`json`を指定します。
-
-CORSは`Access-Control-Allow-Origin: *`で、プリフライトではGET・POSTと、Content-Type・Content-Encoding・Authorizationなどのヘッダーを許可します。認証・レート制限はこのアプリ内には実装されておらず、Authorizationヘッダーを送るだけで認証処理が行われるわけではありません。
+通常のPOSTは `Content-Type: application/json` にします。`Accept` は成功形式を変更しません。
 
 ## 通常JSONで解析する
 
-[はじめに](getting-started.md)の`beam.json`をクライアントの作業ディレクトリへ保存して実行します。
-
-<!-- run: http-json -->
 ```python
 import json
 from pathlib import Path
-from math import isclose
 from urllib.request import Request, urlopen
 
-url = "http://localhost:5000/"
 model_data = json.loads(Path("beam.json").read_text(encoding="utf-8"))
-request = Request(url, data=json.dumps(model_data).encode("utf-8"),
-                  headers={"Content-Type": "application/json"}, method="POST")
+request = Request(
+    "http://localhost:5000/",
+    data=json.dumps(model_data).encode("utf-8"),
+    headers={"Content-Type": "application/json"},
+    method="POST",
+)
 with urlopen(request, timeout=30) as response:
-    result = json.load(response)
+    result_set = json.load(response)
 
-assert result["analysis_type"] == "static"
-assert isclose(result["node_displacements"]["2"]["dy"], -1/750, rel_tol=1e-8)
-print("先端変位 [m]:", result["node_displacements"]["2"]["dy"])
-print("支点反力:", result["reaction_forces"]["1"])
+assert result_set["kind"] == "analysis_result_set"
+assert result_set["schema_version"] == "1.0"
+first = result_set["results"][0]
+tip = next(row for row in first["node_displacements"] if row["node_id"] == "2")
+print("先端変位:", tip["components"])
 ```
 
-### 入力と解析モード
+## 入力ケースの扱い
 
-POSTは編集用`node/member/element`形式と、保存用`nodes/elements/materials`形式の両方を受け付けます。ファイル名や `.fem` ファイルそのものをPOSTする仕様ではありません。
+- 既存の編集用 `node/member/load` 入力では、非空の `load` mapの全entryを挿入順に解析します。上限は256ケースです。
+- 各legacy caseは独立したモデルで解析します。`case_id` は元のmap keyの文字列表現です。
+- `name` と `symbol` はcase内の非空文字列を使い、なければ個別に `case_id` へフォールバックします。
+- top-level `analysis_type`、caseの `analysis_type`、モデル推論の順で解析種別を決めます。
+- 解析parameterは既定値、case値、top-level `analysis_params` の順で上書きします。
+- 既存の保存用 `nodes/elements` 入力は、従来どおり単一ケースです。case ID・名前・symbolはいずれも `"1"` です。
+- case内の `rate` は結果を乗算しません。倍率を変える場合は入力荷重値、材料非線形の載荷経路には `load_factors` を使います。
 
-`analysis_type`を省略したときは、入力内の指定と非線形要素の有無から解析を選びます。詳しくは[解析の選び方](elements.md)を参照してください。`load_factors`は材料非線形の載荷係数です。
+ケース途中で入力・解析・結果投影が失敗した場合、途中までの結果は返しません。
 
-編集用JSONの`load`に複数ケースがある場合は、先頭のケースだけを解析します。結果に荷重ケース名の階層は付きません。全ケースの処理は[ケースごとの実行例](examples.md)と同様に、クライアント側で1ケースずつ送ります。
+### 解析作業量の上限
 
-### 成功時の結果
+同期APIのCPU・メモリ使用量を制限するため、モデルを生成する前に全caseの解析設定を検査します。
 
-線形解析では`analysis_type`、`node_displacements`、`reaction_forces`、`element_stresses`などを返します。非線形解析では`converged`、`step_results`、`curvature`、`convergence_history`が加わります。固有値解析では`frequencies`、`periods`、`modes`などになります。すべての成功結果に、製品version、入力SHA-256、解析条件、座標・単位宣言、残差、反復数、警告、高精度経路をまとめた`metadata`が付きます。
+| 対象 | 上限 |
+|---|---:|
+| 1 caseの非線形step数 | 1,000 |
+| 1 stepの最大反復回数 (`max_iterations`) | 1,000 |
+| request全体の結果state見積数 | 10,000 |
+| request全体の非線形反復見積数 | 500,000 |
 
-JSONのIDは文字列です。`case1.disg/reac/fsec`を返す旧説明とは異なります。単位・符号・任意項目は[結果の読み方](results.md)を参照してください。
+非線形step数は、`load_factors`指定時は配列長、変位制御で`targets`を指定した場合はその配列長、それ以外は`n_load_steps`です。request全体の非線形反復見積数は各caseの「step数 × `max_iterations`」の合計です。modal解析では`n_modes`を結果state数として数えます。解析種別を省略した入力はモデル生成後にstaticまたはmaterial nonlinearへ推論するため、事前検査では非線形の見積りを予約します。
 
-### FrameWebforJS用の全ケース互換表現
+上限値そのものは受理され、超過はHTTP 400 `invalid_input`です。`details`には超過を確定した`case_id`、`budget`、`requested`、`limit`が入ります。legacy入力ではcase値にtop-level `analysis_params`を上書きした実効設定を使用します。
 
-通常のPOSTは上記のflat結果を返します。FrameWebforJSが旧版と同じ全荷重ケース結果を必要とする場合だけ、次の`Accept`を明示します。
+## 成功応答
 
-```http
-Accept: application/vnd.frameweb.legacy-cases-v1+json
-```
-
-この表現は、非空の`node`・`member`・`load`を持ち、shell/solid要素を含まない旧beam入力専用です。1 requestで受理する荷重ケースは最大256件で、257件以上は解析を開始する前に400 `invalid_input`で拒否します。`nodes`を使う現行入力、shell/solid入力、空の荷重ケース集合も400で拒否します。未対応の`application/vnd.frameweb.legacy-cases-*` versionは、通常のflat結果へフォールバックせず406を返します。
-
-成功時は元の`load`キーを入力順に保持したcase mapを返します。各caseは独立したモデルで解析され、値は次の5項目だけです。
+ルートは常に次の7項目です。詳細は[結果の読み方](results.md)を参照してください。
 
 ```json
 {
-  "1": {
-    "disg": {},
-    "reac": {},
-    "fsec": {},
-    "shell_fsec": {},
-    "size": 0
-  }
+  "kind": "analysis_result_set",
+  "schema_version": "1.0",
+  "units": {
+    "system": "consistent_user_defined",
+    "length": "unspecified",
+    "force": "unspecified",
+    "mass": "unspecified",
+    "time": "unspecified"
+  },
+  "coordinate_system": {
+    "name": "global_cartesian",
+    "handedness": "right",
+    "axes": ["x", "y", "z"]
+  },
+  "cases": [],
+  "topology": {
+    "nodes": [],
+    "members": [],
+    "shell_elements": [],
+    "solid_elements": []
+  },
+  "results": []
 }
 ```
 
-- `disg`: 変位・回転の`dx,dy,dz,rx,ry,rz`。単位はm/radで、caseの`rate`を解析後に1回適用します。
-- `reac`: `tx,ty,tz,mx,my,mz`を常に持つ支点反力。2Dの補助拘束は出力せず、`tz,mx,my`は0です。
-- `fsec`: 元部材のi端からj端へ`P1..Pn`でまとめた梁断面力です。力はkN、モーメントはkNm、`L`はmで、`L`に`rate`は適用しません。
-- `shell_fsec`: beam-onlyのv1では常に空objectです。shell入力そのものを受理する意味ではありません。
-- `size`: 全caseの荷重点を使って分割した解析meshの節点数です。`rate`は適用しません。
+`cases` は入力順、`results` はcase-majorかつstate index昇順です。静解析はcaseごとに1件、材料非線形は収束したload stepごとに1件、modalはmodeごとに1件です。すべての数値は有限値で、ID・参照・topology coverageを満たします。
 
-どれか1caseでも選択・解析・投影に失敗した場合、途中までのcase mapは返さず、request全体を既存の診断JSONで失敗させます。この`Accept`による結果表現の選択は、次節の`Content-Encoding`による転送形式とは独立です。
+## 圧縮転送
 
-## 互換用の圧縮転送
+圧縮は結果表現ではなく転送形式だけを変更します。通常JSONと圧縮要求は、復号後に同じ `AnalysisResultSet` を返します。
 
-通常のJSON送信から始めることを推奨します。既存クライアントとの互換用に圧縮経路もありますが、**標準HTTPのgzip転送とは異なり、要求と応答の包み方も非対称**です。
-
-| 方向 | 実際の形式 |
+| 方向 | 形式 |
 |---|---|
-| 要求（正規形式） | JSONをUTF-8化 → gzip → バイト値のJSON整数配列（`[31,139,...]`）→ Base64 |
-| 要求（互換形式） | JSONをUTF-8化 → gzip → バイト値の括弧なしCSV（`31,139,...`）→ Base64 |
-| 成功応答 | 結果JSONをUTF-8化 → gzip → Base64 |
-| エラー応答 | 通常のJSON。圧縮しない |
+| 要求（正規） | JSON UTF-8 → gzip → byte値のJSON整数配列 → Base64 |
+| 要求（旧ブラウザー互換） | JSON UTF-8 → gzip → 括弧なし10進CSV → Base64 |
+| 成功応答 | AnalysisResultSet JSON UTF-8 → gzip → Base64 |
+| エラー応答 | 通常JSON。圧縮しない |
 
-新しいクライアントはJSON整数配列を使う正規形式にしてください。括弧なしCSVは、既存のFrameWebforJSが送る形式との互換性のために受理します。この互換処理は`eval`を復活させるものではありません。ASCIIの数字とカンマからなる10進バイト値だけを厳格に解析し、Python式、空白、符号、少数、0～255の範囲外の値などは受理しません。
+要求に `Content-Encoding: gzip` または `gzip,base64` を付けます。旧CSV受理は入力transportだけの互換機能で、旧結果schemaは復活させません。`eval` は使わず、0～255の整数byteだけを受理します。
 
-要求に`Content-Encoding: gzip`または実FrameWebforJSが使う`Content-Encoding: gzip,base64`を付けると、現行ルーティングではこの圧縮経路に入ります。どちらのヘッダーでも要求本体は上記の二形式のいずれかである必要があります。`Base64(gzip(JSON))`だけの要求や、生のgzipバイト列は現行の要求形式ではありません。
-
-<!-- run: http-compressed -->
 ```python
 import base64
 import gzip
 import json
-from pathlib import Path
-from math import isclose
 from urllib.request import Request, urlopen
 
-url = "http://localhost:5000/"
-model_data = json.loads(Path("beam.json").read_text(encoding="utf-8"))
 compressed = gzip.compress(json.dumps(model_data).encode("utf-8"))
-request_body = base64.b64encode(json.dumps(list(compressed)).encode("utf-8"))
-request = Request(url, data=request_body, method="POST", headers={
-    "Content-Type": "application/json",
-    "Content-Encoding": "gzip",
-})
+body = base64.b64encode(json.dumps(list(compressed)).encode("utf-8"))
+request = Request(
+    "http://localhost:5000/",
+    data=body,
+    headers={"Content-Type": "application/json", "Content-Encoding": "gzip"},
+    method="POST",
+)
 with urlopen(request, timeout=30) as response:
-    result = json.loads(gzip.decompress(base64.b64decode(response.read())).decode("utf-8"))
-
-assert isclose(result["reaction_forces"]["1"]["fy"], 1000, rel_tol=1e-8)
-print(result["node_displacements"]["2"])
+    result_set = json.loads(
+        gzip.decompress(base64.b64decode(response.read())).decode("utf-8")
+    )
+assert result_set["kind"] == "analysis_result_set"
 ```
-
-圧縮の選択は要求の`Content-Encoding`によります。応答サイズによる自動切替や`Accept-Encoding`との交渉はありません。成功した圧縮応答には現在`Content-Encoding`が付かず、Content-TypeもJSONのままです。クライアントは自分が選んだ要求方式に合わせて復号します。
 
 ## エラー応答
 
-| HTTP | 代表的な`error_code` | 意味 |
+| HTTP | 代表的な `error_code` | 意味 |
 |---:|---|---|
-| 400 | `invalid_input` | JSON形式・値・参照などの問題 |
-| 400 | `unsupported_analysis` | 未知の解析種別 |
-| 422 | `unsupported_analysis` | 要素・荷重と解析種別の未対応組合せ |
+| 400 | `invalid_input` | JSON形式・値・参照・case数などの問題 |
+| 400/422 | `unsupported_analysis` | 未知または未対応の解析組合せ |
 | 422 | `structural_mechanism` | 剛体運動・特異剛性 |
 | 422 | `numerical_ill_conditioning` | 数値ランク・釣合い精度の問題 |
 | 422 | `nonlinear_nonconvergence` / `modal_nonconvergence` | 反復解法の未収束 |
-| 500 | `analysis_failure` | 分類できない線形代数・結果処理・内部例外 |
+| 500 | `analysis_failure` | 結果契約・投影を含む内部失敗 |
 
-エラーの共通項目は`error`、`error_code`、`error_category`、`converged: false`です。
-確定した節点・自由度・要素・失敗段階などがある場合だけ`details`が付きます。
-
-```json
-{
-  "error": "Nonlinear analysis did not converge at step 2 (load factor 0.5)",
-  "error_code": "nonlinear_nonconvergence",
-  "error_category": "convergence",
-  "converged": false,
-  "step": 2,
-  "load_factor": 0.5,
-  "details": {"step": 2, "load_factor": 0.5}
-}
-```
-
-Python標準の`urlopen()`は400・422・500で`HTTPError`を送出します。エラーのボディは、圧縮要求の場合でもJSONとして読みます。
-
-<!-- run: http-invalid-input -->
-```python
-import json
-from urllib.request import Request, urlopen
-from urllib.error import HTTPError
-
-request = Request("http://localhost:5000/", data=b"{}", method="POST",
-                  headers={"Content-Type": "application/json"})
-try:
-    with urlopen(request, timeout=30) as response:
-        raise AssertionError("空モデルは成功しないはずです")
-except HTTPError as error:
-    body = json.loads(error.read().decode("utf-8"))
-    assert error.code == 400
-    assert body["converged"] is False
-    print(error.code, body["error"])
-```
-
-特異な静解析モデルは`structural_mechanism`、非線形反復で同じ状態へ到達した場合は
-`nonlinear_nonconvergence`になることがあります。後者は反復中に機構の原因を確定できないためです。
-[エラーと対処](error-handling.md)の手順でモデル条件を確認してください。
+エラーJSONは `error`、`error_code`、`error_category`、`converged: false` を持ちます。特定できる場合は `details.case_id`、step、load factor等も付きます。失敗応答が成功schemaや部分的な `results` を含むことはありません。
 
 ## 運用上の挙動
 
-POSTは同期処理です。ジョブIDの発行、進捗取得、キャンセル用エンドポイントはありません。クライアントがタイムアウトしても、サーバー側で計算が停止したことを意味しません。環境の処理時間・メモリ制約は、ライブラリの固定上限とは別に確認してください。
+POSTは同期処理です。ジョブID、進捗取得、キャンセルendpoint、結果streamingはありません。クライアントのtimeoutだけではサーバー側の解析停止を保証しません。

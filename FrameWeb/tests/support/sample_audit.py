@@ -107,7 +107,7 @@ def audit_case(path, case_id):
         with contextlib.redirect_stdout(io.StringIO()):
             model = FemModel()
             model.read_json_model(_read_json_model(copy.deepcopy(data)))
-            result = model.run()
+            result = model._run_solver_snapshot()
         actual = section_cut_result_view(result, model, data)
         entry["fields"] = {}
         for field in dict.fromkeys([*actual, *reference]):

@@ -6,11 +6,14 @@ import numpy as np
 import pytest
 
 from main import app
-from tests.support.assertions import assert_axial
 from tests.support.builders.input_routes import axial_json, json_model
 from tests.support.paths import DATA
 
 pytestmark = pytest.mark.integration
+
+
+def _by_id(rows, identifier, field="node_id"):
+    return next(row for row in rows if row[field] == str(identifier))
 
 
 @pytest.mark.material_nonlinear
@@ -25,13 +28,16 @@ def test_http_explicit_analysis_type(analysis_type):
         assert body["converged"] is False
     else:
         assert response.status_code == 200
-        assert body["analysis_type"] == analysis_type
-        assert body["node_displacements"]["30"]["dx"] == pytest.approx(
+        assert body["kind"] == "analysis_result_set"
+        assert body["cases"][0]["analysis_type"] == analysis_type
+        result = body["results"][-1]
+        assert _by_id(result["node_displacements"], 30)["components"]["dx"] == pytest.approx(
             0.004 if analysis_type == "material_nonlinear" else 0.0024
         )
-        assert body["element_stresses"]["7"]["j_end"][0] == pytest.approx(12)
-        assert body["element_stresses"]["7"]["i_end"][0] == pytest.approx(-12)
-        assert body["reaction_forces"]["10"]["fx"] == pytest.approx(-12)
+        member = _by_id(result["member_section_forces"], 7, "member_id")
+        assert member["segments"][-1]["j_end"]["fx"] == pytest.approx(12)
+        assert member["segments"][0]["i_end"]["fx"] == pytest.approx(12)
+        assert _by_id(result["support_reactions"], 10)["components"]["fx"] == pytest.approx(-12)
 
 
 @pytest.mark.material_nonlinear
@@ -78,7 +84,9 @@ def test_http_failed_analysis_and_reanalysis(mode):
     assert "node_displacements" not in body
     good = client.post("/", json=axial_json())
     assert good.status_code == 200
-    assert_axial(json.loads(good.data))
+    good_body = json.loads(good.data)
+    assert good_body["kind"] == "analysis_result_set"
+    assert good_body["results"][-1]["state"]["is_final"] is True
 
 
 @pytest.mark.material_nonlinear
@@ -97,7 +105,7 @@ def test_failed_postprocessing_clears_result_and_http_is_error(sample, monkeypat
     m = json_model(d)
     # The vertical-plane defect is fixed; retain the error-propagation contract
     # with a deterministic postprocessing failure, not a permanent defect.
-    assert m.run()["element_stresses"]
+    assert m._run_solver_snapshot()["element_stresses"]
     from fem.elements.shell_element import ShellElement
 
     def fail(self, displacement):
@@ -105,7 +113,7 @@ def test_failed_postprocessing_clears_result_and_http_is_error(sample, monkeypat
 
     monkeypatch.setattr(ShellElement, "calculate_stress_strain", fail)
     with pytest.raises(np.linalg.LinAlgError):
-        m.run()
+        m._run_solver_snapshot()
     assert m.results is None
     response = app.test_client().post("/", json=d)
     assert response.status_code == 500
@@ -120,6 +128,7 @@ def test_explicit_static_spring_reactions_balance():
     r = app.test_client().post("/", json=d)
     assert r.status_code == 200
     body = json.loads(r.data)
-    assert body["node_displacements"]["30"]["dx"] == pytest.approx(5 / 7000, abs=1e-10)
-    assert body["reaction_forces"]["10"]["fx"] == pytest.approx(-25 / 7)
-    assert body["reaction_forces"]["30"]["fx"] == pytest.approx(-10 / 7)
+    result = body["results"][0]
+    assert _by_id(result["node_displacements"], 30)["components"]["dx"] == pytest.approx(5 / 7000, abs=1e-10)
+    assert _by_id(result["support_reactions"], 10)["components"]["fx"] == pytest.approx(-25 / 7)
+    assert _by_id(result["support_reactions"], 30)["components"]["fx"] == pytest.approx(-10 / 7)

@@ -7,10 +7,15 @@ def select_case(data, case_id=None):
     data = copy.deepcopy(data)
     if not data.get('load'):
         return data
-    case_id = str(case_id) if case_id is not None else next(iter(data['load']))
+    requested = next(iter(data['load'])) if case_id is None else case_id
+    matches = [key for key in data['load'] if str(key) == str(requested)]
+    if len(matches) != 1:
+        raise ValueError(f'Missing or ambiguous load case {requested}')
+    source_case_id = matches[0]
+    case_id = str(source_case_id)
     data.setdefault('_all_member_loads', [load for case in data['load'].values()
                                          for load in case.get('load_member', [])])
-    case = data['load'][case_id]
+    case = data['load'][source_case_id]
     data['load'] = {case_id: case}
     for field in ('element', 'fix_node', 'joint', 'fix_member'):
         if data.get(field):

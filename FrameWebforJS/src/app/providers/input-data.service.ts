@@ -47,13 +47,7 @@ export class InputDataService {
   }
   public result: object;
   public getResult(jsonData): void {
-    
-    const result = jsonData;
-    delete result['old_points'];
-    delete result['deduct_points'];
-    delete result['new_points'];
-
-    this.result = result
+    this.result = jsonData;
   };
 
   // データをクリアする ///////////////////////////////////////////////////////////////
@@ -162,7 +156,6 @@ export class InputDataService {
         const tz = this.helper.toNumber(load_value['tz']); // ''
         if ( tz !== null) load_value.tz = (-1 * tz).toString();
 
-        console.log(load_id, load_value['row'], load_value);
       }
     }
 

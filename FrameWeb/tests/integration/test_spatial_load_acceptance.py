@@ -27,16 +27,16 @@ def test_public_preflight_coordinates_compile_and_stiffness_order(monkeypatch):
             order.append(_label)
             return _original(*args, **kwargs)
         monkeypatch.setattr(owner, name, record)
-    model.run()
+    model._run_solver_snapshot()
     assert order == ['capabilities', 'coordinates', 'compile', 'stiffness']
-    model.run()
+    model._run_solver_snapshot()
     assert order[4:] == order[:4]
 
 
 @pytest.mark.parametrize('invalid', ['outside', 'tilted', 'missing_node', 'crossed', 'nonconvex'])
 def test_public_geometry_failure_precedes_stiffness_and_retry_uses_current_mesh(monkeypatch, invalid):
     model = solver_panel(shell=True)
-    reference = model.run()['spatial_load_contribution']
+    reference = model._run_solver_snapshot()['spatial_load_contribution']
     definitions = model.boundary.spatial_loads
     nodes = deepcopy(model.mesh.nodes)
     if invalid == 'outside':
@@ -54,12 +54,12 @@ def test_public_geometry_failure_precedes_stiffness_and_retry_uses_current_mesh(
     with monkeypatch.context() as patch:
         patch.setattr(model.solver, 'create_stiffness_matrix', lambda *a: pytest.fail('no K assembly'))
         with pytest.raises(ValueError, match='panel 7'):
-            model.run()
+            model._run_solver_snapshot()
     assert model.results is None
     assert model.solver.spatial_load_contribution is None
     model.mesh.nodes = nodes
     model.set_spatial_loads(definitions)
-    assert model.run()['spatial_load_contribution'] == reference
+    assert model._run_solver_snapshot()['spatial_load_contribution'] == reference
 
 
 @pytest.mark.parametrize('shell,triangular', [(False, False), (True, False), (True, True)])
@@ -79,7 +79,7 @@ def test_uniform_area_beam_and_cylindrical_plate_converge_to_closed_form(shell, 
     for segments in (2, 4, 8):
         model = uniform_strip_model(segments, shell=shell, triangular_shell=triangular,
                                     simply_supported=simply_supported, intensity=intensity)
-        result = model.run()
+        result = model._run_solver_snapshot()
         station = segments//2 if simply_supported else segments
         # Average the two edges: the T3 diagonal biases edge loads oppositely.
         observed = sum(result['node_displacements'][2*station+s]['dz'] for s in (1, 2))/2
@@ -107,7 +107,7 @@ def test_uniform_line_on_beam_converges_to_closed_form(simply_supported):
     errors = []
     for segments in (2, 4, 8):
         model = uniform_strip_model(segments, area=False, simply_supported=simply_supported)
-        result = model.run()
+        result = model._run_solver_snapshot()
         station = segments//2 if simply_supported else segments
         errors.append(abs(result['node_displacements'][2*station+1]['dz']/exact-1))
         assert result['node_displacements'][2*station+2]['dz'] == pytest.approx(0., abs=1e-13)
@@ -139,7 +139,7 @@ def test_public_line_and_area_units_scale_with_force_and_length(shell, area):
                     for path in definitions.paths),
         loads=tuple(replace(load, end_intensities=tuple(tuple(v*force/length**(2 if area else 1)
                     for v in pair) for pair in load.end_intensities)) for load in definitions.loads)))
-    expected, result = reference.run(), converted.run()
+    expected, result = reference._run_solver_snapshot(), converted._run_solver_snapshot()
     for node, values in expected['node_displacements'].items():
         for key, value in values.items():
             assert result['node_displacements'][node][key] == pytest.approx(
@@ -192,15 +192,15 @@ def test_public_load_superposition_zero_and_reversed_paths(shell, area):
     model.boundary.loads.clear()
     definitions = model.boundary.spatial_loads
     load = definitions.loads[0]
-    baseline = model.run()
+    baseline = model._run_solver_snapshot()
     first = replace(load, end_intensities=tuple(tuple(v*3 for v in p) for p in load.end_intensities))
     second = replace(load, id=23, end_intensities=tuple(tuple(v*-2 for v in p) for p in load.end_intensities))
     model.set_spatial_loads(replace(definitions, loads=(first, second)))
-    combined = model.run()
+    combined = model._run_solver_snapshot()
     model.set_spatial_loads(replace(definitions,
         paths=tuple(replace(path, points=path.points[::-1]) for path in definitions.paths),
         loads=(replace(load, end_intensities=tuple(p[::-1] for p in load.end_intensities)),)))
-    reversed_result = model.run()
+    reversed_result = model._run_solver_snapshot()
     for field in ('node_displacements', 'reaction_forces', 'element_stresses',
                   'shell_results', 'legacy_shell_results', 'element_nodal_equilibrium_forces'):
         if field in baseline:
@@ -208,6 +208,6 @@ def test_public_load_superposition_zero_and_reversed_paths(shell, area):
                 assert_dict_almost_equal(wire(result[field]), wire(baseline[field]))
     zero = replace(load, end_intensities=((0., 0.),)*len(load.path_ids))
     model.set_spatial_loads(replace(definitions, loads=(zero,)))
-    result = model.run()
+    result = model._run_solver_snapshot()
     np.testing.assert_allclose(result['displacement'], 0., atol=1e-13)
     np.testing.assert_allclose(result['spatial_load_contribution']['resultant'], 0., atol=1e-13)

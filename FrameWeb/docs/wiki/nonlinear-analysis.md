@@ -192,6 +192,8 @@ assert isclose(section["curvature"], .0005, abs_tol=1e-10)
 
 0も負値も繰返し値も指定できます。通常の等間隔載荷には初期0段階を含めないため、必要なら配列の先頭へ0を入れます。`n_load_steps`と`max_iterations`は`load_factors`を使う場合も正の整数にします。
 
+HTTP計算APIでは、1 caseあたりの非線形step数（`n_load_steps`、`load_factors`または変位制御`targets`の実効長）は最大1,000、`max_iterations`は最大1,000です。さらに全case合計で結果stateは10,000、非線形の「step数 × 最大反復回数」は500,000までです。上限は解析開始前に検査されます。Pythonで`FemModel.run()`を直接呼ぶ場合のsolver設定上限ではなく、同期HTTP requestの作業量上限です。
+
 ## 負勾配を変位制御で追跡する
 
 `displacement_control`を指定すると、指定自由度の変位を段階ごとに固定し、基準荷重パターンの倍率`lambda`を未知数として釣合いを解きます。`load_factors`とは同時に指定できません。

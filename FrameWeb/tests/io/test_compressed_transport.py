@@ -73,10 +73,14 @@ def test_http_accepts_both_envelopes(encoding: str, wire_format: str) -> None:
     assert response.status_code == 200, response.get_data(as_text=True)
     result = json.loads(gzip.decompress(base64.b64decode(response.data, validate=True)))
     assert result == reference.get_json()
-    assert result["analysis_type"] == "static"
-    assert result["node_displacements"]["2"]["dy"] == pytest.approx(0.002)
-    assert result["reaction_forces"]["1"]["fy"] == pytest.approx(-3)
-    assert result["element_stresses"]
+    assert result["kind"] == "analysis_result_set"
+    assert result["cases"][0]["analysis_type"] == "static"
+    snapshot = result["results"][0]
+    displacements = {row["node_id"]: row["components"] for row in snapshot["node_displacements"]}
+    reactions = {row["node_id"]: row["components"] for row in snapshot["support_reactions"]}
+    assert displacements["2"]["dy"] == pytest.approx(0.002)
+    assert reactions["1"]["fy"] == pytest.approx(-3)
+    assert snapshot["member_section_forces"]
 
 
 @pytest.mark.parametrize("encoding", [None, "json"])
@@ -84,7 +88,9 @@ def test_http_plain_json_remains_supported(encoding: str | None) -> None:
     headers = {} if encoding is None else {"Content-Encoding": encoding}
     response = app.test_client().post("/", json=BROWSER["payload"], headers=headers)
     assert response.status_code == 200
-    assert response.get_json()["node_displacements"]["2"]["dy"] == pytest.approx(0.002)
+    result = response.get_json()
+    rows = result["results"][0]["node_displacements"]
+    assert next(row for row in rows if row["node_id"] == "2")["components"]["dy"] == pytest.approx(0.002)
 
 
 INVALID_OUTER = [

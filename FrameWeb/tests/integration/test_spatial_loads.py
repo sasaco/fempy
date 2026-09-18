@@ -23,7 +23,7 @@ def spatial_entry(request):
     with pytest.MonkeyPatch.context() as patch:
         if request.param == 'public':
             patch.setattr(__import__(__name__, fromlist=['']), 'solve_spatial_internal',
-                          lambda model: model.run())
+                          lambda model: model._run_solver_snapshot())
         yield
 
 
@@ -39,7 +39,7 @@ def test_internal_spatial_solve_matches_independent_nodal_loads_and_all_outputs(
     direct.set_spatial_loads(SpatialLoadDefinitions())
     for node, force in enumerate(square_strip_loads(shell=shell, area=area), 1):
         direct.add_load(node, fz=force)
-    expected = direct.run()
+    expected = direct._run_solver_snapshot()
     result = solve_spatial_internal(spatial)
     for field in ('node_displacements', 'reaction_forces', 'element_stresses', 'shell_results', 'legacy_shell_results'):
         if field in expected:
@@ -120,7 +120,7 @@ def test_failed_analysis_discards_compilation_and_retry_is_clean(monkeypatch, fa
         monkeypatch.setattr(model, '_post_process_results', fail_run)
         operation = model.run
     else:
-        operation = lambda: model.run('modal')
+        operation = lambda: model._run_solver_snapshot('modal')
     with pytest.raises(ValueError):
         operation()
     assert model.solver.spatial_load_contribution is None
@@ -151,7 +151,7 @@ def test_removing_spatial_input_clears_solver_and_leaves_original_result_schema(
     model = solver_panel()
     solve_spatial_internal(model)
     model.set_spatial_loads(SpatialLoadDefinitions())
-    result = model.run()
+    result = model._run_solver_snapshot()
     assert 'spatial_load_contribution' not in result
     assert 'element_nodal_equilibrium_forces' not in result
     assert model.solver.spatial_load_contribution is None
@@ -195,7 +195,7 @@ def test_uniform_shell_spatial_area_matches_existing_pressure_displacements_and_
     spatial.set_spatial_loads(square_definitions(panel, coefficients=(3, 0, 0, 0)))
     pressure.set_spatial_loads(SpatialLoadDefinitions())
     pressure.boundary.add_pressure(1, 'F2', 3.)
-    result, expected = solve_spatial_internal(spatial), pressure.run()
+    result, expected = solve_spatial_internal(spatial), pressure._run_solver_snapshot()
     for field in ('node_displacements', 'reaction_forces', 'shell_results', 'legacy_shell_results'):
         assert_dict_almost_equal(wire(result[field]), wire(expected[field]))
 
@@ -208,7 +208,7 @@ def test_high_precision_beam_fallback_retains_spatial_external_forces(monkeypatc
     direct.set_spatial_loads(SpatialLoadDefinitions())
     for node, force in enumerate(square_strip_loads(shell=False, area=True), 1):
         direct.add_load(node, fz=force)
-    expected = direct.run()
+    expected = direct._run_solver_snapshot()
 
     def require_precision(*args):
         raise ValueError('Linear frame requires high precision')
@@ -225,12 +225,14 @@ def test_high_precision_beam_fallback_retains_spatial_external_forces(monkeypatc
 def test_result_json_preserves_spatial_snapshot_and_equilibrium_output(tmp_path, shell):
     model = solver_panel(shell=shell)
     result = solve_spatial_internal(model)
+    for field in ('spatial_load_contribution', 'element_nodal_equilibrium_forces'):
+        assert field in result
+    public_result = model.run()
     saved = tmp_path / 'results.json'
     model.save_results(str(saved))
     restored = FemModel()
     restored.load_results(str(saved))
-    for field in ('spatial_load_contribution', 'element_nodal_equilibrium_forces'):
-        assert_dict_almost_equal(wire(restored.results[field]), wire(result[field]))
+    assert_dict_almost_equal(wire(restored.get_results()), wire(public_result))
 
 
 def test_line_on_two_cantilever_tips_matches_point_force_closed_form():

@@ -24,15 +24,6 @@ export class InputLoadNameComponent implements OnInit {
   private dataset = [];
   private columnHeaders = [
     {
-      title: this.translate.instant("input.input-load-name.cf"),
-      dataType: "float",
-      format: "#.000",
-      dataIndx: "rate",
-      sortable: false,
-      width: 100,
-      align: "right",
-    },
-    {
       title: this.translate.instant("input.input-load-name.symbol"),
       dataType: "string",
       dataIndx: "symbol",
@@ -208,7 +199,6 @@ export class InputLoadNameComponent implements OnInit {
       for (let i = 0; i < ui.updateList.length; i++) {
         target = ui.updateList[i];
 
-        const r = this.helper.toNumber(target.rowData["rate"]);
         let s = target.rowData["symbol"];
         if(s === undefined){
           s = null;
@@ -220,7 +210,6 @@ export class InputLoadNameComponent implements OnInit {
         const n = target.rowData["name"];
 
         if (
-          r === null &&
           s === null &&
           (n === "" || n === undefined) &&
           fm === null &&
@@ -236,7 +225,6 @@ export class InputLoadNameComponent implements OnInit {
         const no: number = target.rowIndx;
         const newRow = target.newRow;
         const load_name = this.data.getLoadNameColumns(no + 1);
-        load_name['rate']  = (newRow.rate != undefined) ? newRow.rate  : null;
         load_name['symbol'] = (newRow.symbol != "") ? newRow.symbol : null;
         load_name['name'] = (newRow.name != "") ? newRow.name : '';
         load_name['fix_node'] = (newRow.fix_node != undefined) ? newRow.fix_node : null;
@@ -246,7 +234,6 @@ export class InputLoadNameComponent implements OnInit {
         this.dataset.splice(no, 1, load_name);
 
         if (
-          load_name['rate'] === null &&
           load_name['symbol'] === null &&
           (load_name['name'] === "" || load_name['name'] === undefined) &&
           load_name['fix_node'] === null &&

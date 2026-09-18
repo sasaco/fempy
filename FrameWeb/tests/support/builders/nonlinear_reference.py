@@ -9,6 +9,7 @@ The cyclic polygons below are derived in the material nonlinear validation repor
 import json
 
 from main import app
+from fem.result_contracts import validate_analysis_result_set
 from tests.support.builders.input_routes import axial_json, json_model, python_axial
 from tests.support.serialization import wire
 
@@ -50,7 +51,9 @@ def solve(data, route):
     if route == "http":
         response = app.test_client().post("/", json=data)
         assert response.status_code == 200, response.data
-        return json.loads(response.data)
+        result_set = json.loads(response.data)
+        validate_analysis_result_set(result_set)
+        return result_set
     if route == "python":
         # Construct directly, independently of JSON deserialization.
         m = python_axial()
@@ -88,4 +91,4 @@ def solve(data, route):
         m.analysis_params.update(data.get("analysis_params", {}))
     else:
         m = json_model(data)
-    return wire(m.run())
+    return wire(m._run_solver_snapshot())

@@ -1,104 +1,65 @@
 /// <reference lib="webworker" />
 
-addEventListener('message', ({ data }) => {
+import { AnalysisResult, analysisResultSelectionKey, isForceAnalysisResult } from "../../../providers/analysis-result-set";
+import { workerErrorMessage } from "../../../providers/result-worker-pipeline";
 
-  // 文字列string を数値にする
-  const toNumber = (num: string) => {
-    let result: number = null;
-    try {
-      const tmp: string = num.toString().trim();
-      if (tmp.length > 0) {
-        result = ((n: number) => isNaN(n) ? null : n)(+tmp);
-      }
-    } catch {
-      result = null;
-    }
-    return result;
-  };
-
-
-  const jsonData = data.jsonData;
-  const reac = {};
-  const max_value = {};
-  const value_range = {};
-  let error: any = null;
-
+addEventListener("message", ({ data }) => {
+  let error: unknown = null;
   try {
-    for (const caseNo of Object.keys(jsonData)) {
-      const target = new Array();
-      const caseData: {} = jsonData[caseNo];
-
-      // 存在チェック
-      if (typeof (caseData) !== 'object') {
-        continue;
+    const entries = (data.results as readonly AnalysisResult[]).map((result) => {
+      const rows = isForceAnalysisResult(result)
+        ? result.support_reactions.map((row) => ({
+            id: row.node_id,
+            tx: row.components.fx,
+            ty: row.components.fy,
+            tz: row.components.fz,
+            mx: row.components.mx,
+            my: row.components.my,
+            mz: row.components.mz,
+          }))
+        : [];
+      let maxForce = Number.NEGATIVE_INFINITY;
+      let minForce = Number.POSITIVE_INFINITY;
+      let maxMoment = Number.NEGATIVE_INFINITY;
+      let minMoment = Number.POSITIVE_INFINITY;
+      let maxForceNode = "0";
+      let minForceNode = "0";
+      let maxMomentNode = "0";
+      let minMomentNode = "0";
+      rows.forEach((row) => {
+        [row.tx, row.ty, row.tz].forEach((value) => {
+          if (value > maxForce) { maxForce = value; maxForceNode = row.id; }
+          if (value < minForce) { minForce = value; minForceNode = row.id; }
+        });
+        [row.mx, row.my, row.mz].forEach((value) => {
+          if (value > maxMoment) { maxMoment = value; maxMomentNode = row.id; }
+          if (value < minMoment) { minMoment = value; minMomentNode = row.id; }
+        });
+      });
+      if (rows.length === 0) {
+        maxForce = minForce = maxMoment = minMoment = 0;
       }
-      if (!('reac' in caseData)) {
-        continue;
-      }
-      const json: {} = caseData['reac'];
-      if (json === null) {
-        continue;
-      }
-
-      let values = {max_d: Number.MIN_VALUE, max_r: Number.MIN_VALUE,
-                    min_d:  Number.MAX_VALUE, min_r:  Number.MAX_VALUE,
-                    max_d_m: '0' , max_r_m: '0' ,
-                    min_d_m: '0' , min_r_m: '0' , }
-
-      for (const n of Object.keys(json)) {
-        const item: {} = json[n];
-
-        let tx: number = toNumber(item['tx']);
-        let ty: number = toNumber(item['ty']);
-        let tz: number = toNumber(item['tz']);
-        let mx: number = toNumber(item['mx']);
-        let my: number = toNumber(item['my']);
-        let mz: number = toNumber(item['mz']);
-
-        // バージョン2.4系からは計算結果の符号そのままで表示する
-        // 支点反力の正は全体座標系の正の向きおよび右ねじまわりを正とする
-        const result = {
-          id: n.replace('node', ''),
-          tx: (tx == null) ? 0 : tx,
-          ty: (ty == null) ? 0 : ty,
-          tz: (tz == null) ? 0 : tz,
-          mx: (mx == null) ? 0 : mx,
-          my: (my == null) ? 0 : my,
-          mz: (mz == null) ? 0 : mz
-        };
-        target.push(result);
-            
-        // 最大値を記録する three.js で使う
-        for (const v of [tx, ty, tz]) {
-          if (values.max_d < v) {
-            values.max_d = v;
-            values.max_d_m = n;
-          }
-          if (values.min_d > v) {
-            values.min_d = v;
-            values.min_d_m = n;
-          }
-        }
-        for (const v of [mx, my, mz]) {
-          if (values.max_r < v) {
-            values.max_r = v;
-            values.max_r_m = n;
-          }
-          if (values.min_r > v) {
-            values.min_r = v;
-            values.min_r_m = n;
-          }
-        }
-
-      }
-      const No: string = caseNo.replace("Case", "");
-      reac[No] = target;
-      max_value[No] = Math.max(Math.abs(values.max_d), Math.abs(values.min_d));
-      value_range[No] = values;
-    }
-  } catch (e) {
-    error = e;
+      return {
+        selectionKey: analysisResultSelectionKey(result),
+        caseId: result.case_id,
+        stateKind: result.state.kind,
+        rows,
+        maxValue: Math.max(Math.abs(maxForce), Math.abs(minForce)),
+        valueRange: {
+          max_d: maxForce,
+          min_d: minForce,
+          max_r: maxMoment,
+          min_r: minMoment,
+          max_d_m: maxForceNode,
+          min_d_m: minForceNode,
+          max_r_m: maxMomentNode,
+          min_r_m: minMomentNode,
+        },
+      };
+    });
+    postMessage({ entries, error });
+  } catch (caught) {
+    error = workerErrorMessage(caught);
+    postMessage({ entries: [], error });
   }
-
-  postMessage({ reac, error, max_value, value_range });
 });

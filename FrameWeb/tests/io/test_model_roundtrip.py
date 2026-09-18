@@ -6,6 +6,8 @@ import numpy as np
 import pytest
 
 from fem.model import FemModel
+from fem.file_io import write_result
+from fem.result_contracts import ResultContractError
 from tests.support.builders.input_routes import python_axial
 from tests.support.builders.linear_frame import cantilever, run
 from tests.support.serialization import wire
@@ -30,6 +32,26 @@ def test_model_save_load_preserves_nonlinear_input_and_result(tmp_path):
 
     assert_dict_almost_equal(actual, expected)
     assert_dict_almost_equal(json.loads(result_path.read_text(encoding="utf-8")), expected)
+    loaded = FemModel()
+    loaded.load_results(str(result_path))
+    assert_dict_almost_equal(wire(loaded.get_results()), expected)
+
+
+def test_public_result_lifecycle_rejects_solver_native_snapshots(tmp_path):
+    model = python_axial()
+    solver_snapshot = model._run_solver_snapshot("static")
+    path = tmp_path / "solver-snapshot.json"
+    write_result(solver_snapshot, str(path))
+
+    with pytest.raises(ResultContractError, match="analysis_result_set|missing"):
+        model.load_results(str(path))
+    assert model.get_results() is None
+
+    model.results = solver_snapshot
+    with pytest.raises(ResultContractError, match="analysis_result_set|missing"):
+        model.get_results()
+    with pytest.raises(ResultContractError, match="analysis_result_set|missing"):
+        model.save_results(str(tmp_path / "rejected.json"))
 
 
 @pytest.mark.material_nonlinear
@@ -43,7 +65,7 @@ def test_saved_legacy_member_features_retain_the_same_physical_model(tmp_path):
     m.save_model(str(path))
     restored = FemModel()
     restored.load_model(str(path))
-    actual = restored.run()
+    actual = restored._run_solver_snapshot()
     np.testing.assert_allclose(actual["displacement"], expected["displacement"], atol=1e-12)
     assert actual["reaction_forces"].keys() == expected["reaction_forces"].keys()
     for key in expected["element_stresses"]:

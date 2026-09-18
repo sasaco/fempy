@@ -27,7 +27,7 @@ def test_dkt_cantilever_constant_moment(segments, thickness):
     moment = curvature * 1000 * thickness**3 / 12
     for n in (2 * segments + 1, 2 * segments + 2):
         m.boundary.add_load(n, [0.0, 0.0, 0.0, 0.0, moment / 2, 0.0])
-    result = m.run()
+    result = m._run_solver_snapshot()
     for n, actual in result["node_displacements"].items():
         x = 2 * ((n - 1) // 2) / segments
         assert actual["dz"] == pytest.approx(-0.5 * curvature * x * x, rel=1e-8, abs=1e-11)
@@ -55,7 +55,7 @@ def test_quad_cantilever_constant_moment_full_solver(segments, thickness, vertic
     moment = 1e-5
     for n in (2 * segments + 1, 2 * segments + 2):
         m.boundary.add_load(n, np.r_[np.zeros(3), rotation @ np.array([0.0, moment / 2, 0.0])])
-    result = m.run()
+    result = m._run_solver_snapshot()
     curvature = moment / (1000 * thickness**3 / 12)
     for n, actual in result["node_displacements"].items():
         x = 2 * ((n - 1) // 2) / segments

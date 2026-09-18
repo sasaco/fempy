@@ -15,7 +15,6 @@ import { ResultPickupDisgService } from '../../result/result-pickup-disg/result-
 import { ThreeNodesService } from './three-nodes.service';
 import { ThreeMembersService } from './three-members.service';
 import { ThreePanelService } from './three-panel.service';
-import { InputLoadService } from '../../input/input-load/input-load.service';
 import { Object3D } from 'three';
 import { LanguagesService } from 'src/app/providers/languages.service';
 
@@ -36,6 +35,8 @@ export class ThreeDisplacementService {
   private panelData: any
   private allDisgData: any;
   private max_values: any;
+  private pageKeys: readonly string[] = [];
+  private movingLoadParents = new Set<string>();
   public value_range = { disg: null, comb_disg: null, pik_disg: null };
 
   // アニメーションのオブジェクト
@@ -47,7 +48,6 @@ export class ThreeDisplacementService {
     private node: InputNodesService,
     private member: InputMembersService,
     private panel: InputPanelService,
-    private load: InputLoadService,
     private three_node: ThreeNodesService,
     private three_member: ThreeMembersService) {
 
@@ -105,6 +105,8 @@ export class ThreeDisplacementService {
     this.panelData = {};
     this.allDisgData = {};
     this.max_values = {};
+    this.pageKeys = [];
+    this.movingLoadParents.clear();
 
     // アニメーションのオブジェクト
     if (this.animationObject !== null) {
@@ -138,7 +140,14 @@ export class ThreeDisplacementService {
   }
 
   // 解析結果をセットする
-  public setResultData(getDisgJson: any, max_values: any, value_range: any, mode: string): void {
+  public setResultData(
+    getDisgJson: any,
+    max_values: any,
+    value_range: any,
+    mode: string,
+    pageKeys: readonly string[] = [],
+    movingLoadParents: readonly string[] = []
+  ): void {
 
     this.nodeData = this.node.getNodeJson(0);
     this.membData = this.member.getMemberJson(0);
@@ -171,6 +180,8 @@ export class ThreeDisplacementService {
     this.panelData = this.panel.getPanelJson(0);
     this.allDisgData = getDisgJson;
     this.max_values = max_values;
+    this.pageKeys = [...pageKeys];
+    this.movingLoadParents = new Set(movingLoadParents);
     this.value_range[mode] = value_range;
     // this.changeData(1);
   }
@@ -196,7 +207,7 @@ export class ThreeDisplacementService {
     }
 
     // 変位データを入手
-    const targetKey: string = index.toString();
+    const targetKey: string = this.pageKeys[index - 1] ?? index.toString();
     if (!(targetKey in this.allDisgData)) {
       this.visibleChange(false);
       return;
@@ -213,8 +224,7 @@ export class ThreeDisplacementService {
     }
 
     // 連行荷重の場合 アニメーションを走らせる
-    const symbol: string = this.load.getLoadName(index, "symbol");
-    if (symbol === "LL") {
+    if (this.movingLoadParents.has(targetKey)) {
       this.change_LL_Load(targetKey, membKeys, minDistance, maxDistance);
       return;
     }
@@ -293,11 +303,9 @@ export class ThreeDisplacementService {
       });
     }
 
-    const i = targetKey.indexOf('.');
-    let targetKey2 = targetKey;
-    if (i > 0) {
-      targetKey2 = targetKey.slice(0, i);
-    }
+    const targetKey2 = [...this.movingLoadParents].find(
+      (parent) => targetKey === parent || targetKey.startsWith(`${parent}.`)
+    ) ?? targetKey;
     const maxValue: number = this.max_values[targetKey2];
     if (maxValue > 0) {
       let s = this.three_node.maxDistance * 0.1 / maxValue;

@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://frameweb.local/contracts/analysis-result-set-v1.schema.json",
+  "title": "AnalysisResultSet v1",
+  "$ref": "#/$defs/analysisResultSet",
+  "$defs": {
+    "id": {"type": "string", "minLength": 1, "pattern": ".*\\S.*"},
+    "number": {"type": "number"},
+    "vector3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "z"],
+      "properties": {"x": {"$ref": "#/$defs/number"}, "y": {"$ref": "#/$defs/number"}, "z": {"$ref": "#/$defs/number"}}
+    },
+    "displacementComponents": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dx", "dy", "dz", "rx", "ry", "rz"],
+      "properties": {
+        "dx": {"$ref": "#/$defs/number"}, "dy": {"$ref": "#/$defs/number"}, "dz": {"$ref": "#/$defs/number"},
+        "rx": {"$ref": "#/$defs/number"}, "ry": {"$ref": "#/$defs/number"}, "rz": {"$ref": "#/$defs/number"}
+      }
+    },
+    "forceComponents": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fx", "fy", "fz", "mx", "my", "mz"],
+      "properties": {
+        "fx": {"$ref": "#/$defs/number"}, "fy": {"$ref": "#/$defs/number"}, "fz": {"$ref": "#/$defs/number"},
+        "mx": {"$ref": "#/$defs/number"}, "my": {"$ref": "#/$defs/number"}, "mz": {"$ref": "#/$defs/number"}
+      }
+    },
+    "coordinateFrame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "x_axis", "y_axis", "z_axis"],
+      "properties": {
+        "origin": {"$ref": "#/$defs/vector3"}, "x_axis": {"$ref": "#/$defs/vector3"},
+        "y_axis": {"$ref": "#/$defs/vector3"}, "z_axis": {"$ref": "#/$defs/vector3"}
+      }
+    },
+    "units": {
+      "type": "object", "additionalProperties": false,
+      "required": ["system", "length", "force", "mass", "time"],
+      "properties": {"system": {"$ref": "#/$defs/id"}, "length": {"$ref": "#/$defs/id"}, "force": {"$ref": "#/$defs/id"}, "mass": {"$ref": "#/$defs/id"}, "time": {"$ref": "#/$defs/id"}}
+    },
+    "coordinateSystem": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "handedness", "axes"],
+      "properties": {
+        "name": {"const": "global_cartesian"}, "handedness": {"const": "right"},
+        "axes": {"type": "array", "minItems": 3, "maxItems": 3, "prefixItems": [{"const": "x"}, {"const": "y"}, {"const": "z"}], "items": false}
+      }
+    },
+    "resultCase": {
+      "type": "object", "additionalProperties": false,
+      "required": ["case_id", "name", "symbol", "analysis_type", "support_node_ids"],
+      "properties": {
+        "case_id": {"$ref": "#/$defs/id"}, "name": {"$ref": "#/$defs/id"}, "symbol": {"$ref": "#/$defs/id"},
+        "analysis_type": {"enum": ["static", "material_nonlinear", "modal"]},
+        "support_node_ids": {"type": "array", "items": {"$ref": "#/$defs/id"}, "uniqueItems": true}
+      }
+    },
+    "topologyNode": {
+      "type": "object", "additionalProperties": false,
+      "required": ["node_id", "coordinates", "source_node_id", "generated"],
+      "properties": {"node_id": {"$ref": "#/$defs/id"}, "coordinates": {"$ref": "#/$defs/vector3"}, "source_node_id": {"type": ["string", "null"], "minLength": 1}, "generated": {"type": "boolean"}}
+    },
+    "station": {
+      "type": "object", "additionalProperties": false, "required": ["station_id", "position"],
+      "properties": {"station_id": {"$ref": "#/$defs/id"}, "position": {"type": "number", "$ref": "#/$defs/number", "minimum": 0}}
+    },
+    "topologyMember": {
+      "type": "object", "additionalProperties": false,
+      "required": ["member_id", "node_i", "node_j", "local_frame", "stations"],
+      "properties": {
+        "member_id": {"$ref": "#/$defs/id"}, "node_i": {"$ref": "#/$defs/id"}, "node_j": {"$ref": "#/$defs/id"},
+        "local_frame": {"$ref": "#/$defs/coordinateFrame"},
+        "stations": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/station"}}
+      }
+    },
+    "shellLocation": {
+      "type": "object", "additionalProperties": false, "required": ["location_id", "kind"],
+      "properties": {"location_id": {"const": "element_average"}, "kind": {"const": "element_average"}}
+    },
+    "shellElement": {
+      "type": "object", "additionalProperties": false,
+      "required": ["element_id", "element_type", "node_ids", "local_frame", "result_locations"],
+      "properties": {
+        "element_id": {"$ref": "#/$defs/id"}, "element_type": {"enum": ["triangle3", "quadrilateral4"]},
+        "node_ids": {"type": "array", "items": {"$ref": "#/$defs/id"}}, "local_frame": {"$ref": "#/$defs/coordinateFrame"},
+        "result_locations": {"type": "array", "minItems": 1, "maxItems": 1, "prefixItems": [{"$ref": "#/$defs/shellLocation"}], "items": false}
+      },
+      "allOf": [
+        {"if": {"properties": {"element_type": {"const": "triangle3"}}}, "then": {"properties": {"node_ids": {"type": "array", "minItems": 3, "maxItems": 3}}}},
+        {"if": {"properties": {"element_type": {"const": "quadrilateral4"}}}, "then": {"properties": {"node_ids": {"type": "array", "minItems": 4, "maxItems": 4}}}}
+      ]
+    },
+    "solidLocation": {
+      "type": "object", "additionalProperties": false, "required": ["location_id", "natural_coordinates"],
+      "properties": {"location_id": {"$ref": "#/$defs/id"}, "natural_coordinates": {"type": "object", "additionalProperties": false, "required": ["xi", "eta", "zeta"], "properties": {"xi": {"$ref": "#/$defs/number"}, "eta": {"$ref": "#/$defs/number"}, "zeta": {"$ref": "#/$defs/number"}}}}
+    },
+    "solidElement": {
+      "type": "object", "additionalProperties": false,
+      "required": ["element_id", "element_type", "node_ids", "coordinate_frame", "result_locations"],
+      "properties": {
+        "element_id": {"$ref": "#/$defs/id"}, "element_type": {"enum": ["tetra4", "wedge6", "hexa8", "tetra10", "wedge15", "hexa20"]},
+        "node_ids": {"type": "array", "items": {"$ref": "#/$defs/id"}}, "coordinate_frame": {"const": "global"},
+        "result_locations": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/solidLocation"}}
+      },
+      "allOf": [
+        {"if": {"properties": {"element_type": {"const": "tetra4"}}}, "then": {"properties": {"node_ids": {"type": "array", "minItems": 4, "maxItems": 4}}}},
+        {"if": {"properties": {"element_type": {"const": "wedge6"}}}, "then": {"properties": {"node_ids": {"type": "array", "minItems": 6, "maxItems": 6}}}},
+        {"if": {"properties": {"element_type": {"const": "hexa8"}}}, "then": {"properties": {"node_ids": {"type": "array", "minItems": 8, "maxItems": 8}}}},
+        {"if": {"properties": {"element_type": {"const": "tetra10"}}}, "then": {"properties": {"node_ids": {"type": "array", "minItems": 10, "maxItems": 10}}}},
+        {"if": {"properties": {"element_type": {"const": "wedge15"}}}, "then": {"properties": {"node_ids": {"type": "array", "minItems": 15, "maxItems": 15}}}},
+        {"if": {"properties": {"element_type": {"const": "hexa20"}}}, "then": {"properties": {"node_ids": {"type": "array", "minItems": 20, "maxItems": 20}}}}
+      ]
+    },
+    "topology": {
+      "type": "object", "additionalProperties": false,
+      "required": ["nodes", "members", "shell_elements", "solid_elements"],
+      "properties": {
+        "nodes": {"type": "array", "items": {"$ref": "#/$defs/topologyNode"}},
+        "members": {"type": "array", "items": {"$ref": "#/$defs/topologyMember"}},
+        "shell_elements": {"type": "array", "items": {"$ref": "#/$defs/shellElement"}},
+        "solid_elements": {"type": "array", "items": {"$ref": "#/$defs/solidElement"}}
+      }
+    },
+    "nodeDisplacement": {"type": "object", "additionalProperties": false, "required": ["node_id", "components"], "properties": {"node_id": {"$ref": "#/$defs/id"}, "components": {"$ref": "#/$defs/displacementComponents"}}},
+    "nodeModeShape": {"$ref": "#/$defs/nodeDisplacement"},
+    "supportReaction": {"type": "object", "additionalProperties": false, "required": ["node_id", "components"], "properties": {"node_id": {"$ref": "#/$defs/id"}, "components": {"$ref": "#/$defs/forceComponents"}}},
+    "memberSegment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["segment_id", "station_i", "station_j", "length", "i_end", "j_end"],
+      "properties": {"segment_id": {"$ref": "#/$defs/id"}, "station_i": {"$ref": "#/$defs/id"}, "station_j": {"$ref": "#/$defs/id"}, "length": {"type": "number", "$ref": "#/$defs/number", "minimum": 0}, "i_end": {"$ref": "#/$defs/forceComponents"}, "j_end": {"$ref": "#/$defs/forceComponents"}}
+    },
+    "memberSectionForces": {"type": "object", "additionalProperties": false, "required": ["member_id", "segments"], "properties": {"member_id": {"$ref": "#/$defs/id"}, "segments": {"type": "array", "items": {"$ref": "#/$defs/memberSegment"}}}},
+    "membraneForce": {"type": "object", "additionalProperties": false, "required": ["nx", "ny", "nxy"], "properties": {"nx": {"$ref": "#/$defs/number"}, "ny": {"$ref": "#/$defs/number"}, "nxy": {"$ref": "#/$defs/number"}}},
+    "bendingMoment": {"type": "object", "additionalProperties": false, "required": ["mx", "my", "mxy"], "properties": {"mx": {"$ref": "#/$defs/number"}, "my": {"$ref": "#/$defs/number"}, "mxy": {"$ref": "#/$defs/number"}}},
+    "transverseShear": {"type": "object", "additionalProperties": false, "required": ["qx", "qy"], "properties": {"qx": {"$ref": "#/$defs/number"}, "qy": {"$ref": "#/$defs/number"}}},
+    "planeStress": {"type": "object", "additionalProperties": false, "required": ["sx", "sy", "txy"], "properties": {"sx": {"$ref": "#/$defs/number"}, "sy": {"$ref": "#/$defs/number"}, "txy": {"$ref": "#/$defs/number"}}},
+    "shellResultLocation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["location_id", "membrane_force", "bending_moment", "transverse_shear", "top_stress", "bottom_stress"],
+      "properties": {"location_id": {"const": "element_average"}, "membrane_force": {"$ref": "#/$defs/membraneForce"}, "bending_moment": {"$ref": "#/$defs/bendingMoment"}, "transverse_shear": {"$ref": "#/$defs/transverseShear"}, "top_stress": {"$ref": "#/$defs/planeStress"}, "bottom_stress": {"$ref": "#/$defs/planeStress"}}
+    },
+    "shellResult": {"type": "object", "additionalProperties": false, "required": ["element_id", "locations"], "properties": {"element_id": {"$ref": "#/$defs/id"}, "locations": {"type": "array", "items": {"$ref": "#/$defs/shellResultLocation"}}}},
+    "stress3d": {"type": "object", "additionalProperties": false, "required": ["sx", "sy", "sz", "txy", "tyz", "tzx"], "properties": {"sx": {"$ref": "#/$defs/number"}, "sy": {"$ref": "#/$defs/number"}, "sz": {"$ref": "#/$defs/number"}, "txy": {"$ref": "#/$defs/number"}, "tyz": {"$ref": "#/$defs/number"}, "tzx": {"$ref": "#/$defs/number"}}},
+    "strain3d": {"type": "object", "additionalProperties": false, "required": ["ex", "ey", "ez", "gxy", "gyz", "gzx"], "properties": {"ex": {"$ref": "#/$defs/number"}, "ey": {"$ref": "#/$defs/number"}, "ez": {"$ref": "#/$defs/number"}, "gxy": {"$ref": "#/$defs/number"}, "gyz": {"$ref": "#/$defs/number"}, "gzx": {"$ref": "#/$defs/number"}}},
+    "solidResultLocation": {"type": "object", "additionalProperties": false, "required": ["location_id", "stress", "strain"], "properties": {"location_id": {"$ref": "#/$defs/id"}, "stress": {"$ref": "#/$defs/stress3d"}, "strain": {"$ref": "#/$defs/strain3d"}}},
+    "solidResult": {"type": "object", "additionalProperties": false, "required": ["element_id", "locations"], "properties": {"element_id": {"$ref": "#/$defs/id"}, "locations": {"type": "array", "items": {"$ref": "#/$defs/solidResultLocation"}}}},
+    "warningsDiagnostics": {"type": "object", "additionalProperties": false, "required": ["warnings"], "properties": {"warnings": {"type": "array", "items": {"type": "string"}}}},
+    "iteration": {"type": "object", "additionalProperties": false, "required": ["index", "residual_norm", "correction_norm", "converged"], "properties": {"index": {"type": "integer", "minimum": 0}, "residual_norm": {"type": "number", "$ref": "#/$defs/number", "minimum": 0}, "correction_norm": {"type": "number", "$ref": "#/$defs/number", "minimum": 0}, "converged": {"type": "boolean"}}},
+    "loadStepDiagnostics": {"type": "object", "additionalProperties": false, "required": ["warnings", "iterations"], "properties": {"warnings": {"type": "array", "items": {"type": "string"}}, "iterations": {"type": "array", "items": {"$ref": "#/$defs/iteration"}}}},
+    "modalDiagnostics": {"type": "object", "additionalProperties": false, "required": ["warnings", "normalization", "eigenvalue_tolerance", "degeneracy_relative_tolerance"], "properties": {"warnings": {"type": "array", "items": {"type": "string"}}, "normalization": {"const": "mass"}, "eigenvalue_tolerance": {"type": "number", "$ref": "#/$defs/number", "minimum": 0}, "degeneracy_relative_tolerance": {"const": 1e-8}}},
+    "staticResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["case_id", "state", "node_displacements", "support_reactions", "member_section_forces", "shell_results", "solid_results", "diagnostics"],
+      "properties": {
+        "case_id": {"$ref": "#/$defs/id"}, "state": {"type": "object", "additionalProperties": false, "required": ["kind", "index"], "properties": {"kind": {"const": "static"}, "index": {"const": 0}}},
+        "node_displacements": {"type": "array", "items": {"$ref": "#/$defs/nodeDisplacement"}}, "support_reactions": {"type": "array", "items": {"$ref": "#/$defs/supportReaction"}},
+        "member_section_forces": {"type": "array", "items": {"$ref": "#/$defs/memberSectionForces"}}, "shell_results": {"type": "array", "items": {"$ref": "#/$defs/shellResult"}}, "solid_results": {"type": "array", "items": {"$ref": "#/$defs/solidResult"}}, "diagnostics": {"$ref": "#/$defs/warningsDiagnostics"}
+      }
+    },
+    "loadStepResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["case_id", "state", "node_displacements", "support_reactions", "member_section_forces", "shell_results", "solid_results", "diagnostics"],
+      "properties": {
+        "case_id": {"$ref": "#/$defs/id"}, "state": {"type": "object", "additionalProperties": false, "required": ["kind", "index", "load_factor", "is_final"], "properties": {"kind": {"const": "load_step"}, "index": {"type": "integer", "minimum": 0}, "load_factor": {"$ref": "#/$defs/number"}, "is_final": {"type": "boolean"}}},
+        "node_displacements": {"type": "array", "items": {"$ref": "#/$defs/nodeDisplacement"}}, "support_reactions": {"type": "array", "items": {"$ref": "#/$defs/supportReaction"}},
+        "member_section_forces": {"type": "array", "items": {"$ref": "#/$defs/memberSectionForces"}}, "shell_results": {"type": "array", "items": {"$ref": "#/$defs/shellResult"}}, "solid_results": {"type": "array", "items": {"$ref": "#/$defs/solidResult"}}, "diagnostics": {"$ref": "#/$defs/loadStepDiagnostics"}
+      }
+    },
+    "modalResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["case_id", "state", "node_mode_shapes", "diagnostics"],
+      "properties": {
+        "case_id": {"$ref": "#/$defs/id"}, "state": {"type": "object", "additionalProperties": false, "required": ["kind", "index", "eigenvalue", "frequency", "degeneracy_group"], "properties": {"kind": {"const": "mode"}, "index": {"type": "integer", "minimum": 0}, "eigenvalue": {"type": "number", "$ref": "#/$defs/number", "exclusiveMinimum": 0}, "frequency": {"type": "number", "$ref": "#/$defs/number", "exclusiveMinimum": 0}, "degeneracy_group": {"type": "integer", "minimum": 0}}},
+        "node_mode_shapes": {"type": "array", "items": {"$ref": "#/$defs/nodeModeShape"}}, "diagnostics": {"$ref": "#/$defs/modalDiagnostics"}
+      }
+    },
+    "analysisResultSet": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "schema_version", "units", "coordinate_system", "cases", "topology", "results"],
+      "properties": {
+        "kind": {"const": "analysis_result_set"}, "schema_version": {"const": "1.0"}, "units": {"$ref": "#/$defs/units"}, "coordinate_system": {"$ref": "#/$defs/coordinateSystem"},
+        "cases": {"type": "array", "minItems": 1, "maxItems": 256, "items": {"$ref": "#/$defs/resultCase"}}, "topology": {"$ref": "#/$defs/topology"},
+        "results": {"type": "array", "minItems": 1, "items": {"oneOf": [{"$ref": "#/$defs/staticResult"}, {"$ref": "#/$defs/loadStepResult"}, {"$ref": "#/$defs/modalResult"}]}}
+      }
+    }
+  }
+}

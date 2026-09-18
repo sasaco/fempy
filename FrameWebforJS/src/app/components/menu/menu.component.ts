@@ -385,7 +385,7 @@ export class MenuComponent implements OnInit {
   }
 
   // Electron でファイルを開く
-  open_electron() {
+  async open_electron(): Promise<void> {
     const response = this.electronService.ipcRenderer.sendSync("open");
 
     if (response.status !== true) {
@@ -421,8 +421,8 @@ export class MenuComponent implements OnInit {
     }
     this.InputData.loadInputData(jsonData); // データを読み込む
     if (resultData !== null) {
-      this.ResultData.loadResultData(resultData); // 解析結果を読み込む
-      this.ResultData.isCalculated = true;
+      const accepted = await this.ResultData.loadResultData(resultData); // 解析結果を読み込む
+      this.InputData.getResult(accepted.value);
     } else {
       this.ResultData.isCalculated = false;
     }
@@ -687,12 +687,13 @@ export class MenuComponent implements OnInit {
 
     this.menuService
       .fileToText(file)
-      .then((text) => {
+      .then(async (text) => {
         this.app.dialogClose(); // 現在表示中の画面を閉じる
         this.ResultData.clear();
         const jsonData = JSON.parse(text);
 
-        this.ResultData.loadResultData(jsonData);
+        const accepted = await this.ResultData.loadResultData(jsonData);
+        this.InputData.getResult(accepted.value);
         modalRef.close();
       })
       .catch((err) => {
@@ -718,7 +719,7 @@ export class MenuComponent implements OnInit {
       .get("./assets/preset/サンプル（門型橋脚）.json", {
         responseType: "text",
       })
-      .subscribe((text) => {
+      .subscribe(async (text) => {
         this.menuService.fileName = "サンプル（門型橋脚）.json";
         this.three.fileName = "サンプル（門型橋脚）.json";
         this.printCustomFsecService.flg = undefined;
@@ -732,8 +733,8 @@ export class MenuComponent implements OnInit {
         }
         this.InputData.loadInputData(jsonData); // データを読み込む
         if (resultData !== null) {
-          this.ResultData.loadResultData(resultData); // 解析結果を読み込む
-          this.ResultData.isCalculated = true;
+          const accepted = await this.ResultData.loadResultData(resultData); // 解析結果を読み込む
+          this.InputData.getResult(accepted.value);
         } else {
           this.ResultData.isCalculated = false;
         }

@@ -1,0 +1,21 @@
+{
+  "kind": "analysis_result_set", "schema_version": "1.0",
+  "units": {"system": "consistent_user_defined", "length": "m", "force": "kN", "mass": "t", "time": "s"},
+  "coordinate_system": {"name": "global_cartesian", "handedness": "right", "axes": ["x", "y", "z"]},
+  "cases": [{"case_id": "D", "name": "Dead", "symbol": "D", "analysis_type": "static", "support_node_ids": ["1"]}],
+  "topology": {
+    "nodes": [
+      {"node_id": "1", "coordinates": {"x": 0, "y": 0, "z": 0}, "source_node_id": "1", "generated": false},
+      {"node_id": "2", "coordinates": {"x": 1, "y": 0, "z": 0}, "source_node_id": "2", "generated": false}
+    ],
+    "members": [{"member_id": "M1", "node_i": "1", "node_j": "2", "local_frame": {"origin": {"x": 0, "y": 0, "z": 0}, "x_axis": {"x": 1, "y": 0, "z": 0}, "y_axis": {"x": 0, "y": 1, "z": 0}, "z_axis": {"x": 0, "y": 0, "z": 1}}, "stations": [{"station_id": "S0", "position": 0}, {"station_id": "S1", "position": 1}]}],
+    "shell_elements": [], "solid_elements": []
+  },
+  "results": [{
+    "case_id": "D", "state": {"kind": "static", "index": 0},
+    "node_displacements": [{"node_id": "1", "components": {"dx": 0, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0}}, {"node_id": "2", "components": {"dx": 0.001, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0}}],
+    "support_reactions": [{"node_id": "1", "components": {"fx": -10, "fy": 0, "fz": 0, "mx": 0, "my": 0, "mz": 0}}],
+    "member_section_forces": [{"member_id": "M1", "segments": [{"segment_id": "S0-S1", "station_i": "S0", "station_j": "S1", "length": 1, "i_end": {"fx": 10, "fy": 0, "fz": 0, "mx": 0, "my": 0, "mz": 0}, "j_end": {"fx": 10, "fy": 0, "fz": 0, "mx": 0, "my": 0, "mz": 0}}]}],
+    "shell_results": [], "solid_results": [], "diagnostics": {"warnings": []}
+  }]
+}

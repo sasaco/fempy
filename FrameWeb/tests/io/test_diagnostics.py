@@ -24,7 +24,7 @@ pytestmark = pytest.mark.integration
 def test_static_result_metadata_and_model_result_roundtrip(tmp_path, capsys):
     model = python_axial()
     model.model_metadata["units"].update(length="mm", force="N")
-    result = model.run("static")
+    result = model._run_solver_snapshot("static")
     metadata = result["metadata"]
 
     assert capsys.readouterr().out == ""
@@ -47,22 +47,22 @@ def test_static_result_metadata_and_model_result_roundtrip(tmp_path, capsys):
 
     model_path = tmp_path / "model.json"
     result_path = tmp_path / "result.json"
+    public_result = model.run("static")
     model.save_model(str(model_path))
     model.save_results(str(result_path))
 
     restored = FemModel()
     restored.load_model(str(model_path))
-    restored_result = restored.run("static")
+    restored_result = restored._run_solver_snapshot("static")
     assert restored.model_metadata == model.model_metadata
     assert restored_result["metadata"]["input_sha256"] == metadata["input_sha256"]
-    assert read_result(str(result_path))["metadata"] == json.loads(
-        result_path.read_text(encoding="utf-8")
-    )["metadata"]
+    assert read_result(str(result_path)) == public_result
+    assert json.loads(result_path.read_text(encoding="utf-8")) == public_result
 
 
 def test_input_hash_changes_with_analysis_input():
-    first = python_axial(12).run("static")["metadata"]["input_sha256"]
-    second = python_axial(13).run("static")["metadata"]["input_sha256"]
+    first = python_axial(12)._run_solver_snapshot("static")["metadata"]["input_sha256"]
+    second = python_axial(13)._run_solver_snapshot("static")["metadata"]["input_sha256"]
     assert first != second
 
 
@@ -70,7 +70,7 @@ def test_static_metadata_residual_includes_spring_equilibrium():
     model = python_axial()
     model.add_spring_support(30, "x", 1000)
 
-    solver_metadata = model.run("static")["metadata"]["solver"]
+    solver_metadata = model._run_solver_snapshot("static")["metadata"]["solver"]
 
     assert solver_metadata["residual_norm"] < 1e-12
     assert solver_metadata["residual_scale"] == pytest.approx(12)
@@ -81,7 +81,7 @@ def test_model_metadata_cannot_override_provenance_fields():
     model = python_axial()
     model.model_metadata["product"] = {"version": "forged"}
     with pytest.raises(InputValidationError, match="Unknown model_metadata"):
-        model.run("static")
+        model._run_solver_snapshot("static")
     assert model.results is None
 
 
@@ -101,7 +101,8 @@ def test_modal_metadata_uses_eigenpair_residual():
         ):
             model.add_spring_support(node_id, direction, stiffness)
 
-    result = model.run_modal_analysis(1)
+    model.analysis_params["n_modes"] = 1
+    result = model._run_solver_snapshot("modal")
     metadata = result["metadata"]
     assert metadata["analysis"]["type"] == "modal"
     assert metadata["analysis"]["parameters"]["n_modes"] == 1
@@ -125,7 +126,7 @@ def test_high_precision_path_is_declared_in_metadata():
 def test_nonlinear_metadata_summarizes_accepted_history(caplog, capsys):
     model = json_model(axial_json())
     with caplog.at_level(logging.DEBUG, logger="fem.equilibrium"):
-        result = model.run("material_nonlinear")
+        result = model._run_solver_snapshot("material_nonlinear")
 
     solver_metadata = result["metadata"]["solver"]
     assert capsys.readouterr().out == ""
@@ -144,7 +145,7 @@ def test_nonlinear_metadata_summarizes_accepted_history(caplog, capsys):
 def test_unknown_analysis_has_same_python_and_http_code():
     model = python_axial()
     with pytest.raises(UnsupportedAnalysisError) as caught:
-        model.run("not-an-analysis")
+        model._run_solver_snapshot("not-an-analysis")
     assert caught.value.error_code == "unsupported_analysis"
     assert caught.value.details["analysis_type"] == "not-an-analysis"
     assert model.results is None
@@ -163,7 +164,7 @@ def test_mechanism_has_same_python_and_http_code_and_dof_details():
     model = python_axial()
     model.boundary.restraints.clear()
     with pytest.raises(StructuralMechanismError) as caught:
-        model.run("static")
+        model._run_solver_snapshot("static")
     assert caught.value.error_code == "structural_mechanism"
     assert model.results is None
 
@@ -188,7 +189,7 @@ def test_numerical_rank_failure_is_distinct_from_input_and_mechanism():
     assert caught.value.error_code == "numerical_ill_conditioning"
 
     with pytest.raises(InputValidationError) as invalid:
-        FemModel().run("static")
+        FemModel()._run_solver_snapshot("static")
     assert invalid.value.error_code == "invalid_input"
 
 
@@ -197,7 +198,7 @@ def test_nonconvergence_exposes_stable_python_details():
     model = python_axial(30)
     model.analysis_params.update(load_factors=[1.0], max_iterations=2)
     with pytest.raises(NonlinearConvergenceError) as caught:
-        model.run("material_nonlinear")
+        model._run_solver_snapshot("material_nonlinear")
     assert caught.value.error_code == "nonlinear_nonconvergence"
     assert caught.value.details == {"step": 1, "load_factor": 1.0}
     assert model.results is None

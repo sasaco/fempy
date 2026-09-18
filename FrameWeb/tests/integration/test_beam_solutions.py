@@ -50,7 +50,7 @@ def test_fem_model_publishes_section_forces_with_nonconsecutive_nodes(analysis):
         model.material.add_material(1, MaterialProperty("test", 2000, 0.25))
         model.mesh.add_element(1, "bar", [10, 307], 1, section_id=1)
     model.analysis_params.update(n_load_steps=3, tolerance=1e-10)
-    result = model.run(analysis)
+    result = model._run_solver_snapshot(analysis)
     expected_u = 0.006 if analysis == "material_nonlinear" else 0.003
     assert result["node_displacements"][307]["dx"] == pytest.approx(expected_u, abs=1e-12)
     output = result["element_stresses"][1]
@@ -78,7 +78,7 @@ def test_nonlinear_pure_bending_solution_and_output_under_refinement(axis, rotat
     load[rotation] = ei * 0.0015
     model.boundary.add_load(10 + count * 100, load)
     model.analysis_params.update(n_load_steps=3, tolerance=1e-10)
-    result = model.run("material_nonlinear")
+    result = model._run_solver_snapshot("material_nonlinear")
     displacement = result["displacement"]
     transverse = 2 if rotation == 4 else 1
     assert displacement[-6 + rotation] == pytest.approx(0.006, abs=1e-12)

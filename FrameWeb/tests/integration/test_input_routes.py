@@ -4,8 +4,17 @@ import json
 
 import pytest
 
+from fem.analysis_result_sets import build_analysis_result_set
 from fem.model import FemModel
+from fem.result_contracts import validate_analysis_result_set
 from main import app
+from tests.integration._canonical_results import (
+    assert_uniform_result,
+    load_step_results,
+    node_components,
+    reaction_components,
+    static_result,
+)
 from tests.support.assertions import assert_axial, assert_dict_almost_equal
 from tests.support.builders.input_routes import axial_json, json_model, python_axial
 from tests.support.builders.linear_frame import cantilever
@@ -43,7 +52,9 @@ def test_spatial_python_legacy_modern_file_and_http_all_outputs(tmp_path, shell,
         data['shell'] = {'1': dict(nodes=[1, 2, 3, 4], e=1, t=.1)}
         data['element']['1']['1']['thickness'] = .1
         data['inf_panel']['7'] = dict(nodes=[1, 2, 3, 4], elements=[1])
-    # The second case is deliberately different and must never enter the solve.
+    # The second legacy case is deliberately different; the public endpoint
+    # must solve both cases in insertion order, while direct model routes below
+    # continue to exercise their solver-native single-run API.
     data['load']['2'] = dict(inf_panel=7, load_inf=[dict(L1=1, P11=999, P12=999)])
     original = deepcopy(data)
     python = FemModel()
@@ -68,28 +79,36 @@ def test_spatial_python_legacy_modern_file_and_http_all_outputs(tmp_path, shell,
                              triangles=() if shell else ((1, 2, 3), (1, 3, 4)))
     python.set_spatial_loads(SpatialLoadDefinitions((panel,), paths,
         (SpatialLoad(1, 7, tuple(p.id for p in paths), values),)))
-    results = [python.run()]
+    results = [python._run_solver_snapshot()]
+    public_results = []
     modern_path = tmp_path / 'modern.json'
     python.save_model(str(modern_path))
     modern = json.loads(modern_path.read_text(encoding='utf8'))
     client = app.test_client()
     for name, payload in (('legacy', data), ('modern', modern)):
-        results.append(json_model(payload).run())
+        results.append(json_model(payload)._run_solver_snapshot())
         path = tmp_path / f'{name}.json'
         path.write_text(json.dumps(payload), encoding='utf8')
         file_model = FemModel()
         file_model.load_model(str(path))
-        results.append(file_model.run())
+        results.append(file_model._run_solver_snapshot())
         response = client.post('/', json=payload)
         assert response.status_code == 200, response.get_data(as_text=True)
-        results.append(response.get_json())
+        public_result = response.get_json()
+        validate_analysis_result_set(public_result)
+        assert public_result == build_analysis_result_set(payload)
+        public_results.append((name, public_result))
         packed = base64.b64encode(json.dumps(list(gzip.compress(json.dumps(payload).encode()))).encode())
         response = client.post('/', data=packed, headers={'Content-Encoding': 'gzip'})
         assert response.status_code == 200, response.get_data(as_text=True)
-        results.append(json.loads(gzip.decompress(base64.b64decode(response.data))))
+        compressed_result = json.loads(gzip.decompress(base64.b64decode(response.data)))
+        validate_analysis_result_set(compressed_result)
+        assert compressed_result == public_result
     for result in results:
         assert_dict_almost_equal(without_input_hash(result), without_input_hash(results[0]))
         assert len(result['metadata']['input_sha256']) == 64
+    assert [case["case_id"] for case in public_results[0][1]["cases"]] == ["1", "2"]
+    assert [case["case_id"] for case in public_results[1][1]["cases"]] == ["1"]
     assert data == original
 
 
@@ -100,10 +119,13 @@ def test_python_json_file_http_equivalence(tmp_path):
     path.write_text(json.dumps(data), encoding="utf-8")
     models = [python_axial(), json_model(data), FemModel()]
     models[-1].load_model(str(path))
-    results = [m.run() for m in models]
+    results = [m._run_solver_snapshot() for m in models]
     response = app.test_client().post("/", json=data)
     assert response.status_code == 200
-    results.append(json.loads(response.data))
+    public_result = json.loads(response.data)
+    validate_analysis_result_set(public_result)
+    assert public_result == build_analysis_result_set(data)
+    assert_uniform_result(load_step_results(public_result)[-1], "axial", 1, 12, 0.002)
     for r in results:
         assert_axial(r)
         assert_dict_almost_equal(without_input_hash(r), without_input_hash(results[0]))
@@ -115,7 +137,7 @@ def test_python_json_file_http_equivalence(tmp_path):
 def test_python_json_and_http_use_saved_jr_k4_displacement_history():
     data = json.loads((DATA / "snap/jr_k4_displacement_control.json").read_text(encoding="utf8"))
     expected = list(data["result"].values())
-    results = [solve(data, route) for route in ("python", "json", "http")]
+    results = [solve(data, route) for route in ("python", "json")]
     for result in results:
         assert [step["lambda"] for step in result["step_results"]] == pytest.approx(
             [step["lambda"] for step in expected], abs=1e-9
@@ -131,7 +153,15 @@ def test_python_json_and_http_use_saved_jr_k4_displacement_history():
         assert result["node_displacements"]["30"]["rz"] == pytest.approx(0.040)
         assert result["reaction_forces"]["10"]["mz"] == pytest.approx(-12.0)
     assert_dict_almost_equal(without_input_hash(results[1]), without_input_hash(results[0]))
-    assert_dict_almost_equal(without_input_hash(results[2]), without_input_hash(results[0]))
+    public_steps = load_step_results(solve(data, "http"))
+    assert [step["state"]["load_factor"] for step in public_steps] == pytest.approx(
+        [step["lambda"] for step in expected], abs=1e-9
+    )
+    assert [node_components(step)["30"]["rz"] for step in public_steps] == pytest.approx(
+        [step["control_displacement"] for step in expected], abs=1e-12
+    )
+    assert node_components(public_steps[-1])["30"]["dy"] == pytest.approx(0.040)
+    assert reaction_components(public_steps[-1])["10"]["mz"] == pytest.approx(-12.0)
 
 
 @pytest.mark.material_nonlinear
@@ -144,14 +174,18 @@ def test_omitted_nu_has_same_nonlinear_default_in_python_json_and_http():
     m = python_axial(0)
     m.add_nonlinear_material(1, "reference", 10000, 0.001, 0.004, 0.010, 10, 16, 22, beta=0)
     m.add_load(30, fy=1)
-    results = [wire(m.run()), wire(json_model(d).run())]
+    results = [wire(m._run_solver_snapshot()), wire(json_model(d)._run_solver_snapshot())]
     response = app.test_client().post("/", json=d)
     assert response.status_code == 200
-    results.append(json.loads(response.data))
     # Existing Python nonlinear default nu=.2 -> G=10000/2.4.
     expected = 8 / 30000 + 2 / ((10000 / 2.4) * 5 / 6)
     for r in results:
         assert r["node_displacements"]["30"]["dy"] == pytest.approx(expected, abs=1e-10)
+    public_result = json.loads(response.data)
+    validate_analysis_result_set(public_result)
+    assert node_components(load_step_results(public_result)[-1])["30"]["dy"] == pytest.approx(
+        expected, abs=1e-10
+    )
 
 
 def test_omitted_g_file_http_and_saved_model_agree(tmp_path):
@@ -164,13 +198,17 @@ def test_omitted_g_file_http_and_saved_model_agree(tmp_path):
     path.write_text(json.dumps(data), encoding="utf-8")
     model = FemModel()
     model.load_model(str(path))
-    result = model.run()
+    result = model._run_solver_snapshot()
     assert result["node_displacements"][2]["dy"] == pytest.approx(0.002, abs=1e-12)
     saved = tmp_path / "saved.json"
     model.save_model(str(saved))
     restored = FemModel()
     restored.load_model(str(saved))
-    assert restored.run()["node_displacements"][2]["dy"] == pytest.approx(0.002, abs=1e-12)
+    assert restored._run_solver_snapshot()["node_displacements"][2]["dy"] == pytest.approx(0.002, abs=1e-12)
     response = app.test_client().post("/", json=data)
     assert response.status_code == 200
-    assert json.loads(response.data)["node_displacements"]["2"]["dy"] == pytest.approx(0.002, abs=1e-12)
+    public_result = json.loads(response.data)
+    validate_analysis_result_set(public_result)
+    assert node_components(static_result(public_result))["2"]["dy"] == pytest.approx(
+        0.002, abs=1e-12
+    )

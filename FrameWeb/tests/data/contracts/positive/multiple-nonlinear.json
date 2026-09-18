@@ -1,0 +1,12 @@
+{
+  "kind": "analysis_result_set", "schema_version": "1.0",
+  "units": {"system": "consistent_user_defined", "length": "unspecified", "force": "unspecified", "mass": "unspecified", "time": "unspecified"},
+  "coordinate_system": {"name": "global_cartesian", "handedness": "right", "axes": ["x", "y", "z"]},
+  "cases": [{"case_id": "A", "name": "A", "symbol": "A", "analysis_type": "material_nonlinear", "support_node_ids": []}, {"case_id": "B", "name": "B", "symbol": "B", "analysis_type": "material_nonlinear", "support_node_ids": []}],
+  "topology": {"nodes": [], "members": [], "shell_elements": [], "solid_elements": []},
+  "results": [
+    {"case_id": "A", "state": {"kind": "load_step", "index": 0, "load_factor": 1, "is_final": true}, "node_displacements": [], "support_reactions": [], "member_section_forces": [], "shell_results": [], "solid_results": [], "diagnostics": {"warnings": [], "iterations": []}},
+    {"case_id": "B", "state": {"kind": "load_step", "index": 0, "load_factor": 0.5, "is_final": false}, "node_displacements": [], "support_reactions": [], "member_section_forces": [], "shell_results": [], "solid_results": [], "diagnostics": {"warnings": [], "iterations": []}},
+    {"case_id": "B", "state": {"kind": "load_step", "index": 1, "load_factor": 1, "is_final": true}, "node_displacements": [], "support_reactions": [], "member_section_forces": [], "shell_results": [], "solid_results": [], "diagnostics": {"warnings": [], "iterations": []}}
+  ]
+}

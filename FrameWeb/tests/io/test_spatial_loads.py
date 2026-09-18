@@ -103,7 +103,7 @@ def test_nonstatic_spatial_loads_are_never_silently_ignored(monkeypatch, analysi
     monkeypatch.setattr(model.solver, 'solve', unexpected)
     monkeypatch.setattr(model.solver, 'eigenvalue_analysis', unexpected)
     with pytest.raises(ValueError, match='spatial.*7') as caught:
-        model.run(analysis)
+        model._run_solver_snapshot(analysis)
     assert caught.value.error_code == 'unsupported_analysis'
     assert model.results is None
 

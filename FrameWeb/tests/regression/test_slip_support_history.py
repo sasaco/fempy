@@ -11,6 +11,12 @@ import pytest
 from fem.file_io import _read_json_model, result_to_jsonable
 from fem.model import FemModel
 from main import app
+from tests.integration._canonical_results import (
+    assert_step_diagnostics,
+    load_step_results,
+    node_components,
+    reaction_components,
+)
 from tests.support.builders.slip_support import slip_model_data, legacy_slip_data
 
 pytestmark = pytest.mark.regression
@@ -41,7 +47,15 @@ def test_http_history_including_compressed_transport(legacy, compressed):
         reply = client.post('/', json=raw)
         assert reply.status_code == 200, reply.data
         result = reply.get_json()
-    assert_history(result)
+    steps = load_step_results(result)
+    assert len(steps) == len(FORCES)
+    for force, step in zip(FORCES, steps, strict=True):
+        deformation = node_components(step)['30']['dx']
+        assert reaction_components(step)['30']['fx'] == pytest.approx(-force, abs=1e-9)
+        assert step['state']['load_factor'] == pytest.approx(
+            3000*deformation+force, abs=1e-9
+        )
+        assert_step_diagnostics(step)
 
 
 def test_python_file_result_roundtrip_reanalysis_and_hash(tmp_path):
@@ -50,22 +64,28 @@ def test_python_file_result_roundtrip_reanalysis_and_hash(tmp_path):
     model = FemModel()
     model.read_json_model(_read_json_model(raw))
     model.add_slip_spring_support(30, 'x', 1000, 100, .01)
-    expected = result_to_jsonable(model.run())
+    expected = result_to_jsonable(model._run_solver_snapshot())
     assert_history(expected)
+    public_result = model.run()
     model.save_model(str(tmp_path/'model.json'))
     model.save_results(str(tmp_path/'result.json'))
-    assert_history(json.loads((tmp_path/'result.json').read_text(encoding='utf8')))
+    saved = json.loads((tmp_path/'result.json').read_text(encoding='utf8'))
+    assert saved == public_result
+    steps = load_step_results(saved)
+    assert [reaction_components(step)['30']['fx'] for step in steps] == pytest.approx(
+        [-force for force in FORCES], abs=1e-9
+    )
     restored = FemModel()
     restored.load_model(str(tmp_path/'model.json'))
-    actual = result_to_jsonable(restored.run())
+    actual = result_to_jsonable(restored._run_solver_snapshot())
     assert actual['support_response'] == expected['support_response']
     assert actual['metadata']['input_sha256'] == expected['metadata']['input_sha256']
     assert_history(actual)
     actual['support_response']['30']['x']['zero_pos'] = 99
-    assert_history(result_to_jsonable(restored.run()))
+    assert_history(result_to_jsonable(restored._run_solver_snapshot()))
     from fem.nonlinear.hysteresis.slip import SlipSpringParams
     restored.boundary.nonlinear_spring_supports[30]['x'] = SlipSpringParams(1000, 200, .01)
-    assert restored.run()['metadata']['input_sha256'] != expected['metadata']['input_sha256']
+    assert restored._run_solver_snapshot()['metadata']['input_sha256'] != expected['metadata']['input_sha256']
 
 
 @pytest.mark.parametrize('kind', ['static', 'modal'])
@@ -82,4 +102,4 @@ def test_documented_complete_example():
     path = Path(__file__).resolve().parents[2]/'docs/examples/slip-support-history.json'
     model = FemModel()
     model.load_model(str(path))
-    assert_history(result_to_jsonable(model.run()))
+    assert_history(result_to_jsonable(model._run_solver_snapshot()))

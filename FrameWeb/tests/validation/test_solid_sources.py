@@ -32,7 +32,7 @@ def test_quadratic_solid_all_outputs_against_independent_decimal_source(stem):
     fixed = completed_reference(data, read_source_records(source_path), reference)
     model = FemModel()
     model.read_json_model(_read_json_model(copy.deepcopy(data)))
-    compare_section_cut_result(model.run(), fixed["result"]["1"], model, data)
+    compare_section_cut_result(model._run_solver_snapshot(), fixed["result"]["1"], model, data)
     assert path.read_bytes() == before
 
 
@@ -46,7 +46,7 @@ def test_tetrahedron_all_outputs_against_source_input_solution(tetra_reference):
     fixed = completed_data(data, source, ref)
     model = FemModel()
     model.read_json_model(_read_json_model(copy.deepcopy(data)))
-    result = model.run()
+    result = model._run_solver_snapshot()
     compare_section_cut_result(result, fixed["result"]["1"], model, data)
 
 
@@ -58,7 +58,7 @@ def test_solid_displacements_and_global_equilibrium(stem):
     data = json.loads(before)
     model = FemModel()
     model.read_json_model(_read_json_model(copy.deepcopy(data)))
-    result = result_to_jsonable(model.run())
+    result = result_to_jsonable(model._run_solver_snapshot())
     assert_dict_almost_equal(result["node_displacements"], source["displacements"])
     force, moment = np.zeros(3), np.zeros(3)
     for node, load in source["loads"].items():

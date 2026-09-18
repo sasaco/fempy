@@ -1,0 +1,11 @@
+{
+  "kind": "analysis_result_set", "schema_version": "1.0",
+  "units": {"system": "consistent_user_defined", "length": "m", "force": "N", "mass": "kg", "time": "s"},
+  "coordinate_system": {"name": "global_cartesian", "handedness": "right", "axes": ["x", "y", "z"]},
+  "cases": [{"case_id": "1", "name": "1", "symbol": "1", "analysis_type": "modal", "support_node_ids": []}],
+  "topology": {"nodes": [{"node_id": "1", "coordinates": {"x": 0, "y": 0, "z": 0}, "source_node_id": "1", "generated": false}], "members": [], "shell_elements": [], "solid_elements": []},
+  "results": [
+    {"case_id": "1", "state": {"kind": "mode", "index": 0, "eigenvalue": 4, "frequency": 0.3183098861837907, "degeneracy_group": 0}, "node_mode_shapes": [{"node_id": "1", "components": {"dx": 1, "dy": 0, "dz": 0, "rx": 0, "ry": 0, "rz": 0}}], "diagnostics": {"warnings": [], "normalization": "mass", "eigenvalue_tolerance": 1e-12, "degeneracy_relative_tolerance": 1e-8}},
+    {"case_id": "1", "state": {"kind": "mode", "index": 1, "eigenvalue": 9, "frequency": 0.477464829275686, "degeneracy_group": 1}, "node_mode_shapes": [{"node_id": "1", "components": {"dx": 0, "dy": 1, "dz": 0, "rx": 0, "ry": 0, "rz": 0}}], "diagnostics": {"warnings": [], "normalization": "mass", "eigenvalue_tolerance": 1e-12, "degeneracy_relative_tolerance": 1e-8}}
+  ]
+}

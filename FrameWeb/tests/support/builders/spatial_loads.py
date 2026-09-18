@@ -76,7 +76,7 @@ def solver_panel(*, shell=False, area=True, fixed=True):
 def solve_spatial_internal(model):
     """Stage-3 numerical entry; deliberately does not bypass public preflight."""
     result = model.solver.solve(model.mesh, model.material, model.boundary, model.elements)
-    model.results = result
+    model._solver_snapshot = result
     result['analysis_type'] = 'static'
     model._post_process_results()
     return result

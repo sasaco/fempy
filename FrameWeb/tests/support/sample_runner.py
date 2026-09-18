@@ -69,7 +69,7 @@ def run_sample(data_path, *, contract=None):
         targets = case["displacement_control"]["targets"]
         m = FemModel()
         m.load_model(str(data_path))
-        result = m.run()
+        result = m._run_solver_snapshot()
         compare_displacement_control_history(result, expected, m, data, targets)
         return result
     if contract == "cantilever_history" and "reference" not in data:
@@ -77,7 +77,7 @@ def run_sample(data_path, *, contract=None):
 
         m = FemModel()
         m.load_model(str(data_path))
-        result = m.run()
+        result = m._run_solver_snapshot()
         assert_cantilever_history(result_to_jsonable(result), data)
         if not data.get("result"):
             return result
@@ -87,7 +87,7 @@ def run_sample(data_path, *, contract=None):
             # additionally compare every user-provided snapshot/component.
             snapshots = {str(step["step"]): step for step in result["step_results"]}
             m.analysis_params["load_factors"] = [0.0]
-            snapshots["0"] = m.run()["step_results"][0]
+            snapshots["0"] = m._run_solver_snapshot()["step_results"][0]
             for key, reference in data["result"].items():
                 assert key in snapshots, f"Unknown reference load step {key}"
                 assert {"disg", "reac", "fsec"} <= reference.keys(), (
@@ -101,7 +101,7 @@ def run_sample(data_path, *, contract=None):
     if "reference" in data:
         m = FemModel()
         m.load_model(str(data_path))
-        result = m.run()
+        result = m._run_solver_snapshot()
         assert_acceptance_result(result_to_jsonable(result), data["reference"], m.analysis_params)
         return result
     expected = data.get("result")
@@ -109,7 +109,7 @@ def run_sample(data_path, *, contract=None):
     if "node_displacements" in expected:
         m = FemModel()
         m.load_model(str(data_path))
-        result = m.run()
+        result = m._run_solver_snapshot()
         assert_dict_almost_equal(result_to_jsonable(result), expected)
         return result
     for case_id, reference in expected.items():
@@ -117,7 +117,7 @@ def run_sample(data_path, *, contract=None):
             assert case_id == "1", f"Unknown reference load case {case_id}"
             m = FemModel()
             m.read_json_model(_read_json_model(copy.deepcopy(data)))
-            result = m.run()
+            result = m._run_solver_snapshot()
             compare_section_cut_result(result, reference, m, data)
             continue
         assert case_id in data["load"], f"Unknown reference load case {case_id}"
@@ -133,7 +133,7 @@ def run_sample(data_path, *, contract=None):
                 case_data[field] = {key: case_data[field][key]}
         m = FemModel()
         m.read_json_model(_read_json_model(case_data))
-        result = m.run()
+        result = m._run_solver_snapshot()
         compare_section_cut_result(result, reference, m, case_data)
     return result
 
@@ -159,6 +159,6 @@ def run_sample_case(data_path, case_id):
                 selected[field] = {key: selected[field][key]}
     model = FemModel()
     model.read_json_model(_read_json_model(selected))
-    result = model.run()
+    result = model._run_solver_snapshot()
     compare_section_cut_result(result, data["result"][case_id], model, selected)
     return result

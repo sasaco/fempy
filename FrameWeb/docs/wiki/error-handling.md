@@ -20,7 +20,7 @@
 | `NotImplementedError` | 要素・解析の組合せを[対応表](elements.md)で確認する。 |
 | `Non-finite analysis result` | NaN・Infinityを含む結果はHTTP・JSON保存できない。固有値のゼロモード等を確認。 |
 | VTK変換中の`TypeError` | 配列を含む要素結果をそのまま渡していないか。[整形例](file-formats.md)を参照。 |
-| `KeyError: 'disg'`や`'case1'` | 現行結果は`node_displacements`等を直接返す。 |
+| `KeyError: 'disg'`、`'step_results'`、`'analysis_type'` | HTTP成功結果は`AnalysisResultSet`。`cases`と`results`からcase/stateを選び、canonical fieldを読む。 |
 
 JSONの未知キーや不正な階層の一部は無視されるため、エラーが出ないことだけでは条件が正しく適用されたとは判断できません。荷重・支持を1つずつ追加し、反力と変位で確かめてください。
 

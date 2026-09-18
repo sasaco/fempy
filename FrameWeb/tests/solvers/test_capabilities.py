@@ -63,7 +63,7 @@ def test_public_wedge_modal_is_rejected_with_ids_before_solver(monkeypatch):
     )
 
     with pytest.raises(UnsupportedCapabilityError) as caught:
-        model.run("modal")
+        model._run_solver_snapshot("modal")
 
     assert "element IDs [37, 91] (wedge)" in str(caught.value)
     assert "Mass matrix is not implemented" in str(caught.value)
@@ -104,7 +104,7 @@ def test_saved_json_public_input_rejects_unsupported_wedge_modal():
     model.read_json_model(_read_json_model(payload))
 
     with pytest.raises(UnsupportedCapabilityError, match=r"element IDs \[204\] \(wedge\)"):
-        model.run()
+        model._run_solver_snapshot()
 
 
 @pytest.mark.parametrize(
@@ -125,7 +125,7 @@ def test_stub_element_paths_are_rejected_before_matrix_calls(
     )
 
     with pytest.raises(UnsupportedCapabilityError, match=element_type):
-        model.run(analysis_type)
+        model._run_solver_snapshot(analysis_type)
 
 
 def test_solid_pressure_is_rejected_before_load_assembly(monkeypatch):
@@ -134,7 +134,7 @@ def test_solid_pressure_is_rejected_before_load_assembly(monkeypatch):
     monkeypatch.setattr(model.solver, "solve", lambda *a, **k: pytest.fail("solver must not run"))
 
     with pytest.raises(UnsupportedCapabilityError) as caught:
-        model.run("static")
+        model._run_solver_snapshot("static")
 
     assert "element IDs [37] (tetra) load 'shell_pressure'" in str(caught.value)
     assert caught.value.issues[0]["kind"] == "load"
@@ -176,4 +176,4 @@ def test_spatial_receiver_capability_is_enforced_before_compilation(monkeypatch)
     monkeypatch.setattr(capabilities, '_registry', lambda: registry)
     monkeypatch.setattr(model.solver, 'solve', lambda *a, **k: pytest.fail('no compilation or K'))
     with pytest.raises(UnsupportedCapabilityError, match='test receiver'):
-        model.run()
+        model._run_solver_snapshot()

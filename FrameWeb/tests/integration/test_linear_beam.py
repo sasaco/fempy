@@ -101,10 +101,10 @@ def test_public_distributed_load_and_joint_apis():
     m.add_distributed_load(1, "local_y", 8, 8)
     m.add_restraint(2, dy=True, rz=True)
     m.add_joint_condition(1, zj=0)
-    r = m.run()
+    r = m._run_solver_snapshot()
     assert r["reaction_forces"][1]["fy"] == pytest.approx(-10, abs=1e-9)
     assert r["element_stresses"][1]["j_end"][5] == pytest.approx(0, abs=1e-9)
-    r2 = m.run()
+    r2 = m._run_solver_snapshot()
     np.testing.assert_allclose(r2["displacement"], r["displacement"], atol=1e-14)
 
 
@@ -154,6 +154,6 @@ def test_temperature_load_free_expansion_and_restrained_force(restrained):
     m.add_temperature_load(1, 20)
     if restrained:
         m.add_restraint(2, dx=True)
-    r = m.run()
+    r = m._run_solver_snapshot()
     assert r["node_displacements"][2]["dx"] == pytest.approx(0 if restrained else 0.0004, abs=1e-12)
     assert r["element_stresses"][1]["j_end"][0] == pytest.approx(-0.4 if restrained else 0, abs=1e-10)

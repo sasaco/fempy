@@ -1,117 +1,60 @@
 /// <reference lib="webworker" />
 
-addEventListener('message', ({ data }) => {
+import { AnalysisResult, analysisResultSelectionKey, isForceAnalysisResult } from "../../../providers/analysis-result-set";
+import { workerErrorMessage } from "../../../providers/result-worker-pipeline";
 
-  // 文字列string を数値にする
-  const toNumber = (num: string) => {
-    let result: number = null;
-    try {
-      const tmp: string = num.toString().trim();
-      if (tmp.length > 0) {
-        result = ((n: number) => isNaN(n) ? null : n)(+tmp);
-      }
-    } catch {
-      result = null;
-    }
-    return result;
-  };
+function rowsFor(result: AnalysisResult) {
+  const rows = isForceAnalysisResult(result) ? result.node_displacements : result.node_mode_shapes;
+  return rows.map((row) => ({ id: row.node_id, ...row.components }));
+}
 
-
-  const jsonData = data.jsonData;
-  const disg = {};
-  const max_value = {};
-  const value_range = {};
-  let error: any = null;
-
+addEventListener("message", ({ data }) => {
+  let error: unknown = null;
   try {
-
-
-    for (const caseNo of Object.keys(jsonData)) {
-      const target = new Array();
-      const caseData: {} = jsonData[caseNo];
-
-      // 存在チェック
-      if (typeof caseData !== "object") {
-        continue;
+    const entries = (data.results as readonly AnalysisResult[]).map((result) => {
+      const rows = rowsFor(result);
+      let maxDisplacement = Number.NEGATIVE_INFINITY;
+      let minDisplacement = Number.POSITIVE_INFINITY;
+      let maxRotation = Number.NEGATIVE_INFINITY;
+      let minRotation = Number.POSITIVE_INFINITY;
+      let maxDisplacementNode = "0";
+      let minDisplacementNode = "0";
+      let maxRotationNode = "0";
+      let minRotationNode = "0";
+      rows.forEach((row) => {
+        [row.dx, row.dy, row.dz].forEach((value) => {
+          if (value > maxDisplacement) { maxDisplacement = value; maxDisplacementNode = row.id; }
+          if (value < minDisplacement) { minDisplacement = value; minDisplacementNode = row.id; }
+        });
+        [row.rx, row.ry, row.rz].forEach((value) => {
+          if (value > maxRotation) { maxRotation = value; maxRotationNode = row.id; }
+          if (value < minRotation) { minRotation = value; minRotationNode = row.id; }
+        });
+      });
+      if (rows.length === 0) {
+        maxDisplacement = minDisplacement = maxRotation = minRotation = 0;
       }
-      if (!("disg" in caseData)) {
-        continue;
-      }
-      const json: {} = caseData["disg"];
-
-      let values = {max_d: Number.MIN_VALUE, max_r: Math.PI * -1000,
-                    min_d: Number.MAX_VALUE, min_r: Math.PI *  1000,
-                    max_d_m: '0' , max_r_m: '0' ,
-                    min_d_m: '0' , min_r_m: '0' ,}
-
-      for (const n of Object.keys(json)) {
-
-        const id = n.replace("node", "");
-        if (id.includes('n')) {
-          continue; // 着目節点は除外する
-        }
-        if (id.includes('l')) {
-          continue; // 荷重による分割点は除外する
-        }
-
-        const item: {} = json[n];
-
-        let dx: number = toNumber(item["dx"]);
-        let dy: number = toNumber(item["dy"]);
-        let dz: number = toNumber(item["dz"]);
-        let rx: number = toNumber(item["rx"]);
-        let ry: number = toNumber(item["ry"]);
-        let rz: number = toNumber(item["rz"]);
-        dx = dx == null ? 0 : dx * 1000;
-        dy = dy == null ? 0 : dy * 1000;
-        dz = dz == null ? 0 : dz * 1000;
-        rx = rx == null ? 0 : rx * 1000;
-        ry = ry == null ? 0 : ry * 1000;
-        rz = rz == null ? 0 : rz * 1000;
-        const result = {
-          id: id,
-          dx: dx,
-          dy: dy,
-          dz: dz,
-          rx: rx,
-          ry: ry,
-          rz: rz,
-        };
-        target.push(result);
-    
-        // 最大値を記録する three.js で使う
-        for (const v of [dx, dy, dz]) {
-          if (values.max_d < v) {
-            values.max_d = v;
-            values.max_d_m = n;
-          }
-          if (values.min_d > v) {
-            values.min_d = v;
-            values.min_d_m = n;
-          }
-        }
-        for (const v of [rx, ry, rz]) {
-          if (values.max_r < v) {
-            values.max_r = v;
-            values.max_r_m = n;
-          }
-          if (values.min_r > v) {
-            values.min_r = v;
-            values.min_r_m = n;
-          }
-        }
-      }
-      const No: string = caseNo.replace("Case", "");
-      disg[No] = target;
-      max_value[No] = Math.max(Math.abs(values.max_d), Math.abs(values.min_d));
-      value_range[No] = values;
-    }
-
-  } catch (e) {
-    error = e;
+      return {
+        selectionKey: analysisResultSelectionKey(result),
+        caseId: result.case_id,
+        stateKind: result.state.kind,
+        rows,
+        maxValue: Math.max(Math.abs(maxDisplacement), Math.abs(minDisplacement)),
+        valueRange: {
+          max_d: maxDisplacement,
+          min_d: minDisplacement,
+          max_r: maxRotation,
+          min_r: minRotation,
+          max_d_m: maxDisplacementNode,
+          min_d_m: minDisplacementNode,
+          max_r_m: maxRotationNode,
+          min_r_m: minRotationNode,
+        },
+      };
+    });
+    postMessage({ entries, error });
+  } catch (caught) {
+    error = workerErrorMessage(caught);
+    postMessage({ entries: [], error });
   }
-
-  postMessage({ disg, max_value, value_range, error });
-
-
 });

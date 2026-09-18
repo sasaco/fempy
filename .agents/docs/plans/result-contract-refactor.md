@@ -1,195 +1,284 @@
-# Result Contract Refactor Implementation Plan
+# AnalysisResultSet-Only Refactor Plan
 
 ## Purpose
 
-Replace ambiguous old/new result terminology with explicit `AnalysisResult`, `AnalysisResultSet`, and `FrameResultSet` contracts while preserving current single-case clients, FrameWebforJS behavior, and saved result files. The refactor separates representation negotiation, per-case execution, canonical serialization, and display projection without changing FEM algorithms or numeric solver behavior.
+Make `AnalysisResultSet` the sole public calculation response for every analysis. Remove representation negotiation, display-specific backend contracts, nested nonlinear result duplication, and all pre-release compatibility code so that one schema serves static, nonlinear, modal, single-case, and multi-case workflows.
 
 ## Scope
 
-- Include: contract freeze, deterministic `Accept` negotiation, ephemeral legacy-beam case execution, canonical and Frame result-set envelopes, deprecated alias preservation, strict frontend normalization, explicit case-order propagation, tests, and documentation.
-- Exclude: new endpoints, solver changes, modern-input/shell/solid multi-case support, nonlinear-step flattening, saved-file migration, general worker lifecycle redesign, and alias removal.
+- Include: one result root schema, one HTTP success path, ordered case/state snapshots, canonical topology and result fields, backend domain postprocessing, frontend direct consumption, worker simplification, tests, docs, and deletion of legacy/display result contracts.
+- Exclude: calculation-input redesign, backward compatibility with flat `AnalysisResult`, `FrameResultSet`, `legacy-cases-v1`, or saved result files; linear combination of nonlinear/modal snapshots; changes to FEM equations, eigensolver algorithms, or nonlinear convergence algorithms. Deterministic canonicalization of modal output is in scope.
+
+The normative field-level output contract is [analysis-result-set-v1-contract.md](../research/analysis-result-set-v1-contract.md). Existing validated input schemas remain outside this refactor.
+
+## Target Contract
+
+```json
+{
+  "kind": "analysis_result_set",
+  "schema_version": "1.0",
+  "units": {
+    "system": "consistent_user_defined",
+    "length": "unspecified",
+    "force": "unspecified",
+    "mass": "unspecified",
+    "time": "unspecified"
+  },
+  "coordinate_system": {
+    "name": "global_cartesian",
+    "handedness": "right",
+    "axes": ["x", "y", "z"]
+  },
+  "cases": [
+    {
+      "case_id": "1",
+      "name": "固定死荷重",
+      "symbol": "D1",
+      "analysis_type": "static",
+      "support_node_ids": []
+    }
+  ],
+  "topology": {
+    "nodes": [],
+    "members": [],
+    "shell_elements": [],
+    "solid_elements": []
+  },
+  "results": [
+    {
+      "case_id": "1",
+      "state": {
+        "kind": "static",
+        "index": 0
+      },
+      "node_displacements": [],
+      "support_reactions": [],
+      "member_section_forces": [],
+      "shell_results": [],
+      "solid_results": [],
+      "diagnostics": {}
+    }
+  ]
+}
+```
+
+Contract rules:
+
+- `POST /` always returns this root shape with `application/json`.
+- `cases` and `results` are arrays. Object-key enumeration order is never part of the contract.
+- `results` order is case-major, then state-index order.
+- A result is uniquely addressed by `(case_id, state.kind, state.index)`; no redundant `result_id` or `sequence` field exists.
+- `topology` is emitted once. Every isolated case solve must produce the same public topology; mismatch is a server error rather than silently changing entity identity by case.
+- Supports are not shared topology: every case declares its ordered `support_node_ids`, so cases may select different existing support definitions while retaining one geometric topology.
+- JSON contains finite numbers only and responses are atomic.
+
+State is a discriminated union:
+
+```text
+static:
+  {kind: "static", index: 0}
+
+nonlinear accepted step:
+  {kind: "load_step", index: 0..n, load_factor, is_final}
+
+modal mode:
+  {kind: "mode", index: 0..n, eigenvalue, frequency}
+```
+
+For nonlinear analysis there is no duplicate top-level final result and no nested `step_results`. Each accepted step is one complete `AnalysisResult`; only the last step for that case has `is_final: true`. Iteration/convergence records for a step live in that result's `diagnostics`.
+
+The complete result union is frozen as follows:
+
+- `StaticAnalysisResult`: `state.kind === "static"`; requires `node_displacements`, `support_reactions`, `member_section_forces`, `shell_results`, `solid_results`, and `diagnostics`; prohibits `node_mode_shapes`.
+- `NonlinearStepAnalysisResult`: `state.kind === "load_step"`; requires the same physical result fields plus `load_factor`, `is_final`, and step-owned convergence diagnostics; prohibits `node_mode_shapes`.
+- `ModalAnalysisResult`: `state.kind === "mode"`; requires `node_mode_shapes`, `eigenvalue`, unit-relative `frequency`, and `diagnostics`; prohibits support reactions, member section forces, shell/solid force/stress results, and nonlinear fields.
+- Physical result arrays are present even when empty because the topology contains no entity of that kind; a missing required field is invalid.
+- Field presence and collection cardinality follow the normative contract: an empty physical result array is valid only when its corresponding topology entity array is empty.
+
+## Canonical Result Model
+
+- `node_displacements`: public node IDs plus named displacement/rotation components.
+- `support_reactions`: public support node IDs plus named force/moment components.
+- `member_section_forces`: original public member IDs with ordered stations/segments, physical positions, and consistently named local force/moment components.
+- `shell_results` and `solid_results`: typed element results keyed by public element ID and exact topology-declared sampling locations.
+- Member and shell local frames are serialized as right-handed origin/basis vectors. Shell results use one integration-weighted `element_average`; solid `GP0..GPn` locations preserve formulation integration-point order and natural coordinates.
+- `diagnostics`: solver metadata relevant to only this snapshot, including nonlinear iteration history.
+- Raw solver vectors and UI abbreviations (`disg`, `reac`, `fsec`, `shell_fsec`, `size`) are not public contract fields.
+
+The useful code currently in `legacy_results.py` is renamed and promoted to domain postprocessing:
+
+- generated-node/public-node identity becomes topology construction;
+- support filtering becomes canonical reaction extraction;
+- split internal elements are aggregated into `member_section_forces` by original member/station;
+- end-force sign conventions are defined once as the canonical local member convention;
+- `size` is derived from `topology.nodes.length` and is not serialized.
+
+## Rate Removal Decision
+
+- The current `rate` property is a legacy display/post-solve multiplier, not part of the physical analysis definition.
+- Delete `rate` from active Angular models, editors, serializers, built-in presets, result workers, and tests.
+- Do not replace it with `load_scale` in this result-contract refactor.
+- Applied load values remain explicit in the existing input schemas. DEFINE/COMBINE/PICKUP coefficients remain separate derived-result concepts and never mutate base `AnalysisResult` values.
+- No compatibility reader or migration path is retained because the application is unreleased.
 
 ## Implementation Steps
 
-0. Freeze the wire contract and align `DESIGN.md` before parallel implementation starts.
-1. Freeze existing behavior with characterization tests for the default single-case response and the `legacy-cases-v1` bare map.
-2. Establish an Angular test baseline that executes at least one real spec.
-3. Add backend contract definitions and a pure, deterministic `Accept` negotiator.
-4. Extract legacy-beam case enumeration and fresh-model execution into an ephemeral per-case `CaseSolution` flow.
-5. Extract Frame projection and make the existing legacy solver a thin compatibility adapter.
-6. Add `AnalysisResultSet v1` and `FrameResultSet v1` envelopes and dispatch them from the existing `POST /` route.
-7. Add strict TypeScript contracts and separate normalizers for HTTP envelopes and saved raw legacy maps.
-8. Propagate explicit ordered `caseIds` through result services and workers, then move the HTTP client to `frame-result-set-v1`.
-9. Complete documentation, full regression tests, build checks, and Ct case 1/case 11 browser verification.
+Execute the following steps in dependency order; parallel work begins only after Step 0 freezes the shared contract.
 
-## 2. File Changes by Step
+### 0. Freeze the single-contract design
 
-### Step 0: Contract freeze and design alignment
+- Confirm `DESIGN.md` contains only the sole-root requirement/decision and no active compatibility, display-result, default-flat-response, or rate-after-solve rule.
+- Freeze `AnalysisResultSet v1` from the normative contract document, including IDs/references, topology items, components/units/coordinate frames, diagnostics, extra-property prohibition, empty/count rules, and the three complete discriminated result variants.
+- Freeze the schema above, state union, case-major order, topology identity invariant, and canonical force signs.
+- Create `analysis-result-set-v1.schema.json` in the shared contract fixture directory before backend/frontend work starts.
+- Generate shared positive and negative fixtures listed in the normative contract, including legitimate topology-driven empty arrays.
+- Freeze modal ordering, positive-eigenvalue policy, degeneracy grouping, mass normalization, deterministic degenerate-subspace basis, and sign rule.
 
-- Modify `.agents/docs/DESIGN.md` through the design-tracker workflow before implementation is delegated.
-- Freeze the exact v1 envelopes, sibling-representation rule, case/step axes, legacy-beam-only scope, and the following compatibility rules:
-  - exact supported vendor types only; wildcards select the default representation and never trigger multi-case work;
-  - `q=0` excludes a candidate, malformed quality values and positive-q unknown FrameWeb vendor versions return 406;
-  - highest quality wins, explicit vendor wins a tie with default, and a tie between supported vendor types returns 406;
-  - `AnalysisResultSet` values remain unscaled;
-  - Frame/legacy results apply `rate` exactly once and preserve the current non-finite/invalid fallback to `1.0` in v1;
-  - `AnalysisResultSet` may carry modal canonical results, while Frame projection rejects modal; the deprecated alias preserves its current modal error behavior;
-  - new envelopes are atomic ordered arrays, while the alias remains the current bare map.
-- Completion evidence: reviewed design diff and a frozen contract table shared by backend/frontend work packages.
+Completion evidence: design validation passes and backend/frontend owners use the same checked-in fixtures.
 
-### Step 1: Characterization
+### 1. Characterize domain results, not old wire formats
 
-- Modify `FrameWeb/tests/io/test_legacy_cases_api.py`: freeze body shape, Content-Type, rate behavior, order limitations, atomic failure, and case-count boundaries.
-- Modify `FrameWeb/tests/io/test_http.py`: freeze default `application/json` behavior and transport independence.
+- Add tests around current solver snapshots, member splitting, generated nodes, support reactions, recovered member forces, shell/solid outputs, and modal modes.
+- Establish numerical oracles before restructuring serialization.
+- Do not add golden tests for `FrameResultSet` or `legacy-cases-v1`; those contracts are intentionally deleted.
 
-### Step 2: Angular test baseline
+Completion evidence: focused solver/domain tests prove the numerical values to preserve.
 
-- Confirm the configured test entry points and run the existing suite before frontend changes.
-- Require the runner to report at least one executed spec; a zero-spec success is a failure.
-- If repository-owned test configuration is directly broken, make only the minimal blocking correction within the frontend work package and record it separately from contract changes.
-- Completion evidence: a captured successful ChromeHeadless run with a nonzero spec count.
+### 2. Introduce canonical contract and topology modules
 
-### Step 3: Backend contract boundary
+- Add `FrameWeb/src/fem/result_contracts.py` for TypedDict/dataclass definitions and strict finite-value validation.
+- Add `FrameWeb/src/fem/result_topology.py` for public nodes, generated-node metadata, member segments/stations, and shell/solid entity identity.
+- Add `FrameWeb/src/fem/result_projection.py` for canonical support reactions, member section forces, shell results, and solid results.
+- Keep solver-native arrays internal.
 
-- Add `FrameWeb/src/fem/result_contracts.py`: media-type constants, representation enum/type, v1 TypedDicts, result-variant validation, and pure Accept selection.
-- Add focused backend tests in `FrameWeb/tests/io/test_result_set_api.py`: exact media types, parameters, wildcard behavior, unknown versions, invalid/zero quality values, and ambiguous supported vendor types.
+Completion evidence: unit tests build and validate canonical topology/results without HTTP.
 
-### Step 4: Ephemeral case execution
+### 3. Normalize solver output into snapshots
 
-- Add `FrameWeb/src/fem/result_sets.py`: legacy-beam case validation/enumeration, 1-256 limit, fresh `FemModel` per case, and ephemeral `CaseSolution` iteration.
-- Keep one solved model alive at a time. Accumulate only requested wire results, never a collection of solved models.
-- Preserve source case IDs as strings and input order.
+- Refactor `solver_results.py` so static, accepted nonlinear steps, and modal modes can each become one snapshot.
+- Remove nonlinear final-state duplication and nested `step_results` from the public path.
+- Partition cumulative `convergence_history` into the owning step's `diagnostics`.
+- Refactor `model.py` postprocessing so every nonlinear snapshot receives the same canonical element/shell recovery as its final step.
 
-### Step 5: Frame projection and compatibility adapter
+Completion evidence: no public snapshot contains another result; final nonlinear state equals the last accepted snapshot numerically.
 
-- Add `FrameWeb/src/fem/frame_results.py`: final-state `FrameCaseResult` projection, exactly-once compatibility rate scaling, Frame envelope construction, and legacy bare-map construction.
-- Modify `FrameWeb/src/fem/legacy_results.py`: retain `solve_legacy_cases()` as a deprecated thin adapter over the shared execution/projector path.
-- Extend legacy tests to assert structural and numeric equivalence.
+### 4. Build ordered multi-case execution
 
-### Step 6: HTTP representations
+- Add `FrameWeb/src/fem/analysis_result_sets.py` as the application service.
+- Use the existing validated calculation inputs and enumerate every requested case; do not introduce a second input contract or an input compatibility adapter in this refactor.
+- For legacy `node` input, enumerate every `load` map entry in insertion order; stringify its key as `case_id`; take non-empty `name`/`symbol` from the case and otherwise use `case_id`.
+- Preserve existing legacy analysis precedence per case: non-null top-level `analysis_type`, then case `analysis_type`, then model inference; parameter defaults are replaced first by case values and then by present top-level `analysis_params` keys. Add mixed static/nonlinear/modal fixtures with and without top-level overrides.
+- For modern `nodes` input, preserve its current single-analysis meaning, top-level analysis settings, and inference behavior; emit exactly one case whose `case_id`, `name`, and `symbol` are `"1"`; modern multi-case input is outside scope.
+- Derive each case's `support_node_ids` from its selected, solved support definition, excluding automatic auxiliary 2D constraints. Different case support sets are valid and do not cause a topology mismatch.
+- Build request-wide canonical topology before solving: union member ends, notice points, rigid boundaries, and every case's member-action boundaries; coalesce once; assign deterministic station/generated-node IDs; and map every isolated case mesh to it.
+- Do not hide stations introduced by another case. A post-normalization topology mismatch is an internal error, not a normal difference between cases.
+- Solve each requested case with isolated mutable solver/model state against that frozen public topology.
+- Append only JSON-ready snapshots; release each solved model before the next case.
+- Enforce the case count limit and topology identity; any case failure discards the entire response.
 
-- Modify `FrameWeb/main.py`: dispatch default `AnalysisResult`, `AnalysisResultSet v1`, `FrameResultSet v1`, and the deprecated alias after deterministic negotiation.
-- Add `FrameWeb/tests/io/test_result_set_api.py`: ordered array envelopes, exact Content-Type, canonical unscaled values, Frame scaling, nonlinear history nesting, modal projection rejection, compressed/uncompressed parity, and all-or-nothing failure.
-- Add or update nonlinear/model contract tests only where needed to prove that step history remains inside each case result.
+Completion evidence: single/multiple static and single/multiple nonlinear cases preserve requested case order and state order without retaining model collections.
 
-### Step 7: Frontend contract boundary
+### 5. Prepare the sole HTTP response without cutting over
 
-- Add `FrameWebforJS/src/app/providers/result-contracts.ts`: v1 interfaces, strict HTTP envelope normalization, saved-map compatibility normalization, and `{caseIds, byId}` output.
-- Add `FrameWebforJS/src/app/providers/result-contracts.spec.ts`: kind/version/field/numeric validation, empty results, duplicate/missing/extra IDs, and integer-like order tests.
-- Modify `FrameWebforJS/src/app/providers/result-data.service.ts` and its spec: accept normalized data and prevent worker startup after validation failure.
-- Keep the normalized/saveable `byId` data immutable from downstream processing. Give reaction processing its own mutable deep-enough copy so its in-place adjustments cannot alter the map later written to saved results.
+- Add the pure `AnalysisResultSet` HTTP serialization/error path and test it directly while the currently connected backend/frontend pair remains usable.
+- Keep compression only as transport encoding; compressed and plain canonical fixtures decode to the same schema.
+- Preserve the existing diagnostic error boundary and prove every prospective success body validates as `AnalysisResultSet`.
+- Do not switch `main.py`'s public success path or delete the old frontend/backend paths yet.
 
-### Step 8: Ordered frontend flow and client migration
+Completion evidence: backend contract/API tests pass against the new response builder, while no intermediate repository state requires the old frontend to consume the new response.
 
-- Modify `FrameWebforJS/src/app/app.component.ts`: request `application/vnd.frameweb.frame-result-set-v1+json`, strictly normalize it, and dispatch only valid results.
-- Modify the displacement, reaction, and section-force result services and their three workers: carry `caseIds` explicitly instead of deriving case order with `Object.keys()`.
-- Modify the saved-result load path only as required to call the separate raw-map normalizer; continue saving the compatible raw `byId` map.
-- Add service/worker tests proving that `"2", "1", "01", "a"` retains that order.
+### 6. Make obsolete backend code deletion-ready
 
-### Step 9: Documentation and integration
+- Move all useful topology, support, member-force, shell, and solid postprocessing out of `legacy_results.py` into canonical domain modules.
+- Replace legacy/display golden tests with canonical numerical oracles, but retain the connected old entry point until the atomic cutover.
+- Update direct `FemModel.run()` API-facing tests to unwrap the set or call an explicitly internal snapshot API as appropriate; do not create a second public result contract.
+- Produce a checked deletion inventory for representation negotiation, vendor media types, legacy projectors, and obsolete docs.
 
-- Modify `FrameWeb/docs/wiki/endpoints.md` and `FrameWeb/docs/wiki/results.md`: formal names, media types, envelopes, case/step axes, rate semantics, atomicity, and legacy-beam-only scope.
-- Run backend, frontend, and relevant .NET/build gates; verify Ct case 1 and case 11 in the browser.
+Completion evidence: the new backend path has no dependency on display fields, and the remaining old path is isolated and removable in one cutover change.
 
-## 3. Test Plan by Step
+### 7. Add one strict frontend contract boundary
 
-- Step 0: Review the exact contract table against backend and frontend type definitions before code work starts.
-- Step 1: Existing fixtures lock down all externally visible behavior before extraction, including modal alias behavior and non-finite `rate` fallback.
-- Step 2: The Angular runner must execute a nonzero number of existing specs before new frontend tests are accepted.
-- Step 3: Table-driven unit tests cover every Accept decision without invoking body decode or model construction.
-- Step 4: Spy/fake model tests prove pre-validation, fresh instances, input immutability, order preservation, and no retained model collection.
-- Step 5: Golden/structural comparisons prove the deprecated alias is unchanged; numeric fixtures distinguish unscaled canonical output from exactly-once Frame scaling.
-- Step 6: HTTP contract tests cover both new envelopes, nonlinear histories per case, final-state-only Frame projection, unsupported modal projection, and partial-failure rejection.
-- Step 7: TypeScript unit tests reject malformed or empty HTTP success payloads, prove reaction mutation cannot affect saveable data, and accept existing saved raw maps through only the compatibility path.
-- Step 8: Service/worker tests prove explicit case order through worker output and UI case lists.
-- Step 9: Full regression suites, production build, and Ct browser checks cover integration.
+- Add `FrameWebforJS/src/app/providers/analysis-result-set.ts` with TypeScript discriminated unions and one strict validator/indexer.
+- Build indexes keyed by case and state only after validation; preserve array order as the authority.
+- Store immutable base results. Any combination/pickup calculation receives derived copies or immutable reads.
+- Reject duplicate coordinates, missing final nonlinear state, topology/result ID mismatches, non-finite values, and unsupported state/analysis combinations.
+- Require every physical field. Allow node/member/shell/solid fields to be empty exactly when their corresponding topology array is empty; allow reactions to be empty exactly when the owning case's `support_node_ids` is empty; otherwise enforce exact ID coverage.
 
-## 4. Dependencies Between Steps
+Completion evidence: malformed success payloads never start result workers.
 
-```text
-Step 0 -> Step 1 -> Step 3 -> Step 4 -> Step 5 -> Step 6
-    \      \
-     \      -> backend implementation
-      -> Step 2 -> Step 7 -> Step 8 -> frontend implementation
-Step 6 + Step 8 -> Step 9
-```
+### 8. Refactor result processing around canonical fields
 
-- Contract names, wire envelopes, and compatibility behavior are frozen in Step 0 before backend/frontend implementation begins.
-- Frontend normalizers can be built in parallel with backend execution/projection after the contract freeze.
-- HTTP client migration waits for both the backend Frame envelope and frontend strict normalizer.
-- Full integration waits for both product paths.
+- Replace worker inputs based on `{caseId: {disg, reac, fsec}}` with canonical snapshots.
+- Prefer small pure selectors over one adapter that recreates the deleted legacy shape.
+- Make case/state selection explicit in displacement, reaction, member-force, table, and 3D display services.
+- DEFINE/COMBINE/PICKUP accepts only `state.kind === "static"`; attempts to linearly combine nonlinear steps or modal modes fail visibly.
+- Remove `Object.keys()` as a case/state ordering mechanism.
 
-## 5. Parallel Work Packages
+Completion evidence: UI displays first/last static cases and every nonlinear step directly from canonical results; integer-like case IDs retain input order.
 
-- Backend package owns only `FrameWeb/` product code, backend tests, and backend wiki files after Step 0.
-- Frontend package owns only `FrameWebforJS/` product code and frontend tests.
-- Lead/integration package owns `.agents/docs/DESIGN.md`, cross-layer contract comparison, final merges, full gates, and browser verification.
-- Shared contract examples are copied from this plan; implementation agents do not edit each other's directories.
-- If a frontend test-runner defect blocks relevant specs, fix only the directly blocking configuration in the frontend package and document it separately; do not broaden into general build cleanup.
+### 9. Make the frontend cutover-ready and remove rate
 
-## 6. Integration Sequence
+- Prove all live views/workers can start from canonical fixtures, then prepare the obsolete `LegacyCasesResult`, legacy header, and raw result-map paths for deletion in Step 10.
+- Delete `rate` from Angular input models, editors, serializers, built-in presets, workers, and tests; do not add a replacement property.
+- Leave the existing calculation input schemas otherwise unchanged.
+- Because the app is unreleased, do not add compatibility normalizers or saved-result migrations.
 
-1. Apply and review the design/contract freeze.
-2. Establish backend characterization and the nonzero Angular spec baseline.
-3. Integrate backend execution/projection extraction while keeping the legacy alias green.
-4. Integrate new backend media types.
-5. Integrate frontend contract normalizers, immutable save data, and order propagation.
-6. Switch the HTTP client to `frame-result-set-v1`.
-7. Run cross-layer contract fixtures and full suites.
-8. Perform Ct browser verification and documentation review.
+Completion evidence: canonical frontend fixture tests pass; no active calculation or derived-result code depends on `rate`; the old transport path remains connected only until Step 10.
 
-## 7. Verification Commands
+### 10. Perform one atomic cutover, delete obsolete paths, document, and verify
 
-Use repository-provided commands discovered at implementation time. Expected primary gates are:
+- In one integration change, switch `FrameWeb/main.py` to the unconditional `AnalysisResultSet` response and switch FrameWebforJS to its strict canonical validator/consumers.
+- In that same change, delete result `Accept` negotiation, vendor media-type constants, `FrameWeb/src/fem/legacy_results.py`, legacy frontend headers/types/validators/raw-map handling, display-specific tests, and dead compatibility documentation.
+- Do not merge or release an intermediate state in which only one side has switched contracts.
+- Rewrite endpoint/result documentation around the sole schema.
+- Verify the Step 0 JSON Schemas and shared positive/negative fixtures through both Python and TypeScript tests.
+- Run backend tests, Angular tests with a nonzero spec count, production build, relevant .NET build, and browser E2E.
+- Verify Ct first/last cases, nonlinear step navigation, member-force diagrams across split members, reaction display, DEFINE/COMBINE/PICKUP static behavior, and visible rejection of invalid combinations.
+
+Completion evidence: all gates pass and no compatibility code remains.
+
+## Parallel Work Packages
+
+After Step 0 is complete:
+
+- Backend result owner: `FrameWeb/src/fem/solver_results.py`, `FrameWeb/src/fem/model.py`, new `result_topology.py`, new `result_projection.py`, deletion of `legacy_results.py`, and their focused domain tests.
+- Backend HTTP/orchestration owner: `FrameWeb/main.py`, `FrameWeb/src/fem/file_io.py`, `FrameWeb/src/fem/legacy_beam.py` removal/refactor as needed, new `result_contracts.py`, new `analysis_result_sets.py`, API tests, and canonical contract fixtures under `FrameWeb/tests/data/contracts/`.
+- Frontend owner: all `FrameWebforJS/` product code, presets, and Angular tests; reads but does not edit the canonical fixtures owned by the backend HTTP/orchestration owner.
+- Integration lead: `.agents/docs/DESIGN.md`, feature/plan docs, endpoint/result docs, cross-layer review, full gates, and browser E2E; does not edit product files owned above.
+
+Ownership is file-exclusive. `solver_results.py` and `model.py` stay with one backend owner because nonlinear snapshot generation and postprocessing are tightly coupled. Contract fixtures are frozen in Step 0 and have one writer.
+
+## Verification
+
+Primary gates:
 
 ```powershell
-uv run --project FrameWeb --locked --extra dev python -m pytest FrameWeb/tests -q
+uv --directory FrameWeb run --locked --extra dev python -m pytest tests -q
 npm --prefix FrameWebforJS run test -- --watch=false --browsers=ChromeHeadless
 npm --prefix FrameWebforJS run build
 dotnet build FrameWeb.sln
+& .agents/check.ps1
 ```
 
-Run narrower test files after each step before these full gates. Run `.agents/check.ps1` after design/state artifacts are updated. Browser verification uses the existing local startup path documented by the repository.
+Additional contract checks:
 
-## 8. Estimated Effort per Step
-
-| Step | Relative effort |
-|---|---:|
-| 0. Contract/design freeze | Small |
-| 1. Characterization | Small |
-| 2. Angular test baseline | Small |
-| 3. Contract/negotiation boundary | Medium |
-| 4. Ephemeral case execution | Medium |
-| 5. Frame projection/adapter | Medium |
-| 6. HTTP representations | Medium |
-| 7. Frontend normalizers | Medium |
-| 8. Order propagation/client migration | Large |
-| 9. Documentation/integration/E2E | Medium |
-
-Overall complexity is `COMPLEX` because the change crosses more than five product/test/document files and several runtime boundaries, not because solver algorithms change.
-
-## 9. Rollback and Compatibility Checks
-
-- The default `application/json` path remains untouched and is the primary compatibility anchor.
-- The deprecated alias retains its bare-map body and can remain the FrameWebforJS request target if frontend migration must be rolled back.
-- New modules are additive; the legacy adapter stays available during migration.
-- Saved result files remain raw maps and require no conversion.
-- No database or destructive data migration exists.
-- A rollback removes the two new vendor selections and restores the frontend Accept header without changing solver code or saved data.
+- JSON schema validation for every HTTP success fixture.
+- No duplicate `(case_id, state.kind, state.index)` coordinates.
+- Exactly one `is_final: true` per nonlinear case and none on non-step states.
+- Case-major/state-major order is identical in backend fixtures and frontend indexes.
+- Canonical member-force values match pre-refactor numerical oracles.
+- Full-text search confirms removed contracts and abbreviations are absent from active product code.
 
 ## Risks & Considerations
 
-- Integer-like case IDs can reorder when converted to object keys; `caseIds` remains the only ordering authority throughout the frontend.
-- `AnalysisResultSet` responses may be large because nonlinear histories are canonical response data; only solved models are streamed/discarded, not the requested result payload.
-- Reaction processing currently mutates data; it must never receive the same object graph used for saving.
-- Media-type selection changes computation cardinality, so negotiation must finish before body decode/model creation and unknown vendor versions must fail explicitly.
-- Frame projection still depends on solved-model/source context and remains legacy-beam-only; documentation must not imply general shell/solid support.
-- The repository is already dirty in unrelated `.agents` areas; implementation must preserve all unrelated changes and use strict file ownership.
+- This is intentionally a breaking internal/API change and must land backend and frontend together.
+- Promoting member aggregation to canonical output changes its status from compatibility code to supported domain behavior; force signs and station definitions require explicit oracle tests.
+- Shared topology requires deterministic preprocessing across all cases. If a case would create different public entities, fail rather than emit ambiguous IDs.
+- Nonlinear response size grows with accepted steps; the response necessarily retains JSON-ready snapshots, but never solved models. Compression remains available.
+- Modal results need a distinct state/result variant and must not be forced into static force fields.
+- Existing calculation inputs stay in place, avoiding an unrelated request-schema migration in the same change.
+- Existing saved results and external result consumers are deliberately unsupported before release.
 
 ## Open Questions
 
-None block v1 implementation. Alias sunset timing, a possible future endpoint, modern-input/shell/solid multi-case support, `rate` redesign, worker lifecycle redesign, and saved-file envelope migration are explicitly deferred.
-
-## 10. Verdict
-
-`READY`, subject to the mandatory independent validation gate and user approval before implementation.
+None block implementation. Streaming very large histories, nonlinear combination/envelope rules, and a future persisted-result file format are separate features.

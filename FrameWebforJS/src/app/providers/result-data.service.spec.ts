@@ -1,119 +1,74 @@
-import {
-  LegacyCasesResultValidationError,
-  ResultDataService,
-  validateLegacyCasesResult,
-} from "./result-data.service";
+import { AnalysisResultSetValidationError } from "./analysis-result-set";
+import { ResultDataService } from "./result-data.service";
+import singleStatic from "../../../../FrameWeb/tests/data/contracts/positive/single-static.json";
 
-describe("validateLegacyCasesResult", () => {
-  const validResult = {
-    "1": { disg: { "1": {} }, reac: {}, fsec: {} },
-    "2": { disg: {}, reac: { "2": {} }, fsec: { "1": {} } },
-  };
-
-  it("accepts a non-empty case map with object-valued result fields", () => {
-    expect(() =>
-      validateLegacyCasesResult(validResult, ["1", "2"])
-    ).not.toThrow();
-  });
-
-  [
-    { disg: { "1": {} }, reac: {}, fsec: {} },
-    { disg: {}, reac: { "1": {} }, fsec: {} },
-    { disg: {}, reac: {}, fsec: { "1": {} } },
-  ].forEach((caseResult) => {
-    it(`accepts individually empty result maps: ${JSON.stringify(caseResult)}`, () => {
-      expect(() =>
-        validateLegacyCasesResult({ "1": caseResult })
-      ).not.toThrow();
-    });
-  });
-
-  it("rejects a case when all required result maps are empty", () => {
-    expect(() =>
-      validateLegacyCasesResult({ "1": { disg: {}, reac: {}, fsec: {} } })
-    ).toThrowError(LegacyCasesResultValidationError);
-  });
-
-  it("rejects the current flat backend result", () => {
-    const flatResult = {
-      node_displacements: {},
-      reaction_forces: {},
-      element_stresses: {},
-    };
-
-    expect(() => validateLegacyCasesResult(flatResult)).toThrowError(
-      LegacyCasesResultValidationError
-    );
-  });
-
-  it("rejects an empty object", () => {
-    expect(() => validateLegacyCasesResult({})).toThrowError(
-      LegacyCasesResultValidationError
-    );
-  });
-
-  [null, [], [validResult["1"]]].forEach((value) => {
-    it(`rejects a non-object top level: ${JSON.stringify(value)}`, () => {
-      expect(() => validateLegacyCasesResult(value)).toThrowError(
-        LegacyCasesResultValidationError
-      );
-    });
-  });
-
-  [null, []].forEach((value) => {
-    it(`rejects a non-object case: ${JSON.stringify(value)}`, () => {
-      expect(() =>
-        validateLegacyCasesResult({ "1": value })
-      ).toThrowError(LegacyCasesResultValidationError);
-    });
-  });
-
-  it("rejects missing expected case IDs", () => {
-    expect(() =>
-      validateLegacyCasesResult({ "1": validResult["1"] }, ["1", "2"])
-    ).toThrowError(LegacyCasesResultValidationError);
-  });
-
-  it("rejects extra case IDs", () => {
-    expect(() =>
-      validateLegacyCasesResult(validResult, ["1"])
-    ).toThrowError(LegacyCasesResultValidationError);
-  });
-
-  it("rejects case IDs returned in a different order", () => {
-    expect(() =>
-      validateLegacyCasesResult(validResult, ["2", "1"])
-    ).toThrowError(LegacyCasesResultValidationError);
-  });
-
-  ["disg", "reac", "fsec"].forEach((field) => {
-    it(`rejects a case missing ${field}`, () => {
-      const caseResult = { disg: {}, reac: {}, fsec: {} };
-      delete caseResult[field];
-
-      expect(() =>
-        validateLegacyCasesResult({ "1": caseResult })
-      ).toThrowError(LegacyCasesResultValidationError);
-    });
-
-    [null, []].forEach((value) => {
-      it(`rejects ${field} when it is ${JSON.stringify(value)}`, () => {
-        const caseResult = { disg: {}, reac: {}, fsec: {}, [field]: value };
-
-        expect(() =>
-          validateLegacyCasesResult({ "1": caseResult })
-        ).toThrowError(LegacyCasesResultValidationError);
-      });
-    });
-  });
-
+describe("ResultDataService contract boundary", () => {
   it("keeps calculated false and stops before worker dispatch on invalid data", () => {
     const service = Object.create(ResultDataService.prototype) as ResultDataService;
     service.isCalculated = true;
+    const previous = { value: "previous" } as any;
+    service.resultSet = previous;
 
-    expect(() => service.loadResultData({})).toThrowError(
-      LegacyCasesResultValidationError
-    );
+    expect(() => service.loadResultData({})).toThrowError(AnalysisResultSetValidationError);
     expect(service.isCalculated).toBeFalse();
+    expect(service.resultSet).toBe(previous);
+  });
+
+  it("rejects only a derived operation that references a non-static operand", () => {
+    const service = Object.create(ResultDataService.prototype) as any;
+    service.helper = {
+      toNumber: (value: string) => {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+      },
+    };
+    const allCases = new Set(["1", "2"]);
+    const staticCases = new Set(["1"]);
+
+    expect(() => service.assertStaticDerivedOperands(
+      { "10": { C1: 1 } }, {}, {}, allCases, staticCases
+    )).not.toThrow();
+    expect(() => service.assertStaticDerivedOperands(
+      { "10": { C2: 2 } }, {}, {}, allCases, staticCases
+    )).toThrowError("DEFINE 10 references non-static case 2.");
+  });
+
+  it("marks results calculated only after all three pipelines complete", async () => {
+    const service = Object.create(ResultDataService.prototype) as any;
+    const resolvers: Array<() => void> = [];
+    const pipeline = () => new Promise<void>((resolve) => resolvers.push(resolve));
+    const resultService = () => ({ isCalculated: false, clear: jasmine.createSpy("clear") });
+    service.disg = { ...resultService(), setDisgJson: pipeline };
+    service.reac = { ...resultService(), setReacJson: pipeline };
+    service.fsec = { ...resultService(), setFsecJson: pipeline };
+    service.define = { getDefineJson: () => ({}), validate: () => null };
+    service.combine = { getCombineJson: () => ({}), validate: () => null };
+    service.pickup = { getPickUpJson: () => ({}), validate: () => null };
+    service.load = { getLoadNameJson: () => ({ D: { symbol: "D" } }) };
+    service.helper = {
+      toNumber: (value: string) => {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+      },
+    };
+    service.resultSelections = [];
+    service.resultSet = null;
+    service.isCalculated = false;
+
+    const completion = service.loadResultData(JSON.parse(JSON.stringify(singleStatic)));
+    expect(resolvers.length).toBe(3);
+    expect(service.isCalculated).toBeFalse();
+    expect(service.disg.isCalculated).toBeFalse();
+    resolvers[0]();
+    resolvers[1]();
+    await Promise.resolve();
+    expect(service.isCalculated).toBeFalse();
+    resolvers[2]();
+    await completion;
+
+    expect(service.isCalculated).toBeTrue();
+    expect(service.disg.isCalculated).toBeTrue();
+    expect(service.reac.isCalculated).toBeTrue();
+    expect(service.fsec.isCalculated).toBeTrue();
   });
 });

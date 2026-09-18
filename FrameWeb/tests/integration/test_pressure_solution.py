@@ -26,7 +26,7 @@ def test_pressure_fix_is_identical_in_json_and_original_format_and_balances_load
         m = FemModel()
         m.read_json_model(parsed)
         assert all(m.boundary.restraints[1].dof_restraints)
-        result = m.run()
+        result = m._run_solver_snapshot()
         results.append(result)
         assert list(result["node_displacements"][1].values()) == [0.0] * 6
         # Integral of -1000 ez over the unit square and moments about node 1.
@@ -68,4 +68,4 @@ def test_releasing_pressure_fixture_rotations_creates_a_loaded_rigid_mode():
     pressure = element.get_equivalent_nodal_loads("pressure", [1000.0], "F1")
     assert pressure @ rigid.ravel() == pytest.approx(500.0, abs=1e-10)
     with pytest.raises(ValueError, match="Singular"):
-        m.run()
+        m._run_solver_snapshot()

@@ -57,7 +57,6 @@ export class InputLoadService {
     if (result === undefined) {
       result = {
         id: caseNo,
-        rate: "",
         symbol: "",
         name: "",
         fix_node: "",
@@ -133,7 +132,6 @@ export class InputLoadService {
 
       const item1: {} = json[index];
 
-      const _rate: string = ("rate" in item1 ? item1["rate"] : "") as string;
       const _symbol: string = ("symbol" in item1 ? item1["symbol"] : "") as string;
       const _name: string = ("name" in item1 ? item1["name"] : "") as string;
       const _fix_node: string = ("fix_node" in item1 ? item1["fix_node"] : "") as string;
@@ -145,7 +143,6 @@ export class InputLoadService {
 
       this.load_name.push({
         id: index,
-        rate: _rate,
         symbol: _symbol,
         name: _name,
         fix_node: _fix_node,
@@ -312,7 +309,6 @@ export class InputLoadService {
       if (load_id in load_name) {
         jsonData = JSON.parse(JSON.stringify(load_name[load_id]));
       } else {
-        jsonData["rate"] = 1;
         jsonData["fix_node"] = 1;
         jsonData["fix_member"] = 1;
         jsonData["element"] = 1;
@@ -333,7 +329,7 @@ export class InputLoadService {
       let flg: boolean = false;
       if (empty === 0) {
         flg = true;
-        for (const key of ["fix_node", "fix_member", "element", "joint", "rate"]) {
+        for (const key of ["fix_node", "fix_member", "element", "joint"]) {
           if (jsonData[key] === empty) {
             jsonData[key] = 1;
           }
@@ -393,7 +389,6 @@ export class InputLoadService {
         continue;
       }
 
-      const rate = this.helper.toNumber(tmp["rate"]);
       const symbol: string = tmp["symbol"];
       const name: string = tmp["name"];
 
@@ -403,7 +398,7 @@ export class InputLoadService {
       let joint = this.helper.toNumber(tmp["joint"]);
       let LL_pitch: number = ("LL_pitch" in tmp) ? this.helper.toNumber(tmp["LL_pitch"]) : 0.1;
 
-      if ( rate == null && symbol === "" &&  name === "" &&
+      if (symbol === "" && name === "" &&
           fix_node == null && fix_member == null && 
           element == null && joint == null ) {
         continue;
@@ -412,7 +407,6 @@ export class InputLoadService {
       const load_id = (i + 1).toString();
 
       const temp = {
-        rate: rate == null ? empty : rate,
         fix_node: fix_node == null ? empty : fix_node,
         fix_member: fix_member == null ? empty : fix_member,
         element: element == null ? empty : element,
@@ -422,7 +416,6 @@ export class InputLoadService {
       };
 
       if (empty !== 0 || isPrint === true) {
-        temp["rate"] = rate == null ? empty : rate;
         temp["symbol"] = symbol;
         temp["name"] = name;
       }

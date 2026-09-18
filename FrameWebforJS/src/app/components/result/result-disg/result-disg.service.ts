@@ -1,274 +1,206 @@
 import { Injectable } from "@angular/core";
-import { InputLoadService } from "../../input/input-load/input-load.service";
+import {
+  AnalysisResultSetIndex,
+  ResultStateKind,
+  analysisResultSelectionKey,
+} from "../../../providers/analysis-result-set";
+import {
+  buildAnalysisResultPages,
+  buildMovingLoadEnvelope,
+  createSafeRecord,
+} from "../../../providers/analysis-result-presentation";
+import {
+  ResultWorkerReply,
+  runResultWorker,
+} from "../../../providers/result-worker-pipeline";
 import { PrintCustomService } from "../../print/custom/print-custom.service";
 import { ThreeDisplacementService } from "../../three/geometry/three-displacement.service";
 import { ResultCombineDisgService } from "../result-combine-disg/result-combine-disg.service";
 
-@Injectable({
-  providedIn: "root",
-})
+interface DisplacementRow extends Record<string, unknown> {
+  readonly id: string;
+  readonly dx: number;
+  readonly dy: number;
+  readonly dz: number;
+  readonly rx: number;
+  readonly ry: number;
+  readonly rz: number;
+}
+
+interface ScalarRange {
+  max_d: number;
+  min_d: number;
+  max_r: number;
+  min_r: number;
+  max_d_m: string;
+  min_d_m: string;
+  max_r_m: string;
+  min_r_m: string;
+}
+
+interface DisplacementEntry {
+  readonly selectionKey: string;
+  readonly caseId: string;
+  readonly stateKind: ResultStateKind;
+  readonly rows: readonly DisplacementRow[];
+  readonly maxValue: number;
+  readonly valueRange: ScalarRange;
+}
+
+interface DisplacementReply extends ResultWorkerReply {
+  readonly entries: readonly DisplacementEntry[];
+}
+
+interface DisplacementTableReply extends ResultWorkerReply {
+  readonly table: readonly (readonly Record<string, unknown>[])[];
+}
+
+const DISPLACEMENT_COMPONENTS = ["dx", "dy", "dz", "rx", "ry", "rz"] as const;
+
+function mergeRanges(entries: readonly DisplacementEntry[]): ScalarRange {
+  if (entries.length === 0) {
+    return { max_d: 0, min_d: 0, max_r: 0, min_r: 0, max_d_m: "0", min_d_m: "0", max_r_m: "0", min_r_m: "0" };
+  }
+  const result = { ...entries[0].valueRange };
+  entries.slice(1).forEach((entry) => {
+    const range = entry.valueRange;
+    if (range.max_d > result.max_d) { result.max_d = range.max_d; result.max_d_m = range.max_d_m; }
+    if (range.min_d < result.min_d) { result.min_d = range.min_d; result.min_d_m = range.min_d_m; }
+    if (range.max_r > result.max_r) { result.max_r = range.max_r; result.max_r_m = range.max_r_m; }
+    if (range.min_r < result.min_r) { result.min_r = range.min_r; result.min_r_m = range.min_r_m; }
+  });
+  return result;
+}
+
+function formatRows(rows: readonly DisplacementRow[]): readonly Record<string, unknown>[] {
+  return rows.map((item) => ({
+    ...item,
+    dx: item.dx.toFixed(4), dy: item.dy.toFixed(4), dz: item.dz.toFixed(4),
+    rx: item.rx.toFixed(4), ry: item.ry.toFixed(4), rz: item.rz.toFixed(4),
+  }));
+}
+
+@Injectable({ providedIn: "root" })
 export class ResultDisgService {
-  public isCalculated: boolean;
-  public disg: any[];
-  private worker1: Worker;
-  private worker2: Worker;
-  private worker3: Worker;
-  private worker4: Worker;
-  private columns: any; // 表示用
+  public isCalculated = false;
+  public disg: any[] = [];
+  public LL_flg: boolean[] = [];
+  private columns: any[] = [];
+  private readonly worker1: Worker;
+  private readonly worker2: Worker;
 
   public column3Ds: any[] = [
     { title: "result.result-disg.No", id: "id", format: "" },
-    { title: "result.result-disg.x_movement", id: "dx", format:'#.0000' },
-    { title: "result.result-disg.y_movement", id: "dy", format:'#.0000' },
-    { title: "result.result-disg.z_movement", id: "dz", format:'#.0000' },
-    { title: "result.result-disg.x_rotation", id: "rx", format:'#.0000' },
-    { title: "result.result-disg.y_rotation", id: "ry", format:'#.0000' },
-    { title: "result.result-disg.z_rotation", id: "rz", format:'#.0000' },
+    { title: "result.result-disg.x_movement", id: "dx", format: "#.0000" },
+    { title: "result.result-disg.y_movement", id: "dy", format: "#.0000" },
+    { title: "result.result-disg.z_movement", id: "dz", format: "#.0000" },
+    { title: "result.result-disg.x_rotation", id: "rx", format: "#.0000" },
+    { title: "result.result-disg.y_rotation", id: "ry", format: "#.0000" },
+    { title: "result.result-disg.z_rotation", id: "rz", format: "#.0000" },
   ];
   public column2Ds: any[] = [
-    { title: "result.result-disg.No", id: "id", format:'' },
-    { title: "result.result-disg.x_movement", id: "dx", format:'#.0000' },
-    { title: "result.result-disg.y_movement", id: "dy", format:'#.0000' },
-    { title: "result.result-disg.z_rotation", id: "rz", format:'#.0000' },
+    { title: "result.result-disg.No", id: "id", format: "" },
+    { title: "result.result-disg.x_movement", id: "dx", format: "#.0000" },
+    { title: "result.result-disg.y_movement", id: "dy", format: "#.0000" },
+    { title: "result.result-disg.z_rotation", id: "rz", format: "#.0000" },
   ];
 
-  public LL_flg = [];
-
   constructor(
-    private comb: ResultCombineDisgService,
-    private load: InputLoadService,
-    private three: ThreeDisplacementService,
-    public printCustomService: PrintCustomService
+    private readonly comb: ResultCombineDisgService,
+    private readonly three: ThreeDisplacementService,
+    public readonly printCustomService: PrintCustomService
   ) {
-    this.clear();
-    this.worker1 = new Worker(
-      new URL("./result-disg1.worker", import.meta.url),
-      { name: "result-disg1", type: "module" }
-    );
-    this.worker2 = new Worker(
-      new URL("./result-disg2.worker", import.meta.url),
-      { name: "result-disg2", type: "module" }
-    );
-    // 連行荷重の集計
-    this.worker3 = new Worker(
-      new URL(
-        "../result-combine-disg/result-combine-disg1.worker",
-        import.meta.url
-      ),
-      { name: "LL-disg1", type: "module" }
-    );
-    this.worker4 = new Worker(
-      new URL(
-        "../result-combine-disg/result-combine-disg2.worker",
-        import.meta.url
-      ),
-      { name: "LL-disg2", type: "module" }
-    );
-    this.LL_flg = new Array();
+    this.worker1 = new Worker(new URL("./result-disg1.worker", import.meta.url), { name: "result-disg1", type: "module" });
+    this.worker2 = new Worker(new URL("./result-disg2.worker", import.meta.url), { name: "result-disg2", type: "module" });
   }
 
   public clear(): void {
     this.disg = [];
+    this.columns = [];
+    this.LL_flg = [];
     this.isCalculated = false;
   }
 
   public getDisgColumns(typNo: number, mode: string = null): any {
-    const key: string = typNo.toString();
-    if (!(key in this.columns)) {
-      return new Array();
-    }
-    const col = this.columns[key];
-    if (mode === null) {
-      return col;
-    } else {
-      if (mode in col) {
-        return col[mode]; // 連行荷重の時は combine のようになる
-      }
-    }
-
-    return new Array();
+    const columns = this.columns[typNo];
+    if (columns === undefined) return [];
+    return mode !== null && mode in columns ? columns[mode] : columns;
   }
 
-  public getDataColumns(currentPage:number, row: number, mode: string = null):any{
-
-    let result = {
-      id : "",
-      dx : "", 
-      dy : "", 
-      dz : "", 
-      rx : "", 
-      ry : "", 
-      rz : "",
-      comb: "",
-      case: ""
-    };
-
-    let results: any = this.disg[currentPage];
-    if(results == undefined){
-      return result;
-    };
-
-    if (mode in results) {
-      let modes = results[mode] != undefined ? results[mode] : undefined;
-      if (modes != undefined) {
-        const keys = Object.keys(modes);
-        const key = keys[row];
-        if(modes[key] != undefined){
-          result = modes[key];
-          result["id"] = key;
-        }
-      }
-    } else if(results[row] != undefined) {
-      result = results[row];
-    }
-
-    return result;
+  public getDataColumns(currentPage: number, row: number, mode: string = null): any {
+    const empty = { id: "", dx: "", dy: "", dz: "", rx: "", ry: "", rz: "", comb: "", case: "" };
+    const results = this.disg[currentPage];
+    if (results === undefined) return empty;
+    if (mode !== null && mode in results) return results[mode][row] ?? empty;
+    return results[row] ?? empty;
   }
 
-
-  // three-section-force.service から呼ばれる
   public getDisgJson(): object {
     return this.disg;
   }
 
-  public setDisgJson(
-    jsonData: {},
+  public async setDisgJson(
+    index: AnalysisResultSetIndex,
     defList: any,
     combList: any,
-    pickList: any
-  ): void {
-    const startTime = performance.now(); // 開始時間
+    pickList: any,
+    allowDerived: boolean
+  ): Promise<void> {
+    this.clear();
+    const prepared = await runResultWorker<
+      { results: AnalysisResultSetIndex["resultsInOrder"] },
+      DisplacementReply
+    >(this.worker1, "result-disg1", { results: index.resultsInOrder });
+    const table = await runResultWorker<
+      { entries: readonly DisplacementEntry[] },
+      DisplacementTableReply
+    >(this.worker2, "result-disg2", { entries: prepared.entries });
 
-    if (typeof Worker !== "undefined") {
-      // Create a new
-
-      this.worker1.onmessage = ({ data }) => {
-        if (data.error === null) {
-          console.log(
-            "変位量の集計が終わりました",
-            performance.now() - startTime
-          );
-          const disg = data.disg;
-          const max_values = data.max_value;
-          const value_range = {};
-          value_range['disg'] = data.value_range;
-
-          // 組み合わせの集計処理を実行する
-          this.comb.setDisgCombineJson(disg, defList, combList, pickList);
-          value_range['comb_disg'] = this.comb.value_range;
-          value_range['pik_disg'] = this.comb.value_range;
-
-          // 変位量テーブルの集計
-          this.worker2.onmessage = ({ data }) => {
-            if (data.error === null) {
-              console.log(
-                "変位量テーブルの集計が終わりました",
-                performance.now() - startTime
-              );
-              this.columns = data.table;
-              this.set_LL_columns(disg, Object.keys(jsonData), max_values, value_range['disg']);
-            } else {
-              console.log("変位量テーブルの集計に失敗しました", data.error);
-            }
-          };
-          // 連行荷重の子データは除外する
-          const keys = Object.keys(disg).filter((e) => !e.includes("."));
-          for (const k of keys) {
-            this.disg[k] = disg[k];
-          }
-          this.worker2.postMessage({ disg: this.disg });
-        } else {
-          console.log("変位量の集計に失敗しました", data.error);
-        }
-      };
-      this.worker1.postMessage({ jsonData });
-      // const a = this.woker1_test({ jsonData })
-    } else {
-      console.log("変位量の生成に失敗しました");
-      // Web workers are not supported in this environment.
-      // You should add a fallback so that your program still executes correctly.
-    }
-  }
-
-  // 連行荷重の断面力を集計する
-  private set_LL_columns(disg: any, load_keys: string[], org_max_values: {}, org_value_range: {}) {
-    this.LL_flg = new Array();
-
-    const load_name = this.load.getLoadNameJson(0);
-    const defList: any = {};
-    const combList: any = {};
-    const max_values: any = {};
-    const value_range: any = {};
-
-    let flg = false;
-
-    for (const caseNo of Object.keys(load_name)) {
-      const caseLoad: any = load_name[caseNo];
-      if (caseLoad.symbol !== "LL") {
-        this.LL_flg.push(false);
-        max_values[caseNo] = org_max_values[caseNo];
-        value_range[caseNo] = org_value_range[caseNo];
-      } else {
-        // 連行荷重の場合
-        flg = true;
-        this.LL_flg.push(true);
-
-        const target_LL_Keys: string[] = load_keys.filter((e) => {
-          return e.indexOf(caseNo + ".") === 0;
-        });
-        const caseList: string[] = [caseNo];
-        const key0: string = target_LL_Keys[0];
-        let tmp_max_values = (caseNo in org_max_values) ? org_max_values[caseNo] : org_max_values[key0];
-
-        for (const k of target_LL_Keys) {
-          // ケースを追加
-          caseList.push(k);
-
-          // max_valuesを更新
-          const target_max_values = Math.abs(org_max_values[k]);
-          if (tmp_max_values < target_max_values) {
-            tmp_max_values = target_max_values;
-          }
-        }
-        defList[caseNo] = caseList;
-        combList[caseNo] = [{ caseNo, coef: 1 }];
-        max_values[caseNo] = tmp_max_values;
-      }
-    }
-
-    // 集計が終わったら three.js に通知
-    this.three.setResultData(disg, max_values, value_range, 'disg');
-    this.printCustomService.LL_flg = this.LL_flg;
-    this.printCustomService.LL();
-    if (flg === false) {
-      this.isCalculated = true;
-      return; // 連行荷重がなければ ここまで
-    }
-
-    // combine のモジュールを利用して 連行荷重の組合せケースを集計する
-    this.worker3.onmessage = ({ data }) => {
-      console.log(data);
-      const disgCombine = data.disgCombine;
-
-      this.worker4.onmessage = ({ data }) => {
-        const LL_columns = data.result;
-
-        for (const k of Object.keys(LL_columns)) {
-          this.columns[k] = LL_columns[k];
-          this.disg[k] = disgCombine[k];
-        }
-        this.isCalculated = true;
-      };
-      this.worker4.postMessage({ disgCombine });
-    };
-
-    this.worker3.postMessage({
-      defList,
-      combList,
-      disg: disg,
-      disgKeys: this.comb.disgKeys,
+    const entriesByKey = new Map(prepared.entries.map((entry) => [entry.selectionKey, entry]));
+    const tableByKey = new Map(prepared.entries.map((entry, position) => [entry.selectionKey, table.table[position]]));
+    const baseRowsBySelection = createSafeRecord<readonly DisplacementRow[]>();
+    const staticByCaseId = createSafeRecord<readonly DisplacementRow[]>();
+    const maxValues = createSafeRecord<number>();
+    const valueRanges = createSafeRecord<ScalarRange>();
+    prepared.entries.forEach((entry) => {
+      baseRowsBySelection[entry.selectionKey] = entry.rows;
+      maxValues[entry.selectionKey] = entry.maxValue;
+      valueRanges[entry.selectionKey] = entry.valueRange;
+      if (entry.stateKind === "static") staticByCaseId[entry.caseId] = entry.rows;
     });
+
+    const pages = buildAnalysisResultPages(index);
+    pages.forEach((page, pageIndex) => {
+      const pageNumber = pageIndex + 1;
+      const pageKey = analysisResultSelectionKey(page.result);
+      const entries = page.sourceResults.map((result) => entriesByKey.get(analysisResultSelectionKey(result))!);
+      if (page.movingLoad) {
+        const sources = entries.map((entry) => ({ caseId: entry.caseId, rows: entry.rows }));
+        const envelope = buildMovingLoadEnvelope(page.result.case_id, sources, DISPLACEMENT_COMPONENTS, (row) => row.id);
+        const formatted = createSafeRecord<readonly Record<string, unknown>[]>();
+        Object.keys(envelope).forEach((mode) => (formatted[mode] = formatRows(envelope[mode])));
+        this.disg[pageNumber] = envelope;
+        this.columns[pageNumber] = formatted;
+        maxValues[pageKey] = Math.max(...entries.map((entry) => entry.maxValue));
+        valueRanges[pageKey] = mergeRanges(entries);
+      } else {
+        const entry = entries[0];
+        this.disg[pageNumber] = entry.rows;
+        this.columns[pageNumber] = tableByKey.get(entry.selectionKey) ?? [];
+      }
+    });
+
+    this.LL_flg = pages.map((page) => page.movingLoad);
+    this.printCustomService.LL_flg = [...this.LL_flg];
+    this.printCustomService.LL();
+    this.three.setResultData(
+      baseRowsBySelection,
+      maxValues,
+      valueRanges,
+      "disg",
+      pages.map((page) => analysisResultSelectionKey(page.result)),
+      pages.filter((page) => page.movingLoad).map((page) => page.result.case_id)
+    );
+    if (allowDerived) this.comb.setDisgCombineJson(staticByCaseId, defList, combList, pickList);
   }
-
-
 }

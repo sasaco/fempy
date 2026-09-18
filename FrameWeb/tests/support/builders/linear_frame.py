@@ -21,4 +21,4 @@ def cantilever():
 def run(data):
     m = FemModel()
     m.read_json_model(_read_json_model(copy.deepcopy(data)))
-    return m, m.run()
+    return m, m._run_solver_snapshot()

@@ -58,7 +58,7 @@ def test_transverse_interpolation_is_explicit_and_does_not_create_reaction():
     model, _ = run(d)
     model.add_forced_displacement(1, dy=0.1)
     model.add_forced_displacement(2, dy=0.3)
-    result = model.run()
+    result = model._run_solver_snapshot()
     generated = next(n for n in model.mesh.nodes if n not in (1, 2))
     assert result["node_displacements"][generated]["dy"] == pytest.approx(0.15)
     assert generated in result["interpolated_displacements"]

@@ -1,0 +1,6 @@
+{
+  "kind": "analysis_result_set", "schema_version": "1.0", "units": {"system": "consistent_user_defined", "length": "m", "force": "N", "mass": "kg", "time": "s"},
+  "coordinate_system": {"name": "global_cartesian", "handedness": "right", "axes": ["x", "y", "z"]},
+  "cases": [{"case_id": "1", "name": "1", "symbol": "1", "analysis_type": "modal", "support_node_ids": []}], "topology": {"nodes": [], "members": [], "shell_elements": [], "solid_elements": []},
+  "results": [{"case_id": "1", "state": {"kind": "mode", "index": 0, "eigenvalue": 1, "frequency": 0.15915494309189535, "degeneracy_group": 0}, "node_mode_shapes": [], "node_displacements": [], "diagnostics": {"warnings": [], "normalization": "mass", "eigenvalue_tolerance": 1e-12, "degeneracy_relative_tolerance": 1e-8}}]
+}

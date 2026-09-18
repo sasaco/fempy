@@ -10,3 +10,4 @@ __pycache__/
 *.slnLaunch.user
 *.log
 tmp/
+.agents/logs/

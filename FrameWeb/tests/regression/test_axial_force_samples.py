@@ -26,7 +26,7 @@ def test_saved_Nd_sample_matches_independent_reference_at_every_step(name):
 
     model = FemModel()
     model.load_model(str(path))
-    result = model.run()
+    result = model._run_solver_snapshot()
     assert result['converged']
     assert len(result['step_results']) == len(expected)
     assert result['metadata']['analysis']['beam_formulation'] == 'jr_axial_force_updated_inertia_v1'
@@ -58,12 +58,12 @@ def test_saved_Nd_sample_matches_independent_reference_at_every_step(name):
 def test_saved_Nd_sample_normalized_roundtrip_repeats_the_history(name, tmp_path):
     model = FemModel()
     model.load_model(str(DATA / 'snap' / (name + '.json')))
-    first = model.run()
+    first = model._run_solver_snapshot()
     saved = tmp_path / (name + '.json')
     model.save_model(str(saved))
     restored = FemModel()
     restored.load_model(str(saved))
-    second = restored.run()
+    second = restored._run_solver_snapshot()
     for left, right in zip(first['step_results'], second['step_results'], strict=True):
         for field in ('lambda', 'node_displacements', 'reaction_forces', 'section_response'):
             assert_dict_almost_equal(left[field], right[field], f'{name}/roundtrip/{field}')
@@ -81,7 +81,7 @@ def test_Nd_condensation_pole_stops_public_solver_and_rolls_back_all_state():
     model = FemModel()
     model.read_json_model(_read_json_model(data))
     with pytest.raises(NumericalConditionError) as failure:
-        model.run()
+        model._run_solver_snapshot()
     assert failure.value.details['reason'] == 'singular_shear_condensation'
     assert failure.value.details['element_id'] == 7
     assert failure.value.details['axis'] == 'z'
@@ -94,4 +94,4 @@ def test_Nd_condensation_pole_stops_public_solver_and_rolls_back_all_state():
     assert beam._trial_section_response == beam._committed_section_response
     assert model.results is None
     model.analysis_params['displacement_control']['targets'] = targets[:-1]
-    assert model.run()['converged']
+    assert model._run_solver_snapshot()['converged']

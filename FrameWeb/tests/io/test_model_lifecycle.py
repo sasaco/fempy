@@ -14,7 +14,7 @@ pytestmark = pytest.mark.integration
 @pytest.mark.material_nonlinear
 def test_failed_file_reload_does_not_leave_previous_success(tmp_path):
     m = python_axial()
-    assert_axial(m.run())
+    assert_axial(m._run_solver_snapshot())
     path = tmp_path / "invalid.json"
     path.write_text("{}", encoding="utf-8")
     with pytest.raises(ValueError):
@@ -25,7 +25,7 @@ def test_failed_file_reload_does_not_leave_previous_success(tmp_path):
 @pytest.mark.material_nonlinear
 def test_failed_fem_run_clears_previous_results():
     model = FemModel()
-    model.results = {"converged": True}
+    model.results = python_axial().run("static")
     mesh, material, boundary, _ = axial_bar()
     model.mesh, model.material, model.boundary = mesh, material, boundary
     material.add_bar_parameter(1, BarParameter(3, 1, 1, 1))
@@ -41,7 +41,7 @@ def test_programmatic_fem_model_has_analysis_defaults():
     mesh, material, boundary, _ = axial_bar()
     model.mesh, model.material, model.boundary = mesh, material, boundary
     model.material.add_bar_parameter(1, BarParameter(3, 1, 1, 1))
-    result = model.run("material_nonlinear")
+    result = model._run_solver_snapshot("material_nonlinear")
     assert result["node_displacements"][2]["dx"] == pytest.approx(0.01)
 
 
@@ -51,7 +51,7 @@ def test_missing_topology_has_an_input_error_before_linear_algebra(analysis):
 
     m = FemModel()
     m.mesh.add_node(1, [0.0, 0.0, 0.0])
-    m.results = {"stale": True}
+    m.results = python_axial().run("static")
     with pytest.raises(ValueError, match="structural elements.*topology"):
         m.run(analysis)
     assert m.results is None

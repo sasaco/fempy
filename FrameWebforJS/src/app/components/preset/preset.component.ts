@@ -64,7 +64,7 @@ export class PresetComponent implements OnInit, OnDestroy {
     this.three.ClearData();
     // this.countArea.clear();
     const modalRef = this.modalService.open(WaitDialogComponent);
-    this.http.get(this.presetService.presetLink + this.presetService.fileSelected.fileName, {responseType: 'text'}).subscribe(text => {
+    this.http.get(this.presetService.presetLink + this.presetService.fileSelected.fileName, {responseType: 'text'}).subscribe(async text => {
       this.menuService.fileName = this.presetService.fileSelected.fileName;
       this.three.fileName = this.presetService.fileSelected.fileName;
       this.printCustomFsecService.flg = undefined;
@@ -78,8 +78,8 @@ export class PresetComponent implements OnInit, OnDestroy {
       }
       this.InputData.loadInputData(jsonData); // データを読み込む
       if (resultData !== null) {
-        this.ResultData.loadResultData(resultData); // 解析結果を読み込む
-        this.ResultData.isCalculated = true;
+        const accepted = await this.ResultData.loadResultData(resultData); // 解析結果を読み込む
+        this.InputData.getResult(accepted.value);
       } else {
         this.ResultData.isCalculated = false;
       }

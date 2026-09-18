@@ -60,7 +60,7 @@ export class MenuService {
     this.three.fileName = file.name;
     evt.target.value = "";
     this.fileToText(file)
-      .then((text) => {
+      .then(async (text) => {
         // "ファイルを開く"のとき、印刷パネルのフラグをリセットする
         this.printCustomFsecService.flg = undefined;
 
@@ -75,8 +75,8 @@ export class MenuService {
         }
         this.InputData.loadInputData(jsonData); // データを読み込む
         if (resultData !== null) {
-          this.ResultData.loadResultData(resultData); // 解析結果を読み込む
-          this.ResultData.isCalculated = true;
+          const accepted = await this.ResultData.loadResultData(resultData); // 解析結果を読み込む
+          this.InputData.getResult(accepted.value);
         } else {
           this.ResultData.isCalculated = false;
         }

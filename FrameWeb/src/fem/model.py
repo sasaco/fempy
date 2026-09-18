@@ -49,7 +49,11 @@ class FemModel:
         self.solver = Solver()
         self.nonlinear_solver = NonlinearSolver(self.solver)  # 旧APIからも同じ解析状態を参照
         self.elements: Dict[int, Any] = {}
+        # Public state contains only a validated AnalysisResultSet.  The
+        # solver-native dictionary is deliberately kept behind the internal
+        # snapshot boundary used by projection and numerical tests.
         self.results: Optional[Dict[str, Any]] = None
+        self._solver_snapshot: Optional[Dict[str, Any]] = None
         self.analysis_type = None
         self.analysis_params = {
             'n_load_steps': 10, 'max_iterations': 50,
@@ -67,6 +71,7 @@ class FemModel:
         """
         # ファイル読み込み
         self.results = None
+        self._solver_snapshot = None
         model_data = read_model(file_path)
         
         return self.read_json_model(model_data)
@@ -74,6 +79,7 @@ class FemModel:
 
     def read_json_model(self, model_data: Dict[str, Any]) -> None:
         self.results = None
+        self._solver_snapshot = None
         self.analysis_type = model_data.get('analysis_type')
         self.model_metadata = normalize_model_metadata(model_data.get('model_metadata'))
         # データの設定（ここで初期節点数と要素数を記録）
@@ -192,6 +198,7 @@ class FemModel:
         validate_spatial_references(definitions, self.mesh)
         self.boundary.spatial_loads = definitions
         self.results = None
+        self._solver_snapshot = None
 
     def add_node(self, node_id: int, x: float, y: float, z: float) -> None:
         """節点を追加
@@ -404,24 +411,39 @@ class FemModel:
                                                      if values.get(k,1) == 0]
         
     def run(self, analysis_type: Optional[str] = None) -> Dict[str, Any]:
-        """Run an analysis and expose stable diagnostics for input failures."""
+        """Run this programmatic model and return the sole public result contract."""
+        # Local import keeps the application service pointed inward without
+        # making model construction depend on result orchestration at import time.
+        from .analysis_result_sets import _build_model_analysis_result_set
+
         self.results = None
+        try:
+            result_set = _build_model_analysis_result_set(self, analysis_type)
+        except Exception:
+            self.results = None
+            raise
+        self.results = result_set
+        return result_set
+
+    def _run_solver_snapshot(self, analysis_type: Optional[str] = None) -> Dict[str, Any]:
+        """Internal solver/post-processing snapshot used by canonical projection."""
+        self._solver_snapshot = None
         self.solver.clear_spatial_load_state()
         try:
             return self._run(analysis_type)
         except np.linalg.LinAlgError:
-            self.results = None
+            self._solver_snapshot = None
             raise
         except ValueError as error:
-            self.results = None
+            self._solver_snapshot = None
             if getattr(error, 'error_code', None):
                 raise
             raise InputValidationError(str(error)) from error
         except Exception:
-            self.results = None
+            self._solver_snapshot = None
             raise
         finally:
-            if self.results is None:
+            if self._solver_snapshot is None:
                 self.solver.clear_spatial_load_state()
 
     def _run(self, analysis_type: Optional[str] = None) -> Dict[str, Any]:
@@ -480,12 +502,12 @@ class FemModel:
         self._set_element_coordinates()
 
         if analysis_type == 'modal':
-            self.results = self.solver.eigenvalue_analysis(
+            self._solver_snapshot = self.solver.eigenvalue_analysis(
                 self.mesh, self.material, self.boundary, self.elements,
                 n_modes=self.analysis_params.get('n_modes', 10)
             )
         else:
-            self.results = self.solver.solve(
+            self._solver_snapshot = self.solver.solve(
                 self.mesh, self.material, self.boundary, self.elements,
                 analysis_type=analysis_type,
                 n_steps=self.analysis_params.get('n_load_steps', 10),
@@ -497,19 +519,21 @@ class FemModel:
                                       if analysis_type == 'material_nonlinear' else None)
             )
             if analysis_type == 'material_nonlinear':
-                legacy_nonlinear_result(self.results, self.solver.layout.stride)
+                legacy_nonlinear_result(self._solver_snapshot, self.solver.layout.stride)
 
         # 結果の後処理
-        self.results['analysis_type'] = analysis_type
+        self._solver_snapshot['analysis_type'] = analysis_type
         try:
             self._post_process_results()
         except Exception:
-            self.results = None
+            self._solver_snapshot = None
             raise
 
-        self.results['metadata'] = build_result_metadata(self, analysis_type)
+        self._solver_snapshot['metadata'] = build_result_metadata(
+            self, analysis_type, self._solver_snapshot
+        )
 
-        return self.results
+        return self._solver_snapshot
 
     def add_nonlinear_material(
         self,
@@ -643,59 +667,122 @@ class FemModel:
         )
 
     def get_results(self) -> Optional[Dict[str, Any]]:
-        """解析結果を取得
+        """Return the validated public AnalysisResultSet, or ``None``."""
+        if self.results is not None:
+            from .result_contracts import validate_analysis_result_set
 
-        Returns:
-            解析結果（未実行の場合None）
-        """
+            validate_analysis_result_set(self.results)
         return self.results
-        
-    def get_node_displacement(self, node_id: int) -> Optional[Dict[str, float]]:
-        """指定節点の変位を取得
-        
-        Args:
-            node_id: 節点ID
-            
-        Returns:
-            変位成分の辞書
+
+    def get_node_displacement(
+        self,
+        node_id: Union[int, str],
+        *,
+        case_id: Optional[str] = None,
+        state_index: Optional[int] = None,
+    ) -> Optional[Dict[str, float]]:
+        """Select canonical displacement components for one result state.
+
+        A single static state or the final nonlinear state is selected by
+        default.  ``case_id`` is required for multi-case result sets, and
+        ``state_index`` is required when no unique final state exists (for
+        example, modal results).  Modal shapes are not displacements.
         """
-        if self.results is None or 'node_displacements' not in self.results:
+        result = self._select_public_result(case_id=case_id, state_index=state_index)
+        if result is None or 'node_displacements' not in result:
             return None
-            
-        return self.results['node_displacements'].get(node_id)
-        
-    def get_element_stress(self, elem_id: int) -> Optional[Dict[str, Any]]:
-        """指定要素の応力を取得
-        
-        Args:
-            elem_id: 要素ID
-            
-        Returns:
-            応力結果
+
+        public_id = str(node_id)
+        for row in result['node_displacements']:
+            if row['node_id'] == public_id:
+                return row['components']
+        return None
+
+    def get_element_stress(
+        self,
+        elem_id: Union[int, str],
+        *,
+        case_id: Optional[str] = None,
+        state_index: Optional[int] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Select one canonical member, shell, or solid result row.
+
+        Member rows contain section forces; shell and solid rows contain the
+        stress/resultant fields defined by AnalysisResultSet v1.
         """
-        if self.results is None or 'element_stresses' not in self.results:
+        from .result_contracts import ResultContractError
+
+        result = self._select_public_result(case_id=case_id, state_index=state_index)
+        if result is None:
             return None
-            
-        return self.results['element_stresses'].get(elem_id)
+
+        public_id = str(elem_id)
+        matches = [
+            row
+            for collection, key in (
+                ('member_section_forces', 'member_id'),
+                ('shell_results', 'element_id'),
+                ('solid_results', 'element_id'),
+            )
+            for row in result.get(collection, ())
+            if row[key] == public_id
+        ]
+        if len(matches) > 1:
+            raise ResultContractError(
+                f"Element ID {public_id!r} is ambiguous across canonical result categories"
+            )
+        return matches[0] if matches else None
+
+    def _select_public_result(
+        self,
+        *,
+        case_id: Optional[str],
+        state_index: Optional[int],
+    ) -> Optional[Dict[str, Any]]:
+        """Resolve one validated AnalysisResult row for public accessors."""
+        from .result_contracts import ResultContractError
+
+        result_set = self.get_results()
+        if result_set is None:
+            return None
+        case_ids = [case['case_id'] for case in result_set['cases']]
+        if case_id is None:
+            if len(case_ids) != 1:
+                raise ResultContractError(
+                    "case_id is required when selecting from a multi-case result set"
+                )
+            case_id = case_ids[0]
+        elif case_id not in case_ids:
+            return None
+
+        matches = [row for row in result_set['results'] if row['case_id'] == case_id]
+        if state_index is not None:
+            matches = [row for row in matches if row['state']['index'] == state_index]
+            return matches[0] if matches else None
+        if len(matches) == 1:
+            return matches[0]
+        finals = [row for row in matches if row['state'].get('is_final') is True]
+        if len(finals) == 1:
+            return finals[0]
+        raise ResultContractError(
+            "state_index is required when the selected case has no unique final result"
+        )
         
     def save_results(self, file_path: str) -> None:
-        """解析結果を保存
-        
-        Args:
-            file_path: 保存先ファイルパス
-        """
-        if self.results is None:
+        """Validate and save the public AnalysisResultSet as JSON."""
+        result_set = self.get_results()
+        if result_set is None:
             raise ValueError("No results to save")
-            
-        write_result(self.results, file_path)
-        
+
+        write_result(result_set, file_path)
+
     def load_results(self, file_path: str) -> None:
-        """解析結果を読み込む
-        
-        Args:
-            file_path: 結果ファイルパス
-        """
-        self.results = read_result(file_path)
+        """Load and validate a public AnalysisResultSet from JSON."""
+        from .result_contracts import validate_analysis_result_set
+
+        result_set = read_result(file_path)
+        validate_analysis_result_set(result_set)
+        self.results = result_set
         
     def _create_elements(self) -> None:
         """メッシュデータから要素インスタンスを作成"""
@@ -916,76 +1003,89 @@ class FemModel:
             element.set_node_coordinates(node_coords)
             
     def _post_process_results(self) -> None:
-        """解析結果の後処理"""
+        """Recover complete physical output for every accepted solver state."""
         from .elements.loaded_bar_element import LoadedBarElement
-        if self.results is None:
+        solver_snapshot = self._solver_snapshot
+        if solver_snapshot is None:
             return
-            
-        # 要素応力の計算
-        if 'displacement' in self.results:
-            element_stresses = {}
-            shell_results = {}
-            displacement = self.results['displacement']
+        if 'displacement' not in solver_snapshot:
+            return
+
+        analysis_type = solver_snapshot.get('analysis_type')
+        snapshots = solver_snapshot.get('step_results', [solver_snapshot])
+        for snapshot in snapshots:
+            self._post_process_snapshot(snapshot, analysis_type, LoadedBarElement)
+
+        if 'step_results' in solver_snapshot:
+            last = snapshots[-1]
+            for name in ('element_stresses', 'shell_results', 'legacy_shell_results'):
+                if name in last:
+                    solver_snapshot[name] = deepcopy(last[name])
+
+        if analysis_type in ('static', 'material_nonlinear'):
             layout = self.solver.layout
-            stride = layout.stride
-            node_offsets = layout.node_offsets
-            
-            for elem_id, element in self.elements.items():
-                # 要素の変位を抽出
-                indices = layout.element_dofs(elem_id, element)
-                elem_disp = np.asarray(displacement)[indices]
-                            
-                # 梁の断面力APIを優先し、未実装の基底応力APIで遮断しない。
-                if hasattr(element, 'calculate_forces'):
-                    if self.results.get('analysis_type') == 'material_nonlinear':
-                        element_stresses[elem_id] = deepcopy(
-                            self.results['step_results'][-1]['element_stresses'][elem_id])
-                    elif 'precise_end_forces' in self.results:
-                        element_stresses[elem_id] = deepcopy(self.results['precise_end_forces'][elem_id])
-                    elif (self.results.get('analysis_type') == 'static' and
-                            isinstance(element, NonlinearBarElement)):
-                        # Explicit static analysis uses the reference elastic
-                        # stiffness; its output must use the same linear law.
-                        element_stresses[elem_id] = TBarElement.calculate_forces(element, np.array(elem_disp))
-                    else:
-                        if 'displacement_correction' in self.results and isinstance(element, LoadedBarElement):
-                            element_stresses[elem_id] = element.calculate_forces(
-                                np.array(elem_disp), displacement_correction=self.results['displacement_correction'][indices])
-                        else:
-                            element_stresses[elem_id] = element.calculate_forces(np.array(elem_disp))
-                    continue
-                element_stresses[elem_id] = element.calculate_stress_strain(np.array(elem_disp))
-                if isinstance(element, ShellElement):
-                    shell_results[elem_id] = element.calculate_shell_results(np.array(elem_disp))
-                    
-            self.results['element_stresses'] = element_stresses
-            if shell_results:
-                self.results['shell_results'] = shell_results
-                from .elements.shell_postprocess import legacy_shell_view
-                self.results['legacy_shell_results'] = {}
-                for index, elem_id in enumerate(shell_results):
-                    element = self.elements[elem_id]
-                    indices = layout.element_dofs(elem_id, element)
-                    self.results['legacy_shell_results'][index] = legacy_shell_view(
-                        element, np.asarray(displacement)[indices])
-                for step in self.results.get('step_results', []):
-                    step_shells = {}
-                    step_legacy = {}
-                    for index, elem_id in enumerate(shell_results):
-                        element = self.elements[elem_id]
-                        indices = layout.element_dofs(elem_id, element)
-                        step_shells[elem_id] = element.calculate_shell_results(
-                            np.asarray(step['displacement'])[indices])
-                        step_legacy[index] = legacy_shell_view(element, np.asarray(step['displacement'])[indices])
-                    step['shell_results'] = step_shells
-                    step['legacy_shell_results'] = step_legacy
-            if self.results.get('analysis_type') in ('static', 'material_nonlinear'):
-                self._recover_beam_end_forces(stride, node_offsets)
+            self._recover_beam_end_forces(layout.stride, layout.node_offsets)
+
+    def _post_process_snapshot(self, snapshot, analysis_type, loaded_bar_type):
+        """Recover bar, shell, and solid values for one immutable displacement."""
+        from .elements.shell_postprocess import legacy_shell_view
+
+        displacement = np.asarray(snapshot['displacement'])
+        layout = self.solver.layout
+        existing_stresses = snapshot.get('element_stresses', {})
+        element_stresses = {}
+        shell_results = {}
+        legacy_shell_results = {}
+        for elem_id, element in self.elements.items():
+            indices = layout.element_dofs(elem_id, element)
+            elem_disp = displacement[indices]
+            if hasattr(element, 'calculate_forces'):
+                if analysis_type == 'material_nonlinear':
+                    if elem_id not in existing_stresses:
+                        raise ValueError(
+                            f'Accepted nonlinear snapshot is missing beam element {elem_id}'
+                        )
+                    element_stresses[elem_id] = deepcopy(existing_stresses[elem_id])
+                elif 'precise_end_forces' in snapshot:
+                    element_stresses[elem_id] = deepcopy(snapshot['precise_end_forces'][elem_id])
+                elif analysis_type == 'static' and isinstance(element, NonlinearBarElement):
+                    # Explicit static analysis uses the reference elastic law.
+                    element_stresses[elem_id] = TBarElement.calculate_forces(
+                        element, np.array(elem_disp)
+                    )
+                elif ('displacement_correction' in snapshot and
+                        isinstance(element, loaded_bar_type)):
+                    element_stresses[elem_id] = element.calculate_forces(
+                        np.array(elem_disp),
+                        displacement_correction=snapshot['displacement_correction'][indices],
+                    )
+                else:
+                    element_stresses[elem_id] = element.calculate_forces(
+                        np.array(elem_disp)
+                    )
+                continue
+            element_stresses[elem_id] = element.calculate_stress_strain(
+                np.array(elem_disp)
+            )
+            if isinstance(element, ShellElement):
+                shell_results[elem_id] = element.calculate_shell_results(
+                    np.array(elem_disp)
+                )
+                legacy_shell_results[len(legacy_shell_results)] = legacy_shell_view(
+                    element, np.array(elem_disp)
+                )
+        snapshot['element_stresses'] = element_stresses
+        if shell_results:
+            snapshot['shell_results'] = shell_results
+            snapshot['legacy_shell_results'] = legacy_shell_results
 
     def _recover_beam_end_forces(self, stride, node_offsets):
         """Keep constitutive snapshots and expose equilibrium-recovered branches."""
         from .beam_equilibrium import recover_free_branches
         if stride != 6:
+            return
+        solver_snapshot = self._solver_snapshot
+        if solver_snapshot is None:
             return
         solver = self.solver
         total = solver.load_vector
@@ -993,8 +1093,8 @@ class FemModel:
         blocked_dofs = resolved.prescribed.keys() | resolved.springs.keys() | resolved.nonlinear_springs.keys()
         blocked = {n: {i for i in range(stride) if start+i in blocked_dofs}
                    for n, start in node_offsets.items()}
-        tolerance = self.analysis_params.get('tolerance', 1e-6) if self.results['analysis_type'] == 'material_nonlinear' else 1e-8
-        snapshots = self.results.get('step_results', [self.results])
+        tolerance = self.analysis_params.get('tolerance', 1e-6) if solver_snapshot['analysis_type'] == 'material_nonlinear' else 1e-8
+        snapshots = solver_snapshot.get('step_results', [solver_snapshot])
         for snapshot in snapshots:
             factor = snapshot.get('lambda', 1.)
             loads = {n: factor*total[start:start+stride] for n, start in node_offsets.items()}
@@ -1023,11 +1123,11 @@ class FemModel:
                     for i, name in enumerate(('fx', 'fy', 'fz', 'mx', 'my', 'mz')):
                         if name in reactions.get(node, {}):
                             reactions[node][name] += change[6*end+i]
-        if 'step_results' in self.results:
+        if 'step_results' in solver_snapshot:
             last = snapshots[-1]
             for name in ('element_stresses', 'constitutive_element_stresses', 'force_recovery', 'reaction_forces'):
                 if name in last:
-                    self.results[name] = deepcopy(last[name])
+                    solver_snapshot[name] = deepcopy(last[name])
             
     def get_model_info(self) -> Dict[str, Any]:
         """モデル情報を取得

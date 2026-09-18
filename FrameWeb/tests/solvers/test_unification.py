@@ -71,7 +71,7 @@ def test_model_uses_common_solver_and_final_snapshots_are_independent(monkeypatc
         calls.append(kwargs.get("analysis_type", "static"))
         return original(*args, **kwargs)
     monkeypatch.setattr(model.solver, "solve", record)
-    result = model.run()
+    result = model._run_solver_snapshot()
     assert calls == ["material_nonlinear"]
     assert model.nonlinear_solver.displacement is model.solver.displacement
     last = result["step_results"][-1]

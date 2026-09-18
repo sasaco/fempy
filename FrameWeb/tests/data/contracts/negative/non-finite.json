@@ -1,0 +1,6 @@
+{
+  "kind": "analysis_result_set", "schema_version": "1.0", "units": {"system": "consistent_user_defined", "length": "unspecified", "force": "unspecified", "mass": "unspecified", "time": "unspecified"},
+  "coordinate_system": {"name": "global_cartesian", "handedness": "right", "axes": ["x", "y", "z"]},
+  "cases": [{"case_id": "1", "name": "1", "symbol": "1", "analysis_type": "material_nonlinear", "support_node_ids": []}], "topology": {"nodes": [], "members": [], "shell_elements": [], "solid_elements": []},
+  "results": [{"case_id": "1", "state": {"kind": "load_step", "index": 0, "load_factor": 1e999, "is_final": true}, "node_displacements": [], "support_reactions": [], "member_section_forces": [], "shell_results": [], "solid_results": [], "diagnostics": {"warnings": [], "iterations": []}}]
+}

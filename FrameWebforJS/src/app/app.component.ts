@@ -1,11 +1,8 @@
 import { Component, OnInit, EventEmitter, Output, ViewChild, AfterViewInit, ElementRef } from "@angular/core";
 import { Router } from "@angular/router";
 import { UserInfoService } from "./providers/user-info.service";
-import {
-  LegacyCasesResultValidationError,
-  ResultDataService,
-  validateLegacyCasesResult,
-} from "./providers/result-data.service";
+import { ResultDataService } from "./providers/result-data.service";
+import { AnalysisResultSetValidationError } from "./providers/analysis-result-set";
 import { PrintService } from "./components/print/print.service";
 
 import { ResultFsecService } from "./components/result/result-fsec/result-fsec.service";
@@ -232,15 +229,9 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   private post_compress(jsonData: {}, modalRef: NgbModalRef) {
     const url = environment.calcURL;
-    const loadData = jsonData["load"];
-    const expectedCaseIds =
-      typeof loadData === "object" && loadData !== null && !Array.isArray(loadData)
-        ? Object.keys(loadData)
-        : [];
 
     // json string にする
     const json = JSON.stringify(jsonData, null, 0);
-    console.log(json);
     // pako を使ってgzip圧縮する
     const compressed = pako.gzip(json);
     //btoa() を使ってBase64エンコードする
@@ -249,14 +240,14 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.http
       .post(url, base64Encoded, {
         headers: new HttpHeaders({
-          Accept: "application/vnd.frameweb.legacy-cases-v1+json",
+          Accept: "application/json",
           "Content-Type": "application/json",
           "Content-Encoding": "gzip,base64",
         }),
         responseType: "text",
       })
       .subscribe(
-        (response) => {
+        async (response) => {
           // 通信成功時の処理（成功コールバック）
           console.log(this.translate.instant("menu.success"));
           let check = true;
@@ -277,33 +268,21 @@ export class AppComponent implements OnInit, AfterViewInit {
 
             const jsonData = JSON.parse(json);
             // サーバーのレスポンスを集計する
-            console.log(jsonData);
             if ("error" in jsonData) {
               throw jsonData.error;
             }
 
             // ポイントの処理
-            const _jsonData = {};
-            for (const key of Object.keys(jsonData)) {
-              if ((typeof jsonData[key]).toLowerCase() === "number") {
-                this.user[key] = jsonData[key];
-              } else {
-                _jsonData[key] = jsonData[key];
-              }
-            }
-
-            validateLegacyCasesResult(_jsonData, expectedCaseIds);
-            this.InputData.getResult(jsonData);
+            const accepted = await this.ResultData.loadResultData(jsonData);
+            this.InputData.getResult(accepted.value);
 
             // 解析結果を集計する
-            this.ResultData.loadResultData(_jsonData);
-            this.ResultData.isCalculated = true;
 
           } catch (e) {
             // "error" または "exceeded"を含む場合のエラー
             check = false;  // 計算異常終了フラグ
             this.ResultData.isCalculated = false;
-            if (e instanceof LegacyCasesResultValidationError) {
+            if (e instanceof AnalysisResultSetValidationError) {
               this.helper.alert(e.message);
             } else if (
               typeof e === "string" &&

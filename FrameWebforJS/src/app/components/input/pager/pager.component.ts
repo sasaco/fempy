@@ -29,28 +29,39 @@ export class PagerComponent implements OnInit {
     private comb: InputCombineService,
     private pickup: InputPickupService
   ) {
+    this.pages = Array.from({ length: 999 }, (_, i) => i + 1);
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe(() => {
         this.selectedPage = result.page;
+        this.refreshPages();
         this.pages_name = this.pages.map((page) => this.getName(page));
       });
-
-    this.pages = Array.from({ length: 999 }, (_, i) => i + 1);
   }
 
   ngOnInit(): void {
     this.selectedPage = 1;
+    this.refreshPages();
     this.updatePages();
   }
 
+  private isBasicResultRoute(): boolean {
+    return ["result-disg", "result-reac", "result-fsec"].some((route) =>
+      this.router.url.includes(route)
+    );
+  }
+
+  private refreshPages(): void {
+    const resultPageCount = this.result.getResultPageCount();
+    const count = this.isBasicResultRoute() && resultPageCount > 0 ? resultPageCount : 999;
+    this.pages = Array.from({ length: count }, (_, i) => i + 1);
+    if (this.selectedPage > count) this.selectedPage = count;
+  }
+
   private getName(page: number): string {
-    if (
-      this.router.url.includes("result-disg") ||
-      this.router.url.includes("result-reac") ||
-      this.router.url.includes("result-fsec") ||
-      this.router.url.includes("input-loads")
-    ) {
+    if (this.isBasicResultRoute() && this.result.getResultPageCount() > 0) {
+      return this.result.getResultPageLabel(page);
+    } else if (this.router.url.includes("input-loads")) {
       return `${page}.${this.load.getLoadName(page)}`;
     } else if (
       this.router.url.includes("result-comb_disg") ||
@@ -70,6 +81,7 @@ export class PagerComponent implements OnInit {
   }
 
   public updatePages() {
+    this.refreshPages();
     this.pagerService.goToPage(this.selectedPage);
     this.pages_name = this.pages.map((page) => this.getName(page));
   }

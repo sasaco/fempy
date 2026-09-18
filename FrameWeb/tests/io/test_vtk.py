@@ -196,7 +196,7 @@ def test_public_shell_analysis_results_roundtrip(tmp_path: Path):
     for node_id in (30, 40):
         model.boundary.add_load(node_id, [0, 0, 0, 0, 5e-6, 0])
 
-    result = model.run()
+    result = model._run_solver_snapshot()
     path = tmp_path / "shell.vtk"
     write_vtk({"mesh": model.mesh}, result, path)
 
