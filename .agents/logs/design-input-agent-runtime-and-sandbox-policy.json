@@ -1,0 +1,14 @@
+{
+  "decisions": [
+    {
+      "decision": "Keep the repository agent infrastructure Codex-focused and remove copied Claude pseudo-links, runtime-specific agents and hooks, and the inactive Antigravity workflow.",
+      "rationale": "Only Codex is an active repository runtime. Removing unreachable integration surfaces prevents stale instructions and duplicate execution paths while retaining runtime-neutral skills and rules.",
+      "alternatives": "Maintain parallel Claude and Codex bootstrap surfaces; retain inactive integrations as examples."
+    },
+    {
+      "decision": "Default Codex to the read-only sandbox and require an explicit workspace-write opt-in for repository mutations.",
+      "rationale": "Least-privilege defaults make read-only analysis safe while keeping authorized implementation work available through an explicit invocation choice.",
+      "alternatives": "Use workspace-write or danger-full-access as the repository default."
+    }
+  ]
+}
