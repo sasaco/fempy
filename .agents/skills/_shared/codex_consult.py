@@ -17,10 +17,10 @@ stays diagnosable after the fact. With neither ``--prompt-file`` nor
 ``.agents/logs/codex/prompt-{label}.md``.
 
 Usage:
-    python3 codex_consult.py --prompt-file prompt.txt --label design-review
-    python3 codex_consult.py --label design-review   # reads prompt-design-review.md
-    echo "Objective: ..." | python3 codex_consult.py --prompt-stdin
-    python3 codex_consult.py --prompt-file p.txt --config model_reasoning_effort=low
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file prompt.txt --label design-review
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --label design-review
+    "Objective: ..." | uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-stdin
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file p.txt --config model_reasoning_effort=low
 
 Exit codes:
     0  codex exec exited 0 and its output was saved and verified
@@ -60,7 +60,7 @@ DEFAULT_MODEL = "gpt-5.6-sol"
 DEFAULT_TIMEOUT = 600
 SANDBOX_CHOICES = ["read-only", "workspace-write", "danger-full-access"]
 LABEL_RE = re.compile(r"^[a-z0-9-]+$")
-INSTALL_HINT = "install with `npm install -g @openai/codex@latest`"
+INSTALL_HINT = "see the official Codex CLI installation documentation"
 
 # --config KEY=VALUE overrides forwarded to codex. Keys are constrained to the
 # dotted-identifier shape codex itself uses, and the two keys that decide what

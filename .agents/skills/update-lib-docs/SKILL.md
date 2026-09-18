@@ -17,8 +17,8 @@ doc's `> **Last Updated**` / `> **Version Checked**` metadata, resolves the
 version the project declares and locks, and cross-checks declared
 dependencies:
 
-```bash
-python3 .agents/skills/update-lib-docs/lib_inventory.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/update-lib-docs/lib_inventory.py `
   [--stale-days N] [--today YYYY-MM-DD] [--library NAME] [--project-root DIR]
 ```
 
@@ -73,8 +73,8 @@ For each library in scope, search for:
 Derive each doc path from the same authority research-lib uses, so an update
 and a creation can never disagree about the filename:
 
-```bash
-python3 .agents/skills/_shared/workspace.py --skill research-lib \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill research-lib `
   --title "{library}" --create
 ```
 
@@ -93,8 +93,8 @@ documentation template for the full section layout):
 
 After updating or creating a doc, validate it against the `lib-doc` contract:
 
-```bash
-python3 .agents/skills/_shared/validate_doc.py --contract lib-doc \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py --contract lib-doc `
   --file <paths.lib_doc>
 ```
 
@@ -122,8 +122,8 @@ Editing a manifest or source file is outside this skill's documentation scope.
 If step 5 leads to any change outside `.agents/docs/libraries/`, run the gates
 before reporting:
 
-```bash
-bash .agents/skills/_shared/verify.sh
+```powershell
+& .agents/check.ps1
 ```
 
 Exit 0 means the gates passed; exit 2 means a gate failed or no gates ran. Do

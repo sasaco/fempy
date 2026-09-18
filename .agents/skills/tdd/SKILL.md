@@ -31,10 +31,10 @@ The split is fixed:
 | Work | Owner |
 |------|-------|
 | Requirement clarification, test-case list, boundary values | Lead (judgment, Self-Handle List item 5) |
-| Writing the tests and the production code, cycle by cycle | `general-purpose-sonnet` |
-| Cycles with ambiguous design, cross-cutting invariants, or security / concurrency / data-integrity risk | `general-purpose-opus` |
-| A Red that is red for the wrong reason, or a Green that will not go green after one retry | `codex-debugger` |
-| Every `run_tests.py` / `verify.sh` gate and the final report | Lead — verification never delegates |
+| Writing the tests and the production code, cycle by cycle | `implementation collaborator` |
+| Cycles with ambiguous design, cross-cutting invariants, or security / concurrency / data-integrity risk | `high-capability analysis collaborator` |
+| A Red that is red for the wrong reason, or a Green that will not go green after one retry | `debugging collaborator` |
+| Every `run_tests.py` / `.agents/check.ps1` gate and the final report | Lead — verification never delegates |
 
 Only a *single trivial cycle* on a file already open in context stays with the
 lead (Self-Handle List item 2). Two or more cycles, or a module the lead has not
@@ -43,8 +43,8 @@ message**; they share no test file, so nothing serializes them.
 
 ## The Red/Green Invariant
 
-```bash
-python3 .agents/skills/_shared/run_tests.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/run_tests.py `
   --target tests/test_{module}.py --expect fail --label red-1
 ```
 
@@ -108,8 +108,8 @@ Delegate the Red-Green-Refactor loop with the six-element prompt contract from
 `.agents/rules/delegation.md`. One delegation per module, all launched together:
 
 ```
-Task tool:
-  subagent_type: "general-purpose-sonnet"   # or general-purpose-opus, see the table above
+Collaboration task:
+  role: "implementation collaborator"   # or high-capability analysis collaborator, see the table above
   prompt: |
     Objective: Implement {module} by strict TDD, one test case at a time.
 
@@ -123,9 +123,9 @@ Task tool:
     - Existing conventions to follow: {paths of comparable modules}
 
     Acceptance checks — run these yourself, per cycle, and never skip Red:
-      python3 .agents/skills/_shared/run_tests.py \
+      uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/run_tests.py `
         --target tests/test_{module}.py --expect fail --label red-{n}
-      python3 .agents/skills/_shared/run_tests.py \
+      uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/run_tests.py `
         --target tests/test_{module}.py --expect pass --label green-{n}
     A Red that exits 2 with observed=passed/collection_error/no_tests_collected
     is not a Red: fix the test, not the production code, and re-run.
@@ -142,8 +142,8 @@ Task tool:
 
 Then verify rather than trust: re-run `run_tests.py --expect pass` yourself and
 read the diff. A reported cycle with no matching `run_tests.py` exit `0` did not
-happen. If a cycle came back unfinished, escalate it (`general-purpose-opus` or
-`codex-debugger`) instead of re-sending the same prompt to the same tier.
+happen. If a cycle came back unfinished, escalate it (`high-capability analysis collaborator` or
+`debugging collaborator`) instead of re-sending the same prompt to the same tier.
 
 The steps below are the contract the delegate follows — and what the lead runs
 directly in the single-trivial-cycle case.
@@ -160,8 +160,8 @@ def test_{function}_basic():
 
 Confirm the test is red **for the right reason**:
 
-```bash
-python3 .agents/skills/_shared/run_tests.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/run_tests.py `
   --target tests/test_{module}.py --expect fail --label red-{n}
 ```
 
@@ -178,8 +178,8 @@ Write **minimal** code to pass the test:
 
 Confirm success:
 
-```bash
-python3 .agents/skills/_shared/run_tests.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/run_tests.py `
   --target tests/test_{module}.py --expect pass --label green-{n}
 ```
 
@@ -193,8 +193,8 @@ Improve while tests still pass:
 - Improve naming
 - Clean up structure
 
-```bash
-python3 .agents/skills/_shared/run_tests.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/run_tests.py `
   --target tests/test_{module}.py --expect pass --label refactor-{n}
 ```
 
@@ -208,8 +208,8 @@ Return to Step 1 with the next test case from the Phase 1 list.
 
 Run the full quality gates:
 
-```bash
-bash .agents/skills/_shared/verify.sh
+```powershell
+& .agents/check.ps1
 ```
 
 Read the JSON: `overall` is `pass` / `fail` / `no_gates`. Exit `0` means
@@ -224,9 +224,9 @@ not be written.
 Then check coverage — with a threshold, so the answer is a gate and not a glance
 at `term-missing` output:
 
-```bash
-python3 .agents/skills/_shared/run_tests.py \
-  --target tests/test_{module}.py --expect pass \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/run_tests.py `
+  --target tests/test_{module}.py --expect pass `
   --cov {module} --min-coverage {N} --label coverage
 ```
 
@@ -250,7 +250,7 @@ Choosing the threshold is a project decision.
 - {coverage_percent}% (threshold {min_coverage}%) — from run_tests.py, label `coverage`
 
 ### Quality Gates
-- verify.sh: {overall} — `{log_file}`
+- .agents/check.ps1: {overall} — `{log_file}`
 
 ### Implementation Files
 - `src/{module}.py`: {description}

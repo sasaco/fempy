@@ -22,8 +22,8 @@ Run `load_context.py` to get a deterministic read order instead of a
 hand-maintained file list, so the plan never drifts from what actually exists
 on disk:
 
-```bash
-python3 .agents/skills/context-loader/load_context.py [--task-libraries name,name]
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/context-loader/load_context.py [--task-libraries name,name]
 ```
 
 Pass `--task-libraries` (comma-separated) when the task names specific
@@ -76,8 +76,8 @@ default is to delegate, and working alone is the exception. Before the first
 1. Does the whole task fall on the **Self-Handle List** (answer from loaded
    context · one known file, ~20 lines or fewer · a named gate or a
    skill-bundled lead script · user interaction)? If yes, do it directly.
-2. Otherwise name the route from the rule's table — `general-purpose-sonnet`,
-   `general-purpose-opus`, `codex-debugger`, Codex, `fable-advisor` — or the
+2. Otherwise name the route from the rule's table — `implementation collaborator`,
+   `high-capability analysis collaborator`, `debugging collaborator`, Codex, `independent reviewer` — or the
    skill that owns the workflow, and delegate with all six elements of the
    Subagent Prompt Contract.
 3. Split independent units and launch them **in one message** so they run in

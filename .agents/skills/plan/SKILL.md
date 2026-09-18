@@ -22,8 +22,8 @@ Resolve this plan's slug and output path once. The title becomes the file name,
 so give it a short English descriptor — not the user's raw wording, which the
 Language Protocol keeps out of paths:
 
-```bash
-python3 .agents/skills/_shared/workspace.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py `
   --skill plan --title "<short English title>" --create
 ```
 
@@ -54,8 +54,8 @@ Reading the codebase for a plan is broad-context work: delegate it rather than
 consuming orchestrator context.
 
 ```
-Task tool:
-  subagent_type: "general-purpose-opus"
+Collaboration task:
+  role: "high-capability analysis collaborator"
   prompt: |
     Investigate this codebase for a planned change: {purpose from step 1}
 
@@ -85,11 +85,11 @@ consult — the same rule `/feature` follows for the same artifact class.
 Write the prompt body to a file, then invoke the shared wrapper (the directory
 is not created by the wrapper before it reads the prompt, so create it first):
 
-```bash
-mkdir -p .agents/logs/codex
+```powershell
+New-Item -ItemType Directory -Force .agents/logs/codex | Out-Null
 # write the prompt body to .agents/logs/codex/prompt-plan-{slug}-steps.md, then:
-python3 .agents/skills/_shared/codex_consult.py \
-  --prompt-file .agents/logs/codex/prompt-plan-{slug}-steps.md \
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py `
+  --prompt-file .agents/logs/codex/prompt-plan-{slug}-steps.md `
   --label plan-{slug}-steps --sandbox read-only
 ```
 
@@ -162,8 +162,8 @@ document has its sections, never that the plan is any good.
 
 **Gate 1 — shape.** The document contract:
 
-```bash
-python3 .agents/skills/_shared/validate_doc.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py `
   --contract plan-doc --file .agents/docs/plans/{slug}.md
 ```
 
@@ -174,8 +174,8 @@ nothing about whether the steps are correct, complete, or ordered sensibly.
 
 **Gate 2 — the artifact exists and is not empty:**
 
-```bash
-python3 .agents/skills/_shared/workspace.py --skill plan --slug {slug} --verify
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill plan --slug {slug} --verify
 ```
 
 Exit `0` the plan document exists and is non-empty; exit `2` it is missing or

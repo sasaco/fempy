@@ -21,10 +21,10 @@ and every dependency table actually parsed is listed in ``sources`` so an empty
 ``undocumented`` can never be mistaken for "everything is documented".
 
 Usage:
-    python3 lib_inventory.py
-    python3 lib_inventory.py --stale-days 60 --today 2026-07-21
-    python3 lib_inventory.py --library ruamel.yaml
-    python3 lib_inventory.py --project-root /path/to/repo
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/update-lib-docs/lib_inventory.py
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/update-lib-docs/lib_inventory.py --stale-days 60 --today 2026-07-21
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/update-lib-docs/lib_inventory.py --library numpy
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/update-lib-docs/lib_inventory.py --project-root .
 
 Exit codes:
     0  scan completed (an empty or absent libraries dir is a valid state)
@@ -37,6 +37,7 @@ Exit codes:
 
 import argparse
 import json
+import os
 import re
 import sys
 import tomllib
@@ -45,6 +46,15 @@ from pathlib import Path
 from typing import NoReturn
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
+SHARED_DIR = Path(__file__).resolve().parents[1] / "_shared"
+if str(SHARED_DIR) not in sys.path:
+    sys.path.insert(0, str(SHARED_DIR))
+
+from repository_config import (  # noqa: E402
+    RepositoryPathError,
+    resolve_declared_path,
+    resolve_derived_path,
+)
 
 DEFAULT_STALE_DAYS = 90
 
@@ -85,6 +95,30 @@ SPEC_CLAUSE_RE = re.compile(r"^\s*(===|==|>=|<=|~=|!=|<|>|\^|~)?\s*(.+?)\s*$")
 
 PYTHON = "python"
 NODE = "node"
+REPOSITORY_CONFIG = Path(".agents/repository.toml")
+FALLBACK_MAX_DEPTH = 4
+EXCLUDED_DIRECTORY_NAMES = frozenset(
+    {
+        ".git",
+        ".venv",
+        "venv",
+        "node_modules",
+        "dist",
+        "bin",
+        "obj",
+        "__pycache__",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".mypy_cache",
+        ".cache",
+        "vendor",
+    }
+)
+EXCLUDED_PATHS = (
+    "FrameWebforJS/src/assets/js/rxfire",
+    "FrameWebforJS/src/assets/js/paramquery",
+    "tools/local-tools",
+)
 
 
 def _emit(obj: dict) -> None:
@@ -105,10 +139,12 @@ class JsonArgumentParser(argparse.ArgumentParser):
 
 def _rel_posix(path: Path, root: Path) -> str:
     """Render *path* as a POSIX-style string relative to *root*."""
+    resolved_root = root.resolve()
+    resolved_path = path.resolve()
     try:
-        return path.relative_to(root).as_posix()
+        return resolved_path.relative_to(resolved_root).as_posix()
     except ValueError:
-        return path.as_posix()
+        return resolved_path.as_posix()
 
 
 def _parse_date(value: str) -> date | None:
@@ -547,16 +583,137 @@ def _package_lock_versions(data: object) -> dict[str, str]:
     return versions
 
 
-MANIFESTS: tuple[tuple[str, str], ...] = (
-    ("pyproject.toml", PYTHON),
-    ("package.json", NODE),
-)
+LOCKFILES_BY_ECOSYSTEM: dict[str, tuple[str, ...]] = {
+    PYTHON: ("uv.lock", "poetry.lock"),
+    NODE: ("package-lock.json",),
+}
 
-LOCKFILES: tuple[tuple[str, str], ...] = (
-    ("uv.lock", PYTHON),
-    ("poetry.lock", PYTHON),
-    ("package-lock.json", NODE),
-)
+
+def _is_excluded(relative: str) -> bool:
+    """Return whether a fallback candidate is generated or vendored."""
+    normalized = relative.replace("\\", "/").strip("/").casefold()
+    return any(
+        normalized == prefix.casefold()
+        or normalized.startswith(f"{prefix.casefold()}/")
+        for prefix in EXCLUDED_PATHS
+    )
+
+
+def _fallback_manifests(root: Path) -> list[tuple[Path, str]]:
+    """Find nested Python/npm manifests within a bounded, pruned tree."""
+    found: list[tuple[Path, str]] = []
+    excluded_names = {name.casefold() for name in EXCLUDED_DIRECTORY_NAMES}
+    for current, directories, files in os.walk(root):
+        current_path = Path(current)
+        relative_dir = current_path.relative_to(root)
+        depth = 0 if relative_dir == Path(".") else len(relative_dir.parts)
+        directories[:] = [
+            name
+            for name in directories
+            if name.casefold() not in excluded_names
+            and not _is_excluded(
+                (current_path / name).relative_to(root).as_posix()
+            )
+            and not (current_path / name / ".git").is_file()
+        ]
+        if depth >= FALLBACK_MAX_DEPTH:
+            directories[:] = []
+        for filename, ecosystem in (
+            ("pyproject.toml", PYTHON),
+            ("package.json", NODE),
+        ):
+            path = current_path / filename
+            relative = path.relative_to(root).as_posix()
+            if filename not in files or _is_excluded(relative):
+                continue
+            try:
+                safe_path = resolve_derived_path(
+                    root, path, f"fallback manifest candidate {relative}", kind="file"
+                )
+            except RepositoryPathError:
+                continue
+            found.append((safe_path, ecosystem))
+    return found
+
+
+def _manifest_candidates(root: Path) -> tuple[list[tuple[Path, str]], list[dict]]:
+    """Return declared dependency manifests and configuration errors."""
+    config_path = root / REPOSITORY_CONFIG
+    if not config_path.is_file():
+        return _fallback_manifests(root), []
+    try:
+        data = tomllib.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as exc:
+        return [], [{"file": REPOSITORY_CONFIG.as_posix(), "error": str(exc)}]
+    components = data.get("components")
+    if not isinstance(components, list):
+        return [], [
+            {
+                "file": REPOSITORY_CONFIG.as_posix(),
+                "error": "missing [[components]] declarations",
+            }
+        ]
+    candidates: list[tuple[Path, str]] = []
+    errors: list[dict] = []
+    for index, component in enumerate(components):
+        if not isinstance(component, dict):
+            errors.append(
+                {
+                    "file": REPOSITORY_CONFIG.as_posix(),
+                    "error": f"components[{index}] is not a table",
+                }
+            )
+            continue
+        component_errors: list[str] = []
+        try:
+            manifest_name, manifest_path = resolve_declared_path(
+                root,
+                component.get("manifest"),
+                f"components[{index}].manifest",
+                kind="file",
+            )
+        except RepositoryPathError as exc:
+            component_errors.append(str(exc))
+            manifest_name = None
+            manifest_path = None
+        try:
+            resolve_declared_path(
+                root,
+                component.get("working_directory", "."),
+                f"components[{index}].working_directory",
+                kind="directory",
+            )
+        except RepositoryPathError as exc:
+            component_errors.append(str(exc))
+
+        raw_projects = component.get("projects", [])
+        if not isinstance(raw_projects, list):
+            component_errors.append(f"components[{index}].projects must be an array")
+        else:
+            for project_index, value in enumerate(raw_projects):
+                try:
+                    resolve_declared_path(
+                        root,
+                        value,
+                        f"components[{index}].projects[{project_index}]",
+                        kind="file",
+                    )
+                except RepositoryPathError as exc:
+                    component_errors.append(str(exc))
+        if component_errors:
+            errors.extend(
+                {"file": REPOSITORY_CONFIG.as_posix(), "error": error}
+                for error in component_errors
+            )
+            continue
+
+        kind = component.get("kind")
+        ecosystem = PYTHON if kind == "python" else NODE if kind in {"angular", "node"} else None
+        if ecosystem is None:
+            continue
+        assert manifest_name is not None and manifest_path is not None
+        candidates.append((manifest_path, ecosystem))
+    return candidates, errors
 
 
 def collect_dependencies(root: Path) -> dict:
@@ -572,10 +729,10 @@ def collect_dependencies(root: Path) -> dict:
     manifest_errors: list[dict] = []
     warnings: list[str] = []
 
-    for filename, ecosystem in MANIFESTS:
-        path = root / filename
-        if not path.is_file():
-            continue
+    candidates, configuration_errors = _manifest_candidates(root)
+    manifest_errors.extend(configuration_errors)
+    for path, ecosystem in candidates:
+        filename = _rel_posix(path, root)
         if ecosystem == PYTHON:
             data, error = _load_toml(path)
             tables = _pyproject_tables(data) if isinstance(data, dict) else []
@@ -613,7 +770,7 @@ def collect_dependencies(root: Path) -> dict:
                 }
             )
 
-    locked = _read_lockfiles(root, sources, manifest_errors)
+    locked = _read_lockfiles(root, candidates, sources, manifest_errors)
     for name, entry in resolution.items():
         if name in locked:
             entry["locked_version"] = locked[name]["version"]
@@ -635,6 +792,7 @@ def collect_dependencies(root: Path) -> dict:
 
 def _read_lockfiles(
     root: Path,
+    manifests: list[tuple[Path, str]],
     sources: list[dict],
     manifest_errors: list[dict],
 ) -> dict[str, dict]:
@@ -647,10 +805,25 @@ def _read_lockfiles(
     expected to write a library doc for.
     """
     locked: dict[str, dict] = {}
-    for filename, ecosystem in LOCKFILES:
-        path = root / filename
-        if not path.is_file():
+    candidates = [
+        (manifest.parent / filename, ecosystem)
+        for manifest, ecosystem in manifests
+        for filename in LOCKFILES_BY_ECOSYSTEM[ecosystem]
+    ]
+    seen: set[Path] = set()
+    for candidate, ecosystem in candidates:
+        display_name = _rel_posix(candidate, root)
+        try:
+            path = resolve_derived_path(
+                root, candidate, f"derived lockfile {display_name}"
+            )
+        except RepositoryPathError as exc:
+            manifest_errors.append({"file": display_name, "error": str(exc)})
             continue
+        if path in seen or not path.is_file():
+            continue
+        seen.add(path)
+        filename = _rel_posix(path, root)
         if filename.endswith(".lock"):
             data, error = _load_toml(path)
             versions = _uv_lock_versions(data) if isinstance(data, dict) else {}

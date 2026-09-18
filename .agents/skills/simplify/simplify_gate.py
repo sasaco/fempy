@@ -2,7 +2,7 @@
 """Bracket a refactor with the quality gates, so "I did not change behaviour"
 and "I did not widen the scope" become checkable instead of asserted.
 
-``simplify`` used to run ``verify.sh`` once, *after* the edits. A gate that was
+``simplify`` used to run its quality gate once, *after* the edits. A gate that was
 already red then looked exactly like a regression the refactor had just
 introduced, and nothing at all enumerated the files touched — so the skill's two
 promises ("don't change behavior", "refactoring only") had no evidence behind
@@ -20,24 +20,24 @@ distinguishes:
 * ``out_of_scope_files`` — a file changed that is neither in ``--scope`` nor in
   the pre-existing dirty set.
 
-The gates themselves are not reimplemented here: ``_shared/verify.sh`` runs
-them and ``_shared/gather_diff.py`` reports the changed files. This script only
-expresses an *expectation* about two runs of them.
+The gates themselves are not reimplemented here: the canonical
+``.agents/check.ps1`` runs them and ``_shared/gather_diff.py`` reports the
+changed files. This script only expresses an *expectation* about two runs.
 
 ``--phase after`` requires the baseline file, which is what makes the before
 phase mandatory rather than advisory. A before phase whose gates cannot run at
 all (``overall: no_gates``) is exit 2: a skill that rewrites source must not be
 able to declare success with zero checks executed. ``--allow-no-gates`` accepts
-that state explicitly and records it in the payload, mirroring ``verify.sh``.
+that state explicitly and records it in the payload, mirroring ``check.ps1``.
 
 ``--scope`` takes files and directories, not glob patterns: a directory covers
 everything beneath it. Keeping it literal means the answer to "was this file in
 scope" is inspectable by the reader of the JSON.
 
 Usage:
-    python3 simplify_gate.py --phase before --scope src/parser.py
-    python3 simplify_gate.py --phase after --scope src/parser.py --base main
-    python3 simplify_gate.py --phase before --scope src/ --allow-no-gates
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/simplify/simplify_gate.py --phase before --scope FrameWeb/fem.py
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/simplify/simplify_gate.py --phase after --scope FrameWeb/fem.py --base main
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/simplify/simplify_gate.py --phase before --scope FrameWeb --allow-no-gates
 
 Exit codes:
     0  ok — baseline recorded, or the after phase found no regression and no
@@ -45,12 +45,13 @@ Exit codes:
     1  bad arguments, or --phase after without a readable baseline file
     2  contract violation — a gate regressed, a file outside --scope changed,
        or no gate could run and --allow-no-gates was not passed
-    3  external failure — verify.sh / gather_diff.py could not report, or the
+    3  external failure — check.ps1 / gather_diff.py could not report, or the
        baseline file could not be written
 """
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -58,7 +59,6 @@ from typing import NoReturn
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 SHARED = Path(__file__).parent.parent / "_shared"
-VERIFY_SH = SHARED / "verify.sh"
 GATHER_DIFF = SHARED / "gather_diff.py"
 DEFAULT_BASELINE = ".agents/logs/simplify-baseline.json"
 SCOPE_PATCH = ".agents/logs/simplify-scope.patch"
@@ -87,19 +87,44 @@ def emit(payload: dict, code: int) -> NoReturn:
 # --- delegated collectors ----------------------------------------------------
 
 
-def run_verify(root: Path, allow_no_gates: bool) -> dict:
+def run_verify(
+    root: Path, allow_no_gates: bool, allowed_product_paths: list[str]
+) -> dict:
     """Run the shared gate runner. Exit 2 there is a failed gate, which is a
     result to record rather than an error to abort on."""
-    command = ["bash", str(VERIFY_SH), "--project-root", str(root)]
+    powershell = shutil.which("pwsh") or shutil.which("powershell")
+    if powershell is None:
+        emit(
+            {"ok": False, "error": "PowerShell is not available"},
+            EXIT_EXTERNAL_FAILURE,
+        )
+    check_script = root / ".agents" / "check.ps1"
+    command = [
+        powershell,
+        "-NoProfile",
+        "-NonInteractive",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        str(check_script),
+        "-ProjectRoot",
+        str(root),
+    ]
     if allow_no_gates:
-        command.append("--allow-no-gates")
+        command.append("-AllowNoGates")
+    if allowed_product_paths:
+        command.extend(["-AllowProductPath", ";".join(allowed_product_paths)])
     try:
         proc = subprocess.run(
-            command, capture_output=True, text=True, timeout=VERIFY_TIMEOUT
+            command,
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=VERIFY_TIMEOUT,
         )
     except (OSError, subprocess.SubprocessError) as exc:
         emit(
-            {"ok": False, "error": f"could not run verify.sh: {exc}"},
+            {"ok": False, "error": f"could not run check.ps1: {exc}"},
             EXIT_EXTERNAL_FAILURE,
         )
     try:
@@ -108,7 +133,7 @@ def run_verify(root: Path, allow_no_gates: bool) -> dict:
         emit(
             {
                 "ok": False,
-                "error": "verify.sh produced no JSON",
+                "error": "check.ps1 produced no JSON",
                 "verify_exit": proc.returncode,
                 "stderr": proc.stderr.strip(),
             },
@@ -118,7 +143,7 @@ def run_verify(root: Path, allow_no_gates: bool) -> dict:
         emit(
             {
                 "ok": False,
-                "error": payload.get("error", "verify.sh failed"),
+                "error": payload.get("error", "check.ps1 failed"),
                 "verify_exit": proc.returncode,
             },
             EXIT_EXTERNAL_FAILURE,
@@ -241,7 +266,7 @@ def compare_gates(
 def phase_before(
     root: Path, scope: list[str], base: str, allow_no_gates: bool, baseline: Path
 ) -> dict:
-    verify = run_verify(root, allow_no_gates)
+    verify = run_verify(root, allow_no_gates, scope)
     diff = run_gather_diff(root, base)
     warnings: list[str] = []
 
@@ -341,7 +366,7 @@ def phase_after(
         )
     base = base or record.get("base")
 
-    verify = run_verify(root, allow_no_gates)
+    verify = run_verify(root, allow_no_gates, scope)
     diff = run_gather_diff(root, base)
 
     before = record.get("gates_before", {})
@@ -437,7 +462,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--allow-no-gates",
         action="store_true",
         help="Accept 'no gate could run' instead of failing. Passed through to "
-        "verify.sh and recorded in the payload",
+        "check.ps1 and recorded in the payload",
     )
     parser.add_argument(
         "--project-root",

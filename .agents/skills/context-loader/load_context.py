@@ -23,8 +23,8 @@ cannot be judged) -- because the previous boolean reported a renamed heading as
 "initialised".
 
 Usage:
-    python3 load_context.py
-    python3 load_context.py --task-libraries duckdb,fastapi
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/context-loader/load_context.py
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/context-loader/load_context.py --task-libraries numpy,flask
 
 Exit codes:
     0  ok (rules dir and STATE.md are present and readable; design/progress/

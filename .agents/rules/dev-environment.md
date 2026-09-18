@@ -1,162 +1,55 @@
 # Development Environment
 
-Project development environment and toolchain.
+Windows PowerShell and the repository root are the canonical execution
+environment. Do not require WSL, Bash, `python3`, activation scripts, or global
+Python packages.
 
-## Package Management: uv
+## Python: `FrameWeb/`
 
-**Do not use pip directly. All commands must go through uv.**
+- Dependency metadata: `FrameWeb/pyproject.toml`
+- Reproducible resolution: `FrameWeb/uv.lock`
 
-```bash
-# Add packages
-uv add <package>
-uv add --dev <package>    # Dev dependency
-
-# Sync dependencies
-uv sync
-
-# Run scripts
-uv run <command>
-uv run python script.py
-uv run pytest
+```powershell
+uv sync --project FrameWeb --locked --extra dev
+uv --directory FrameWeb run --locked --extra dev python -m pytest tests -q
 ```
 
-### pyproject.toml
+Use `uv add --project FrameWeb ...` only for an approved dependency change and
+commit the manifest and lockfile together. Ruff, ty, marimo, and poe are not
+repository requirements unless the manifest later declares them.
 
-Manage dependencies in `pyproject.toml`:
+## Angular: `FrameWebforJS/`
 
-```toml
-[project]
-dependencies = [
-    "httpx>=0.27",
-]
+- Dependency metadata: `FrameWebforJS/package.json`
+- Reproducible resolution: `FrameWebforJS/package-lock.json`
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.0",
-    "ruff>=0.8",
-]
+```powershell
+npm --prefix FrameWebforJS ci
+npm --prefix FrameWebforJS run test -- --watch=false --browsers=ChromeHeadless
+npm --prefix FrameWebforJS run build
 ```
 
-## Linting & Formatting: ruff
+Use scripts declared in `package.json`; do not substitute undeclared global
+Angular or TypeScript tools.
 
-```bash
-# Check
-uv run ruff check .
+## .NET
 
-# Auto-fix
-uv run ruff check --fix .
+`FrameWeb.sln` contains the local startup and printing projects and targets
+.NET 8 through `tools/FrameWeb.Startup/FrameWeb.Startup.csproj`.
 
-# Format
-uv run ruff format .
+```powershell
+dotnet restore FrameWeb.sln
+dotnet build FrameWeb.sln
+dotnet run --project tools/FrameWeb.Startup
 ```
 
-### ruff Configuration (pyproject.toml)
+`FrameGConverter/FrameGConverter.sln` is separate and is built only when that
+component is in scope.
 
-```toml
-[tool.ruff]
-target-version = "py311"
-line-length = 88
+## Agent Infrastructure
 
-[tool.ruff.lint]
-select = [
-    "E",      # pycodestyle errors
-    "W",      # pycodestyle warnings
-    "F",      # pyflakes
-    "I",      # isort
-    "B",      # flake8-bugbear
-    "UP",     # pyupgrade
-]
-ignore = ["E501"]  # line too long (formatter handles)
-
-[tool.ruff.format]
-quote-style = "double"
+```powershell
+& .agents/check.ps1
 ```
 
-## Type Checking: ty
-
-> Note: `ty` is currently in beta (0.0.x); the API and behavior are unstable. See https://docs.astral.sh/ty/ for status.
->
-> Install: `uv tool install ty` (global) or `uv add --dev ty` (project dev dep).
-
-```bash
-# Run type check
-uv run ty check src/
-```
-
-### ty Features
-
-- Fast Rust-based type checker (by Astral)
-- Same ecosystem as ruff / uv
-- mypy-compatible type annotations
-
-## Notebooks: marimo
-
-Interactive Python notebook environment.
-
-```bash
-# Create/edit notebook
-uv run marimo edit notebook.py
-
-# Run notebook (CLI)
-uv run marimo run notebook.py
-
-# Deploy as app
-uv run marimo run notebook.py --host 0.0.0.0 --port 8080
-```
-
-### marimo Features
-
-- **Pure Python files** (.py): Git-friendly
-- **Reactive**: Auto-tracks cell dependencies
-- **Reproducible**: No execution order dependency
-
-### marimo Best Practices
-
-```python
-# Bad: Mutating global state
-data = []
-def add_item(item):
-    data.append(item)  # Side effect
-
-# Good: Pure function
-def add_item(data: list, item) -> list:
-    return [*data, item]
-```
-
-## Task Runner
-
-Manage multiple tool executions in `pyproject.toml` scripts or poe:
-
-```toml
-[tool.poe.tasks]
-lint = "ruff check . && ruff format --check ."
-format = "ruff check --fix . && ruff format ."
-typecheck = "ty check src/"
-test = "pytest -v"
-all = ["lint", "typecheck", "test"]
-```
-
-## Common Commands
-
-```bash
-# Initialize
-uv init
-uv venv
-source .venv/bin/activate
-
-# Install dev dependencies
-uv sync --all-extras
-
-# Quality check (all)
-uv run ruff check . && uv run ruff format --check . && uv run ty check src/ && uv run pytest
-
-# Or via poe
-poe all
-```
-
-## Pre-commit Checklist
-
-- [ ] `uv run ruff check .` passes
-- [ ] `uv run ruff format --check .` passes
-- [ ] `uv run ty check src/` passes
-- [ ] `uv run pytest` passes
+Run commands from the root so paths and ownership checks remain consistent.

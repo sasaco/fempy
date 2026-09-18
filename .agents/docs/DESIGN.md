@@ -1,134 +1,117 @@
 # Design Document — 要件定義書 (Requirements & Macro Design)
 
 > **Role:** Macro-level requirements and design — *what* this project builds and *why*.
-> Written at `/init`, kept current by `/design-tracker` (also invoked from `/checkpointing`).
+> Kept current by `/init`, `/design-tracker`, and `/checkpointing`.
 >
 > **Document map:** Shared rules → [rules/](../rules/) ·
-> Shared bootstrap → [AGENTS.md](../../AGENTS.md) · State → [STATE.md](../STATE.md) · Claude symlink → [CLAUDE.md](../../CLAUDE.md) ·
+> Shared bootstrap → [AGENTS.md](../../AGENTS.md) · State → [STATE.md](../STATE.md) ·
 > Micro work progress (latest 5 checkpoints) → [PROGRESS.md](../../PROGRESS.md)
 
 ## 背景・目的 (Background & Purpose)
 
-<!-- Why does this project exist? What problem does it solve, for whom?
-     State the business/technical context and the goal in a few sentences. -->
+FrameWeb3は、構造モデルの編集、骨組有限要素解析、結果確認、印刷・PDF出力を一つのリポジトリで提供するWeb構造解析システムである。Python解析サービス、Angularクライアント、.NETのローカル起動・印刷ホストを組み合わせ、各コンポーネントの公開契約を明示的に分離する。
+
+ローカル開発はWindowsを主対象とし、PowerShell、各コンポーネントのmanifest、commit済みlockfileを再現可能な正規経路とする。
 
 ## スコープ (Scope)
 
+対象範囲は製品コンポーネントとそれらの明示的な境界であり、生成物や運用secretを含めない。
+
 ### In Scope
 
-<!-- What this project explicitly delivers. -->
-
-- 
+- `FrameWeb/`のPython骨組FEM解析とFlask/functions-framework HTTP境界。
+- `FrameWebforJS/`のAngularブラウザ/Electronモデル編集、計算要求、結果表示。
+- `tools/FrameWeb.Startup/`のローカルセットアップ、解析・フロント起動、readiness、印刷HTTPホスト。
+- `FramePrintPDF/`のローカル/Azure印刷およびPDF生成。
+- `FrameGConverter/`の独立した変換機能と、`FrameWeb.sln`を中心とするVisual Studio開発経路。
+- 単一荷重ケースと複数荷重ケースの解析結果、およびFrameWebforJS向け表示投影の明示的な契約。
 
 ### Out of Scope
 
-<!-- What is explicitly NOT covered, to prevent scope creep. -->
-
-- 
+- 本文書への本番認証情報、クラウドsecret、デプロイ資格情報の記載。
+- versioningまたは明示的な移行なしでの公開解析・印刷契約の変更。
+- 生成済み依存関係、build出力、cache、vendor資産を製品コンポーネントとして扱うこと。
+- `.agents`整備に伴う製品コード、製品依存関係、API挙動の変更。
 
 ## 機能要件 (Functional Requirements)
 
-<!-- What the system must do. Each requirement gets a stable ID (FR-1, FR-2, ...). -->
-
 | ID | Requirement | Priority | Notes |
 |----|-------------|----------|-------|
-| FR-1 | | | |
-| FR-TICKREPLAY-1 | Keep minute-chart pan and zoom usable while replay continues without overwriting the user-selected viewport. | High | Tick-chart following remains active; minute positioning is reset only for session load and explicit seek/reset. |
-| FR-TICKREPLAY-2 | Load older minute candles on demand when the user navigates near the oldest loaded candle. | High | Use the existing strict-before /api/minute-context endpoint with single-flight, stale-response rejection, deduplication, and viewport preservation. |
-| FR-TICKREPLAY-3 | Preserve every unfilled order at its original price level while the order-book ladder scrolls outside and back into that price range. | High | Pending-order state is independent of recycled DOM rows. When a price level becomes visible again, the sell/buy column must repaint the correct remaining quantity at that same price; filled or cancelled orders must not reappear. |
-| FR-TICKREPLAY-4 | Allow continuous upward and downward navigation through the order-book price ladder without unbounded DOM growth. | High | Recycle a viewport-sized bounded row pool with overscan, preserve the visible price during rebase, and stop downward navigation at the first positive tick level. |
-| FR-TICKREPLAY-5 | Make a double-click on a board price cell perform exactly the same current-price centering operation as the Central button. | High | The clicked price is not the center target and the gesture must never place an order. |
-| FR-TICKREPLAY-6 | Render board prices and the board quote with a consistent tick-derived decimal precision. | High | Ticks 0.1 and 0.5 use one decimal including .0; integer ticks use no decimals. Tape and portfolio formatting remain unchanged. |
-| FR-TICKREPLAY-7 | Allow the upper price chart to switch between minute and daily views without changing replay, trading, tick-chart, board, tape, or minute-history state. | High | Each mode owns an independent chart instance, series, time scale, and viewport. |
-| FR-TICKREPLAY-8 | Render daily history strictly before the actual replay session date and derive the selected-day candle only from ticks already replayed. | High | Use raw point-in-time OHLCV across legacy/current Code partitions; never expose the stored selected-day final OHLC. |
-| FR-TICKREPLAY-9 | Display SMA25 and SMA200 in daily mode using valid raw daily closes, including a non-empty partial day as one observation. | High | Emit the first point only at 25 or 200 observations; insufficient history produces no premature line. |
-| FR-TICKREPLAY-10 | Show Daily mode initially with the newest 90 bars and 5 logical bars of right padding, then load older daily bars when the user pans or zooms near the oldest loaded bar. | High | Use user-armed single-flight paging, stale-response rejection, deduplication, exhaustion/cooldown, and exact logical-range compensation after prepend. |
+| FR-FRAMEWEB-1 | Accept supported structural-model input, run frame analysis, and return displacement, reaction, and element-result data. | High | The default modern response remains the documented single-case representation. |
+| FR-FRAMEWEB-2 | Let the Angular client edit models, request calculations, and display calculation results and actionable errors. | High | The client validates required result fields before starting result workers. |
+| FR-FRAMEWEB-3 | Start the analysis API, Angular development server, and local print host through the .NET startup project. | High | Visual Studio F5 and `dotnet run --project tools/FrameWeb.Startup` are supported local entry points. |
+| FR-FRAMEWEB-4 | Produce print/PDF output through the existing .NET printing handlers without conflating their transport contract with the calculation API. | High | Azure deployment continues to use the dedicated printing project. |
 | FR-FRAMEWEB-LEGACY-CASES-1 | FrameWebforJS can explicitly request every legacy load case as a case map containing displacement, reaction, and member-force results without changing the default FrameWeb flat response. | High | The compatibility representation is legacy-cases-v1 and the browser must reject incompatible or empty result schemas before starting result workers. |
+| FR-FRAMEWEB-RESULT-SET-1 | Provide Load Case Set Analysis as a first-class operation that produces an ordered AnalysisResultSet containing one canonical AnalysisResult for every requested load case. | High | The existing single-case response remains AnalysisResult. Case identifiers and input order are preserved, and each case is solved with an isolated model instance. |
+| FR-FRAMEWEB-FRAME-RESULT-SET-1 | Provide FrameResultSet as an explicit presentation projection of AnalysisResultSet for FrameWebforJS consumers. | High | FrameResultSet contains the display-oriented disg/reac/fsec/shell_fsec/size fields. It is not the canonical solver result and must not be described as the old result format. |
 
 ## 非機能要件 (Non-Functional Requirements)
 
-<!-- Quality attributes: performance, availability, security, maintainability, etc.
-     Prefer measurable targets in the Metric column. -->
-
 | Category | Requirement | Metric / Target |
 |----------|-------------|-----------------|
-| Performance | Bound daily history and avoid whole-history application materialization. | At most 500 completed sessions; LIMIT in DuckDB; replay updates only the partial candle and terminal SMA points. |
-| Availability | | |
-| Security | | |
-| Maintainability | | |
-| Correctness | Reject stale daily data and preserve all minute/replay side effects during chart-mode changes. | Generation, full session identity, and request token checked before commits; mode gates apply only to leaf chart writes. |
-| Replay performance | Precompute historical SMA25/SMA200 series and rolling-window state when daily history loads; never rebuild full SMA arrays per replay tick. | Historical SMA calculation once per accepted daily payload; at most one O(1) terminal-point update per animation frame and once after seek/reset completion. |
-| Daily history performance | Keep initial Daily history and every older page bounded while preserving O(1) replay-tick SMA updates. | Initial request at most 500 completed sessions; older pages 200 sessions; full historical SMA recalculation only once per accepted load or page. |
+| Compatibility | Preserve the default AnalysisResult response and select collection or presentation representations explicitly. | Existing unversioned contract tests remain green; incompatible schemas fail visibly in the client. |
+| Result-set correctness | Multi-case execution preserves input order, isolates solver state per case, applies each case rate exactly once, validates every result schema, and fails atomically without returning a partial set. | Maximum 256 cases per request; zero partial-success responses; exact case-ID/order match between request and response. |
+| Reproducibility | Use the committed Python, npm, and .NET project metadata and locks from their component directories. | Canonical commands run without relying on a root-level Python or npm project. |
+| Security | Decode untrusted compressed calculation input without evaluating code and keep local secrets out of tracked files. | No `eval`-style decoder; local environment files remain untracked. |
+| Maintainability | Keep analysis, frontend, startup, printing, conversion, and agent-infrastructure responsibilities independently testable. | Component-specific gates report their working directory and failing command. |
+| Platform | Keep the supported local workflow executable from Windows PowerShell. | Bootstrap, setup, and verification paths do not require WSL or Bash. |
 
 ## アーキテクチャ (Architecture)
 
-<!-- High-level architecture: components, data flow, boundaries.
-     Add a diagram or description here. -->
+FrameWeb3は次の境界を持つコンポーネント指向モノレポである。
 
-### Agent Roles
+1. `FrameWebforJS/`はブラウザ/Electron操作、モデル編集、計算要求、結果表示を所有する。
+2. `FrameWeb/`は入力検証、FEMモデル構築・解析、計算HTTP応答を所有する。
+3. `tools/FrameWeb.Startup/`はローカルtoolchain準備、Angular/Python子プロセス、readiness、ローカル印刷を所有する。
+4. `FramePrintPDF/`は既存C#印刷/PDF handlerとAzureデプロイ境界を所有する。
+5. `FrameGConverter/`はWebローカル起動ライフサイクル外の独立変換utilityである。
 
-| Agent | Role | Responsibilities |
-|-------|------|------------------|
-| | | |
+### Result Contracts
 
-- Tickreplay minute history: `app.js` owns chart/lifecycle wiring, while `minute-history.mjs` owns DOM-free paging state and merge/range calculations. Both initial preload and older-page requests share one session generation/token and cancellable request kind. History is prepended to both `contextBars` and `bars`; the visible logical range is shifted by the unique prepend count without mutating replay or paper-trading state.
+- `AnalysisResult`: 一つの荷重ケースに対するcanonical solver result。既定の単一ケース応答はこの契約を維持する。
+- `AnalysisResultSet`: 要求順とcase IDを保持した`AnalysisResult`の順序付きcollection。`application/vnd.frameweb.analysis-result-set-v1+json`で明示的に選択する。
+- `FrameResultSet`: `AnalysisResultSet`をFrameWebforJSの表示用fieldへ投影したrepresentation。`application/vnd.frameweb.frame-result-set-v1+json`で明示的に選択する。
+- `application/vnd.frameweb.legacy-cases-v1+json`は移行期間だけのdeprecated compatibility aliasとし、canonical名称には使用しない。
 
-- Tickreplay order-book scrolling: `app.js` owns DOM and replay lifecycle wiring, while `board-ladder.mjs` owns DOM-free row-count, rebase, level mapping, scroll compensation, navigation-state, and tick-precision calculations. Physical rows are repainted atomically from logical price levels so quantities, pending orders, flashes, and order-entry prices remain aligned.
+計算と印刷は別のtransport契約である。representation adapterは明示的なservice境界に置き、frontend workerは必須field欠落を空成功へ変換しない。
 
-- TickReplay daily chart: `daily_context.py` exposes bounded strict-before raw daily bars; `daily-chart.mjs` owns validation, duplicate rules, partial-day aggregation, SMA calculation, and request/session state; `app.js` wires a separate daily chart without suppressing existing replay side effects.
-
-- Daily SMA performance: `daily-chart.mjs` computes immutable historical SMA25/SMA200 arrays and rolling window sums once when an accepted daily payload is loaded; replay folds partial OHLCV per tick but derives only the terminal SMA point at the frame boundary or after seek/reset.
-
-- TickReplay Daily history paging: `daily-chart.mjs` owns DOM-free request admission, stale/cooldown/exhaustion state, page normalization, deduplication, SMA rebuild planning, and final canonical commit; `app.js` owns user-interaction arming and transactional four-series plus live/saved logical-range application.
+Clarification (2026-09-18): `FrameResultSet`は`AnalysisResultSet` wire payloadの直接変換ではなく、同じephemeral per-case `CaseSolution`から生成する兄弟representationである。`CaseSolution`はcase ID、canonical `AnalysisResult`、solved model、projection metadata、compatibility rateを一case分だけ保持するnon-wire境界であり、全caseの`FemModel`をmaterializeしない。load casesは外側のcollection axis、非線形`step_results`と`convergence_history`は各caseの`AnalysisResult`内に保持し、Frame representationはtop-levelの最終受理状態だけを投影する。新しいresult-set envelopeはordered `cases` arrayを使用し、deprecated aliasだけが既存bare case mapを維持する。
 
 ## 技術選定 (Tech Stack & Rationale)
 
-<!-- Chosen technologies and why. Record alternatives considered. -->
-
 | Area | Technology | Rationale | Alternatives Considered |
 |------|------------|-----------|-------------------------|
-| Tick replay minute-chart viewport | Lightweight Charts logical-range APIs plus a native ES-module history controller | Logical ranges preserve manual navigation and allow exact +N viewport compensation after prepending older bars; pure controller logic remains testable with node:test. | Per-frame setVisibleRange/setVisibleLogicalRange; eager full-history loading; a new backend paging endpoint |
-| Tick replay order-book ladder | Bounded recycled DOM rows plus a DOM-free native ES module | A finite viewport-sized pool provides continuous navigation without DOM growth, while pure level/rebase/format calculations remain deterministic and testable with node:test. | Append rows indefinitely; keep all ladder calculations inside app.js; add a backend paging API. |
-| TickReplay daily chart and indicators | FastAPI plus bounded DuckDB query, RequestCoordinator, a DOM-free native ES module, and a separate Lightweight Charts instance | Matches existing repository patterns while keeping data validation, request state, SMA math, and chart ownership testable and isolated. | New dependencies; client-side full-history aggregation; shared minute/daily chart series. |
-| TickReplay Daily history paging | Existing /api/daily-context strict-before requests plus DailyChartSession paging state and Lightweight Charts logical ranges | The endpoint already supports arbitrary cutoffs and bounded limits; logical-range +N compensation preserves a user-selected viewport after prepend. | New backend pagination schema; eager full-history loading; reuse MinuteChartSession directly. |
+| Analysis service | Python 3.11+; NumPy, SciPy, Flask, functions-framework; `uv` | FEM実装とHTTP境界に適合し、lockされたcomponent環境を提供する。 | ルート単一Python環境、host processへのsolver統合。 |
+| Web client | Angular 15, TypeScript 4.9, npm/Node 18 | 既存のブラウザ/Electron UIと結果表示資産を維持する。 | `.agents`整備と同時のframework置換。 |
+| Local orchestration | .NET 8 `FrameWeb.Startup` | Visual Studio/CLIの単一起点、readiness、child-process管理、ローカル印刷を提供する。 | 各serviceの常時手動起動。 |
+| Printing | Existing .NET projects in `FramePrintPDF/` | 既存のC#印刷とAzureデプロイ境界を維持する。 | 計算transportの再利用、Pythonへの印刷移行。 |
+| Developer shell | Windows PowerShell | setup script、Visual Studio workflow、現行環境と一致する。 | WSL/Bashを必須にする。 |
 
 ## 制約 (Constraints)
 
-<!-- Technical, organizational, regulatory, or resource constraints. -->
-
-- 
-
-- Tickreplay minute history remains best-effort: an empty response is session-local exhaustion, failures must not stop replay, and implementation is limited to `app.js`, `minute-history.mjs`, its Node test, and `docs/tick-replay.md`.
-
-- Daily history is limited to 500 completed sessions, uses no paging or daily trade markers, reads no adjustment columns, and adds no dependency, migration, or existing API-contract change.
-
-- The previous no-paging limit for Daily history is superseded by FR-TICKREPLAY-10: each request remains bounded (500 initial, 200 older), uses the unchanged strict-before API, and adds no dependency or migration.
+- Python製品・agent toolingは`uv run --project FrameWeb --locked --extra dev python ...`で実行し、bare `python`が`PATH`にあることを前提にしない。
+- ローカルsetupはPython 3.12とNode 18/npm 9を対象とし、各componentが宣言するversion範囲を尊重する。
+- FrameWebforJS向け投影のために既定の`AnalysisResult`契約を暗黙変更しない。collectionとpresentation projectionは明示的かつversionedに選択する。
+- 計算encoderとC#印刷APIのwire契約が同値と証明されるまで共有しない。
+- `.venv`、`node_modules`、`dist`、`bin`、`obj`、cache、vendor frontend資産はsource componentではない。
+- local environment/authentication fileはmachine固有値を含み得るため、bootstrap automationで上書き・commitしない。
+- Load Case Set Analysisは一要求256 casesを上限とし、途中失敗時にpartial result setを返さない。
 
 ## Key Decisions
 
-<!-- Durable architectural/design decisions. Append-only log. -->
-
 | Decision | Rationale | Alternatives Considered | Date |
 |----------|-----------|------------------------|------|
-| Reuse /api/minute-context for best-effort historical paging without changing the backend schema. | The existing endpoint already returns chronological bars strictly before an arbitrary cutoff and supports bounded limits up to 500. | Add a new pagination endpoint or extend the response with explicit exhaustion/error status | 2026-08-22 |
-| Separate replay progression from minute-chart viewport control and isolate history calculations/controller state in minute-history.mjs. | The current per-frame minute range write causes the interaction lock; a testable controller also centralizes generation, single-flight, retry, merge, and programmatic-range suppression invariants. | Keep all logic in the oversized app.js or disable chart interaction while replaying | 2026-08-22 |
-| Key unfilled order state by logical price level rather than by physical board row. | Infinite scrolling recycles physical rows. Repainting each visible row from its logical level keeps pending quantities at the correct order price after any number of rebases and prevents stale quantities from following a reused row. | Store pending quantities in DOM rows or discard off-screen order display state during rebase. | 2026-08-22 |
-| Separate manual ladder navigation from current-price following and compensate every level rebase with the matching scroll offset. | The existing topLevel combines render origin and follow behavior. Explicit navigation state prevents replay from snapping a board-fixed manual viewport back to the current price and exact compensation avoids visible jumps. | Always recenter on replay updates or allow native scrolling only within the original fixed rows. | 2026-08-22 |
-| Use one shared centerBoardOnCurrent operation for both the Central button and delegated price-cell double-click. | A single action guarantees identical state reset, price anchoring, and scroll positioning while keeping price-cell gestures separate from order submission. | Duplicate handlers or center on the clicked price. | 2026-08-22 |
-| Use a board-specific formatter derived from the inferred tick instead of changing the global price formatter. | This produces uniform .0/.5 ladder output without changing tape, chart, or portfolio presentation outside the requested scope. | Change the global formatter or add exchange tick metadata to the backend. | 2026-08-22 |
-| Use an explicit local_authoritative mode only when the DuckDB cache path is the same authoritative tree served by the file server | An existing file in that shared tree is already the origin object, so downloading or conditionally revalidating it through loopback can only rewrite the source and destabilize mtime-derived validators. Default remote caches must continue normal conditional revalidation and must never infer byte identity from Content-Length and Last-Modified metadata. | Generic adoption based on size and Last-Modified; hashing multi-gigabyte local files; unconditional self-download | 2026-08-22 |
-| Serialize DuckDB operations by resolved cache destination across repository instances instead of sharing staged download results | A staged .part file is move-only and remains consumable until commit, so stage-only coalescing can leak conditional results or let multiple consumers overwrite or move the same artifact. A process-wide (resolved cache_dir, stem) repository lock protects revalidation, staging, commit, and query as one lifecycle while leaving different destinations independent. | Stem-only or request-identity download coalescing; ref-counted staged-file leases; request-unique staging artifacts | 2026-08-22 |
-| Use a separate lazily created and retained Lightweight Charts instance for daily candles, volume, SMA25, and SMA200. | Structural ownership prevents replay and minute-history writes from corrupting daily data and preserves independent viewports. | Reuse the minute series with setData; recreate the chart on every switch. | 2026-08-30 |
-| Use official per-stem stocks_daily files and a new strict-before /api/daily-context contract with an explicit available flag. | The source supplies enough history for SMA200, while available distinguishes valid empty history from missing or corrupt supplementary data. | Aggregate minute data; return an ambiguous empty bars response. | 2026-08-30 |
-| Use raw daily OHLCV and raw replay ticks for point-in-time consistency. | Selected-day adjustment ratios require completed-day or future corporate-action information; raw values avoid that look-ahead. | Adjusted history with a selected-day ratio; future-informed adjusted series. | 2026-08-30 |
-| Preserve replay and trading side effects in both chart modes and isolate only direct upper price-chart writes. | Whole-function mode guards around step, redrawAll, refreshMarkers, seek, or history completion would stop unrelated behavior. | Pause replay updates in daily mode; guard entire rendering functions. | 2026-08-30 |
-| Precompute historical SMA25/SMA200 series and rolling-window state at daily-data load time. | The initial implementation rebuilt both arrays for every tick and made a 10,000-tick replay take about 22.6 seconds. Load-time precomputation keeps replay responsive. | Recompute full SMA arrays per tick; recompute full arrays once per frame. | 2026-08-30 |
-| Use precomputed windows for only the live terminal SMA point, batched once per animation frame and once after seek/reset. | This preserves the approved replay-derived partial-day indicator without repeating historical work. | Exclude the partial day entirely; update the terminal SMA on every tick. | 2026-08-30 |
-| Keep the initial 500-session Daily fetch for SMA200 warm-up, display only the newest 90 bars with 5 logical bars of right padding, and page older sessions through the existing strict-before endpoint. | Separating loaded history from the visible range preserves correct SMA200 context and avoids a backend contract change while matching the Minute viewport rule. | Fetch only 90 visible bars; fetch 90 plus a 199-bar warm-up; keep Daily limited to one 500-bar response with no paging. | 2026-08-30 |
+| Use Codex as the main repository agent and Windows PowerShell as the canonical administration path. | This matches the active runtime and the repository's supported local development environment. | Preserve copied runtime-first and Bash-first bootstrap assumptions. | 2026-09-18 |
+| Keep Python, Angular, startup, printing, and conversion as explicit component boundaries in one monorepo. | Each component has a different toolchain and public contract; explicit boundaries make setup and validation reproducible. | Treat the root as one Python project or collapse services into the startup host. | 2026-09-18 |
 | Expose FrameWebforJS result compatibility through the explicit Accept media type application/vnd.frameweb.legacy-cases-v1+json while preserving the unselected flat API. | Accept is already allowed by CORS, keeps transport encoding independent from result representation, and avoids changing deployment routing. The compatibility path solves each input load case with a fresh FemModel and projects the legacy case schema atomically. | Replace the default response with the old case map; infer the response from compressed transport; adapt only in TypeScript; add a custom header or separate endpoint. General shell compatibility remains separate until an old-backend oracle is available. | 2026-09-18 |
+| Replace old/new result-format terminology with AnalysisResult, AnalysisResultSet, and FrameResultSet, and name the capability Load Case Set Analysis. | The formats differ primarily by cardinality and representation, not by chronology. AnalysisResultSet is the ordered collection of canonical single-case results; FrameResultSet is a separate display projection that regroups members and maps field names and signs for FrameWebforJS. | Continue using legacy/new or flat/cases terminology; treat the display projection as merely an array of flat responses. | 2026-09-18 |
+| Use application/vnd.frameweb.analysis-result-set-v1+json for the canonical multi-case representation and application/vnd.frameweb.frame-result-set-v1+json for the FrameWebforJS projection; keep application/vnd.frameweb.legacy-cases-v1+json only as a deprecated compatibility alias during migration. | Separate media types make collection semantics and presentation projection explicit while preserving the default single-case API and existing deployed clients. | Rename the existing payload in place; replace the default application/json response; keep legacy in the permanent public name. | 2026-09-18 |
+| Generate AnalysisResultSet and FrameResultSet as sibling wire representations from one ephemeral per-case CaseSolution; do not implement FrameResultSet as a wire-to-wire conversion of AnalysisResultSet and do not retain a materialized collection of solved FemModel instances. | Frame projection needs solved-model and source metadata that is not contained in the canonical AnalysisResult wire payload. Processing one case at a time preserves this context while bounding memory to one solved model plus the requested response payload. Load cases remain the outer collection axis, while nonlinear step_results remain inside each case-level AnalysisResult. | Convert the AnalysisResultSet JSON directly; retain every solved FemModel in a CaseSolutionSet; flatten nonlinear steps into load cases. | 2026-09-18 |
+| Keep the repository agent infrastructure Codex-focused and remove copied Claude pseudo-links, runtime-specific agents and hooks, and the inactive Antigravity workflow. | Only Codex is an active repository runtime. Removing unreachable integration surfaces prevents stale instructions and duplicate execution paths while retaining runtime-neutral skills and rules. | Maintain parallel Claude and Codex bootstrap surfaces; retain inactive integrations as examples. | 2026-09-18 |
+| Default Codex to the read-only sandbox and require an explicit workspace-write opt-in for repository mutations. | Least-privilege defaults make read-only analysis safe while keeping authorized implementation work available through an explicit invocation choice. | Use workspace-write or danger-full-access as the repository default. | 2026-09-18 |
 
 ## TODO / Open Questions
 
-<!-- Open design questions and deferred decisions for this project. -->
-
-- 
+- Complete end-to-end browser verification of the versioned result-set path, including the first and last requested load cases.
+- Establish an old-backend oracle before claiming general shell-result compatibility.
+- Keep production authentication and deployment configuration separate from the anonymous local-development calculation path.

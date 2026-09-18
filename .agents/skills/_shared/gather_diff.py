@@ -20,17 +20,17 @@ Two behaviours differ from the shell original, both deliberate:
 2. **An empty scope is a failure, not a pass.** ``scope_empty: true`` and exit
    2, so "there was nothing to review" can never be read as "reviewed, clean".
 
-``ruff`` follows ``verify.sh``'s vocabulary: an absent linter is
+``ruff`` follows the repository gate vocabulary: an absent linter is
 ``status: "skipped"`` with a reason, never ``ok: false`` — a tool that is not
 installed has not reported a lint failure. It lints only the changed Python
 files (``scope: "changed_files"``), so pre-existing repo-wide lint debt is not
 attributed to this change.
 
 Usage:
-    python3 gather_diff.py
-    python3 gather_diff.py --base origin/main --out .agents/logs/review-diff.patch
-    python3 gather_diff.py --no-include-uncommitted
-    python3 gather_diff.py --project-root /path/to/repo --base HEAD~3
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/gather_diff.py
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/gather_diff.py --base origin/main --out .agents/logs/review-diff.patch
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/gather_diff.py --no-include-uncommitted
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/gather_diff.py --project-root . --base HEAD~3
 
 Exit codes:
     0  scope collected and non-empty
@@ -227,9 +227,9 @@ def build_scope(root: Path, base: str, include_uncommitted: bool, exclude: str) 
 def ruff_snapshot(root: Path, changed_files: list[str]) -> dict:
     """Lint the changed Python files.
 
-    ``verify.sh`` reports an absent tool as ``status: "skipped"``; the shell
-    original reported ``ok: false``, so a machine without ruff installed looked
-    like a change with lint errors. This aligns on the ``verify.sh`` form.
+    Repository gates report an absent optional tool as ``status: "skipped"``.
+    The shell original reported ``ok: false``, so a machine without ruff
+    installed looked like a change with lint errors. Keep the shared form.
     """
     snapshot: dict = {"scope": "changed_files"}
     if shutil.which("ruff") is None:

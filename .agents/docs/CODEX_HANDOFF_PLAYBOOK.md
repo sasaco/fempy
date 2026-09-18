@@ -1,160 +1,84 @@
 # Codex Handoff Playbook
 
-This document standardizes how Claude Code hands tasks to Codex so planning/implementation loops stay short and predictable.
+This playbook standardizes bounded handoffs between the Codex lead, native
+collaborating agents, and an optional nested Codex CLI consultation.
 
-## Goals
+## When to Hand Off
 
-- Reduce retries caused by ambiguous Codex prompts.
-- Keep Claude context small by returning concise summaries.
-- Make Codex responses immediately actionable in Claude workflows.
+Use a collaborator for an independent, clearly owned workstream. Use a nested
+Codex consultation when an explicit second planning, architecture, debugging,
+or review pass materially improves confidence. Keep trivial edits and named
+verification commands with the lead.
 
-## 1) Delegation Decision Matrix
+## Prompt Contract
 
-Use Codex when **at least one** is true:
+Every handoff includes:
 
-- Architecture or module boundary decisions are involved.
-- The implementation requires multiple dependent steps.
-- The error root cause is unknown.
-- Trade-off comparison is required.
-- The change affects 2+ files with behavioral impact.
+1. Objective: one-sentence outcome.
+2. Scope: owned paths and explicit exclusions.
+3. Inputs: relevant files and constraints.
+4. Authority: read-only or explicitly granted write scope.
+5. Acceptance checks: exact commands and expected results.
+6. Output shape: concise decision-relevant sections and durable artifact paths.
 
-Skip Codex when all are true:
+Native collaboration tools are preferred when they already provide the needed
+worker or reviewer. For a nested CLI consultation, use the shared wrapper; it
+closes stdin, applies a timeout, and captures stdout/stderr.
 
-- Single-file, obvious edit.
-- <10 LOC change.
-- No design decision or risk.
+## Read-only Consultation
 
-## 2) Prompt Contract (Required Fields)
-
-Every Codex prompt should include:
-
-1. **Objective**: one-sentence outcome.
-2. **Constraints**: language, style, forbidden approaches.
-3. **Relevant files**: explicit paths.
-4. **Acceptance checks**: commands to run.
-5. **Output format**: concise markdown sections.
-
-> Invoke Codex through `.agents/skills/_shared/codex_consult.py` rather than a bare `codex exec` call — it runs `codex exec` with stdin closed (so callers never need `< /dev/null`) and captures stdout/stderr to log files. See `.agents/skills/codex-system/SKILL.md` for the full invocation contract.
-
-## 3) Recommended Prompt Templates
-
-### A. Planning / Design (read-only)
-
-```bash
-prompt_file="$(mktemp)"
-cat > "${prompt_file}" << 'EOF'
+```powershell
+$promptFile = '.agents/logs/codex/prompt-plan.md'
+@'
 Objective: Create an implementation plan for {feature}.
 Constraints:
-- Keep existing architecture unless explicitly justified.
-- Prefer minimal diff.
+- Preserve existing behavior unless a change is explicitly justified.
+- Do not modify files.
 Relevant files:
 - {file1}
 - {file2}
 Acceptance checks:
-- {test or lint commands}
+- {read-only checks}
 Output format:
 ## Analysis
 ## Recommendation
 ## Implementation Plan
 ## Risks
-## Next Steps
-EOF
-python3 .agents/skills/_shared/codex_consult.py --prompt-file "${prompt_file}" --label plan --sandbox read-only
+'@ | Set-Content -LiteralPath $promptFile -Encoding utf8
+
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file $promptFile --label plan --sandbox read-only
 ```
 
-### B. Complex Implementation (danger-full-access)
+## Explicit Implementation Handoff
 
-```bash
-prompt_file="$(mktemp)"
-cat > "${prompt_file}" << 'EOF'
-Objective: Implement {feature/fix}.
-Constraints:
-- Follow project lint/type/test rules.
-- Do not modify unrelated files.
-Relevant files:
-- {file1}
-- {file2}
+```powershell
+$promptFile = '.agents/logs/codex/prompt-implement.md'
+@'
+Objective: Implement {feature or fix}.
+Scope:
+- Own: {paths}
+- Do not touch: {paths}
 Acceptance checks:
-- {test or lint commands}
+- {tests or build commands}
 Output format:
 ## Changes Made
 ## Validation
 ## Remaining Risks
-EOF
-python3 .agents/skills/_shared/codex_consult.py --prompt-file "${prompt_file}" --label implement --sandbox danger-full-access
+'@ | Set-Content -LiteralPath $promptFile -Encoding utf8
+
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file $promptFile --label implement --sandbox workspace-write
 ```
 
-## 4) Claude-side Compression Rules
+Use `danger-full-access` only when the approved task requires access outside the
+workspace; it is not the routine implementation mode.
 
-When Codex finishes, Claude should keep only:
+## Result Handling and Verification
 
-- Top recommendation.
-- 3-5 implementation steps.
-- Risks requiring user decision.
-
-Store long analysis in `.agents/docs/research/` and reference the path in user-facing updates.
-
-## 5) Failure Recovery
-
-If Codex output is not actionable:
-
-1. Re-run with explicit file list and acceptance checks.
-2. Split into two calls: `read-only` plan → `danger-full-access` implementation.
-3. Ask Codex to compare exactly two options and choose one.
-
-## 6) Codex Plugin Workflows (codex-plugin-cc)
-
-When the `openai/codex-plugin-cc` plugin is installed, use these structured workflows:
-
-### A. Review Before Shipping
-
-```bash
-# Quick review of current changes
-/codex:review
-
-# Review branch diff against main
-/codex:review --base main
-
-# Background review (non-blocking)
-/codex:review --background
-/codex:status          # Check progress
-/codex:result          # Get results
-```
-
-### B. Adversarial Review (Challenge Design)
-
-```bash
-# Challenge implementation and design decisions
-/codex:adversarial-review
-
-# Focus on specific risk areas
-/codex:adversarial-review --background look for race conditions and question the chosen approach
-```
-
-### C. Task Delegation (Rescue)
-
-```bash
-# Investigate a bug
-/codex:rescue investigate why the tests started failing
-
-# Fix with minimal patch
-/codex:rescue fix the failing test with the smallest safe patch
-
-# Continue previous task
-/codex:rescue --resume apply the top fix from the last run
-
-# Use specific model/effort
-/codex:rescue --model gpt-5.5-mini --effort medium investigate the flaky test
-```
-
-### D. Plugin vs Direct CLI Decision
-
-Use **Plugin** when:
-- You need structured review (code review, adversarial review)
-- You want background execution with job tracking
-- You want to delegate and monitor a task
-
-Use **Direct CLI** (the wrapper) when:
-- You need custom prompt format with specific output structure
-- You need sandbox mode control (read-only vs danger-full-access)
-- You are calling from a subagent pattern
+- Keep the recommendation, implementation summary, evidence, and risks that
+  require a decision. Store long material under `.agents/docs/` or
+  `.agents/logs/` and return its path.
+- Independently run the acceptance checks and inspect the diff.
+- Reject out-of-scope edits, weakened tests, swallowed failures, and placeholder
+  implementations. A successful delegated process is evidence, not approval.
+- If a result is not actionable, retry once with the missing evidence and a
+  narrower question; after a repeated failure, stop and report the blocker.

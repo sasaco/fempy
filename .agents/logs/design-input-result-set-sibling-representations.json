@@ -1,0 +1,15 @@
+{
+  "decisions": [
+    {
+      "decision": "Generate AnalysisResultSet and FrameResultSet as sibling wire representations from one ephemeral per-case CaseSolution; do not implement FrameResultSet as a wire-to-wire conversion of AnalysisResultSet and do not retain a materialized collection of solved FemModel instances.",
+      "rationale": "Frame projection needs solved-model and source metadata that is not contained in the canonical AnalysisResult wire payload. Processing one case at a time preserves this context while bounding memory to one solved model plus the requested response payload. Load cases remain the outer collection axis, while nonlinear step_results remain inside each case-level AnalysisResult.",
+      "alternatives": "Convert the AnalysisResultSet JSON directly; retain every solved FemModel in a CaseSolutionSet; flatten nonlinear steps into load cases."
+    }
+  ],
+  "section_updates": [
+    {
+      "heading": "### Result Contracts",
+      "content": "Clarification (2026-09-18): `FrameResultSet`は`AnalysisResultSet` wire payloadの直接変換ではなく、同じephemeral per-case `CaseSolution`から生成する兄弟representationである。`CaseSolution`はcase ID、canonical `AnalysisResult`、solved model、projection metadata、compatibility rateを一case分だけ保持するnon-wire境界であり、全caseの`FemModel`をmaterializeしない。load casesは外側のcollection axis、非線形`step_results`と`convergence_history`は各caseの`AnalysisResult`内に保持し、Frame representationはtop-levelの最終受理状態だけを投影する。新しいresult-set envelopeはordered `cases` arrayを使用し、deprecated aliasだけが既存bare case mapを維持する。"
+    }
+  ]
+}

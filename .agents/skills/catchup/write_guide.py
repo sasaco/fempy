@@ -30,9 +30,9 @@ Input JSON: ``{"<section_id>": "<markdown body>"}``. Ids and their headings:
     recent_sessions       8. Recent Sessions                (optional)
 
 Usage:
-    python3 write_guide.py --input body.json
-    python3 write_guide.py --input body.json --apply
-    python3 write_guide.py --input body.json --apply --now 2026-07-25T09:00:00+00:00
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/catchup/write_guide.py --input body.json
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/catchup/write_guide.py --input body.json --apply
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/catchup/write_guide.py --input body.json --apply --now 2026-07-25T09:00:00+00:00
 
 Exit codes:
     0  preview written, or GUIDE.md applied

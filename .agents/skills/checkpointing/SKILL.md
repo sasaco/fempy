@@ -37,8 +37,8 @@ untouched.
    missing, empty, stale, or incomplete summary aborts the run with exit `2`.
 4. Save the summary to `.agents/logs/pending-summary.md`, then preview:
 
-   ```bash
-   python3 .agents/skills/checkpointing/checkpoint.py \
+   ```powershell
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/checkpointing/checkpoint.py `
      --summary-file .agents/logs/pending-summary.md
    ```
 
@@ -49,9 +49,9 @@ untouched.
    collision, a concurrent modification, or a write failure.
 5. Review the three previews, then write for real:
 
-   ```bash
-   python3 .agents/skills/checkpointing/checkpoint.py \
-     --summary-file .agents/logs/pending-summary.md \
+   ```powershell
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/checkpointing/checkpoint.py `
+     --summary-file .agents/logs/pending-summary.md `
      --apply --consume-summary --json
    ```
 
@@ -65,8 +65,8 @@ untouched.
    a failed collector is not an empty session.
 6. Confirm the shared-state invariant mechanically rather than by reading:
 
-   ```bash
-   python3 .agents/skills/checkpointing/refresh_guard.py --mode check
+   ```powershell
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/checkpointing/refresh_guard.py --mode check
    ```
 
    Exit `0` means exactly one `# Agent State` and one `## Progress Tracker`
@@ -86,8 +86,8 @@ be lost is reported in `sections_dropped` and aborts the run with exit `2`.
 
 1. Inspect the state, the compaction preview, and the suggested archive moves:
 
-   ```bash
-   python3 .agents/skills/checkpointing/refresh_guard.py --mode plan
+   ```powershell
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/checkpointing/refresh_guard.py --mode plan
    ```
 
    Reports `blocks_pruned`, `sections_preserved`, `sections_dropped`,
@@ -97,8 +97,8 @@ be lost is reported in `sections_dropped` and aborts the run with exit `2`.
 
 2. Write the candidate state to a draft:
 
-   ```bash
-   python3 .agents/skills/checkpointing/refresh_guard.py --mode compose
+   ```powershell
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/checkpointing/refresh_guard.py --mode compose
    ```
 
 3. Review `.agents/logs/composed-state.md` and the reported move plan.
@@ -106,9 +106,9 @@ be lost is reported in `sections_dropped` and aborts the run with exit `2`.
    notes. Never delete checkpoint files or regenerate `PROGRESS.md` here.
 5. After approval, apply the compaction with the script — never by hand:
 
-   ```bash
-   python3 .agents/skills/checkpointing/refresh_guard.py --mode apply
-   python3 .agents/skills/checkpointing/refresh_guard.py --mode apply --apply
+   ```powershell
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/checkpointing/refresh_guard.py --mode apply
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/checkpointing/refresh_guard.py --mode apply --apply
    ```
 
    The first call previews to `.agents/logs/state-compaction-preview-*.md` and
@@ -119,8 +119,8 @@ be lost is reported in `sections_dropped` and aborts the run with exit `2`.
 
 6. Confirm the compaction landed:
 
-   ```bash
-   python3 .agents/skills/checkpointing/refresh_guard.py --mode verify
+   ```powershell
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/checkpointing/refresh_guard.py --mode verify
    ```
 
    `verify` compares the on-disk state against a freshly composed candidate and
@@ -128,7 +128,7 @@ be lost is reported in `sections_dropped` and aborts the run with exit `2`.
 
 ## Safety Gates
 
-- Root `AGENTS.md` and `CLAUDE.md` are never modified.
+- Root `AGENTS.md` is never modified.
 - State structure must contain exactly one `# Agent State` heading and one
   `## Progress Tracker` heading.
 - Archive destinations use `.agents/docs/research/archive/`; append when a

@@ -17,7 +17,7 @@ metadata:
 
 **Parallel implementation followed by parallel review, both via Agent Teams. Executes the plan approved in `/feature`.**
 
-> Preflight: ensure codex CLI is current (see codex-system skill).
+> Read the codex-system skill before an explicit nested CLI consultation; do not update global CLIs as task preflight.
 
 ## Arguments
 
@@ -31,7 +31,7 @@ metadata:
   by the user;
   architecture is documented in `.agents/docs/DESIGN.md`; task list has been created.
 - Phase 2 (or `--review-only`): implementation is complete. "All tests pass" is
-  **not** taken on trust here: Step 2-1 runs `verify.sh` and collects diff
+  **not** taken on trust here: Step 2-1 runs `.agents/check.ps1` and collects diff
   evidence before any reviewer is spawned. On the `--review-only` path the
   implementer was an external agent, which is exactly when the Guardrails in
   `.agents/rules/cli-execution.md` apply.
@@ -61,11 +61,11 @@ Phase 1: IMPLEMENT                        (skipped with --review-only)
   Step 1-1: Analyze Plan & Design Team (check_ownership.py --mode preflight)
   Step 1-2: Spawn Agent Team (implementers per module + tester)
   Step 1-3: Monitor & Coordinate
-  Step 1-4: Integration & Verification (validate_doc.py, verify.sh,
+  Step 1-4: Integration & Verification (validate_doc.py, .agents/check.ps1,
             check_ownership.py --mode reconcile)
     ↓
 Phase 2: REVIEW
-  Step 2-1: Verify & Gather Diff (verify.sh, gather_diff.py)
+  Step 2-1: Verify & Gather Diff (.agents/check.ps1, gather_diff.py)
   Step 2-2: Spawn Review Team (security / quality / test reviewers)
   Step 2-3: Synthesize Findings
   Step 2-4: Report to User
@@ -84,8 +84,8 @@ Phase 2: REVIEW
 Resolve this run's paths once, reusing the same `slug` `/feature` or `/plan`
 resolved:
 
-```bash
-python3 .agents/skills/_shared/workspace.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py `
   --skill team-execute --slug {slug} --create
 ```
 
@@ -148,8 +148,8 @@ change to reconcile later):
 }
 ```
 
-```bash
-python3 .agents/skills/team-execute/check_ownership.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/team-execute/check_ownership.py `
   --assignment .agents/logs/ownership-{team_name}.json --mode preflight
 ```
 
@@ -168,14 +168,14 @@ handed out.
 
 ### Model Routing
 
-- Use `general-purpose-sonnet` for implementers and the tester by default.
-- Assign `general-purpose-opus` before spawning when a workstream has ambiguous
+- Use `implementation collaborator` for implementers and the tester by default.
+- Assign `high-capability analysis collaborator` before spawning when a workstream has ambiguous
   architecture, broad cross-system invariants, subtle security/concurrency/data
   integrity/performance risk, or a history of failed implementation attempts.
-- Do not route by file count alone. Mechanical multi-file work stays on Sonnet when
+- Do not route by file count alone. Mechanical multi-file work stays on implementation collaborator when
   the plan and acceptance criteria are clear.
-- If a Sonnet teammate discovers an escalation condition, have it report concrete
-  evidence, stop that workstream, and reassign the remaining work to Opus.
+- If a implementation collaborator teammate discovers an escalation condition, have it report concrete
+  evidence, stop that workstream, and reassign the remaining work to analysis collaborator.
 
 ---
 
@@ -195,7 +195,7 @@ Each teammate receives:
 Spawn teammates:
 
 1. **Implementer-{module}** for each module/workstream
-   Agent: `general-purpose-sonnet` by default; `general-purpose-opus` only when the
+   Agent: `implementation collaborator` by default; `high-capability analysis collaborator` only when the
    Model Routing criteria above are already met.
 
    Prompt: "You are implementing {module} for project: {feature}.
@@ -218,17 +218,17 @@ Spawn teammates:
    - Write type hints on all functions
    - Run ruff check after each file change
    - Before reporting a task complete, run
-     bash .agents/skills/_shared/verify.sh and quote overall; exit 2 means a
+     & .agents/check.ps1 and quote overall; exit 2 means a
      gate failed or no gate ran. No hook does this for you.
    - Communicate with other teammates if you need interface changes
-   - If the task reveals an Opus escalation condition, stop and report the evidence
+   - If the task reveals an analysis collaborator escalation condition, stop and report the evidence
 
    When done with each task, mark it completed in the task list.
 
    IMPORTANT — Work Log:
    When ALL your assigned tasks are complete, write your work log to
    {paths.work_log} — resolve it with
-   python3 .agents/skills/_shared/workspace.py --skill team-execute
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill team-execute
      --slug {slug} --teammate {your-teammate-name}
    and use the returned path verbatim — per the shared
    format: .agents/skills/_shared/work-log-format.md
@@ -240,7 +240,7 @@ Spawn teammates:
    "
 
 2. **Tester** (optional but recommended)
-   Agent: `general-purpose-sonnet` by default.
+   Agent: `implementation collaborator` by default.
 
    Prompt: "You are the Tester for project: {feature}.
 
@@ -260,7 +260,7 @@ Spawn teammates:
    IMPORTANT — Work Log:
    When ALL your assigned tasks are complete, write your work log to
    {paths.work_log} — resolve it with
-   python3 .agents/skills/_shared/workspace.py --skill team-execute
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill team-execute
      --slug {slug} --teammate {your-teammate-name}
    and use the returned path verbatim — per the shared
    format: .agents/skills/_shared/work-log-format.md
@@ -287,7 +287,7 @@ Wait for all teammates to complete their tasks.
 - [ ] Review each Teammate's output (Shift+Up/Down)
 - [ ] Verify no file conflicts — `check_ownership.py --mode reconcile` (below)
       rather than by eye
-- [ ] Run `bash .agents/skills/_shared/verify.sh` yourself at least once
+- [ ] Run `& .agents/check.ps1` yourself at least once
       mid-run; do not wait for Step 1-4 to discover a broken tree
 - [ ] Check if any Teammate is stuck
 
@@ -298,8 +298,8 @@ Wait for all teammates to complete their tasks.
 | Teammate not making progress for a long time | Send a message to check, re-instruct if needed |
 | File conflict detected | Reassign file ownership |
 | Tests keep failing | Send message to the relevant Implementer |
-| Sonnet exposes ambiguous or high-risk complexity | Stop that workstream and reassign it to `general-purpose-opus` with the evidence collected so far |
-| Unexpected technical issue | Consult Codex via `general-purpose-opus` |
+| implementation collaborator exposes ambiguous or high-risk complexity | Stop that workstream and reassign it to `high-capability analysis collaborator` with the evidence collected so far |
+| Unexpected technical issue | Consult Codex via `high-capability analysis collaborator` |
 
 ### Quality Gates — who actually runs them
 
@@ -307,11 +307,11 @@ Wait for all teammates to complete their tasks.
 work-log reminder and a `TaskCompleted` CLI-call logger; neither executes ruff,
 pytest or ty. Treat the gates as entirely agent-driven:
 
-- Each teammate runs `bash .agents/skills/_shared/verify.sh` itself before
+- Each teammate runs `& .agents/check.ps1` itself before
   reporting a task complete, and quotes `overall` in its report.
 - The lead re-runs it in Step 1-4 and does not accept a teammate's self-report
   in its place (`.agents/rules/cli-execution.md` Guardrails).
-- Gate failure is exit `2`, so a `verify.sh` call whose exit code was never
+- Gate failure is exit `2`, so a `.agents/check.ps1` call whose exit code was never
   checked is an unverified task.
 
 ---
@@ -325,8 +325,8 @@ pytest or ty. Treat the gates as entirely agent-driven:
 Validate every teammate's work log in the team directory with a single call.
 `{N}` is the number of teammates you actually dispatched:
 
-```bash
-python3 .agents/skills/_shared/validate_doc.py --contract work-log \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py --contract work-log `
   --dir {paths.team_dir} --expect-files {N}
 ```
 
@@ -346,9 +346,9 @@ Step 1-1 — do not re-derive the path by hand.
 
 Compare the assignment against what git says actually changed:
 
-```bash
-python3 .agents/skills/team-execute/check_ownership.py \
-  --assignment .agents/logs/ownership-{team_name}.json \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/team-execute/check_ownership.py `
+  --assignment .agents/logs/ownership-{team_name}.json `
   --mode reconcile --base main
 ```
 
@@ -364,8 +364,8 @@ nothing — a workstream that silently did not run.
 
 Run the quality gates:
 
-```bash
-bash .agents/skills/_shared/verify.sh
+```powershell
+& .agents/check.ps1
 ```
 
 Exit codes: `0` `overall: "pass"` · `1` bad arguments · **`2` a gate failed, or
@@ -377,7 +377,7 @@ with its exit code in the report below. Only then re-run with
 
 ### Integration Report
 
-Quote the `tools` object from the `verify.sh` JSON verbatim. Do not re-type gate
+Quote the `tools` object from the `.agents/check.ps1` JSON verbatim. Do not re-type gate
 statuses: the payload distinguishes `pass` / `fail` / `skipped`, and a
 hand-written `PASS` erases the difference between a gate that passed and a gate
 that never ran.
@@ -392,7 +392,7 @@ that never ran.
 
 ### Quality Checks
 overall: {overall}
-{the tools object, pasted from the verify.sh JSON}
+{the tools object, pasted from the .agents/check.ps1 JSON}
 
 ### Ownership Reconcile
 - overlaps: {overlaps} · unowned: {unowned_changes} · idle: {idle_owners}
@@ -426,15 +426,15 @@ forward so the review references the matching design and work-log files.
 If Phase 1 already ran, Step 1-1 resolved the workspace already — repeat the
 identical call here (idempotent) when entering directly via `--review-only`:
 
-```bash
-python3 .agents/skills/_shared/workspace.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py `
   --skill team-execute --slug {slug} --create
 ```
 
 ### 1. Run the gates before spending three reviewers on a red tree
 
-```bash
-bash .agents/skills/_shared/verify.sh
+```powershell
+& .agents/check.ps1
 ```
 
 Exit `0` pass · `1` bad arguments · **`2` a gate failed or no gate ran** ·
@@ -448,8 +448,8 @@ chooses to review a red tree. This is the only executable check on the
 
 On the `--review-only` path, also run:
 
-```bash
-python3 .agents/skills/_shared/verify_delegation.py --base main
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/verify_delegation.py --base main
 ```
 
 It reports `deletions`, `placeholders`, `weakened_tests` and
@@ -459,8 +459,8 @@ to the reviewers as known risk areas.
 
 ### 3. Gather the diff
 
-```bash
-python3 .agents/skills/_shared/gather_diff.py --base main --out {paths.diff_file}
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/gather_diff.py --base main --out {paths.diff_file}
 ```
 
 Always pass `--out {paths.diff_file}`. The script's own default is a single
@@ -484,7 +484,7 @@ JSON object:
 - `diff_file`, `patch_bytes` — the full patch for reviewers to read as needed.
 - `ruff` — `{status, reason?, exit_code?, issues?, files_linted?, scope}` over
   the changed `.py` files only. `status` is `pass` / `fail` / `skipped` /
-  `error`, following `verify.sh`: an absent linter is `skipped`, never a lint
+  `error`, following `.agents/check.ps1`: an absent linter is `skipped`, never a lint
   failure.
 - `coverage` — `{report, percent, mtime, stale_vs_scope}` parsed from an
   existing `coverage.json` / `coverage.xml`, else `null` with a warning.
@@ -507,12 +507,12 @@ Pass the `changed_files` list and `diff_file` path to the reviewers in Step 2-2.
 
 **Launch reviewers with specialized perspectives in parallel.**
 
-Entry condition, checked before spending three agents: Step 2-1's `verify.sh`
+Entry condition, checked before spending three agents: Step 2-1's `.agents/check.ps1`
 did not exit `2` (or the user overrode it), and `gather_diff.py` reported
 `scope_empty: false`. Reviewers spawned against an empty `changed_files` list
 produce a clean review of nothing.
 
-Reviewers use `general-purpose-sonnet` by default. Use `general-purpose-opus` for a
+Reviewers use `implementation collaborator` by default. Use `high-capability analysis collaborator` for a
 review whose dominant risk is subtle security, concurrency, data integrity,
 performance, or cross-system behavior; Quality Reviewer may also consult Codex as
 specified below.
@@ -551,7 +551,7 @@ Spawn reviewers:
    IMPORTANT — Work Log:
    When your review is complete, write your work log to
    {paths.work_log} — resolve it with
-   python3 .agents/skills/_shared/workspace.py --skill team-execute
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill team-execute
      --slug {slug} --teammate security-reviewer
    and use the returned path verbatim — per the shared
    format: .agents/skills/_shared/work-log-format.md (reviewer variant:
@@ -573,7 +573,7 @@ Spawn reviewers:
 
    Use Codex CLI for deep analysis of complex logic. Write the question to
    .agents/logs/codex/prompt-quality-review.md, then:
-   python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-quality-review.md --label quality-review --sandbox read-only
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-quality-review.md --label quality-review --sandbox read-only
    Read the answer from the JSON output's response_file. Exit codes: 0 ok
    (read response_file); 1 bad args; 2 codex CLI missing; 3 codex failed or
    timed out (inspect error/stderr_file).
@@ -591,7 +591,7 @@ Spawn reviewers:
    IMPORTANT — Work Log:
    When your review is complete, write your work log to
    {paths.work_log} — resolve it with
-   python3 .agents/skills/_shared/workspace.py --skill team-execute
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill team-execute
      --slug {slug} --teammate quality-reviewer
    and use the returned path verbatim — per the shared
    format: .agents/skills/_shared/work-log-format.md (reviewer variant:
@@ -631,7 +631,7 @@ Spawn reviewers:
    IMPORTANT — Work Log:
    When your review is complete, write your work log to
    {paths.work_log} — resolve it with
-   python3 .agents/skills/_shared/workspace.py --skill team-execute
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill team-execute
      --slug {slug} --teammate test-reviewer
    and use the returned path verbatim — per the shared
    format: .agents/skills/_shared/work-log-format.md (reviewer variant:
@@ -668,8 +668,8 @@ Validate every reviewer's work log in the team directory with a single call.
 `{N}` is the number of reviewers you dispatched (3 for the standard team, plus
 any Phase 1 logs still in the directory — count what should be there):
 
-```bash
-python3 .agents/skills/_shared/validate_doc.py --contract work-log \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py --contract work-log `
   --dir {paths.team_dir} --expect-files {N}
 ```
 
@@ -680,8 +680,8 @@ a reviewer that produced no log has not demonstrably reviewed anything.
 
 ### Workspace Artifact Check
 
-```bash
-python3 .agents/skills/_shared/workspace.py --skill team-execute --slug {slug} --verify
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill team-execute --slug {slug} --verify
 ```
 
 `ok: true` means all three review reports exist and are non-empty — read them
@@ -755,7 +755,7 @@ Clean up the team
 - **Separate Tester**: Having a dedicated Tester separate from Implementers enables a TDD-like workflow
 - **Reviewer specialization**: Each reviewer focuses on a different perspective to prevent blind spots
 - **Codex utilization**: Quality Reviewer delegates complex logic analysis to Codex
-- **Model routing**: Sonnet is the default; use Opus only when ambiguity, risk, or failed attempts justify the additional capability
+- **Model routing**: implementation collaborator is the default; use analysis collaborator only when ambiguity, risk, or failed attempts justify the additional capability
 - **Report persistence**: Save review results in `.agents/docs/research/` for reference during fixes
 - **Competing hypotheses mode**: Adversarial review pattern is effective for bug investigation
-- **Cost awareness**: Each Teammate is an independent Claude instance (high token consumption). 3 reviewers = 3x tokens; for small changes, a subagent-based review is sufficient
+- **Cost awareness**: Each Teammate is an independent Codex instance (high token consumption). 3 reviewers = 3x tokens; for small changes, a subagent-based review is sufficient

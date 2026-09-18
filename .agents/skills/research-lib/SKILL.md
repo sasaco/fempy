@@ -19,8 +19,8 @@ Derive the path once, from the script, and reuse the value everywhere below.
 script normalizes it the same way `lib_inventory.py` normalizes a declared
 dependency, so the doc filename and the dependency name always match.
 
-```bash
-python3 .agents/skills/_shared/workspace.py --skill research-lib \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill research-lib `
   --title "$ARGUMENTS" --create
 ```
 
@@ -33,8 +33,8 @@ on — never re-derive it by hand, and never substitute `$ARGUMENTS.md`.
 The declared and locked versions are facts with one correct answer, so read
 them instead of asking the web:
 
-```bash
-python3 .agents/skills/update-lib-docs/lib_inventory.py --library "$ARGUMENTS"
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/update-lib-docs/lib_inventory.py --library "$ARGUMENTS"
 ```
 
 The `dependencies` array carries `{name, declared_spec, declared_in,
@@ -54,14 +54,14 @@ is the only place a version number lives.
 
 ## Research Items
 
-### Primary Tool: General-Purpose Subagent (Opus)
+### Primary Tool: General-Purpose Subagent (analysis collaborator)
 
-Use `general-purpose-opus` with WebSearch/WebFetch for comprehensive library
+Use `high-capability analysis collaborator` with WebSearch/WebFetch for comprehensive library
 research. Pass the resolved path and version into the prompt:
 
 ```
-Agent tool:
-  subagent_type: "general-purpose-opus"
+Collaboration task:
+  role: "high-capability analysis collaborator"
   prompt: |
     Research: {library}. Find official documentation, key features,
     constraints, best practices, known issues, and usage patterns.
@@ -179,10 +179,10 @@ maintained.
 
 Both checks are gates. Do not report completion until both exit 0.
 
-```bash
-python3 .agents/skills/_shared/validate_doc.py --contract lib-doc \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py --contract lib-doc `
   --file <paths.lib_doc>
-python3 .agents/skills/_shared/workspace.py --skill research-lib \
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill research-lib `
   --slug <slug> --verify
 ```
 

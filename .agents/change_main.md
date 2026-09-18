@@ -1,68 +1,50 @@
 # Changing the Main Agent
 
-Read this runbook only when the user explicitly asks to change the main agent.
-Claude Code is the initial default. The active selection is recorded in
+Read this runbook only when the user explicitly asks to change the main
+runtime. Codex is the repository default. The active selection is recorded in
 `.agents/STATE.md` under `## Main Agent`.
 
 ## Meaning of Main Agent
 
-The main agent owns user interaction, task decomposition, routing, approval
-boundaries, result integration, and the final response. Other runtimes remain
-available as executors or advisors when their capabilities fit the task.
+The main agent owns user interaction, task decomposition, routing, authority
+boundaries, result integration, and the final response. Another runtime is
+available only when its integration is explicitly installed and maintained.
 
 ## Invariants
 
-- `.agents/` remains the tool-neutral source of truth.
-- Root `AGENTS.md` remains the concise shared instruction contract, and
-  `CLAUDE.md` remains its discovery symlink.
-- Rules, skills, agent definitions, hooks, state, and docs are not copied into
-  product-native directories.
-- Machine-readable native settings remain in each product's required path and
-  are not symlinked across incompatible products.
-- Changing the main agent must not silently broaden permissions or remove a
-  working fallback runtime.
+- `.agents/` remains the shared source of truth and root `AGENTS.md` remains the
+  concise discovery contract.
+- Rules, skills, state, and docs are not copied into runtime-native directories.
+- Machine-readable settings stay in each runtime's official configuration path.
+- A runtime change must not silently broaden permissions.
+- Codex keeps `approval_policy = "never"` and a read-only default unless the
+  user explicitly approves a different repository policy.
 
 ## Change Procedure
 
-1. Confirm the requested runtime and the scope: repository-only or template
-   default for future installations. Treat an unqualified request as
-   repository-only.
-2. Verify that the target runtime is installed and can read root `AGENTS.md`,
-   `.agents/STATE.md`, relevant `.agents/rules/`, and its supported skills.
-3. Inspect the target runtime's current native discovery/configuration
-   requirements. Add only the minimum native config needed and point it directly
-   to root `AGENTS.md` or `.agents/` where supported; do not invent integration
-   surfaces in advance for runtimes that are not being activated.
-4. Update only the `## Main Agent` value in `.agents/STATE.md`.
-5. Map main-agent responsibilities to the target runtime. Keep Claude Code,
-   Codex, Antigravity, or any former main available as an executor when its
-   native runtime remains installed.
-6. Translate hooks, model selection, permissions, and sandbox settings only
-   where the target runtime requires machine-readable configuration. Preserve
-   least privilege and document any unavoidable semantic difference.
-7. Update the default statement in root `AGENTS.md`, the `.agents/STATE.md`
-   seed, and installer/updater manifests only when the user requested a new
-   template default. A repository-only switch changes only `.agents/STATE.md`
-   and must survive updates without modifying template-owned bootstrap files.
-8. Record the decision in the appropriate design log and run the validation
-   below.
-
-For an unsupported future runtime, first establish its official discovery and
-configuration paths. Keep the new native surface minimal and point its
-human-readable discovery path back to root `AGENTS.md` or canonical `.agents/`
-content whenever the runtime supports that model.
+1. Confirm the requested runtime and whether the change is session-only or a
+   new repository default. Treat an unqualified request as session-only.
+2. Verify official discovery/configuration requirements. Do not invent a
+   compatibility surface for an uninstalled runtime.
+3. Confirm the target can read `AGENTS.md`, `.agents/STATE.md`, and the relevant
+   `.agents/rules/` and skills.
+4. For a repository-default change, update `## Main Agent` in
+   `.agents/STATE.md`, the default statement in `AGENTS.md`, and the minimum
+   native configuration required by the target. A session-only change modifies
+   no tracked file.
+5. Translate permissions and sandbox semantics using least privilege. Record
+   unavoidable differences in `.agents/docs/DESIGN.md`.
+6. Run the validation below and inspect the final diff.
 
 ## Validation
 
-- Start the target runtime in a disposable session and confirm it identifies
-  itself as the main agent from `.agents/STATE.md`.
-- Confirm it can invoke one shared skill and route one executor without
-  duplicating shared files into its native directory.
-- Run `bash .agents/check.sh` and the full test suite.
-- Inspect symlink targets, native permission settings, and the final diff.
+- Start the target runtime in a disposable session and confirm that it loads
+  the root contract and shared context.
+- Invoke one shared skill without copying its files into a runtime directory.
+- Run `& .agents/check.ps1` and the relevant component tests.
+- Inspect native permission settings, discovery paths, and changed files.
 
 ## Rollback
 
-Restore the previous `## Main Agent` value in `.agents/STATE.md`, restore the
-previous native config from version control or backup, and rerun the validation
-checks.
+Restore the previous `## Main Agent` value and native configuration from
+version control or a backup, then rerun the same validation.

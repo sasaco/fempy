@@ -1,10 +1,10 @@
 ---
 name: spike
 description: |
-  Time-boxed technical investigation/feasibility study with Codex-first multi-agent collaboration (Codex + Opus 4.6 + Agent Teams).
+  Time-boxed technical investigation/feasibility study with Codex-first multi-agent collaboration (Codex + high-capability analysis collaborator + Agent Teams).
   Codex CLI is consulted in EVERY phase for question framing, feasibility analysis, and final evaluation.
-  Phase 1: Frame the investigation question & constraints (Claude user interaction + Codex question decomposition).
-  Phase 2: Parallel investigation (Agent Teams: Researcher [Opus external research] + Feasibility Analyst [Codex deep analysis] + optional prototype).
+  Phase 1: Frame the investigation question & constraints (Codex user interaction + Codex question decomposition).
+  Phase 2: Parallel investigation (Agent Teams: Researcher [analysis collaborator external research] + Feasibility Analyst [Codex deep analysis] + optional prototype).
   Phase 3: Codex synthesis into go/no-go recommendation & research report.
   Produces a DECISION DOCUMENT, NOT an implementation plan. Use /feature after a GO decision.
 metadata:
@@ -13,9 +13,9 @@ metadata:
 
 # Spike
 
-**Codex-first time-boxed technical investigation skill leveraging Codex deep reasoning, Opus 1M context, and Agent Teams.**
+**Codex-first time-boxed technical investigation skill leveraging Codex deep reasoning, large-context analysis, and Agent Teams.**
 
-> Preflight: ensure codex CLI is current (see codex-system skill).
+> Read the codex-system skill before an explicit nested CLI consultation; do not update global CLIs as task preflight.
 
 ## Overview
 
@@ -44,7 +44,7 @@ This skill handles time-boxed feasibility studies and technical investigations. 
 
 - Bug diagnosis → `/troubleshoot`
 - Known feature to implement → `/feature`
-- Simple library lookup → direct research (Opus subagent)
+- Simple library lookup → direct research (analysis collaborator)
 - Code review → `/team-execute --review-only`
 
 Full skill routing: root `AGENTS.md` section "Routing Policy".
@@ -59,22 +59,22 @@ Full skill routing: root `AGENTS.md` section "Routing Policy".
 ## Workflow
 
 ```
-Phase 1: FRAME (Claude Lead + Codex Question Decomposition)
-  Claude clarifies the spike question with the user, Codex decomposes into
+Phase 1: FRAME (Codex Lead + Codex Question Decomposition)
+  Codex clarifies the spike question with the user, Codex decomposes into
   sub-questions and defines success criteria
     |
 Phase 2: INVESTIGATE (Agent Teams -- Parallel, Codex-driven)
-  Researcher (Opus) <-> Feasibility Analyst (Codex) communicate bidirectionally
-  Optional: Codex prototype (danger-full-access) for hands-on validation
+  Researcher (analysis collaborator) <-> Feasibility Analyst (Codex) communicate bidirectionally
+  Optional: Codex prototype (workspace-write) for hands-on validation
     |
-Phase 3: SYNTHESIZE (Codex Evaluation + Claude Lead + User)
+Phase 3: SYNTHESIZE (Codex Evaluation + Codex Lead + User)
   Codex evaluates all evidence against success criteria,
-  produces go/no-go recommendation, Claude presents to user
+  produces go/no-go recommendation, Codex presents to user
 ```
 
 ---
 
-## Phase 1: FRAME (Claude Lead + Codex Question Decomposition)
+## Phase 1: FRAME (Codex Lead + Codex Question Decomposition)
 
 **Clarify the spike question with the user, then consult Codex to decompose it into a structured investigation plan.**
 
@@ -84,8 +84,8 @@ Phase 3: SYNTHESIZE (Codex Evaluation + Claude Lead + User)
 
 Resolve this spike's deterministic workspace once. The title becomes file and directory names, so give it a short English descriptor of the question -- not the user's raw wording, which the Language Protocol keeps out of paths:
 
-```bash
-python3 .agents/skills/_shared/workspace.py --skill spike --title "{short English title}" --create
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill spike --title "{short English title}" --create
 ```
 
 This prints one JSON object: `slug`, `team_name`, and `paths` (`brief`, `research`, `feasibility`, `report`, `prototype_dir`, `team_dir`). Exit 0 resolved/created; 1 bad args; 2 applies only to `--verify` (used later in Phase 3); 3 the workspace directories could not be created. Use `{slug}`, `{team_name}`, and every `paths.*` value from this JSON verbatim for the rest of this skill -- do not re-derive them by hand in a later phase.
@@ -127,8 +127,8 @@ Output format:
 ## Risk of Inconclusive Result
 ```
 
-```bash
-python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-spike-decomposition.md --label spike-decomposition
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-spike-decomposition.md --label spike-decomposition
 ```
 
 `.agents/skills/_shared/codex_consult.py` exits 0 when Codex answered normally, 2 if the Codex CLI is not installed, 3 if Codex failed or timed out -- check the JSON `ok` field and read `response_file` for the answer (`error`/`stderr_file` explain a failure). Every later Codex consultation in this skill follows this same write-prompt-then-invoke pattern without repeating these exit codes.
@@ -137,8 +137,8 @@ python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex
 
 Combine user parameters + Codex decomposition into a Spike Brief following the template contract in `references/brief-template.md`. Write it to `{paths.brief}` (from Step 0) -- not only into this conversation -- then validate it:
 
-```bash
-python3 .agents/skills/_shared/validate_doc.py --contract spike-brief --file {paths.brief}
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py --contract spike-brief --file {paths.brief}
 ```
 
 `references/brief-template.md` is the single source of truth for the required
@@ -169,7 +169,7 @@ Create an agent team named `{team_name}` for spike investigation: {slug}
 
 Spawn two teammates:
 
-1. **Researcher** -- Uses WebSearch/WebFetch for external research (Opus 1M context)
+1. **Researcher** -- Uses WebSearch/WebFetch for external research (large-context analysis)
    Prompt: "You are the Researcher for spike: {slug}.
 
    Your job: Gather external evidence to answer the spike's sub-questions.
@@ -243,7 +243,7 @@ Spawn two teammates:
    You MUST consult Codex for EACH of the following analysis tasks.
    Do NOT skip Codex consultation -- it is the primary reasoning engine for this role.
    Each consultation below follows the same shape: write the prompt to a file,
-   then run `python3 .agents/skills/_shared/codex_consult.py --prompt-file <path> --label <label>`
+   then run `uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file <path> --label <label>`
    and read the JSON `response_file`.
 
    ### 1. Technical Feasibility Assessment
@@ -266,7 +266,7 @@ Spawn two teammates:
    ## Soft Challenges
    ## Effort Estimate (if feasible)
 
-   python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-spike-feasibility.md --label spike-feasibility
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-spike-feasibility.md --label spike-feasibility
 
    ### 2. Architecture Compatibility Analysis
    Write the prompt below to a file, then consult Codex to evaluate fit with existing architecture:
@@ -286,7 +286,7 @@ Spawn two teammates:
    ## Required Architectural Changes
    ## Migration Complexity (LOW / MEDIUM / HIGH)
 
-   python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-spike-architecture.md --label spike-architecture
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-spike-architecture.md --label spike-architecture
 
    ### 3. Risk and Trade-off Analysis
    Write the prompt below to a file, then consult Codex to evaluate risks:
@@ -307,10 +307,10 @@ Spawn two teammates:
    ## Comparison with Alternatives
    ## Mitigation Strategies
 
-   python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-spike-risk.md --label spike-risk
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-spike-risk.md --label spike-risk
 
    ### 4. Prototype Validation (PROTOTYPE mode only)
-   If the investigation mode is PROTOTYPE, write the prompt below to a file, then have Codex build a minimal throwaway prototype. This is the one call that keeps `--sandbox danger-full-access`; every other consultation in this skill uses the default `read-only`:
+   If the investigation mode is PROTOTYPE, write the prompt below to a file, then have Codex build a minimal throwaway prototype. This is the one call that keeps `--sandbox workspace-write`; every other consultation in this skill uses the default `read-only`:
 
    Objective: Build a minimal prototype to validate {specific technical question}.
    Context:
@@ -328,7 +328,7 @@ Spawn two teammates:
    ## Result (VALIDATED / INVALIDATED / INCONCLUSIVE)
    ## Evidence
 
-   python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-spike-prototype.md --label spike-prototype --sandbox danger-full-access
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-spike-prototype.md --label spike-prototype --sandbox workspace-write
 
    ### 5. Post-Prototype Acceptance Checks (MANDATORY after the call above)
    `ok: true` from the wrapper means `codex exec` exited 0 -- nothing more. Per
@@ -336,8 +336,8 @@ Spawn two teammates:
    checks; a write-enabled delegated CLI is never trusted on its self-report.
    Run both, in this order:
 
-   python3 .agents/skills/_shared/workspace.py --skill spike --slug {slug} --verify --require prototype_dir
-   python3 .agents/skills/_shared/verify_delegation.py --base HEAD --forbid-outside {paths.prototype_dir}
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill spike --slug {slug} --verify --require prototype_dir
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/verify_delegation.py --base HEAD --forbid-outside {paths.prototype_dir}
 
    The first exits 2 when `{paths.prototype_dir}` holds no non-trivial file --
    i.e. Codex reported success and wrote nothing. Read `verify.missing` /
@@ -406,7 +406,7 @@ Without Agent Teams, this discovery loop would require multiple sequential subag
 
 ---
 
-## Phase 3: SYNTHESIZE (Codex Evaluation + Claude Lead)
+## Phase 3: SYNTHESIZE (Codex Evaluation + Codex Lead)
 
 **Integrate Agent Teams investigation results, have Codex evaluate evidence against success criteria, and produce a go/no-go recommendation.**
 
@@ -416,8 +416,8 @@ Confirm both teammates actually finished **before** reading anything -- "wait fo
 both teammates to complete" is a self-report, and a half-finished investigation
 read as complete produces a confident verdict on partial evidence:
 
-```bash
-python3 .agents/skills/_shared/validate_doc.py --contract work-log \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py --contract work-log `
   --dir {paths.team_dir} --expect-files 2
 ```
 
@@ -463,19 +463,19 @@ Output format (headings chosen to drop straight into `references/report-template
 ## If INCONCLUSIVE: What Additional Investigation Is Needed
 ```
 
-```bash
-python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-spike-evaluation.md --label spike-evaluation
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-spike-evaluation.md --label spike-evaluation
 ```
 
 ### Step 3: Save Research Report
 
 Save the complete spike report to `{paths.report}` (from Phase 1 Step 0) following the template contract in `references/report-template.md`. Then validate it and gate Phase 3 before presenting to the user:
 
-```bash
-python3 .agents/skills/_shared/validate_doc.py --contract spike-report --file {paths.report}
-python3 .agents/skills/_shared/workspace.py --skill spike --slug {slug} --verify
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py --contract spike-report --file {paths.report}
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill spike --slug {slug} --verify
 # PROTOTYPE mode only -- make the prototype itself a required artifact:
-python3 .agents/skills/_shared/workspace.py --skill spike --slug {slug} --verify --require prototype_dir
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill spike --slug {slug} --verify --require prototype_dir
 ```
 
 `references/report-template.md` is the single source of truth for the report's
@@ -565,12 +565,12 @@ Paths resolved once in Phase 1 Step 0 (`.agents/skills/_shared/workspace.py --sk
 
 ## Tips
 
-- **Codex-first**: Every phase consults Codex. This is intentional -- Codex excels at structured reasoning about feasibility and trade-offs that complements Opus's broad research capabilities
+- **Codex-first**: Every phase consults Codex. This is intentional -- Codex excels at structured reasoning about feasibility and trade-offs that complements the analysis collaborator's broad research capabilities
 - **Time budget discipline**: Respect the time budget. If investigation is taking too long, Codex can evaluate with partial evidence and mark the verdict as INCONCLUSIVE
 - **Phase 1 is critical**: A well-decomposed question makes Phase 2 much more efficient. Invest time in framing the right sub-questions with Codex
-- **Phase 2**: Agent Teams bidirectional communication allows Researcher (Opus) and Feasibility Analyst (Codex-driven) to converge on evidence-based assessment
+- **Phase 2**: Agent Teams bidirectional communication allows Researcher (analysis collaborator) and Feasibility Analyst (Codex-driven) to converge on evidence-based assessment
 - **Phase 3**: Codex synthesizes all findings into a decision. After a GO decision, proceed to `/feature` -- do NOT start implementation within the spike
-- **PROTOTYPE mode**: Prototype code is throwaway. It lives in `{paths.prototype_dir}` and is NOT production code. Its only purpose is to generate evidence for the decision -- and because that call is the skill's only `danger-full-access` invocation, the acceptance checks after it (`--require prototype_dir` plus `verify_delegation.py`) are not optional
+- **PROTOTYPE mode**: Prototype code is throwaway. It lives in `{paths.prototype_dir}` and is NOT production code. Its only purpose is to generate evidence for the decision -- and because that call is the skill's only `workspace-write` invocation, the acceptance checks after it (`--require prototype_dir` plus `verify_delegation.py`) are not optional
 - **Short-circuit**: If Phase 2 discovers a hard blocker early, short-circuit to Phase 3 immediately. No need to complete all sub-questions if the answer is already clear
 - **Inconclusive is OK**: Not every spike produces a clear answer. An INCONCLUSIVE result with documented unknowns is more valuable than a false GO
 - **Reuse research**: Spike reports in `.agents/docs/research/` persist across sessions. Reference prior spikes before starting new ones on similar topics

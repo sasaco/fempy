@@ -1,98 +1,42 @@
-# Codex Delegation Rule
+# Codex Work Routing
 
-**Codex CLI handles planning, design, and complex code implementation.**
+Codex is both the primary runtime and the preferred reasoning engine for
+planning, design, complex implementation, debugging, and code review.
 
-> Scope: this rule decides *when Codex specifically*. Whether the main agent may
-> keep a task at all is decided first by `.agents/rules/delegation.md`, whose
-> default is to delegate.
+## Direct Work vs Consultation
 
-> Preflight: ensure codex CLI is current (see codex-system skill).
+The main Codex agent handles the task directly when it already has the needed
+context and authority. Use a native collaborator for an independent owned
+workstream. Use `.agents/skills/_shared/codex_consult.py` only when an explicit
+nested Codex CLI pass provides useful independent planning or review.
 
-## Two Roles of Codex
+Typical consultation triggers:
 
-### 1. Planning & Design
+- architecture or compatibility decisions;
+- multi-step plans with meaningful ordering or rollback risk;
+- unclear root cause or competing hypotheses;
+- security, concurrency, data-integrity, or migration-sensitive changes;
+- independent review of a large diff.
 
-- Architecture design, module structure
-- Implementation planning (step decomposition, dependency ordering)
-- Trade-off evaluation, technology selection
-- Code review (quality and correctness analysis)
+## Consultation Contract
 
-### 2. Complex Code Implementation
+Include objective, constraints, relevant paths, authority, acceptance checks,
+and output format. Use repository-root PowerShell commands:
 
-- Complex algorithms, optimization
-- Debugging with unknown root causes
-- Advanced refactoring
-- Multi-step implementation tasks
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file <path> --label <slug> --sandbox read-only
+```
 
-## Delegation Decision
+Read-only is the default. For an approved implementation handoff, pass
+`--sandbox workspace-write`. Use `danger-full-access` only when the task
+requires access outside the workspace.
 
-Default to Codex-first delegation for development tasks.
+Detailed patterns are in `.agents/docs/CODEX_HANDOFF_PLAYBOOK.md` and
+`.agents/skills/codex-system/SKILL.md`.
 
-Consult Codex when **any** of these apply (recommended default):
+## Verification
 
-- Design/architecture decisions are involved.
-- Change spans 2+ files with behavior impact.
-- Root cause is unclear.
-- User requests comparison/trade-off analysis.
-- You need a step-by-step implementation plan.
-- You are unsure and want a safe implementation direction.
-
-Do NOT delegate to Codex when:
-
-- Obvious one-file tiny edits, typo fixes
-- Tasks that simply follow explicit user instructions
-- git commit, test execution, lint
-- **Routine, well-scoped implementation** → `general-purpose-sonnet`
-- **Difficult implementation** (ambiguous architecture, cross-cutting invariants,
-  security/concurrency/data-integrity risk, or repeated failure) → `general-purpose-opus`
-- **Codebase analysis** → `general-purpose-opus` (Opus 1M context)
-- **External information retrieval / web research** → `general-purpose-opus` (WebSearch/WebFetch)
-
-## Prompt Contract (Always Include)
-
-1. Objective (single sentence)
-2. Constraints (style, limits, forbidden approaches)
-3. Relevant files (explicit paths)
-4. Acceptance checks (commands)
-5. Output format (structured markdown sections)
-
-Detailed templates: `@.agents/docs/CODEX_HANDOFF_PLAYBOOK.md`
-
-## How to Consult
-
-Exec syntax, subagent/direct patterns, implementation calls, and the sandbox-modes table: see the **codex-system skill** (`.agents/skills/codex-system/SKILL.md`) — this rule covers only *when* to delegate.
-
-## Codex Plugin for Claude Code (codex-plugin-cc)
-
-Plugin slash commands (`/codex:review`, `/codex:rescue`, job management) and plugin-vs-CLI guidance: see the codex-system skill.
-
-## Sol Guardrails
-
-When a Codex (Sol-tier) delegation reports completion, the orchestrator or
-delegating subagent **MUST verify before trusting it**:
-
-1. **Run acceptance checks** -- execute every validation command from the
-   original prompt contract and confirm they pass.
-2. **Inspect the diff** -- review `git diff --stat` / `git diff` for:
-   - Unapproved deletions (files or significant code removed without
-     justification).
-   - Out-of-scope changes (files modified that were not part of the task).
-   - Stub or placeholder completions (`pass`, `TODO`, `NotImplementedError`
-     left where real logic was requested).
-3. **Watch for cheating patterns** -- reject completion if:
-   - Tests were deleted, skipped (`@pytest.mark.skip`), or weakened
-     (assertions removed/loosened) to make the suite pass.
-   - Exceptions silently swallowed (bare `except: pass` or equivalent).
-   - Hardcoded return values substituted for real implementation logic.
-
-**On failure**: report the specific failure(s) with evidence to the user,
-then re-delegate at most once with the original prompt plus failure context.
-If the second attempt also fails, halt and require explicit user approval.
-
-Canonical definition: `.agents/rules/cli-execution.md` section "Guardrails (Completion
-Verification)".
-
-## Language Protocol
-
-See root `AGENTS.md` section "Language Protocol": ask Codex in English and
-report to the user in Japanese.
+The lead runs the original acceptance checks, inspects all changed/untracked
+paths, and rejects out-of-scope edits, weakened tests, swallowed exceptions,
+hardcoded substitutes, or unfinished placeholders. A successful consultation
+process does not establish correctness by itself.

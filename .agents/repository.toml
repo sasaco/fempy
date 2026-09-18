@@ -1,0 +1,113 @@
+schema_version = 1
+
+[repository]
+name = "FrameWeb3"
+
+[discovery]
+max_depth = 4
+exclude_directories = [
+  ".git",
+  ".venv",
+  "venv",
+  "node_modules",
+  "dist",
+  "bin",
+  "obj",
+  "__pycache__",
+  ".pytest_cache",
+  ".ruff_cache",
+  ".mypy_cache",
+  ".tox",
+  ".nox",
+  ".cache",
+  "vendor",
+]
+exclude_paths = [
+  "FrameWebforJS/src/assets/js/rxfire",
+  "FrameWebforJS/src/assets/js/paramquery",
+  "tools/local-tools",
+]
+
+[[components]]
+id = "python"
+kind = "python"
+language = "python"
+package_manager = "uv"
+manifest = "FrameWeb/pyproject.toml"
+working_directory = "FrameWeb"
+
+[components.commands]
+test_prefix = ["uv", "--directory", "FrameWeb", "run", "--locked", "--extra", "dev", "python", "-m", "pytest"]
+test = ["uv", "--directory", "FrameWeb", "run", "--locked", "--extra", "dev", "python", "-m", "pytest", "tests", "-q"]
+
+[[components]]
+id = "angular"
+kind = "angular"
+language = "typescript"
+package_manager = "npm"
+manifest = "FrameWebforJS/package.json"
+working_directory = "FrameWebforJS"
+
+[components.commands]
+test = ["npm", "--prefix", "FrameWebforJS", "run", "test", "--", "--watch=false", "--browsers=ChromeHeadless"]
+build = ["npm", "--prefix", "FrameWebforJS", "run", "build"]
+
+[[components]]
+id = "dotnet"
+kind = "dotnet"
+language = "csharp"
+package_manager = "dotnet"
+manifest = "FrameWeb.sln"
+working_directory = "."
+projects = [
+  "tools/FrameWeb.Startup/FrameWeb.Startup.csproj",
+  "FramePrintPDF/FramePrintAzure/FramePrintAzure.csproj",
+  "FramePrintPDF/PDF_Manager/PDF_Manager.csproj",
+]
+
+[components.commands]
+build = ["dotnet", "build", "FrameWeb.sln"]
+
+[[components]]
+id = "local-smoke"
+kind = "smoke"
+manifest = "scripts/smoke-local.py"
+working_directory = "."
+
+[components.commands]
+smoke = ["uv", "run", "--project", "FrameWeb", "--locked", "--extra", "dev", "python", "scripts/smoke-local.py"]
+
+[[gates]]
+id = "python-tests"
+component = "python"
+classification = "product"
+optional = false
+command = ["uv", "--directory", "FrameWeb", "run", "--locked", "--extra", "dev", "python", "-m", "pytest", "tests", "-q"]
+
+[[gates]]
+id = "angular-tests"
+component = "angular"
+classification = "product"
+optional = false
+command = ["npm", "--prefix", "FrameWebforJS", "run", "test", "--", "--watch=false", "--browsers=ChromeHeadless"]
+
+[[gates]]
+id = "angular-build"
+component = "angular"
+classification = "product"
+optional = false
+command = ["npm", "--prefix", "FrameWebforJS", "run", "build"]
+
+[[gates]]
+id = "dotnet-build"
+component = "dotnet"
+classification = "product"
+optional = false
+command = ["dotnet", "build", "FrameWeb.sln"]
+
+[[gates]]
+id = "local-smoke"
+component = "local-smoke"
+classification = "product"
+optional = true
+command = ["uv", "run", "--project", "FrameWeb", "--locked", "--extra", "dev", "python", "scripts/smoke-local.py"]

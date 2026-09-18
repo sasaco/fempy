@@ -1,10 +1,10 @@
 ---
 name: troubleshoot
 description: |
-  Diagnose and plan fixes for errors/bugs with Codex-first multi-agent collaboration (Codex + Opus 4.6 + Agent Teams).
+  Diagnose and plan fixes for errors/bugs with Codex-first multi-agent collaboration (Codex + high-capability analysis collaborator + Agent Teams).
   Codex CLI is consulted in EVERY phase for deep code reasoning, hypothesis evaluation, and fix validation.
-  Phase 1: Error reproduction & context gathering (Opus subagent 1M context + Codex initial analysis + Claude user interaction).
-  Phase 2: Parallel diagnosis (Agent Teams: Root Cause Analyst [Codex-driven] + Impact Investigator [Opus + Codex risk analysis]).
+  Phase 1: Error reproduction & context gathering (analysis collaborator 1M context + Codex initial analysis + Codex user interaction).
+  Phase 2: Parallel diagnosis (Agent Teams: Root Cause Analyst [Codex-driven] + Impact Investigator [analysis collaborator + Codex risk analysis]).
   Phase 3: Fix plan synthesis, Codex validation & user approval.
   Fix implementation is handled separately by /team-execute.
 metadata:
@@ -13,9 +13,9 @@ metadata:
 
 # Troubleshoot
 
-**Codex-first error/bug diagnosis skill leveraging Codex deep reasoning, Opus 1M context, and Agent Teams.**
+**Codex-first error/bug diagnosis skill leveraging Codex deep reasoning, large-context analysis, and Agent Teams.**
 
-> Preflight: ensure codex CLI is current (see codex-system skill).
+> Read the codex-system skill before an explicit nested CLI consultation; do not update global CLIs as task preflight.
 
 ## Overview
 
@@ -32,33 +32,33 @@ This skill handles the diagnosis phases (Phase 1-3) with a **Codex-first approac
 ## Workflow
 
 ```
-Phase 1: REPRODUCE & UNDERSTAND (Opus 1M context + Codex Initial Analysis + Claude Lead)
-  Opus subagent analyzes the error context, Codex generates initial hypotheses,
-  Claude gathers details from the user
+Phase 1: REPRODUCE & UNDERSTAND (large-context analysis + Codex Initial Analysis + Codex Lead)
+  analysis collaborator analyzes the error context, Codex generates initial hypotheses,
+  Codex gathers details from the user
     |
 Phase 2: DIAGNOSE (Agent Teams -- Parallel, Codex-driven)
-  Root Cause Analyst (Codex mandatory) <-> Impact Investigator (Opus + Codex) communicate bidirectionally
+  Root Cause Analyst (Codex mandatory) <-> Impact Investigator (analysis collaborator + Codex) communicate bidirectionally
   Both teammates consult Codex for deep reasoning throughout analysis
     |
-Phase 3: FIX PLAN & APPROVE (Codex Validation + Claude Lead + User)
+Phase 3: FIX PLAN & APPROVE (Codex Validation + Codex Lead + User)
   Integrate diagnosis results, validate fix plan with Codex, get user approval
 ```
 
 ---
 
-## Phase 1: REPRODUCE & UNDERSTAND (Opus Subagent + Codex + Claude Lead)
+## Phase 1: REPRODUCE & UNDERSTAND (Analysis Collaborator + Codex + Codex Lead)
 
-**Reproduce the error and gather full context with Opus subagent's 1M context, then consult Codex for initial hypothesis generation, while Claude interacts with the user.**
+**Reproduce the error and gather full context with analysis collaborator's 1M context, then consult Codex for initial hypothesis generation, while Codex interacts with the user.**
 
-> Main orchestrator context is precious. Large-scale error context analysis is delegated to Opus subagent (1M context).
+> Main orchestrator context is precious. Large-scale error context analysis is delegated to analysis collaborator (1M context).
 > Codex is consulted early for pattern recognition and hypothesis generation.
 
 ### Step 0: Resolve Workspace
 
 Resolve this bug's deterministic workspace once. The title becomes file and directory names, so give it a short English descriptor of the bug -- not the user's raw wording, which the Language Protocol keeps out of paths:
 
-```bash
-python3 .agents/skills/_shared/workspace.py --skill troubleshoot --title "{short English title}" --create
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill troubleshoot --title "{short English title}" --create
 ```
 
 This prints one JSON object: `slug`, `team_name`, and `paths` (`bug_report`, `context`, `root_cause`, `impact`, `diagnosis`, `state_input`, `team_dir`). Exit 0 resolved/created; 1 bad args; 2 applies only to `--verify` (used later in Phase 3); 3 the workspace directories could not be created. Use `{slug}`, `{team_name}`, and every `paths.*` value from this JSON verbatim for the rest of this skill -- do not re-derive them by hand in a later phase.
@@ -80,8 +80,8 @@ command under a deadline, records stdout/stderr/exit code + extracted traceback
 to a log file keyed by `--label`, and gathers recent git history (plus optional
 last-commit context for a stack-trace file):
 
-```bash
-python3 .agents/skills/troubleshoot/repro.py "<repro-command>" \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/troubleshoot/repro.py "<repro-command>" `
   --label {slug}-initial [--file <path-from-stack-trace>] [--timeout 120]
 ```
 
@@ -115,12 +115,12 @@ To scope a regression, add `--bisect-good <last-known-good-ref>`. It reports the
 command to start it. The script never checks out a commit itself, so driving the
 bisect stays the Impact Investigator's call in Phase 2.
 
-Then hand that captured context to `general-purpose-opus` for the
+Then hand that captured context to `high-capability analysis collaborator` for the
 **judgment** part — do NOT re-run the command or re-fetch git history:
 
 ```
-Task tool:
-  subagent_type: "general-purpose-opus"
+Collaboration task:
+  role: "high-capability analysis collaborator"
   prompt: |
     Analyze this reproduced error (already captured by repro.py):
 
@@ -147,8 +147,8 @@ Consult Codex for initial hypothesis generation before creating the Bug Report. 
 Objective: Analyze this error and generate initial hypotheses for root cause.
 Context:
 - Error: {error message / stack trace}
-- Failing location: {file:line from Opus subagent analysis}
-- Execution flow: {call chain from Opus subagent analysis}
+- Failing location: {file:line from analysis collaborator analysis}
+- Execution flow: {call chain from analysis collaborator analysis}
 Constraints:
 - Focus on root cause categories (state mutation, boundary, concurrency, dependency, type/contract)
 - Rank hypotheses by likelihood
@@ -160,8 +160,8 @@ Output format:
 ## Known Similar Patterns
 ```
 
-```bash
-python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-troubleshoot-initial.md --label troubleshoot-initial
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-troubleshoot-initial.md --label troubleshoot-initial
 ```
 
 `.agents/skills/_shared/codex_consult.py` exits 0 when Codex answered normally, 2 if the Codex CLI is not installed, 3 if Codex failed or timed out -- check the JSON `ok` field and read `response_file` for the answer (`error`/`stderr_file` explain a failure). Every later Codex consultation in this skill follows this same write-prompt-then-invoke pattern without repeating these exit codes.
@@ -172,8 +172,8 @@ Use Codex's analysis to strengthen the Initial Hypotheses section of the Bug Rep
 
 Combine error details + codebase analysis + Codex initial hypotheses into a Bug Report following the template contract in `references/bug-report-template.md`. Save it to `{paths.bug_report}` (from Step 0), then validate it:
 
-```bash
-python3 .agents/skills/_shared/validate_doc.py --contract bug-report --file {paths.bug_report}
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py --contract bug-report --file {paths.bug_report}
 ```
 
 `references/bug-report-template.md` is the single source of truth for the
@@ -229,7 +229,7 @@ Spawn two teammates:
    You MUST consult Codex for EACH of the following analysis tasks.
    Do NOT skip Codex consultation — it is the primary reasoning engine for this role.
    Each consultation below follows the same shape: write the prompt to a file,
-   then run `python3 .agents/skills/_shared/codex_consult.py --prompt-file <path> --label <label>`
+   then run `uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file <path> --label <label>`
    and read the JSON `response_file`.
 
    ### 1. Execution Flow Tracing
@@ -249,7 +249,7 @@ Spawn two teammates:
    ## Assumption Violations
    ## Critical Decision Points
 
-   python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-troubleshoot-flow.md --label troubleshoot-flow
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-troubleshoot-flow.md --label troubleshoot-flow
 
    ### 2. Hypothesis Evaluation
    For each hypothesis, write the prompt below to a file, then consult Codex to evaluate evidence:
@@ -268,7 +268,7 @@ Spawn two teammates:
    ## Reasoning
    ## Remaining Unknowns
 
-   python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-troubleshoot-hypothesis.md --label troubleshoot-hypothesis
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-troubleshoot-hypothesis.md --label troubleshoot-hypothesis
 
    ### 3. Fix Approach Design
    Write the prompt below to a file, then consult Codex for trade-off analysis of fix alternatives:
@@ -289,7 +289,7 @@ Spawn two teammates:
    ## Comparison Matrix
    ## Recommendation with Rationale
 
-   python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-troubleshoot-fix-design.md --label troubleshoot-fix-design
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-troubleshoot-fix-design.md --label troubleshoot-fix-design
 
    ### 4. Fix Correctness Verification
    Before finalizing, write the prompt below to a file, then consult Codex to verify the proposed fix:
@@ -309,7 +309,7 @@ Spawn two teammates:
    ## New Failure Modes (if any)
    ## Confidence Level
 
-   python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-troubleshoot-fix-verify.md --label troubleshoot-fix-verify
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-troubleshoot-fix-verify.md --label troubleshoot-fix-verify
 
    Save analysis to `{paths.root_cause}` (from Phase 1 Step 0).
 
@@ -341,7 +341,7 @@ Spawn two teammates:
    - {question asked to Codex}: {key insight from response}
    "
 
-2. **Impact Investigator** — Uses Opus with Git history, codebase search, WebSearch, and Codex for risk analysis
+2. **Impact Investigator** — Uses analysis collaborator with Git history, codebase search, WebSearch, and Codex for risk analysis
    Prompt: "You are the Impact Investigator for bug: {slug}.
 
    Your job: Determine the full scope and impact of this bug, and gather context for the fix.
@@ -376,7 +376,7 @@ Spawn two teammates:
 
    You MUST consult Codex for regression risk reasoning and fix safety analysis.
    Each consultation below follows the same shape: write the prompt to a file,
-   then run `python3 .agents/skills/_shared/codex_consult.py --prompt-file <path> --label <label>`
+   then run `uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file <path> --label <label>`
    and read the JSON `response_file`.
 
    ### Regression Risk Reasoning
@@ -398,7 +398,7 @@ Spawn two teammates:
    ## Implicit Contracts at Risk
    ## Recommended Safeguards
 
-   python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-troubleshoot-regression.md --label troubleshoot-regression
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-troubleshoot-regression.md --label troubleshoot-regression
 
    ### Fix Safety Analysis
    Write the prompt below to a file, then consult Codex to verify the proposed fix does not introduce new issues:
@@ -419,7 +419,7 @@ Spawn two teammates:
    ## Side Effects
    ## Mitigation Recommendations
 
-   python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-troubleshoot-fix-safety.md --label troubleshoot-fix-safety
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-troubleshoot-fix-safety.md --label troubleshoot-fix-safety
 
    Save findings to `{paths.impact}` (from Phase 1 Step 0).
 
@@ -474,7 +474,7 @@ Without Agent Teams, this discovery loop would require multiple sequential subag
 
 ---
 
-## Phase 3: FIX PLAN & APPROVE (Codex Validation + Claude Lead)
+## Phase 3: FIX PLAN & APPROVE (Codex Validation + Codex Lead)
 
 **Integrate Agent Teams diagnosis results, validate the fix plan with Codex, and request user approval.**
 
@@ -483,9 +483,9 @@ Without Agent Teams, this discovery loop would require multiple sequential subag
 Gate Phase 3 on the Phase 1/2 artifacts **before** reading anything, so a
 teammate that stopped early cannot be mistaken for one that finished:
 
-```bash
-python3 .agents/skills/_shared/workspace.py --skill troubleshoot --slug {slug} --verify
-python3 .agents/skills/_shared/validate_doc.py --contract work-log \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill troubleshoot --slug {slug} --verify
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py --contract work-log `
   --dir {paths.team_dir} --expect-files 2
 ```
 
@@ -519,8 +519,8 @@ Output format:
 ## Revised Task List (if needed)
 ```
 
-```bash
-python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-troubleshoot-plan-validation.md --label troubleshoot-plan-validation
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-troubleshoot-plan-validation.md --label troubleshoot-plan-validation
 ```
 
 If Codex returns NEEDS_REVISION, update the fix plan before presenting to user.
@@ -546,8 +546,8 @@ Typical fix task structure:
    asserted by the script rather than read by eye, and with its own label so the
    Phase 1 failure log survives:
 
-   ```bash
-   python3 .agents/skills/troubleshoot/repro.py "<repro-command>" \
+   ```powershell
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/troubleshoot/repro.py "<repro-command>" `
      --label {slug}-fix-verify --expect-exit 0
    ```
 
@@ -556,8 +556,8 @@ Typical fix task structure:
    was verified at all. Do not report a verified fix on any exit code but `0`.
 4. **Check regressions** -- Run the quality gates:
 
-   ```bash
-   bash .agents/skills/_shared/verify.sh
+   ```powershell
+   & .agents/check.ps1
    ```
 
    Read the JSON: `overall` is `pass` / `fail` / `no_gates`. Exit `0` is a pass; exit **`2`** is a gate failure *or* `no_gates` -- inspect `log_file` and the per-tool `tools` object. `no_gates` means zero gates actually ran, which is a contract violation, not a pass: fall back to the project's own verification commands and confirm manually, and pass `--allow-no-gates` only when you have done so deliberately. Quote the `tools` object rather than re-typing each status, so a `skipped` gate is never reported as a pass.
@@ -592,11 +592,11 @@ shared writer script and `.agents/rules/agent-state.md`.
 
 **Run dry-run**, review the preview, then apply:
 
-```bash
-python3 .agents/skills/_shared/append_state_block.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/append_state_block.py `
   --type bug-fix --input {paths.state_input}
 # Review the preview file path in the JSON output, then:
-python3 .agents/skills/_shared/append_state_block.py \
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/append_state_block.py `
   --type bug-fix --input {paths.state_input} --apply
 ```
 
@@ -610,10 +610,10 @@ Compose the diagnosis and fix plan following the template contract in
 `{paths.diagnosis}` (resolved in Phase 1 Step 0, never hand-built) and validate
 its structure before presenting it:
 
-```bash
-python3 .agents/skills/_shared/validate_doc.py --contract diagnosis \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py --contract diagnosis `
   --file {paths.diagnosis}
-python3 .agents/skills/_shared/workspace.py --skill troubleshoot \
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill troubleshoot `
   --slug {slug} --verify --require diagnosis
 ```
 
@@ -634,7 +634,7 @@ Paths resolved once in Phase 1 Step 0 (`.agents/skills/_shared/workspace.py --sk
 | File | Author | Purpose |
 |------|--------|---------|
 | `{paths.bug_report}` | Lead | Bug Report (Phase 1 synthesis) |
-| `{paths.context}` | Opus Subagent | Initial error context analysis |
+| `{paths.context}` | Analysis Collaborator | Initial error context analysis |
 | `{paths.root_cause}` | Root Cause Analyst | Root cause analysis (Codex-driven) |
 | `{paths.impact}` | Impact Investigator | Impact assessment (with Codex risk analysis) |
 | `.agents/STATE.md` (updated) | Lead | Cross-session bug fix context |
@@ -655,10 +655,10 @@ because in Phases 1-2 it does not exist yet):
 
 ## Tips
 
-- **Codex-first**: Every phase consults Codex. This is intentional -- Codex excels at deep code reasoning and pattern recognition that complements Opus's broad context analysis
+- **Codex-first**: Every phase consults Codex. This is intentional -- Codex excels at deep code reasoning and pattern recognition that complements the analysis collaborator's broad context analysis
 - **Codex for hypothesis testing**: When hypotheses conflict, ask Codex to evaluate evidence for each. Codex is better at logical reasoning about code behavior than pattern matching
-- **Phase 1**: Opus subagent (1M context) reproduces the error and gathers full context, then Codex generates initial hypotheses, while Claude collects details from the user
-- **Phase 2**: Agent Teams bidirectional communication allows Root Cause Analyst (Codex-driven) and Impact Investigator (Opus + Codex) to converge on the true root cause
+- **Phase 1**: analysis collaborator (1M context) reproduces the error and gathers full context, then Codex generates initial hypotheses, while Codex collects details from the user
+- **Phase 2**: Agent Teams bidirectional communication allows Root Cause Analyst (Codex-driven) and Impact Investigator (analysis collaborator + Codex) to converge on the true root cause
 - **Phase 3**: Codex validates the fix plan before presenting to user. After approval, proceed to implementation with `/team-execute`
 - **Competing Hypotheses**: If Phase 2 yields inconclusive results, consider spawning additional teammates with adversarial hypotheses (see the `/team-execute` Phase 2 competing hypotheses pattern)
 - **Quick bugs**: For obvious single-file bugs, skip this skill and fix directly -- use this skill for non-trivial bugs where root cause is unclear

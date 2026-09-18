@@ -31,14 +31,26 @@ swallowed. Both failure modes are worse than the split.
 | `work-log-format.md` | Canonical work-log template for Agent Teams teammates (format doc, not a script). |
 | `workspace.py` | Resolve, create, and verify a skill's slug, team name, and artifact paths. Single source of truth for cross-phase naming. |
 | `codex_consult.py` | Invoke the Codex CLI safely: prompt from `--prompt-file`, stdin, or the label's default path; stdin closed; prompt, stdout, and stderr captured to `.agents/logs/codex/` under a collision-free stem; full diagnostics as JSON. |
-| `cli_consult.py` | Invoke a peer CLI agent (Claude Code, Gemini CLI) as a subagent under the same contract, read-only unless `--write-access`. Cross-CLI rules: `.agents/rules/cli-execution.md`. |
+| `cli_consult.py` | Legacy compatibility wrapper for an explicitly selected external peer CLI, read-only unless `--write-access`. It is not a repository runtime or default route. |
 | `validate_doc.py` | Validate a markdown document (work log, lib doc, plan, brief, diagnosis, guide, checkpoint summary, PROGRESS, spike/bug report) against a named `## ` section contract; `--expect-files N` makes "nobody wrote one" a failure. |
 | `append_state_block.py` | Typed writers for `.agents/STATE.md`: `--type feature\|bug-fix\|project` appends a `## Current …` work block, `--type repository-identity` replaces the `## Repository Identity` body `/init` owns. Writer Safety Contract. |
 | `update_design.py` | Typed writers for `.agents/docs/DESIGN.md`: rows for Key Decisions, requirements, NFRs, tech choices, and agent roles, plus named section appends. Idempotent; `--require-change` makes a `no-op` exit `2`. Writer Safety Contract. |
 | `gather_diff.py` | Collect the review scope of a change — changed files, the full patch, and a lint snapshot of the changed Python files. Includes uncommitted work; an empty scope is `scope_empty: true` + exit `2`, never a clean review. |
-| `run_tests.py` | Run one test target and compare the observed outcome against `--expect fail\|pass`, so the TDD Red/Green invariant is an exit code. Distinguishes `failed` from `collection_error` and `no_tests_collected`. |
+| `run_tests.py` | Run one Python test target and compare the observed outcome against `--expect fail\|pass`, so the TDD Red/Green invariant is an exit code. In configured repositories it selects the component's `commands.test_prefix` from `.agents/repository.toml`; targets are resolved inside the repository before their `::node` suffix is preserved and their path is rebased to the declared `working_directory`. Absolute, traversal, and symlink escapes are rejected, while confined `.agents` targets remain supported. It never silently switches to a global pytest when the config declares no gate. |
 | `verify_delegation.py` | Collect Guardrail evidence about a delegated run's diff (deletions, placeholders, weakened tests, out-of-scope files). Reports; never accepts — `verdict` is always `needs-review`. |
-| `verify.sh` | Run the configured quality gates (ruff check, ruff format, ty, pytest) and report one JSON summary. A failed gate is exit `2`; "no gate could run" is a failure unless `--allow-no-gates`. |
+
+The repository-wide gate is [`.agents/check.ps1`](../../check.ps1). It always
+runs the agent contracts and, unless `-AgentOnly` is passed, runs the product
+gates declared in `.agents/repository.toml`. Optional product gates are reported
+as skipped unless `-IncludeOptionalProduct` is explicit. Its only stdout is a
+JSON object with `ok`, `overall`, `tools`, `log_file`, `warnings`, and
+`artifacts`; detailed command output goes to the reported log. Exit codes are
+`0` for pass, `1` for bad arguments, `2` for failed or absent gates, and `3` for
+log-write failure. `-ListGates` lists agent and product commands without running
+them. The mandatory scope check unions committed changes from `-BaselineRef`
+with staged, unstaged, and untracked paths; approved pre-existing product paths
+may be supplied through a JSON `-ScopeAllowlist` or one semicolon-separated
+`-AllowProductPath` value.
 
 ## Shared Script Contract
 
@@ -52,18 +64,18 @@ follow them too, so callers can handle all of them identically:
   reported inside that JSON. (`checkpoint.py` is the one helper whose success
   path prints a human-readable report instead: it generates files, and the
   report says what it wrote.)
-- **`--project-root DIR`** on every bundled helper, **shell included**, to
+- **`--project-root DIR`** on every bundled helper, to
   relocate the repository root so the script can be exercised against a fixture
   directory without touching the real project. Every path the script touches
   honours it; no module-level constant may bake in a directory. There is no
-  `.sh` carve-out: the old exemption said `gather_diff.sh` and `repro.sh`
-  "resolve the root from their own location", but `verify.sh` was shell too and
-  accepted the flag, so the carve-out was an omission dressed as a rationale —
+  language carve-out: the old exemption let shell entry points resolve the root
+  from their own location and skip the relocatable fixture contract. That was
+  an omission dressed as a rationale —
   and because no test could invoke those two against a fixture, three real
   defects (invalid JSON on a quoted argument, an empty review scope reported as
   a clean review, and a parsed-then-ignored `--bisect-good`) stayed invisible.
-  Both are now `.py`; `verify.sh` is the only remaining shell helper and answers
-  `--help` with exit `0` like the rest.
+  The repository has no duplicate Bash gate: Windows/PowerShell is canonical,
+  while deterministic helper logic remains in standard-library Python.
 - **`"ok"` on every payload, success included.** Every JSON object on stdout
   carries a top-level boolean `ok`. Without it a caller that branches on
   `payload.ok` reads `None` from a *successful* run and reports success as
@@ -134,9 +146,11 @@ Exactly two clauses have a documented exception:
 | Exactly one JSON object on stdout | `checkpointing/checkpoint.py`'s success path prints a human-readable report | It generates files, and the report says what it wrote. `--json` gives callers the machine-readable form. |
 | Injectable clock `--now ISO8601` | `update-lib-docs/lib_inventory.py` keeps `--today YYYY-MM-DD` | It stamps nothing; the date is an *input* it compares against, and the strict format is pinned by its tests. |
 
-**A third carve-out requires a `TEMPLATE_DESIGN_LOG.md` entry**, in the same
-commit, naming the clause, the script, and the failure mode the exception does
-not reintroduce. This is not ceremony: the `--project-root` exemption for the two
+**A third carve-out requires a Key Decisions entry in
+`.agents/docs/DESIGN.md`**, written through the shared `update_design.py`
+decision mechanism in the same change. Name the clause, the script, and the
+failure mode the exception does not reintroduce. This is not ceremony: the
+`--project-root` exemption for the two
 shell scripts was justified in this file by a rationale that was simply untrue of
 a sibling shell script, and that undocumented-in-substance carve-out is what kept
 three real defects — invalid JSON output, a `bash -c` with no timeout, and a
@@ -146,7 +160,8 @@ design log is reviewable.
 
 ### What is machine-enforced
 
-`tests/test_shared_script_contract.py` discovers every `.py` and `.sh` helper
+`.agents/tests/test_shared_script_contract.py` discovers every documented
+`.agents/skills/_shared/*.py` helper
 under `.agents/skills/` by `rglob` and enforces: the module docstring's `Usage:`
 and `Exit codes:`, `--help` exit `0` documenting `--project-root`, one JSON
 object with `ok: false` and exit `1` on an unknown flag, one JSON object with a

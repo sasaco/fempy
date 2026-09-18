@@ -15,9 +15,9 @@ subcommand that fails inside a real repository is ``null`` plus an entry in
 ``git.errors`` — never an empty list that reads as "clean tree".
 
 Usage:
-    python3 collect_repo_state.py
-    python3 collect_repo_state.py --since "30 days ago" --max-commits 100
-    python3 collect_repo_state.py --project-root /path/to/repo
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/catchup/collect_repo_state.py
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/catchup/collect_repo_state.py --since "30 days ago" --max-commits 100
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/catchup/collect_repo_state.py --project-root .
 
 Exit codes:
     0  ok (optional paths may legitimately be absent; that is reported)
@@ -29,6 +29,7 @@ Exit codes:
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -37,16 +38,50 @@ from pathlib import Path
 from typing import NoReturn
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
+SHARED_DIR = Path(__file__).resolve().parents[1] / "_shared"
+if str(SHARED_DIR) not in sys.path:
+    sys.path.insert(0, str(SHARED_DIR))
+
+from repository_config import (  # noqa: E402
+    RepositoryPathError,
+    resolve_declared_path,
+    resolve_derived_path,
+)
 
 DEFAULT_SINCE = "30 days ago"
 DEFAULT_MAX_COMMITS = 100
-DEFAULT_CLAUDE_HOME = Path.home() / ".claude"
 CHECKPOINT_PREVIEW = 5
 CLI_LOG_TAIL = 50
 FIRST_LINE_LIMIT = 200
 GIT_TIMEOUT_SECONDS = 30
 MAX_KEY_DECISIONS = 10
 MAX_ENV_COMMANDS = 20
+REPOSITORY_CONFIG = Path(".agents/repository.toml")
+FALLBACK_MANIFEST_NAMES = frozenset({"pyproject.toml", "package.json"})
+FALLBACK_MANIFEST_SUFFIXES = frozenset({".sln", ".csproj"})
+FALLBACK_MAX_DEPTH = 4
+EXCLUDED_DIRECTORY_NAMES = frozenset(
+    {
+        ".git",
+        ".venv",
+        "venv",
+        "node_modules",
+        "dist",
+        "bin",
+        "obj",
+        "__pycache__",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".mypy_cache",
+        ".cache",
+        "vendor",
+    }
+)
+EXCLUDED_PATHS = (
+    "FrameWebforJS/src/assets/js/rxfire",
+    "FrameWebforJS/src/assets/js/paramquery",
+    "tools/local-tools",
+)
 
 CHECKPOINT_STEM_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-\d{6}$")
 DESIGN_PLACEHOLDER_HEADING_MARKER = "Background & Purpose"
@@ -79,6 +114,9 @@ COMMAND_LEADERS = {
     "yarn",
     "node",
     "docker",
+    "dotnet",
+    "pwsh",
+    "powershell",
     "cargo",
     "go",
     "bash",
@@ -501,32 +539,220 @@ def _fenced_commands(text: str, source: str) -> list[dict]:
     return found
 
 
+def _path_is_excluded(relative: str) -> bool:
+    """Return whether *relative* is generated, vendored, or explicitly ignored."""
+    normalized = relative.replace("\\", "/").strip("/").casefold()
+    return any(
+        normalized == prefix.casefold()
+        or normalized.startswith(f"{prefix.casefold()}/")
+        for prefix in EXCLUDED_PATHS
+    )
+
+
+def _fallback_components(root: Path) -> list[dict]:
+    """Bounded manifest discovery for repositories without repository.toml."""
+    components: list[dict] = []
+    excluded_names = {name.casefold() for name in EXCLUDED_DIRECTORY_NAMES}
+    for current, directories, files in os.walk(root):
+        current_path = Path(current)
+        relative_dir = current_path.relative_to(root)
+        depth = 0 if relative_dir == Path(".") else len(relative_dir.parts)
+        directories[:] = [
+            name
+            for name in directories
+            if name.casefold() not in excluded_names
+            and not _path_is_excluded(
+                (current_path / name).relative_to(root).as_posix()
+            )
+            and not (current_path / name / ".git").is_file()
+        ]
+        if depth >= FALLBACK_MAX_DEPTH:
+            directories[:] = []
+        for filename in files:
+            path = current_path / filename
+            relative = path.relative_to(root).as_posix()
+            if _path_is_excluded(relative):
+                continue
+            if (
+                filename not in FALLBACK_MANIFEST_NAMES
+                and path.suffix.casefold() not in FALLBACK_MANIFEST_SUFFIXES
+            ):
+                continue
+            try:
+                resolve_derived_path(
+                    root, path, f"fallback manifest candidate {relative}", kind="file"
+                )
+            except RepositoryPathError:
+                continue
+            kind = {
+                "pyproject.toml": "python",
+                "package.json": "node",
+            }.get(filename, "dotnet")
+            components.append(
+                {
+                    "id": f"fallback-{len(components) + 1}",
+                    "kind": kind,
+                    "manifest": relative,
+                    "working_directory": relative_dir.as_posix() or ".",
+                    "commands": {},
+                }
+            )
+    return components
+
+
+def repository_components(root: Path) -> tuple[list[dict], list[dict], list[str]]:
+    """Load declared components and gates, or use bounded fallback discovery."""
+    path = root / REPOSITORY_CONFIG
+    if not path.is_file():
+        return _fallback_components(root), [], []
+    try:
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as exc:
+        return [], [], [f"cannot parse {REPOSITORY_CONFIG.as_posix()}: {exc}"]
+    raw_components = data.get("components")
+    raw_gates = data.get("gates", [])
+    if not isinstance(raw_components, list):
+        return [], [], ["repository.toml has no [[components]] declarations"]
+    components: list[dict] = []
+    errors: list[str] = []
+    for index, component in enumerate(raw_components):
+        if not isinstance(component, dict):
+            errors.append(f"components[{index}] is not a table")
+            continue
+        normalized = dict(component)
+        component_errors: list[str] = []
+        try:
+            manifest, _ = resolve_declared_path(
+                root,
+                component.get("manifest"),
+                f"components[{index}].manifest",
+                kind="file",
+            )
+            normalized["manifest"] = manifest
+        except RepositoryPathError as exc:
+            component_errors.append(str(exc))
+        try:
+            working_directory, _ = resolve_declared_path(
+                root,
+                component.get("working_directory", "."),
+                f"components[{index}].working_directory",
+                kind="directory",
+            )
+            normalized["working_directory"] = working_directory
+        except RepositoryPathError as exc:
+            component_errors.append(str(exc))
+
+        raw_projects = component.get("projects", [])
+        projects: list[str] = []
+        if not isinstance(raw_projects, list):
+            component_errors.append(f"components[{index}].projects must be an array")
+        else:
+            for project_index, value in enumerate(raw_projects):
+                try:
+                    project, _ = resolve_declared_path(
+                        root,
+                        value,
+                        f"components[{index}].projects[{project_index}]",
+                        kind="file",
+                    )
+                    projects.append(project)
+                except RepositoryPathError as exc:
+                    component_errors.append(str(exc))
+        normalized["projects"] = projects
+        if component_errors:
+            errors.extend(component_errors)
+            continue
+        components.append(normalized)
+    gates = [dict(gate) for gate in raw_gates if isinstance(gate, dict)] if isinstance(raw_gates, list) else []
+    if not isinstance(raw_gates, list):
+        errors.append("gates is not an array")
+    return components, gates, errors
+
+
 def collect_env(root: Path) -> dict:
     """Manifests, declared scripts, and documented commands — with provenance.
 
     Every entry names the file it came from. Nothing is inferred: a repository
     that documents no commands reports none rather than a plausible guess.
     """
-    env: dict = {"manifests": [], "scripts": [], "commands": [], "errors": []}
-    for name in ("pyproject.toml", "package.json", "Makefile", "justfile"):
-        if (root / name).exists():
-            env["manifests"].append(name)
-
-    pyproject = root / "pyproject.toml"
-    if pyproject.exists():
+    components, gates, component_errors = repository_components(root)
+    env: dict = {
+        "configuration": REPOSITORY_CONFIG.as_posix()
+        if (root / REPOSITORY_CONFIG).is_file()
+        else None,
+        "components": components,
+        "gates": gates,
+        "manifests": [],
+        "scripts": [],
+        "commands": [],
+        "errors": list(component_errors),
+    }
+    for component in components:
+        manifest = component.get("manifest")
+        if not isinstance(manifest, str):
+            continue
+        env["manifests"].append(manifest)
         try:
-            data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
-        except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as exc:
-            env["errors"].append(f"cannot parse pyproject.toml: {exc}")
-        else:
-            for key, value in (data.get("project", {}).get("scripts") or {}).items():
-                env["scripts"].append(
-                    {"name": key, "entry_point": value, "source": "pyproject.toml"}
-                )
+            _, path = resolve_declared_path(
+                root,
+                manifest,
+                f"component {component.get('id', '<unknown>')} manifest",
+                kind="file",
+            )
+        except RepositoryPathError as exc:
+            env["errors"].append(str(exc))
+            continue
+        if path.name == "pyproject.toml":
+            try:
+                data = tomllib.loads(path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as exc:
+                env["errors"].append(f"cannot parse {manifest}: {exc}")
+                continue
+            project = data.get("project")
+            scripts = project.get("scripts") if isinstance(project, dict) else None
+            if isinstance(scripts, dict):
+                for key, value in scripts.items():
+                    env["scripts"].append(
+                        {
+                            "name": key,
+                            "entry_point": value,
+                            "source": manifest,
+                            "component": component.get("id"),
+                        }
+                    )
+        elif path.name == "package.json":
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+                env["errors"].append(f"cannot parse {manifest}: {exc}")
+                continue
+            scripts = data.get("scripts") if isinstance(data, dict) else None
+            if isinstance(scripts, dict):
+                for key, value in scripts.items():
+                    if isinstance(value, str):
+                        env["scripts"].append(
+                            {
+                                "name": key,
+                                "entry_point": value,
+                                "source": manifest,
+                                "component": component.get("id"),
+                            }
+                        )
 
     seen: set[str] = set()
-    for name in ("README.md", "CONTRIBUTING.md"):
-        text, error = read_text(root / name)
+    documentation = [Path("README.md"), Path("CONTRIBUTING.md")]
+    documentation.extend(
+        Path(str(component.get("working_directory", "."))) / "README.md"
+        for component in components
+    )
+    for relative in dict.fromkeys(documentation):
+        name = relative.as_posix()
+        try:
+            path = resolve_derived_path(root, root / relative, f"documentation {name}")
+        except RepositoryPathError as exc:
+            env["errors"].append(str(exc))
+            continue
+        text, error = read_text(path)
         if error:
             env["errors"].append(error)
             continue
@@ -577,13 +803,17 @@ def collect_checkpoints(root: Path) -> dict:
     }
 
 
-def collect_agent_teams(root: Path, claude_home: Path) -> dict:
-    """Agent Teams sessions from {claude_home} plus in-repo teammate work logs."""
+def collect_agent_teams(root: Path, external_history_root: Path | None) -> dict:
+    """In-repo work logs plus explicitly requested external runtime history."""
     teams: dict = {"sessions": [], "work_logs": [], "errors": []}
 
-    teams_dir = claude_home / "teams"
-    tasks_dir = claude_home / "tasks"
-    if teams_dir.is_dir():
+    if external_history_root is not None:
+        teams_dir = external_history_root / "teams"
+        tasks_dir = external_history_root / "tasks"
+    else:
+        teams_dir = None
+        tasks_dir = None
+    if teams_dir is not None and teams_dir.is_dir():
         for team_dir in sorted(teams_dir.iterdir()):
             if not team_dir.is_dir():
                 continue
@@ -601,6 +831,7 @@ def collect_agent_teams(root: Path, claude_home: Path) -> dict:
                     session["members"] = parsed.get("members", [])
                 except (json.JSONDecodeError, OSError, UnicodeDecodeError) as exc:
                     teams["errors"].append(f"{team_dir.name}/config.json: {exc}")
+            assert tasks_dir is not None
             task_dir = tasks_dir / team_dir.name
             if task_dir.is_dir():
                 for task_file in sorted(task_dir.glob("*.json")):
@@ -666,7 +897,10 @@ def collect_cli_tools(root: Path) -> dict:
 
 
 def build_state(
-    root: Path, since: str, max_commits: int, claude_home: Path
+    root: Path,
+    since: str,
+    max_commits: int,
+    external_history_root: Path | None,
 ) -> tuple[dict, int]:
     """Assemble the repo-state document; return (state, exit_code)."""
     errors: list[str] = []
@@ -691,7 +925,7 @@ def build_state(
         "docs": collect_docs(root),
         "env": collect_env(root),
         "checkpoints": collect_checkpoints(root),
-        "agent_teams": collect_agent_teams(root, claude_home),
+        "agent_teams": collect_agent_teams(root, external_history_root),
         "cli_tools": collect_cli_tools(root),
         "errors": errors,
         "artifacts": [],
@@ -719,20 +953,35 @@ def _build_parser() -> JsonArgumentParser:
     parser.add_argument("--since", default=DEFAULT_SINCE)
     parser.add_argument("--max-commits", type=int, default=DEFAULT_MAX_COMMITS)
     parser.add_argument(
-        "--claude-home",
+        "--external-agent-history",
         type=Path,
-        default=DEFAULT_CLAUDE_HOME,
-        help="Agent Teams data root (defaults to ~/.claude)",
+        default=None,
+        help=(
+            "Optional runtime-neutral directory containing teams/ and tasks/; "
+            "omitted by default so only in-repo work logs are read"
+        ),
     )
     return parser
 
 
 def main() -> int:
-    args = _build_parser().parse_args()
+    parser = _build_parser()
+    args = parser.parse_args()
     if args.max_commits < 1:
-        _build_parser().error("--max-commits must be >= 1")
+        parser.error("--max-commits must be >= 1")
+    root = args.project_root.resolve()
+    external_history_root = args.external_agent_history
+    if external_history_root is not None:
+        if not external_history_root.is_absolute():
+            external_history_root = root / external_history_root
+        external_history_root = external_history_root.resolve()
+        if not external_history_root.is_dir():
+            parser.error(
+                "--external-agent-history is not a directory: "
+                f"{external_history_root}"
+            )
     state, exit_code = build_state(
-        args.project_root, args.since, args.max_commits, args.claude_home
+        root, args.since, args.max_commits, external_history_root
     )
     _emit(state)
     return exit_code

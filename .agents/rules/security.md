@@ -1,78 +1,33 @@
 # Security Rules
 
-Security checklist to always verify when writing code.
+## Secrets and Logging
 
-## Secrets Management
+- Never hardcode, print, or commit credentials, tokens, connection strings, or
+  local environment files.
+- Read secrets from the existing configuration/environment mechanism and fail
+  safely when required values are missing.
+- Log enough context to diagnose a failure without logging secret-bearing
+  values or user data.
 
-### Never Do
+## Input and Output Boundaries
 
-- Hardcode API keys or passwords
-- Log sensitive information
-- Commit `.env` files
-
-### Required
-
-```python
-# Good: Get from environment variables
-import os
-API_KEY = os.environ["API_KEY"]
-
-# Good: With existence check
-API_KEY = os.environ.get("API_KEY")
-if not API_KEY:
-    raise ValueError("API_KEY environment variable is required")
-```
-
-## Input Validation
-
-Always validate external input:
-
-```python
-from pydantic import BaseModel, EmailStr, Field
-
-class UserInput(BaseModel):
-    email: EmailStr
-    age: int = Field(ge=0, le=150)
-    name: str = Field(min_length=1, max_length=100)
-```
-
-## SQL Injection Prevention
-
-```python
-# Bad: String concatenation
-cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
-
-# Good: Parameterized query
-cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
-```
-
-## XSS Prevention
-
-- Escape user input before embedding in HTML
-- Enable template engine auto-escaping
-
-## Error Messages
-
-```python
-# Bad: Too detailed (gives attackers information)
-raise Exception(f"Database connection failed: {connection_string}")
-
-# Good: Minimal information
-raise Exception("Database connection failed")
-# Details go to logs (logs are private)
-logger.error(f"Database connection failed: {connection_string}")
-```
+- Validate untrusted input before parsing or dispatch.
+- Use parameterized database queries and existing safe serialization APIs.
+- Preserve template escaping and avoid introducing raw HTML/string execution.
+- Return user-safe errors; keep internal diagnostics in protected logs.
 
 ## Dependencies
 
-- Regular vulnerability checks: `pip-audit`, `safety`
-- Remove unused dependencies
-- Pin versions (`==` over `>=`)
+- Add or upgrade dependencies only when the task requires it.
+- Keep compatible version ranges in `pyproject.toml` and `package.json`; rely on
+  `uv.lock` and `package-lock.json` for reproducible development and CI.
+- Use ecosystem checks declared by the repository. Do not require globally
+  installed scanners or silently rewrite lockfiles.
 
-## Code Review Checklist
+## Review Checklist
 
-- [ ] No hardcoded secrets
-- [ ] External input is validated
-- [ ] SQL queries are parameterized
-- [ ] Error messages are not too detailed
-- [ ] Logs don't contain sensitive information
+- No new secret or sensitive-data exposure.
+- External input is validated at the correct trust boundary.
+- Filesystem, process, network, and SQL operations use safe APIs.
+- Permission changes are explicit and least-privilege.
+- Failure paths do not leak details or suppress security-relevant errors.

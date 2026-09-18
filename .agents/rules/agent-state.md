@@ -1,46 +1,33 @@
 # Agent State Contract
 
-`AGENTS.md` is an immutable, minimal bootstrap that every CLI agent may load.
-`CLAUDE.md` is a relative symlink to it. Repository-specific and cross-session
-state belongs in `.agents/STATE.md`, never in either bootstrap path.
+`AGENTS.md` is the concise Codex bootstrap. Repository-specific and
+cross-session state belongs in `.agents/STATE.md`, not in the bootstrap.
 
 ## State Ownership
 
 | Section | Owner / writers | Content |
-|---------|-----------------|---------|
-| `## Repository Identity` | `/init` only | Thin identity plus a pointer to `.agents/docs/DESIGN.md`. |
-| `## Progress Tracker` | `/checkpointing` | Idempotent link to `PROGRESS.md`. |
-| Working blocks | `/feature`, `/troubleshoot`, `/checkpointing`, and manual notes | Current project, feature, and bug-fix context. |
+|---|---|---|
+| `## Main Agent` | explicit runtime-change workflow | Active main runtime |
+| `## Repository Identity` | `init` skill | Thin identity plus a pointer to `.agents/docs/DESIGN.md` |
+| `## Progress Tracker` | `checkpointing` skill | Idempotent link to `PROGRESS.md` |
+| Working blocks | workflow skills and manual notes | Current feature and bug-fix context |
 
-The installer and updater preserve `.agents/STATE.md`. They recognize legacy
-`AGENTS.md` and `CLAUDE.md` boundary markers only to migrate old Zone B/C
-content into this file. New bootstraps must not contain boundary markers.
+Installers and updaters must preserve `.agents/STATE.md`. New bootstraps must
+not contain legacy boundary markers or runtime-specific pseudo-links.
 
 ## Mechanical Checks
 
-`.agents/skills/checkpointing/refresh_guard.py` has five modes, which are
-different operations rather than aliases. Read-only unless stated:
+`refresh_guard.py` provides distinct `check`, `plan`, `compose`, `apply`, and
+`verify` modes. `apply` is dry-run unless `--apply` is present and requires the
+writer's hash guard for concurrent-modification safety. A compaction candidate
+may remove only redundant `## Current *` blocks; other sections are preserved.
 
-| Mode | What it does |
-|------|--------------|
-| `--mode check` | Structure counts (`# Agent State` and `## Progress Tracker` exactly once) plus the work-block inventory. Nothing else is collected. |
-| `--mode plan` | `check` plus the compaction preview: which `## Current *` blocks would be pruned, which sections are preserved, and the *suggested* research-note `move_plan` — a heuristic that needs explicit user approval, never an action. |
-| `--mode compose` | `plan` plus the candidate state written to `.agents/logs/composed-state.md`. Writes only that draft. |
-| `--mode apply` | Replaces `.agents/STATE.md` under the Writer Safety Contract: dry-run by default, `--apply` to write, atomic `os.replace`, `--expect-hash <sha256>` concurrent-modification guard, and validation of the composed bytes before replacing. |
-| `--mode verify` | Compares the on-disk state against the candidate and reports `compaction_applied`. |
+Run helpers from the repository root:
 
-Compaction is lossless by construction — only redundant `## Current *` blocks
-are removed, every other section (manual notes included) is preserved verbatim
-in document order, and any section that would still be lost is reported in
-`sections_dropped` and aborts the run.
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/checkpointing/refresh_guard.py --mode check
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py --contract state-doc --file .agents/STATE.md
+```
 
-Exit codes: `0` ok or preview · `1` bad arguments · `2` structure invalid, a
-non-work-block section would be dropped, or `--mode verify` found the compaction
-not applied · `3` `.agents/STATE.md` unreadable, write failure, or an
-`--expect-hash` mismatch. Pass `--now ISO8601` to stamp a fixed timestamp.
-
-Structural contract for the document itself:
-`.agents/skills/_shared/validate_doc.py --contract state-doc --file .agents/STATE.md`
-(requires `## Main Agent` and `## Progress Tracker`; `## Repository Identity` is
-inserted by its writer when missing, so it is not required). Stack and shared
-state: `.agents/skills/init/detect_stack.py`.
+The state document must contain exactly one `# Agent State`, `## Main Agent`,
+and `## Progress Tracker` structure according to the validator contract.

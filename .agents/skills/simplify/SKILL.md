@@ -32,12 +32,12 @@ is reported as `out_of_scope_files` and fails Step 5.
 
 ### 0. Record the Baseline (mandatory, before any edit)
 
-```bash
-python3 .agents/skills/simplify/simplify_gate.py --phase before \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/simplify/simplify_gate.py --phase before `
   --scope {target file or dir} [--scope {another}] [--base main]
 ```
 
-It runs `_shared/verify.sh` and `_shared/gather_diff.py` and writes
+It runs `.agents/check.ps1` and `_shared/gather_diff.py` and writes
 `.agents/logs/simplify-baseline.json`: the gate status of every tool **as it is
 now**, the current HEAD, the declared scope, and any file that was already
 modified before you started. Without this, a gate that was red the whole time is
@@ -54,7 +54,7 @@ Read the JSON:
 
 Exit codes: `0` baseline recorded · `1` bad arguments, or `--scope` missing —
 without a declared target set "no scope creep" cannot be checked · `2` **no gate
-could run at all**, so the refactor would be unverifiable · `3` verify.sh /
+could run at all**, so the refactor would be unverifiable · `3` .agents/check.ps1 /
 gather_diff.py failed, or the baseline could not be written.
 
 `--baseline PATH` moves the record elsewhere (default
@@ -77,8 +77,8 @@ them is delegated, one delegation per scope entry, launched in parallel when the
 scopes are independent:
 
 ```
-Task tool:
-  subagent_type: "general-purpose-sonnet"   # general-purpose-opus when the code carries
+Collaboration task:
+  role: "implementation collaborator"   # high-capability analysis collaborator when the code carries
                                             # security, concurrency, or data-integrity risk
   prompt: |
     Objective: Simplify {scope path} without changing observable behaviour.
@@ -96,7 +96,7 @@ Task tool:
       .agents/skills/simplify/SKILL.md (early return, extract function).
 
     Acceptance checks — run before returning:
-      bash .agents/skills/_shared/verify.sh
+      & .agents/check.ps1
 
     Output shape:
     ## Hotspots found (file:line -> problem)
@@ -168,8 +168,8 @@ def main():
 
 ### 5. Verify Against the Baseline
 
-```bash
-python3 .agents/skills/simplify/simplify_gate.py --phase after
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/simplify/simplify_gate.py --phase after
 ```
 
 The scope and base ref are read back from the baseline, so they cannot drift
@@ -193,7 +193,7 @@ failure:
 
 Exit codes: `0` no regression and no scope creep · `1` no readable baseline (run
 `--phase before` first) · `2` a gate regressed, a file outside `--scope` changed,
-or no gate could run · `3` verify.sh / gather_diff.py failed.
+or no gate could run · `3` .agents/check.ps1 / gather_diff.py failed.
 
 Then self-review `diff_file` yourself: the gate proves the tests still pass and
 the scope held, not that the result is *simpler*. That judgment is yours.

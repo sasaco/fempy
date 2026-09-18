@@ -25,8 +25,8 @@ only through the runtime's own description-based skill selection.
 - **Explicit request** — "record this", "add to design", "update DESIGN",
   "記録して", `/design-tracker`. This is the reliable path.
 - **Model invocation** from the description, at the runtime's discretion.
-  Claude Code discovers the skill through `.claude/skills` → `.agents/skills`;
-  Codex through `.codex/config.toml`'s `path = ".agents/skills/design-tracker"`.
+  Codex discovers the skill directly from `.agents/skills`; no legacy runtime-specific
+  discovery link or hook is part of this repository.
 - **No hook mechanism.** `.agents/hooks/` contains no design-tracker branch, and
   the words a design conversation actually uses (設計 / design / architecture)
   are claimed by `CODEX_TRIGGERS` in `agent-router.py`, which injects a *Codex*
@@ -90,8 +90,8 @@ one input file overwrite each other. Resolve the path from the shared workspace
 registry rather than deriving it by hand, so the slug rule is the same one every
 other skill uses:
 
-```bash
-python3 .agents/skills/_shared/workspace.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py `
   --skill design-tracker --title "{decision topic}" --create
 ```
 
@@ -117,10 +117,10 @@ Example input (use only the keys you need):
 
 Run dry-run, read the preview, then apply:
 
-```bash
-python3 .agents/skills/_shared/update_design.py --input "${input}"
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/update_design.py --input "${input}"
 # Read the file named by preview_file in the JSON output, then:
-python3 .agents/skills/_shared/update_design.py --input "${input}" --apply --require-change
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/update_design.py --input "${input}" --apply --require-change
 ```
 
 **Completion test.** `"ok": true` alone is not it — a duplicate or empty entry

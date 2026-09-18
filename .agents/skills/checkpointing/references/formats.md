@@ -85,7 +85,7 @@ All collectors succeeded.
 ### Team: project-planning
 
 **Composition:**
-- researcher (general-purpose-opus)
+- researcher (web-enabled research collaborator)
 
 **Task List:**
 - [x] Research library options (researcher)

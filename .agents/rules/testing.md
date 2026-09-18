@@ -1,107 +1,38 @@
 # Testing Rules
 
-Guidelines for writing tests.
+## Principles
 
-## Core Principles
+- Prefer a failing regression test before a behavior fix.
+- Test the changed component at the narrowest useful scope, then run its
+  integration/build gate when risk warrants it.
+- Cover happy paths, boundaries, malformed input, and error propagation that
+  matter to the changed contract.
+- Keep tests deterministic and independent of execution order.
+- Mock network, filesystem, clock, or process boundaries only when isolation is
+  part of the test's purpose.
+- Do not invent a repository-wide coverage threshold or weaken existing tests.
 
-- **TDD recommended**: Write tests first
-- **Coverage target**: 80% or higher
-- **Execution speed**: Unit tests should be fast (< 100ms per test)
+## Canonical Commands
 
-## Test Structure
+Run from the repository root in PowerShell:
 
-### AAA Pattern
+```powershell
+# Python
+uv --directory FrameWeb run --locked --extra dev python -m pytest tests -q
+uv --directory FrameWeb run --locked --extra dev python -m pytest tests/path/test_file.py -q
 
-```python
-def test_user_creation():
-    # Arrange
-    user_data = {"name": "Alice", "email": "alice@example.com"}
+# Angular
+npm --prefix FrameWebforJS run test -- --watch=false --browsers=ChromeHeadless
+npm --prefix FrameWebforJS run build
 
-    # Act
-    user = create_user(user_data)
+# .NET
+dotnet test FrameWeb.sln
+dotnet build FrameWeb.sln
 
-    # Assert
-    assert user.name == "Alice"
-    assert user.email == "alice@example.com"
+# Agent infrastructure
+& .agents/check.ps1
 ```
 
-### Naming Convention
-
-```python
-# test_{target}_{condition}_{expected_result}
-def test_create_user_with_valid_data_returns_user():
-    ...
-
-def test_create_user_with_invalid_email_raises_error():
-    ...
-```
-
-## Test Case Coverage
-
-For each feature, consider:
-
-1. **Happy path**: Basic functionality
-2. **Boundary values**: Min, max, empty
-3. **Error cases**: Invalid input, error conditions
-4. **Edge cases**: None, empty string, special characters
-
-## Mocking
-
-Mock external dependencies:
-
-```python
-from unittest.mock import Mock, patch
-
-@patch("module.external_api_call")
-def test_with_mocked_api(mock_api):
-    mock_api.return_value = {"status": "ok"}
-    result = function_under_test()
-    assert result == expected
-```
-
-## Fixtures
-
-Common setup goes in `conftest.py`:
-
-```python
-# tests/conftest.py
-import pytest
-
-@pytest.fixture
-def sample_user():
-    return User(name="Test", email="test@example.com")
-
-@pytest.fixture
-def db_session():
-    session = create_session()
-    yield session
-    session.rollback()
-```
-
-## Commands
-
-```bash
-# All tests
-uv run pytest -v
-
-# Specific file
-uv run pytest tests/test_user.py -v
-
-# Specific test
-uv run pytest tests/test_user.py::test_create_user -v
-
-# With coverage
-uv run pytest --cov=src --cov-report=term-missing
-
-# Stop on first failure
-uv run pytest -x
-```
-
-## Checklist
-
-- [ ] Happy path is tested
-- [ ] Error cases are tested
-- [ ] Boundary values are tested
-- [ ] Tests are independent (no order dependency)
-- [ ] External dependencies are mocked
-- [ ] Tests run fast
+Run only gates relevant to the change unless a plan or release gate explicitly
+requires the full matrix. Report environment failures separately from product
+regressions.

@@ -35,7 +35,7 @@ Full skill routing: root `AGENTS.md` section "Routing Policy".
 Phase 1: COLLECT (collect_repo_state.py)
   Run the collector script -> single JSON of every dataset the template needs
     |
-Phase 2: SYNTHESIZE (Claude Lead)
+Phase 2: SYNTHESIZE (Codex Lead)
   Turn that JSON into per-section prose — the judgment step
     |
 Phase 3: ASSEMBLE (write_guide.py)
@@ -46,12 +46,12 @@ Phase 3: ASSEMBLE (write_guide.py)
 
 ## Phase 1: COLLECT (via collect_repo_state.py)
 
-```bash
-python3 .agents/skills/catchup/collect_repo_state.py
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/catchup/collect_repo_state.py
 ```
 
 Optional flags: `--since "30 days ago"` (recent-work window, passed to git),
-`--max-commits 100`, `--claude-home DIR` (Agent Teams data root),
+`--max-commits 100`,
 `--project-root DIR`.
 
 Exit codes: `0` ok · `1` bad arguments · `2` not a git repository, or a
@@ -86,11 +86,11 @@ Top-level JSON keys:
   `tool`, plus `skipped_lines`.
 
 Feed the emitted JSON to Phase 2 as its sole input. For very large repos hand it
-to `general-purpose-opus` for the thematic grouping.
+to `high-capability analysis collaborator` for the thematic grouping.
 
 ---
 
-## Phase 2: SYNTHESIZE (Claude Lead)
+## Phase 2: SYNTHESIZE (Codex Lead)
 
 Turn the collected JSON into one markdown body per section of
 `references/guide-template.md`. Do not re-read the source files; the collector
@@ -121,9 +121,9 @@ Write the bodies to a JSON file keyed by the section ids in
 
 ## Phase 3: ASSEMBLE (via write_guide.py)
 
-```bash
-python3 .agents/skills/catchup/write_guide.py --input body.json
-python3 .agents/skills/catchup/write_guide.py --input body.json --apply
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/catchup/write_guide.py --input body.json
+uv run --project FrameWeb --locked --extra dev python .agents/skills/catchup/write_guide.py --input body.json --apply
 ```
 
 The first call previews to `.agents/logs/guide-preview-*.md`; the second writes

@@ -25,10 +25,9 @@ machine-readable metadata lines (``lib-doc`` requires the
 ``metadata_missing``.
 
 Usage:
-    python3 validate_doc.py --contract lib-doc --file path/to/doc.md
-    python3 validate_doc.py --contract work-log --dir path/to/team-dir/
-    python3 validate_doc.py --contract work-log --dir path/to/team-dir/ \
-        --expect-files 3
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py --contract design-doc --file .agents/docs/DESIGN.md
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py --contract work-log --dir .agents/logs/agent-teams/example/
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py --contract work-log --dir .agents/logs/agent-teams/example/ --expect-files 3
 
 ``--expect-files N`` states how many ``*.md`` files the caller requires in
 ``--dir``. Without it, an empty directory is reported as

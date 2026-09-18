@@ -1,109 +1,42 @@
-# Agent Prompts — Template Collection
+# Agent Prompt Patterns
 
-Each template below is a prompt body: write the filled-in template to a file and pass
-it to `.agents/skills/_shared/codex_consult.py --prompt-file` (invocation mechanics
-documented in `../SKILL.md`).
+Use these patterns for native collaborators or a nested Codex consultation.
+Replace placeholders and remove sections that do not apply.
 
-## Architect Agent
+## Implementation
 
-### Template
-
-```
-You are an Architecture Reviewer analyzing {component_name}.
-
-## Context
-- Project: {project_name}
-- Language: {language}
-- Framework: {framework}
-
-## Files to Review
-{file_list}
-
-## Review Focus
-1. Separation of concerns
-2. Dependency direction (inward toward domain)
-3. Interface design (minimal, well-documented)
-4. Extensibility (configuration externalized, extension points identified)
-
-## Output Format
-### Critical Issues (must fix)
-- Location: file:line
-- Problem: description
-- Fix: suggested solution with code
-
-### Recommendations (should consider)
-...
-
-### Observations (nice to have)
-...
+```text
+Objective: <one outcome>
+Scope:
+- Own: <paths>
+- Do not touch: <paths>
+Constraints:
+- <contract or compatibility requirement>
+Authority: workspace write limited to owned paths
+Acceptance checks:
+- <exact command and expected result>
+Output:
+## Summary
+## Files Changed
+## Verification
+## Remaining Risks
 ```
 
-## Analyzer Agent
+## Read-only Analysis or Review
 
-### Template
-
-```
-You are a Deep Analyst investigating a persistent issue.
-
-## Problem
-- Symptom: {symptom}
-- Reproduction: {steps}
-
-## Previous Attempts
-{attempts_list}
-
-## Analysis Request
-1. Root cause analysis (5 Whys approach)
-2. Code flow trace to identify problem point
-3. State analysis (what conditions trigger the bug?)
-4. Fix proposal with verification steps
+```text
+Objective: <decision the analysis enables>
+Scope: read-only; inspect <paths>
+Questions:
+1. <question>
+2. <question>
+Evidence required: file/line references and command results
+Output:
+## Conclusion
+## Evidence
+## Findings
+## Recommendation
 ```
 
-## Optimizer Agent
-
-### Template
-
-```
-You are a Performance Optimizer improving {function_name}.
-
-## Current Implementation
-{current_code}
-
-## Performance Profile
-- Current complexity: O({current})
-- Target complexity: O({target})
-- Typical input size: {size}
-
-## Deliverables
-1. Optimized implementation
-2. Complexity analysis (time and space)
-3. Trade-off evaluation (readability, maintainability)
-4. Benchmark approach
-```
-
-## Security Agent
-
-### Template
-
-```
-You are a Security Auditor reviewing {scope}.
-
-## Files
-{file_list}
-
-## Checklist
-- [ ] Input validation (SQL injection, XSS, path traversal)
-- [ ] Authentication flow
-- [ ] Authorization checks
-- [ ] Session management
-- [ ] Password handling
-- [ ] Sensitive data protection
-- [ ] Error message safety (no leaks)
-- [ ] Dependency vulnerabilities
-
-## Output Format
-### [CRIT-001] {title}
-- Location: file:line
-- Risk: description
-- Remediation: fix with code example
-```
+Prompts must identify ownership, authority, and acceptance checks. Do not name a
+runtime-specific worker unless that worker is actually available.

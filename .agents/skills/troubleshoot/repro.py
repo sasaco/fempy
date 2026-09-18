@@ -14,10 +14,10 @@ quote, parsed a ``--bisect-good`` flag it never used, and reported an absent git
 repository as an empty history.
 
 Usage:
-    python3 repro.py "python3 -m pytest tests/test_x.py"
-    python3 repro.py --command "make test" --file src/x.py --label auth-bug
-    python3 repro.py "python3 -m pytest tests/test_x.py" --expect-exit 0
-    python3 repro.py "make test" --timeout 600 --bisect-good v1.2.0
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/troubleshoot/repro.py "uv --directory FrameWeb run --locked --extra dev python -m pytest tests/validation/test_unit_invariance.py"
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/troubleshoot/repro.py --command "dotnet build FrameWeb.sln" --file FrameWeb.sln --label dotnet-build
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/troubleshoot/repro.py "uv --directory FrameWeb run --locked --extra dev python -m pytest tests/validation/test_unit_invariance.py" --expect-exit 0
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/troubleshoot/repro.py "dotnet build FrameWeb.sln" --timeout 600 --bisect-good v1.2.0
 
 Exit codes:
     0  capture completed (and matched --expect-exit, when given)

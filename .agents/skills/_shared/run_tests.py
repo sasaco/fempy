@@ -10,11 +10,11 @@ at all (a mistyped path, or a test that was never written). ``pytest`` reports
 all four as a non-zero exit, so a human reading "not passing" accepts every one
 of them and the Green step then writes code against a test that never ran.
 
-This script does **not** re-implement ``verify.sh``: that runs the whole
+This script does **not** re-implement ``.agents/check.ps1``: that runs the whole
 configured gate set and answers "is the project healthy". This answers the
-narrower question "did this one run come out the way the caller said it would",
-which ``verify.sh`` cannot express. Which tests to write stays a judgment call
-and is never scripted; only the invariant is.
+narrower question "did this one run come out the way the caller said it would".
+Which tests to write stays a judgment call and is never scripted; only the
+invariant is.
 
 Observed states (payload ``observed``), mapped from the pytest exit code:
 
@@ -30,12 +30,10 @@ internal error (exit 3) or a missing/timed-out runner is an external failure:
 ``observed`` is ``null`` and the exit code is 3. ``observed`` is never guessed.
 
 Usage:
-    python3 run_tests.py --target tests/test_thing.py --expect fail
-    python3 run_tests.py --target tests/test_thing.py --expect pass
-    python3 run_tests.py --target tests/test_a.py --target tests/test_b.py \
-        --expect pass --label green-2
-    python3 run_tests.py --target tests/ --expect pass \
-        --cov mypkg.thing --min-coverage 90
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/run_tests.py --target FrameWeb/tests/validation/test_unit_invariance.py --expect fail
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/run_tests.py --target FrameWeb/tests/validation/test_unit_invariance.py --expect pass
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/run_tests.py --target FrameWeb/tests/validation/test_unit_invariance.py --target FrameWeb/tests/validation/test_stored_references.py --expect pass --label green-2
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/run_tests.py --target FrameWeb/tests --expect pass --cov FrameWeb --min-coverage 90
 
 Exit codes:
     0  ok — observed matches --expect (and coverage meets --min-coverage)
@@ -51,10 +49,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shutil
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 from typing import NoReturn
 
@@ -85,6 +85,8 @@ SUMMARY_TOKENS = ("passed", "failed", "error", "no tests ran", "skipped")
 
 def _emit(obj: dict) -> None:
     """Print a single JSON object to stdout."""
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     print(json.dumps(obj, ensure_ascii=False))
 
 
@@ -122,14 +124,178 @@ def target_path(target: str, project_root: Path) -> Path:
     return candidate if candidate.is_absolute() else project_root / candidate
 
 
-def resolve_runner(runner: str, project_root: Path) -> tuple[list[str] | None, str]:
+def confined_target_path(target: str, project_root: Path) -> Path:
+    """Resolve a pytest target and reject lexical or symlink escapes."""
+    root = project_root.resolve()
+    resolved = target_path(target, project_root).resolve()
+    try:
+        resolved.relative_to(root)
+    except ValueError as exc:
+        raise ValueError(f"target escapes project root: {target}") from exc
+    return resolved
+
+
+def configured_test_prefixes(
+    project_root: Path,
+) -> tuple[list[dict[str, object]], str | None, bool]:
+    """Return Python test prefixes declared in ``repository.toml``.
+
+    The boolean distinguishes an unconfigured repository (where the legacy
+    bounded fallback remains useful) from a configured repository that declares
+    no usable test prefix. The latter is an explicit ``no_gates`` state and must
+    not silently fall back to an unrelated global pytest.
+    """
+    path = project_root / ".agents" / "repository.toml"
+    if not path.is_file():
+        return [], None, False
+    try:
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as exc:
+        return [], f"cannot parse .agents/repository.toml: {exc}", True
+    components = data.get("components")
+    if not isinstance(components, list):
+        return [], "repository.toml has no [[components]] declarations", True
+
+    prefixes: list[dict[str, object]] = []
+    for component in components:
+        if not isinstance(component, dict) or component.get("kind") != "python":
+            continue
+        commands = component.get("commands")
+        prefix = commands.get("test_prefix") if isinstance(commands, dict) else None
+        if not isinstance(prefix, list) or not prefix:
+            continue
+        if not all(isinstance(item, str) and item for item in prefix):
+            return [], "a configured test_prefix contains a non-string value", True
+        component_id = component.get("id")
+        working_directory = component.get("working_directory", ".")
+        if not isinstance(component_id, str) or not component_id:
+            return [], "a Python component has no non-empty id", True
+        if not isinstance(working_directory, str) or not working_directory:
+            return [], f"component {component_id} has no working_directory", True
+        prefixes.append(
+            {
+                "id": component_id,
+                "working_directory": Path(working_directory).as_posix(),
+                "prefix": list(prefix),
+            }
+        )
+    if not prefixes:
+        return [], "no configured Python test gate (commands.test_prefix)", True
+    return prefixes, None, True
+
+
+def _target_under(target: str, directory: str) -> bool:
+    """Return whether the filesystem portion of *target* is under *directory*."""
+    if directory in {"", "."}:
+        return True
+    target_parts = Path(target.split("::", 1)[0]).parts
+    directory_parts = Path(directory).parts
+    return target_parts[: len(directory_parts)] == directory_parts
+
+
+def select_configured_prefix(
+    targets: list[str],
+    project_root: Path,
+    requested_component: str | None,
+) -> tuple[list[str] | None, str | None, str | None, bool]:
+    """Select one configured Python test prefix for *targets*.
+
+    Returns ``(prefix, component_id, error, config_present)``. Agent-framework
+    tests outside a product working directory use the sole Python environment,
+    which is how this repository runs ``.agents/tests`` without a root venv.
+    """
+    prefixes, error, config_present = configured_test_prefixes(project_root)
+    if error:
+        return None, None, error, config_present
+    if not config_present:
+        return None, None, None, False
+    if requested_component is not None:
+        matches = [item for item in prefixes if item["id"] == requested_component]
+        if not matches:
+            return (
+                None,
+                None,
+                f"component {requested_component!r} has no configured Python test gate",
+                True,
+            )
+        selected = matches[0]
+    else:
+        matches = [
+            item
+            for item in prefixes
+            if all(
+                _target_under(target, str(item["working_directory"]))
+                for target in targets
+            )
+        ]
+        if len(matches) == 1:
+            selected = matches[0]
+        elif len(prefixes) == 1:
+            selected = prefixes[0]
+        else:
+            return None, None, "test targets do not select one configured component", True
+    return list(selected["prefix"]), str(selected["id"]), None, True
+
+
+def targets_for_runner(
+    targets: list[str], project_root: Path, runner_note: str
+) -> list[str]:
+    """Render repo-root targets in a configured component's coordinates.
+
+    The public CLI always accepts repository-relative targets. A configured
+    prefix may establish a component working directory (for example, ``uv
+    --directory FrameWeb``), so the target arguments appended to that prefix
+    must be relative to the component rather than the repository root.
+    """
+    if not runner_note.startswith("repository.toml:"):
+        return list(targets)
+
+    component_id = runner_note.partition(":")[2]
+    prefixes, error, _ = configured_test_prefixes(project_root)
+    if error:
+        return list(targets)
+    selected = next((item for item in prefixes if item["id"] == component_id), None)
+    if selected is None:
+        return list(targets)
+
+    component_root = (
+        project_root / str(selected["working_directory"])
+    ).resolve()
+    rendered: list[str] = []
+    for target in targets:
+        file_part, separator, node_id = target.partition("::")
+        absolute_target = confined_target_path(file_part, project_root)
+        relative_target = Path(
+            os.path.relpath(absolute_target, start=component_root)
+        ).as_posix()
+        rendered.append(
+            relative_target + (f"::{node_id}" if separator else "")
+        )
+    return rendered
+
+
+def resolve_runner(
+    runner: str,
+    project_root: Path,
+    targets: list[str] | None = None,
+    component: str | None = None,
+) -> tuple[list[str] | None, str]:
     """Return the argv prefix that runs pytest, or ``(None, reason)``.
 
-    Mirrors ``verify.sh``'s precondition order (uv first when the project has a
-    ``pyproject.toml``) without duplicating its gate logic: this only decides
-    *how* to invoke pytest, never which gates a project has.
+    Prefer the configured component command, then use a bounded legacy fallback.
+    This only decides *how* to invoke pytest, never which gates a project has.
     """
     has_pyproject = (project_root / "pyproject.toml").is_file()
+    if runner == "auto":
+        prefix, component_id, error, config_present = select_configured_prefix(
+            targets or [], project_root, component
+        )
+        if error:
+            return None, error
+        if config_present and prefix is not None:
+            if shutil.which(prefix[0]) is None:
+                return None, f"configured test runner is not on PATH: {prefix[0]}"
+            return prefix, f"repository.toml:{component_id}"
     if runner in {"auto", "uv"}:
         if shutil.which("uv") and (has_pyproject or runner == "uv"):
             return ["uv", "run", "pytest"], "uv"
@@ -236,6 +402,11 @@ def _build_parser() -> JsonArgumentParser:
         "python -m pytest)",
     )
     parser.add_argument(
+        "--component",
+        default=None,
+        help="Configured Python component id (normally inferred from --target)",
+    )
+    parser.add_argument(
         "--label",
         default="run-tests",
         help="Log file name stem under .agents/logs/ (default: run-tests)",
@@ -265,7 +436,11 @@ def validate_args(args: argparse.Namespace) -> str | None:
     if not args.project_root.is_dir():
         return f"--project-root is not a directory: {args.project_root}"
     for target in args.target:
-        if not target_path(target, args.project_root).exists():
+        try:
+            resolved = confined_target_path(target, args.project_root)
+        except (OSError, ValueError) as exc:
+            return str(exc)
+        if not resolved.exists():
             return f"target does not exist: {target}"
     return None
 
@@ -278,24 +453,44 @@ def main() -> int:  # noqa: C901 — single-function CLI entry point
         _emit({"ok": False, "error": error, "artifacts": []})
         return EXIT_BAD_ARGS
 
-    prefix, runner_note = resolve_runner(args.runner, args.project_root)
+    prefix, runner_note = resolve_runner(
+        args.runner, args.project_root, args.target, args.component
+    )
     if prefix is None:
+        no_gate = (
+            "configured" in runner_note
+            or "repository.toml" in runner_note
+            or "component" in runner_note
+        )
         _emit(
             {
                 "ok": False,
                 "expected": EXPECTED_OBSERVATION[args.expect],
                 "observed": None,
+                "overall": "no_gates" if no_gate else "external_failure",
                 "error": runner_note,
                 "artifacts": [],
             }
         )
-        return EXIT_EXTERNAL_FAILURE
+        return EXIT_EXPECTATION_VIOLATED if no_gate else EXIT_EXTERNAL_FAILURE
 
-    command = build_command(prefix, args.target, args.cov)
+    try:
+        command_targets = targets_for_runner(
+            args.target, args.project_root, runner_note
+        )
+    except (OSError, ValueError) as exc:
+        _emit({"ok": False, "error": str(exc), "artifacts": []})
+        return EXIT_BAD_ARGS
+    command = build_command(prefix, command_targets, args.cov)
     payload: dict[str, object] = {
         "expected": EXPECTED_OBSERVATION[args.expect],
         "observed": None,
         "runner": runner_note,
+        "component": (
+            runner_note.partition(":")[2]
+            if runner_note.startswith("repository.toml:")
+            else None
+        ),
         "command": command,
         "exit_code": None,
         "summary": None,

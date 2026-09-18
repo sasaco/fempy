@@ -14,7 +14,7 @@ Initialize project-owned context without expanding the always-loaded root
 - `.agents/docs/DESIGN.md` owns macro requirements and design.
 - `.agents/STATE.md` owns the active main agent, thin repository identity, and
   cross-session working state.
-- Root `AGENTS.md` is template-owned and must not be edited by this skill.
+- Root `AGENTS.md` is the repository-owned Codex bootstrap and must not be edited by this skill.
 - `PROGRESS.md` is maintained by `/checkpointing`.
 
 ## Steps
@@ -23,8 +23,8 @@ Initialize project-owned context without expanding the always-loaded root
 
 Run:
 
-```bash
-python3 .agents/skills/init/detect_stack.py
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/init/detect_stack.py
 ```
 
 The script reports **evidence, not conclusions**. It never infers a command:
@@ -46,16 +46,12 @@ Read these fields before writing anything:
   `go.mod`, `setup.py`, `Makefile`, `Dockerfile`).
 - `manifests` — every checked filename with an explicit `true`/`false`, so
   "checked and absent" is never mistaken for "never checked".
-- `agent_bootstrap` — `agents_md`, `claude_symlink`, `state_md`,
-  `claude_agents_link`, `claude_skills_link`.
+- `agent_bootstrap` — `agents_md` and `state_md`.
 
 Exit codes: `0` normal · `1` bad arguments, including a `--project-root` that is
-not a directory · `2` the agent bootstrap is invalid — `ok: false` and `error`
-name the failed markers. Exit `2` covers the root bootstrap, the `CLAUDE.md`
-symlink, shared state, **and both native discovery symlinks** (`.claude/agents`
-and `.claude/skills` must be symlinks to `../.agents/…`; a dangling one silently
-disables all native agent and skill discovery). Stop and repair the installation
-— `bash .agents/check.sh` diagnoses the same links — before writing context.
+not a directory · `2` the Codex bootstrap is invalid — `ok: false` and `error`
+name the failed markers. Exit `2` covers root `AGENTS.md` and shared state.
+Run `& .agents/check.ps1` to diagnose the same contract before writing context.
 
 ### 2. Ask for missing context
 
@@ -81,10 +77,10 @@ typed keys:
 | `## Key Decisions` | `decisions` | `decision`, `rationale`, `alternatives` (date is stamped for you) |
 | Prose sections (背景・目的, スコープ, 制約, TODO / Open Questions) | `section_updates` | `heading`, `content` |
 
-```bash
-python3 .agents/skills/_shared/update_design.py --input .agents/logs/init-design-input.json
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/update_design.py --input .agents/logs/init-design-input.json
 # Read the preview at preview_file, then apply:
-python3 .agents/skills/_shared/update_design.py --input .agents/logs/init-design-input.json --apply --require-change
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/update_design.py --input .agents/logs/init-design-input.json --apply --require-change
 ```
 
 Completion test — `result == "applied"` **and** (`decisions_appended > 0` or any
@@ -108,10 +104,10 @@ replaces only that section's body and aborts if `## Main Agent`,
 {"identity": "One sentence naming what this repository is."}
 ```
 
-```bash
-python3 .agents/skills/_shared/append_state_block.py --type repository-identity \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/append_state_block.py --type repository-identity `
   --input .agents/logs/init-identity-input.json
-python3 .agents/skills/_shared/append_state_block.py --type repository-identity \
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/append_state_block.py --type repository-identity `
   --input .agents/logs/init-identity-input.json --apply
 ```
 
@@ -126,14 +122,14 @@ rejects them (exit `1`). Confirm `result: "applied"`, `structure_ok: true`, and
 
 Re-run the closing gate, and report the JSON verdicts rather than a claim:
 
-```bash
-python3 .agents/skills/init/detect_stack.py
-python3 .agents/skills/_shared/validate_doc.py --contract design-doc --file .agents/docs/DESIGN.md
-python3 .agents/skills/_shared/validate_doc.py --contract state-doc --file .agents/STATE.md
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/init/detect_stack.py
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py --contract design-doc --file .agents/docs/DESIGN.md
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py --contract state-doc --file .agents/STATE.md
 ```
 
 All three must exit `0` with `ok: true`. `detect_stack.py` confirms shared state
-and the discovery symlinks still resolve; the two contracts confirm the documents
+and the root Codex bootstrap and shared state remain valid; the two contracts confirm the documents
 this skill just wrote still have the sections every other skill reads them for —
 `exit 2` names the missing section. Checking the two documents directly is
 stricter than inferring their health from the detector, which is why the detector

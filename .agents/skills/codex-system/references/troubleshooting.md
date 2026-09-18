@@ -1,81 +1,28 @@
-# Troubleshooting
+# Troubleshooting with Codex
 
-Entries below assume Codex is invoked through the wrapper (`.agents/skills/_shared/codex_consult.py`) described in `../SKILL.md`, except where noted.
+## Investigation Order
 
-## Codex CLI Not Found
+1. Capture the exact error, command, environment, and expected behavior.
+2. Reproduce with the smallest safe command and preserve its output.
+3. Separate facts from hypotheses and rank hypotheses by evidence.
+4. Identify the smallest experiment that can falsify the leading hypothesis.
+5. Propose a fix only after the root cause is supported.
 
-The wrapper checks `PATH` before running and exits `2` with an actionable `error` field when `codex` is missing — no separate detection step is needed. To fix it directly:
+## Read-only Consultation
 
-```bash
-# Check installation
-which codex
-codex --version
-
-# Install
-npm install -g @openai/codex@latest
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py `
+  --prompt-file .agents/logs/codex/prompt-troubleshoot.md `
+  --label troubleshoot `
+  --sandbox read-only
 ```
 
-## Authentication Error
+The prompt includes logs, relevant paths, attempted reproductions, and explicit
+questions. Do not perform global CLI upgrades as a diagnostic step.
 
-```bash
-# Re-authenticate
-codex login
+## Fix Gate
 
-# Check status
-codex login status
-```
-
-## Timeout
-
-| reasoning_effort | Recommended timeout |
-|-----------------|---------------------|
-| low             | 60s                 |
-| medium          | 180s                |
-| high            | 600s                |
-| xhigh           | 900s                |
-
-Pass `--timeout <sec>` to the wrapper to match the table above (default: 600s). For the underlying MCP server integration, configure in config.toml:
-```toml
-[mcp_servers.codex]
-tool_timeout_sec = 600
-```
-
-## Git Repository Error
-
-Codex refuses to run outside a Git repository. Prefer `git init` in the target directory so the work stays reviewable; when that is genuinely not appropriate, pass the flag through the wrapper:
-
-```bash
-python3 .agents/skills/_shared/codex_consult.py \
-  --prompt-file <path> --sandbox read-only --skip-git-repo-check
-```
-
-## Excessive Reasoning Output
-
-The wrapper never prints raw stderr to the console — it captures stderr to a `{label}.err.log` file next to the response (its path is reported as `stderr_file` in the JSON result) instead of discarding or inlining it, so a verbose or crashed run is never mistaken for a quiet success. To reduce the volume Codex itself produces, configure in config.toml:
-```toml
-hide_agent_reasoning = true
-```
-
-## Cannot Continue Session
-
-```bash
-# List recent sessions
-codex sessions list
-
-# Show details for a specific session
-codex sessions show {SESSION_ID}
-```
-
-## Sandbox Permission Error
-
-| Error | Cause | Solution |
-|-------|-------|----------|
-| Permission denied | Write attempted while the wrapper defaulted to `--sandbox read-only` | Pass `--sandbox workspace-write` or `--sandbox danger-full-access` explicitly — the wrapper always defaults to `read-only` and never falls back to the project's `.codex/config.toml` default |
-| Network blocked | Sandbox restriction | Pass `--sandbox danger-full-access` explicitly (with caution) |
-
-## Out of Memory
-
-When analyzing large codebases:
-1. Narrow down the target files
-2. Analyze in stages
-3. Raise the per-call budget with `--config context_limit=<value>`, or scope the prompt and file list down
+After proving the cause, implement under explicit owned paths, rerun the failing
+reproduction, run adjacent regression tests, and inspect the diff for hidden
+error suppression or test weakening. Record environment-only blockers
+separately from product defects.

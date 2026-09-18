@@ -1,79 +1,33 @@
 # Coding Principles
 
-Core coding rules to always follow.
+Cross-language rules for the Python, TypeScript, and C# components.
 
-## Simplicity First
+## Prefer Clarity
 
-- Choose readable code over complex code
-- Avoid over-abstraction
-- Prioritize "understandable" over "working"
+- Choose readable, local solutions over speculative abstractions.
+- Keep each function or class focused on one responsibility.
+- Follow the style already established in the component being changed.
+- Use early returns when they reduce nesting without hiding control flow.
 
-## Single Responsibility
+## Preserve Contracts
 
-- One function does one thing only
-- One class has one responsibility only
-- Target 200-400 lines per file (max 800)
+- Identify public, serialized, and cross-process boundaries before changing
+  them. Maintain backward compatibility unless the task approves a migration.
+- Use Python type hints, TypeScript types, and C# nullable annotations at public
+  or non-obvious boundaries.
+- Validate external input and make failure states explicit.
 
-## Early Return
+## Minimize Mutation and Duplication
 
-```python
-# Bad: Deep nesting
-def process(value):
-    if value is not None:
-        if value > 0:
-            return do_something(value)
-    return None
+- Prefer immutable values at shared/stateful boundaries, but do not clone large
+  objects without a correctness reason.
+- Reuse existing helpers when their contract matches. Do not create a generic
+  abstraction for a single call site.
+- Name constants for domain values; avoid unexplained literals.
 
-# Good: Early return
-def process(value):
-    if value is None:
-        return None
-    if value <= 0:
-        return None
-    return do_something(value)
-```
+## Keep Diffs Reviewable
 
-## Type Hints Required
-
-All functions must have type annotations:
-
-```python
-def call_llm(
-    prompt: str,
-    model: str = "gpt-4",
-    max_tokens: int = 1000
-) -> str:
-    ...
-```
-
-## Immutability
-
-Create new objects instead of mutating existing ones:
-
-```python
-# Bad: Mutating existing object
-data["new_key"] = value
-
-# Good: Creating new object
-new_data = {**data, "new_key": value}
-```
-
-## Naming Conventions
-
-- **Variables/Functions**: snake_case (English)
-- **Classes**: PascalCase (English)
-- **Constants**: UPPER_SNAKE_CASE (English)
-- **Meaningful names**: `user_count` over `x`
-
-## No Magic Numbers
-
-```python
-# Bad
-if retry_count > 3:
-    ...
-
-# Good
-MAX_RETRIES = 3
-if retry_count > MAX_RETRIES:
-    ...
-```
+- Change only files required by the task.
+- Do not mix formatting churn, dependency upgrades, or generated output into a
+  behavior change unless required.
+- Never weaken tests or swallow failures to obtain a green result.

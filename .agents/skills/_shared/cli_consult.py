@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Invoke a peer CLI agent (Claude Code, Gemini CLI) as a subagent.
+"""Invoke an explicitly selected external peer CLI through a compatibility wrapper.
 
-This is the cross-CLI counterpart of ``codex_consult.py``: whichever runtime is
-the active main agent, it drives the others through their headless mode with
-one hardened contract instead of a hand-written shell-out. A raw
+This legacy helper is not a repository runtime or default route. Codex remains
+the active main agent and may use this wrapper only for an explicitly requested
+external CLI consultation. The helper provides one hardened contract instead
+of a hand-written shell-out. A raw
 ``claude -p`` / ``gemini -p`` call has the same four failure modes the Codex
 wrapper removes: an open stdin can block on EOF in a non-TTY shell, stderr
 redirected away makes a crashed CLI indistinguishable from an empty answer, a
@@ -24,11 +25,9 @@ The prompt that was actually sent is always persisted next to the response
 stays diagnosable after the fact.
 
 Usage:
-    python3 cli_consult.py --cli claude --prompt-file p.txt --label design-review
-    echo "Objective: ..." | python3 cli_consult.py --cli gemini --prompt-stdin
-    python3 cli_consult.py --cli claude --prompt-file p.txt --write-access
-    python3 cli_consult.py --cli claude --prompt-file p.txt \
-        --cli-arg=--max-turns --cli-arg 8
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/cli_consult.py --cli gemini --prompt-file p.txt --label design-review
+    "Objective: ..." | uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/cli_consult.py --cli gemini --prompt-stdin
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/cli_consult.py --cli gemini --prompt-file p.txt --write-access
 
 Exit codes:
     0  the callee CLI exited 0, did not report an error, and its output was

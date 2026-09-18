@@ -17,11 +17,11 @@ to write, atomic ``os.replace``, a content-hash concurrent-modification guard,
 and validation of the composed document before it replaces the original.
 
 Usage:
-    python3 checkpoint.py --summary-file .agents/logs/pending-summary.md
-    python3 checkpoint.py --summary-file PATH --apply
-    python3 checkpoint.py --summary-file PATH --apply --consume-summary
-    python3 checkpoint.py --summary-file PATH --since 2026-07-01 --json
-    python3 checkpoint.py --summary-file PATH --now 2026-07-25T12:00:00+00:00
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/checkpointing/checkpoint.py --summary-file .agents/logs/pending-summary.md
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/checkpointing/checkpoint.py --summary-file PATH --apply
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/checkpointing/checkpoint.py --summary-file PATH --apply --consume-summary
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/checkpointing/checkpoint.py --summary-file PATH --since 2026-07-01 --json
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/checkpointing/checkpoint.py --summary-file PATH --now 2026-07-25T12:00:00+00:00
 
 Exit codes:
     0  preview written (default) or checkpoint applied
@@ -50,10 +50,6 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 VALIDATE_DOC = (
     PROJECT_ROOT / ".agents" / "skills" / "_shared" / "validate_doc.py"
 ).resolve()
-
-# Agent Teams data lives under the invoking user's Claude home rather than the
-# repository, so it gets its own override instead of riding on --project-root.
-DEFAULT_CLAUDE_HOME = Path.home() / ".claude"
 
 # PROGRESS-SUMMARY block markers (delimit the user-facing summary at the top
 # of each checkpoint; PROGRESS.md is rebuilt from the content between them).
@@ -326,12 +322,16 @@ def get_file_stats(
     return stats
 
 
-def collect_agent_teams_data(claude_home: Path, collected: Collected) -> list[dict]:
-    """Collect Agent Teams activity from {claude_home}/teams and /tasks."""
-    teams_dir = claude_home / "teams"
-    tasks_dir = claude_home / "tasks"
+def collect_agent_teams_data(
+    external_history_root: Path | None, collected: Collected
+) -> list[dict]:
+    """Collect explicitly requested external runtime history, if any."""
     teams: list[dict] = []
 
+    if external_history_root is None:
+        return teams
+    teams_dir = external_history_root / "teams"
+    tasks_dir = external_history_root / "tasks"
     if not teams_dir.is_dir():
         return teams
 
@@ -422,7 +422,9 @@ def get_design_decisions_diff(
 
 
 def collect_everything(
-    project_root: Path, claude_home: Path, since: str | None
+    project_root: Path,
+    external_history_root: Path | None,
+    since: str | None,
 ) -> Collected:
     """Run every collector, recording each failure instead of swallowing it."""
     collected = Collected()
@@ -431,7 +433,9 @@ def collect_everything(
     collected.file_changes = get_file_changes(project_root, collected, since)
     collected.file_stats = get_file_stats(project_root, collected, since)
     collected.cli_entries = parse_cli_logs(project_root, collected, since)
-    collected.teams_data = collect_agent_teams_data(claude_home, collected)
+    collected.teams_data = collect_agent_teams_data(
+        external_history_root, collected
+    )
     collected.work_logs = collect_work_logs(project_root, collected)
     collected.design_diff = get_design_decisions_diff(project_root, collected, since)
     return collected
@@ -1048,10 +1052,13 @@ def _build_parser() -> JsonArgumentParser:
         "--json", action="store_true", help="Emit JSON instead of prose"
     )
     parser.add_argument(
-        "--claude-home",
+        "--external-agent-history",
         type=Path,
-        default=DEFAULT_CLAUDE_HOME,
-        help="Agent Teams data root (defaults to ~/.claude)",
+        default=None,
+        help=(
+            "Optional runtime-neutral directory containing teams/ and tasks/; "
+            "omitted by default so checkpointing reads only in-repo work logs"
+        ),
     )
     parser.add_argument(
         "--project-root",
@@ -1113,6 +1120,17 @@ def _preflight(args: argparse.Namespace, root: Path) -> Preflight:
             datetime.fromisoformat(args.since)
         except ValueError as exc:
             return fail(f"cannot parse '--since': {exc}", EXIT_BAD_ARGS)
+    if args.external_agent_history is not None:
+        history = args.external_agent_history
+        if not history.is_absolute():
+            history = root / history
+        history = history.resolve()
+        if not history.is_dir():
+            return fail(
+                f"--external-agent-history is not a directory: {history}",
+                EXIT_BAD_ARGS,
+            )
+        args.external_agent_history = history
 
     summary_path, summary_body, error = _resolve_summary(args, root)
     if error:
@@ -1195,7 +1213,9 @@ def main() -> int:  # noqa: C901 — single-function CLI entry point
     )
     assert summary_path is not None and now is not None
 
-    collected = collect_everything(root, args.claude_home, args.since)
+    collected = collect_everything(
+        root, args.external_agent_history, args.since
+    )
 
     timestamp = now.strftime("%Y-%m-%d-%H%M%S")
     checkpoint_path = root / ".agents" / "checkpoints" / f"{timestamp}.md"

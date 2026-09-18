@@ -1,0 +1,75 @@
+{
+  "owners": {
+    "runtime-docs": [
+      "AGENTS.md",
+      "CLAUDE.md",
+      ".claude/**",
+      ".codex/config.toml",
+      ".agents/INDEX.md",
+      ".agents/change_main.md",
+      ".agents/agents/**",
+      ".agents/rules/**",
+      ".agents/docs/CODEX_HANDOFF_PLAYBOOK.md",
+      ".agents/workflows/antigravity/**",
+      ".agents/skills/*/SKILL.md",
+      ".agents/skills/checkpointing/references/formats.md",
+      ".agents/skills/codex-system/references/**",
+      ".agents/logs/agent-teams/team-execute-agents-repository-alignment/runtime-docs.md"
+    ],
+    "tooling-tests": [
+      ".agents/repository.toml",
+      ".agents/check.ps1",
+      ".agents/check.sh",
+      ".agents/hooks/**",
+      ".agents/skills/_shared/README.md",
+      ".agents/skills/_shared/append_state_block.py",
+      ".agents/skills/_shared/cli_consult.py",
+      ".agents/skills/_shared/codex_consult.py",
+      ".agents/skills/_shared/gather_diff.py",
+      ".agents/skills/_shared/run_tests.py",
+      ".agents/skills/_shared/update_design.py",
+      ".agents/skills/_shared/validate_doc.py",
+      ".agents/skills/_shared/verify.sh",
+      ".agents/skills/_shared/verify_delegation.py",
+      ".agents/skills/_shared/workspace.py",
+      ".agents/skills/checkpointing/refresh_guard.py",
+      ".agents/skills/context-loader/load_context.py",
+      ".agents/skills/simplify/simplify_gate.py",
+      ".agents/skills/team-execute/check_ownership.py",
+      ".agents/skills/troubleshoot/repro.py",
+      ".agents/tests/test_run_tests.py",
+      ".agents/tests/test_shared_script_contract.py",
+      ".agents/logs/agent-teams/team-execute-agents-repository-alignment/tooling-tests.md"
+    ],
+    "state-migration": [
+      ".agents/STATE.md",
+      ".agents/docs/DESIGN.md",
+      "PROGRESS.md",
+      ".agents/skills/init/migrate_repository_state.py",
+      ".agents/tests/test_migrate_repository_state.py",
+      ".agents/logs/agent-teams/team-execute-agents-repository-alignment/state-migration.md"
+    ],
+    "security-fixes": [
+      ".agents/skills/_shared/repository_config.py",
+      ".agents/skills/init/detect_stack.py",
+      ".agents/skills/catchup/*.py",
+      ".agents/skills/checkpointing/checkpoint.py",
+      ".agents/skills/update-lib-docs/*.py",
+      ".agents/tests/test_detect_stack.py",
+      ".agents/tests/test_repository_config_security.py",
+      ".agents/logs/agent-teams/team-execute-agents-repository-alignment/security-fixes.md"
+    ],
+    "security-reviewer": [
+      ".agents/docs/research/review-security-agents-repository-alignment.md",
+      ".agents/logs/agent-teams/team-execute-agents-repository-alignment/security-reviewer.md"
+    ],
+    "quality-reviewer": [
+      ".agents/docs/research/review-quality-agents-repository-alignment.md",
+      ".agents/logs/agent-teams/team-execute-agents-repository-alignment/quality-reviewer.md"
+    ],
+    "test-reviewer": [
+      ".agents/docs/research/review-tests-agents-repository-alignment.md",
+      ".agents/logs/agent-teams/team-execute-agents-repository-alignment/test-reviewer.md"
+    ]
+  }
+}

@@ -23,7 +23,7 @@ metadata:
 
 Both modes converge on a shared Phase 3: user approval + complexity-routed implementation.
 
-> Preflight: ensure codex CLI is current (see codex-system skill).
+> Read the codex-system skill before an explicit nested CLI consultation; do not update global CLIs as task preflight.
 
 ```
 /feature <feature description>
@@ -31,8 +31,8 @@ Both modes converge on a shared Phase 3: user approval + complexity-routed imple
     ├─ MODE=existing   : Phase 1E SCOPE  -> Phase 2E DESIGN (Codex direct)
     └─ MODE=greenfield : Phase 1G UNDERSTAND -> Phase 2G RESEARCH & DESIGN (Agent Teams)
     | Phase 3 (shared): PLAN, APPROVE & IMPLEMENT
-    SIMPLE   (1-3 files, <50 LOC) -> Codex danger-full-access direct
-    MODERATE (3-5 files)          -> Codex danger-full-access + /team-execute --review-only
+    SIMPLE   (1-3 files, <50 LOC) -> Codex workspace-write direct
+    MODERATE (3-5 files)          -> Codex workspace-write + /team-execute --review-only
     COMPLEX  (5+ files)           -> /team-execute (implement + review)
 ```
 
@@ -89,8 +89,8 @@ Resolve this feature's paths once. The title becomes file and directory names,
 so give it a short English descriptor of the feature — not the user's raw
 wording, which the Language Protocol keeps out of paths:
 
-```bash
-python3 .agents/skills/_shared/workspace.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py `
   --skill feature --title "<short English title>" --create
 ```
 
@@ -112,14 +112,14 @@ Ask the user to clarify:
 5. **Success criteria**: How do you determine the feature is complete?
 6. **Final design** (greenfield): What form should the result take?
 
-### Opus Subagent Codebase Scan
+### Analysis Collaborator Codebase Scan
 
 Main orchestrator context is precious — large-scale codebase scanning is always
-delegated to `general-purpose-opus` (Opus, 1M context):
+delegated to `high-capability analysis collaborator` (analysis collaborator, 1M context):
 
 ```
-Task tool:
-  subagent_type: "general-purpose-opus"
+Collaboration task:
+  role: "high-capability analysis collaborator"
   prompt: |
     Analyze this codebase for feature: {feature description}
 
@@ -150,7 +150,7 @@ Task tool:
     Return concise summary (5-7 key findings).
 ```
 
-Claude may supplement the subagent's analysis with targeted Glob/Grep/Read on specific files.
+Codex may supplement the subagent's analysis with targeted Glob/Grep/Read on specific files.
 
 ### Codex Consult Protocol
 
@@ -163,10 +163,10 @@ it reads the prompt file, so create the directory first — otherwise the heredo
 write fails in a fresh clone and the consult reads nothing (or a stale prompt
 from a previous label):
 
-```bash
-mkdir -p .agents/logs/codex
+```powershell
+New-Item -ItemType Directory -Force .agents/logs/codex | Out-Null
 # write the prompt body to .agents/logs/codex/prompt-{label}.md, then:
-python3 .agents/skills/_shared/codex_consult.py \
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py `
   --prompt-file .agents/logs/codex/prompt-{label}.md --label {label} --sandbox read-only
 ```
 
@@ -176,13 +176,13 @@ PATH; `3` codex exited non-zero or timed out — inspect `error` and
 `stderr_file` before retrying or escalating.
 
 Sandbox: `read-only` for every analysis/design/validation consult below;
-Phase 3 implementation (Route A/B) uses `--sandbox danger-full-access`
+Phase 3 implementation (Route A/B) uses `--sandbox workspace-write`
 instead — called out again at that call site.
 
 Prompts below show only the prompt body (Objective / Context / Constraints /
 Output format) — that is the file content for `--prompt-file`. MODE=existing
 consultations are **MANDATORY** — do not skip them. The most important input to
-every Codex prompt is the existing codebase patterns from the Opus subagent
+every Codex prompt is the existing codebase patterns from the analysis collaborator
 scan — always include them.
 
 ### DESIGN.md Update
@@ -220,11 +220,11 @@ content is refused. Use `section_updates` only for prose sections
 
 Run the dry-run, review the preview, then apply:
 
-```bash
-python3 .agents/skills/_shared/update_design.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/update_design.py `
   --input .agents/logs/design-input-{slug}.json
 # Review the preview file path in the JSON output, then:
-python3 .agents/skills/_shared/update_design.py \
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/update_design.py `
   --input .agents/logs/design-input-{slug}.json --apply --require-change
 ```
 
@@ -270,11 +270,11 @@ deterministic, atomic update; never edit root `AGENTS.md`.
 
 **Run dry-run**, review the preview, then apply:
 
-```bash
-python3 .agents/skills/_shared/append_state_block.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/append_state_block.py `
   --type feature --input .agents/logs/state-input-{slug}.json
 # Review the preview file path in the JSON output, then:
-python3 .agents/skills/_shared/append_state_block.py \
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/append_state_block.py `
   --type feature --input .agents/logs/state-input-{slug}.json --apply
 ```
 
@@ -292,9 +292,9 @@ All teammates spawned in MODE=greenfield write their work log to
 
 ---
 
-## MODE=existing — Phase 1E: SCOPE (Opus Subagent + Codex + Claude Lead)
+## MODE=existing — Phase 1E: SCOPE (Analysis Collaborator + Codex + Codex Lead)
 
-**Understand the feature's scope and impact on the existing codebase: run the Opus subagent scan (common protocol, existing task list) and consult Codex for scope and impact analysis, while Claude clarifies requirements with the user (common protocol).**
+**Understand the feature's scope and impact on the existing codebase: run the analysis collaborator scan (common protocol, existing task list) and consult Codex for scope and impact analysis, while Codex clarifies requirements with the user (common protocol).**
 
 ### Codex Scope & Impact Analysis (MANDATORY)
 
@@ -304,9 +304,9 @@ Via the Codex consult protocol:
 Objective: Analyze the scope and impact of adding this feature to the existing codebase.
 Context:
 - Feature: {feature description}
-- Affected modules: {from Opus subagent analysis}
-- Existing patterns: {from Opus subagent analysis}
-- Dependencies: {from Opus subagent analysis}
+- Affected modules: {from analysis collaborator analysis}
+- Existing patterns: {from analysis collaborator analysis}
+- Dependencies: {from analysis collaborator analysis}
 Constraints:
 - Assess how many files need to change and estimate LOC
 - Classify complexity: SIMPLE (1-3 files, <50 LOC), MODERATE (3-5 files), COMPLEX (5+ files)
@@ -337,8 +337,8 @@ reaches three Codex prompts undetected — every downstream step reads the file.
 
 Validate it before leaving this phase:
 
-```bash
-python3 .agents/skills/_shared/validate_doc.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py `
   --contract feature-brief --file .agents/docs/research/feature-{slug}-brief.md
 ```
 
@@ -436,9 +436,9 @@ Then update DESIGN.md (common protocol) and continue to Phase 3.
 
 ---
 
-## MODE=greenfield — Phase 1G: UNDERSTAND (Opus Subagent + Claude Lead)
+## MODE=greenfield — Phase 1G: UNDERSTAND (Analysis Collaborator + Codex Lead)
 
-**Analyze the codebase with the Opus subagent scan (common protocol, greenfield task list) while Claude gathers requirements from the user (common protocol).**
+**Analyze the codebase with the analysis collaborator scan (common protocol, greenfield task list) while Codex gathers requirements from the user (common protocol).**
 
 ### Create Project Brief
 
@@ -449,8 +449,8 @@ the `brief` path from Step 0-b** (`.agents/docs/research/feature-{slug}-brief.md
 Validate it before spawning the team — a teammate that starts from a truncated
 brief researches the wrong thing, and nothing downstream would notice:
 
-```bash
-python3 .agents/skills/_shared/validate_doc.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py `
   --contract feature-brief --file .agents/docs/research/feature-{slug}-brief.md
 ```
 
@@ -477,7 +477,7 @@ Create an agent team for project planning: {feature}
 
 Spawn two teammates:
 
-1. **Researcher** — Uses WebSearch/WebFetch for external research (Opus 1M context)
+1. **Researcher** — Uses WebSearch/WebFetch for external research (large-context analysis)
    Prompt: "You are the Researcher for project: {feature}.
 
    Your job: Research external information needed for this project.
@@ -529,7 +529,7 @@ Spawn two teammates:
 
    How to consult Codex:
    Write the question to .agents/logs/codex/prompt-<topic>.md, then:
-   python3 .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-<topic>.md --label <topic> --sandbox read-only
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py --prompt-file .agents/logs/codex/prompt-<topic>.md --label <topic> --sandbox read-only
    Read the answer from the JSON output's response_file.
 
    Record architecture decisions in .agents/docs/DESIGN.md through the shared
@@ -538,9 +538,9 @@ Spawn two teammates:
    write the typed JSON to .agents/logs/design-input-{slug}-architect.json
    (keys: decisions / tech_choices / agent_roles / section_updates — table rows
    only through their typed key), then:
-   python3 .agents/skills/_shared/update_design.py --input .agents/logs/design-input-{slug}-architect.json
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/update_design.py --input .agents/logs/design-input-{slug}-architect.json
    # review the preview path in the JSON output, then:
-   python3 .agents/skills/_shared/update_design.py --input .agents/logs/design-input-{slug}-architect.json --apply --require-change
+   uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/update_design.py --input .agents/logs/design-input-{slug}-architect.json --apply --require-change
    Verify "ok": true and "result": "applied". Exit 2 = invalid structure or a
    no-op; exit 3 = DESIGN.md changed concurrently — re-read it and redo the
    dry-run before applying. Report an exit 2 or 3 in your work log.
@@ -570,8 +570,8 @@ Both teammates were told to write a work log; a teammate that died mid-task, or
 wrote a log missing `Issues Encountered`, is otherwise indistinguishable from
 success — and Phase 3 would then synthesize from an incomplete run:
 
-```bash
-python3 .agents/skills/_shared/validate_doc.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py `
   --contract work-log --dir .agents/logs/agent-teams/{team-name}/ --expect-files 2
 ```
 
@@ -596,7 +596,7 @@ Researcher: "httpx has a connection pool limit of 100 by default"
 
 Without Agent Teams (old subagent approach), this would require:
 1. Researcher subagent finishes → returns summary
-2. Claude reads summary → creates new Codex subagent prompt
+2. Codex reads summary → creates new Codex subagent prompt
 3. Codex subagent finishes → returns summary
 4. If Codex needs more info → another researcher subagent round
 
@@ -620,8 +620,8 @@ Agent Teams collapses this into a single parallel session with real-time interac
 In MODE=greenfield, validate each library doc the Researcher's work log claims
 it wrote, before its constraints are built into the plan:
 
-```bash
-python3 .agents/skills/_shared/validate_doc.py \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/validate_doc.py `
   --contract lib-doc --file .agents/docs/libraries/{library}.md
 ```
 
@@ -656,16 +656,16 @@ Per the common protocols above (DESIGN.md Update / Shared State Update).
 Gate Phase 3 on the artifacts this phase actually consumes, before presenting
 the plan. MODE=existing:
 
-```bash
-python3 .agents/skills/_shared/workspace.py --skill feature --slug {slug} --verify
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill feature --slug {slug} --verify
 ```
 
 MODE=greenfield consumes the Researcher's `research` artifact as well, and that
 key is not required by default — so name it explicitly, otherwise the gate
 verifies the scan and stays blind to the file Step 1 just read:
 
-```bash
-python3 .agents/skills/_shared/workspace.py --skill feature --slug {slug} \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill feature --slug {slug} `
   --verify --require research
 ```
 
@@ -735,8 +735,8 @@ routes is *who wrote the code*, not how much verification it gets.
 
 **1. Quality gates:**
 
-```bash
-bash .agents/skills/_shared/verify.sh
+```powershell
+& .agents/check.ps1
 ```
 
 Read the JSON: `overall` is `pass` / `fail` / `no_gates`. Exit `0` means
@@ -749,11 +749,11 @@ Exit `1` bad arguments, `3` the log could not be written.
 
 **2. Diff evidence (the other half of the Guardrails):**
 
-```bash
-python3 .agents/skills/_shared/verify_delegation.py \
-  --base {ref the delegated run started from} \
-  --expect-files {file the plan said would change} \
-  --forbid-outside {directory the plan scoped the change to} \
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/verify_delegation.py `
+  --base {ref the delegated run started from} `
+  --expect-files {file the plan said would change} `
+  --forbid-outside {directory the plan scoped the change to} `
   --label route-{a|b|c}
 ```
 
@@ -781,10 +781,10 @@ nothing at all — a failed implementation, not a clean one.
 Codex implements directly. Write the prompt body below to
 `.agents/logs/codex/prompt-route-a-implement.md`, then invoke with write access:
 
-```bash
-python3 .agents/skills/_shared/codex_consult.py \
-  --prompt-file .agents/logs/codex/prompt-route-a-implement.md \
-  --label route-a-implement --sandbox danger-full-access
+```powershell
+uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/codex_consult.py `
+  --prompt-file .agents/logs/codex/prompt-route-a-implement.md `
+  --label route-a-implement --sandbox workspace-write
 ```
 
 ```
@@ -819,11 +819,11 @@ Then run **Completion Verification** above (both checks).
 
 #### Route B: MODERATE (3-5 files) — Codex + Review
 
-1. **Implement with Codex** (same prompt and `--sandbox danger-full-access` as
+1. **Implement with Codex** (same prompt and `--sandbox workspace-write` as
    Route A, with more files)
 2. **Run Completion Verification** above — both checks, same exit-code reading.
    Route B changes more files than Route A, so it gets no weaker a gate: record
-   `verify.sh`'s `overall` and the `verify_delegation.py` payload before moving on
+   `.agents/check.ps1`'s `overall` and the `verify_delegation.py` payload before moving on
 3. **Hand off to `/team-execute --review-only`** for parallel review (security,
    quality, test coverage), passing the `slug` from Step 0-b
 
@@ -866,7 +866,7 @@ its JSON) rather than hardcoded here.
 | File | Author | Purpose |
 |------|--------|---------|
 | `.agents/docs/research/feature-{slug}-brief.md` | Lead | Feature / Project Brief — validated with `--contract feature-brief` |
-| `.agents/docs/research/feature-{slug}-codebase.md` | Opus Subagent | Codebase scan |
+| `.agents/docs/research/feature-{slug}-codebase.md` | Analysis Collaborator | Codebase scan |
 | `.agents/docs/research/{slug}.md` (greenfield) | Researcher | External research findings |
 | `.agents/docs/libraries/{lib}.md` (greenfield) | Researcher | Library documentation |
 | `.agents/docs/DESIGN.md` (updated) | Lead / Architect (Codex-informed) | Architecture decisions |
@@ -882,10 +882,10 @@ its JSON) rather than hardcoded here.
 
 - **Mode first**: The biggest failure mode is picking the wrong path. When ambiguous, always AskUserQuestion — never guess
 - **Codex-first (existing mode)**: Every phase consults Codex. Codex excels at understanding how new code fits into existing patterns and identifying integration risks; early scope classification picks the right implementation route from the start; validation catches missing edge cases and convention violations before implementation begins
-- **Existing patterns**: The most important input to Codex is the existing codebase patterns from the Opus subagent scan — include them in every Codex prompt
-- **Agent Teams (greenfield mode)**: Bidirectional communication lets Researcher (Opus) and Architect (Codex) influence each other in real time
+- **Existing patterns**: The most important input to Codex is the existing codebase patterns from the analysis collaborator scan — include them in every Codex prompt
+- **Agent Teams (greenfield mode)**: Bidirectional communication lets Researcher (analysis collaborator) and Architect (Codex) influence each other in real time
 - **Complexity routing**: Do not over-engineer simple features. 1-3 file changes should use Codex direct implementation, not Agent Teams
-- **Quality gates**: Every route ends with Completion Verification — `verify.sh` (gate failure or no gate at all is exit `2`) plus `verify_delegation.py` diff evidence. A Codex or teammate summary is input to that check, never a substitute for it
+- **Quality gates**: Every route ends with Completion Verification — `.agents/check.ps1` (gate failure or no gate at all is exit `2`) plus `verify_delegation.py` diff evidence. A Codex or teammate summary is input to that check, never a substitute for it
 - **Artifacts, not transcripts**: the brief, the scan, the research file and the work logs are files with contracts. If a phase cannot point at a validated file, the phase did not happen
 - **Ctrl+T**: Toggle task list display
 - **Shift+Up/Down**: Navigate between teammates (when using Agent Teams)

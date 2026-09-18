@@ -7,15 +7,14 @@ in every phase instead of re-deriving them by hand, which is how cross-phase
 artifacts silently drift out of sync.
 
 Usage:
-    python3 workspace.py --skill spike --title "DuckDB multi-tenant plan"
-    python3 workspace.py --skill spike --slug duckdb-multitenant --create
-    python3 workspace.py --skill spike --slug duckdb-multitenant --verify
-    python3 workspace.py --skill spike --slug duckdb --verify --require prototype_dir
-    python3 workspace.py --skill team-execute --slug auth --teammate backend
-    python3 workspace.py --skill research-lib --title "ruamel.yaml"
-    python3 workspace.py --skill design-tracker --title "Adopt DuckDB"
-    python3 workspace.py --skill troubleshoot --slug login-500 --verify \
-        --require diagnosis
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill spike --title "Load Case Set Analysis"
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill spike --slug load-case-set-analysis --create
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill spike --slug load-case-set-analysis --verify
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill spike --slug load-case-set-analysis --verify --require prototype_dir
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill team-execute --slug result-set --teammate backend
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill research-lib --title "numpy"
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill design-tracker --title "Version result-set representations"
+    uv run --project FrameWeb --locked --extra dev python .agents/skills/_shared/workspace.py --skill troubleshoot --slug result-set-empty --verify --require diagnosis
 
 Exit codes:
     0  resolved (preview) or created successfully
