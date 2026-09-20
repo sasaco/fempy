@@ -78,6 +78,8 @@ FrameWeb3は次の境界を持つコンポーネント指向モノレポであ�
 
 計算成功時のschemaはこの一組だけとし、result representation negotiation、compatibility adapter、display-specific backend contractは設けない。計算と印刷は別のtransport契約であり、frontendはcanonical schemaを一度だけ検証して直接利用する。
 
+- The Windows desktop client is composed as a `net8.0-windows` WinForms shell over UI-independent Core, Rendering, and Printing projects, plus a local Python runtime owner. Core defines typed `ProjectDocument`, `AnalysisResultSet v1` validation/indexing, result presentation, and the `IAnalysisClient`, `IPrintExporter`, and `IProjectStore` boundaries without WinForms, OpenGL, or PDF-library dependencies.
+
 ## 技術選定 (Tech Stack & Rationale)
 
 | Area | Technology | Rationale | Alternatives Considered |
@@ -98,6 +100,8 @@ FrameWeb3は次の境界を持つコンポーネント指向モノレポであ�
 - local environment/authentication fileはmachine固有値を含み得るため、bootstrap automationで上書き・commitしない。
 - Load Case Set Analysisは一要求256 casesを上限とし、途中失敗時にpartial result setを返さない。
 
+- The C# desktop migration replaces frontend behavior only: Python remains the FEM implementation, successful calculations use only `AnalysisResultSet v1`, calculation and printing transports stay separate, and legacy client/print compatibility is not required.
+
 ## Key Decisions
 
 | Decision | Rationale | Alternatives Considered | Date |
@@ -109,6 +113,8 @@ FrameWeb3は次の境界を持つコンポーネント指向モノレポであ�
 | Use AnalysisResultSet as the only public calculation root and remove FrameResultSet, legacy-cases-v1, the default flat AnalysisResult response, and all compatibility adapters before release. | A single ordered snapshot collection eliminates representation negotiation, duplicate result models, UI-specific backend fields, nonlinear final-state duplication, and compatibility maintenance. Each result is identified by case_id plus a discriminated state; shared topology is emitted once, and domain member-force aggregation becomes canonical postprocessing. | Keep separate AnalysisResult, AnalysisResultSet, and FrameResultSet wire contracts; retain legacy-cases-v1; nest nonlinear step_results inside a case-level final result. | 2026-09-18 |
 | Limit the AnalysisResultSet refactor to the calculation success output; keep existing validated input schemas unchanged and remove the legacy rate display multiplier without introducing load_scale. | The objective is to establish one canonical result root. Redesigning the complete input contract adds unrelated migration risk and schema maintenance, while rate is post-solve display behavior that does not belong in the canonical analysis result. | Introduce AnalysisRequest v1 and rename rate to load_scale; keep post-solve rate behavior. | 2026-09-18 |
 | Enumerate existing legacy load-map entries as ordered result cases, keep modern input single-case as case 1, store support_node_ids per ResultCase, and reproduce normalized existing unit metadata without inference. | This makes output construction deterministic without redesigning input, permits cases to select different support definitions while sharing geometric topology, and remains truthful when current inputs omit unit declarations. | Invent a new multi-case input; require identical supports across cases; put supports in shared topology; assume fixed engineering units. | 2026-09-18 |
+| Build the Windows desktop client as a .NET 8 WinForms frontend replacement while retaining FrameWeb as the Python FEM service and accepting only AnalysisResultSet v1 as a successful calculation response. | This preserves the validated numerical-analysis boundary, keeps one canonical result contract, and lets the desktop migration focus on typed document, presentation, rendering, docking, and PDF workflows. | Port the FEM engine to C#; retain legacy disg/reac/fsec compatibility; support multiple successful result schemas. | 2026-09-20 |
+| Keep calculation and printing as separate typed boundaries in the C# desktop architecture and require no legacy client or print-transport compatibility. | The calculation result contract and PDF composition have different responsibilities and lifecycles; separating them prevents the current untyped print dictionaries from becoming a new application contract. | Reuse the legacy print JSON/dictionaries as the desktop domain model or calculation success schema. | 2026-09-20 |
 
 ## TODO / Open Questions
 
