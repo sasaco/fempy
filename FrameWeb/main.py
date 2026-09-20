@@ -10,6 +10,7 @@ import json
 import base64
 import binascii
 import gzip
+import hmac
 import zlib
 # functions_framework may import symbols not available in some local Python/site-packages
 # (for example when package expects a newer Python stdlib). Import defensively and
@@ -38,6 +39,118 @@ from werkzeug.exceptions import BadRequest, UnsupportedMediaType
 # Flaskアプリの作成
 app = Flask(__name__)
 
+# The desktop-owned local runtime opts into this bounded/authenticated mode by
+# setting a per-process token. Deployments that do not set the variable retain
+# the established HTTP behavior and transport limits for compatibility.
+LOCAL_AUTH_ENV = "FRAMEWEB_LOCAL_AUTH_TOKEN"
+LOCAL_AUTH_HEADER = "X-FrameWeb-Local-Token"
+LOCAL_MAX_REQUEST_BODY_BYTES = 4 * 1024 * 1024
+LOCAL_MAX_DECOMPRESSED_JSON_BYTES = 4 * 1024 * 1024
+LOCAL_READINESS_MARKER = {
+    "service": "FrameWeb",
+    "protocol": "analysis-result-set-v1",
+    "status": "ready",
+}
+
+
+class _LocalLengthRequiredError(InputValidationError):
+    error_code = "length_required"
+    http_status = 411
+
+
+class _LocalRequestTooLargeError(InputValidationError):
+    error_code = "request_too_large"
+    http_status = 413
+
+
+class _LocalUnsupportedMediaTypeError(InputValidationError):
+    error_code = "unsupported_media_type"
+    http_status = 415
+
+
+def _response_headers() -> dict[str, str]:
+    return {
+        "Content-Type": "application/json; charset=utf-8",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": (
+            "Origin, X-Requested-With, Content-Type, Accept, Content-Encoding, "
+            f"Authorization, {LOCAL_AUTH_HEADER}"
+        ),
+    }
+
+
+def _authorize_local_request(http_request) -> tuple[bool, tuple | None]:
+    """Authenticate local mode before any request-body accessor is evaluated."""
+    expected = os.environ.get(LOCAL_AUTH_ENV)
+    if expected is None:
+        return False, None
+
+    headers = _response_headers()
+    if expected == "":
+        return True, (
+            json.dumps({"error": "local_runtime_misconfigured"}),
+            503,
+            headers,
+        )
+
+    supplied = http_request.headers.get(LOCAL_AUTH_HEADER, "")
+    if not hmac.compare_digest(supplied, expected):
+        return True, (json.dumps({"error": "unauthorized"}), 401, headers)
+    return True, None
+
+
+def _read_bounded_local_body(http_request) -> bytes:
+    content_length = http_request.content_length
+    if content_length is None:
+        raise _LocalLengthRequiredError(
+            "Content-Length is required for local analysis requests"
+        )
+    if content_length > LOCAL_MAX_REQUEST_BODY_BYTES:
+        raise _LocalRequestTooLargeError(
+            f"Analysis request exceeds {LOCAL_MAX_REQUEST_BODY_BYTES} bytes"
+        )
+
+    body = http_request.get_data(cache=True)
+    if len(body) > LOCAL_MAX_REQUEST_BODY_BYTES:
+        raise _LocalRequestTooLargeError(
+            f"Analysis request exceeds {LOCAL_MAX_REQUEST_BODY_BYTES} bytes"
+        )
+    return body
+
+
+def _parse_local_json_body(http_request, body: bytes) -> dict:
+    """Parse the authenticated JSON transport as strict UTF-8 only."""
+    if http_request.mimetype != "application/json":
+        raise _LocalUnsupportedMediaTypeError(
+            "Local analysis requests must use application/json"
+        )
+
+    parameters = http_request.mimetype_params
+    if set(parameters) - {"charset"}:
+        raise _LocalUnsupportedMediaTypeError(
+            "Local application/json requests contain unsupported parameters"
+        )
+    charset = parameters.get("charset")
+    if charset is not None and charset.casefold() not in {
+        "utf-8",
+        "utf8",
+        "unicode-1-1-utf-8",
+    }:
+        raise _LocalUnsupportedMediaTypeError(
+            "Local application/json requests must declare UTF-8"
+        )
+
+    try:
+        text = body.decode("utf-8", errors="strict")
+    except UnicodeDecodeError as exc:
+        raise InputValidationError(
+            "Local analysis request JSON must be UTF-8"
+        ) from exc
+    try:
+        return json.loads(text)
+    except (json.JSONDecodeError, ValueError) as exc:
+        raise InputValidationError("Invalid local analysis request JSON") from exc
+
 @app.route('/', methods=['OPTIONS', 'GET', 'POST'])
 def post():
     return FEMPython(request)
@@ -65,26 +178,27 @@ def FEMPython(request):
     Returns:
         str: 計算結果のJSON文字列
     """
+    local_mode, authentication_failure = _authorize_local_request(request)
+    if authentication_failure is not None:
+        return authentication_failure
+
     # region Set CORS headers for the preflight request（旧FWそのまま）
     if request.method == 'OPTIONS':
-        headers = {
-            'Access-Control-Allow-Origin': '*',
+        headers = _response_headers()
+        headers.update({
             'Access-Control-Allow-Methods': 'GET, POST',
-            'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Content-Encoding, Authorization',
-            'Access-Control-Max-Age': '3600'
-        }
+            'Access-Control-Max-Age': '3600',
+        })
         return ('', 204, headers)
     # endregion
 
     # Set CORS headers for the main request（旧FWそのまま）
-    headers = {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Content-Encoding, Authorization'
-    }
+    headers = _response_headers()
 
     # region テスト用コード（旧FWそのまま）
     if request.method == 'GET':
+        if local_mode:
+            return (json.dumps(LOCAL_READINESS_MARKER), 200, headers)
         return (json.dumps({ 'results': 'Hello World!'}), 200, headers)
     # endregion
 
@@ -95,11 +209,21 @@ def FEMPython(request):
 
     # region メイン計算の実行部
     try:
+        local_body = _read_bounded_local_body(request) if local_mode else None
         # 入力データの取得（圧縮されている場合は解凍）
         if encoding == "json":
-            inputJson: dict = request.get_json()
+            inputJson: dict = (
+                _parse_local_json_body(request, local_body)
+                if local_body is not None
+                else request.get_json()
+            )
         else:  # 圧縮されている場合
-            inputJson: dict = Compressor.decompress(request.data)
+            inputJson: dict = Compressor.decompress(
+                local_body if local_body is not None else request.data,
+                max_output_bytes=(
+                    LOCAL_MAX_DECOMPRESSED_JSON_BYTES if local_mode else None
+                ),
+            )
 
         result = build_analysis_result_set(inputJson)
 
@@ -137,7 +261,7 @@ class Compressor():
     """データの圧縮・解凍用クラス"""
 
     @staticmethod
-    def decompress(data: bytes) -> dict:
+    def decompress(data: bytes, max_output_bytes: int | None = None) -> dict:
         """jsonデータを解凍し辞書型にフォーマットする
 
         Args:
@@ -152,10 +276,16 @@ class Compressor():
             raise InputValidationError("Invalid compressed input Base64") from exc
 
         compressed = Compressor._parse_byte_sequence(decoded)
-        try:
-            content = gzip.decompress(compressed)
-        except (gzip.BadGzipFile, EOFError, zlib.error) as exc:
-            raise InputValidationError("Invalid compressed input gzip data") from exc
+        if max_output_bytes is None:
+            try:
+                content = gzip.decompress(compressed)
+            except (gzip.BadGzipFile, EOFError, zlib.error) as exc:
+                raise InputValidationError("Invalid compressed input gzip data") from exc
+        else:
+            content = Compressor._decompress_bounded(
+                compressed,
+                max_output_bytes,
+            )
 
         try:
             text = content.decode("utf-8")
@@ -168,6 +298,26 @@ class Compressor():
         if not isinstance(result, dict):
             raise InputValidationError("Compressed input JSON must be an object")
         return result
+
+    @staticmethod
+    def _decompress_bounded(data: bytes, max_output_bytes: int) -> bytes:
+        """Decode exactly one complete gzip member within the local JSON budget."""
+        if max_output_bytes < 1:
+            raise ValueError("max_output_bytes must be positive")
+
+        decoder = zlib.decompressobj(16 + zlib.MAX_WBITS)
+        try:
+            content = decoder.decompress(data, max_output_bytes + 1)
+        except zlib.error as exc:
+            raise InputValidationError("Invalid compressed input gzip data") from exc
+
+        if len(content) > max_output_bytes or decoder.unconsumed_tail:
+            raise _LocalRequestTooLargeError(
+                f"Decompressed analysis request exceeds {max_output_bytes} bytes"
+            )
+        if not decoder.eof or decoder.unused_data:
+            raise InputValidationError("Invalid compressed input gzip data")
+        return content
 
     @staticmethod
     def _parse_byte_sequence(data: bytes) -> bytes:

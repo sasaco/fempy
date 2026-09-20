@@ -16,7 +16,9 @@
 - package-only の開発経路は **GO** である。DockPanelSuite 3.1.1、OpenTK.GLControl 4.0.2、OpenTK 4.9.4、および所有する最小renderer/shaderで Step 1 へ進める。
 - 完成アプリの再配布は **NO-GO** のままである。MS Gothic、MS Mincho、SimSun、旧THREE shader/typeface/LTC textureは製品へコピー・同梱せず、PDF font strategy、PDF golden、publish成果物のforbidden-file/SBOM検査を後続gateで解決する。
 - Step 1 は作業ツリーで完了した。`PDF_Manager` は `net8.0-windows` WinExeとなり、Core/Rendering/typed Printingを参照する空WinForms shell、4つの自動test project、両solutionへの登録が実装済みである。Step 2以降は未着手である。
-- Step 2 は作業ツリーで完了した。Coreへtyped `ProjectDocument v1`、厳格かつ決定的なJSON/atomic store、完全な`AnalysisResultSet v1` DTO/validator/index/commit boundary、static-only derived presentation、moving-load paging/envelope、およびtyped service boundaryを実装した。Step 3以降は未着手である。
+- Step 2 は作業ツリーで完了した。Coreへtyped `ProjectDocument v1`、厳格かつ決定的なJSON/atomic store、完全な`AnalysisResultSet v1` DTO/validator/index/commit boundary、static-only derived presentation、moving-load paging/envelope、およびtyped service boundaryを実装した。
+- Step 3 は作業ツリーで完了した。localized WinForms shell、stable-key docking registry、bounded/atomic/transactional layout、serialized document transition、coalesced activation、dirty-close/cancellation/exception boundaryを実装した。
+- Step 4 は作業ツリーで完了した。representative document edit、authenticated Python-only runtime、strict analysis transport、typed OpenGL scene/result presentation、live viewport capture、typed PDF vertical sliceを実装した。次はStep 5の全model input editorである。
 - Step 1完了後にリポジトリ正規の全体検査 `& .agents/check.ps1 -AllowProductPath 'FramePrintPDF'` を再実行した。Agent系、scope isolation、`git diff --check`、`.NET build` はPASSしたが、全体は `overall=fail` である。Pythonは3,273件PASS・6件FAIL・4件ERROR（1:55:37）、Angular test/buildはTypeScript compilation、FontAwesome path、`environment.prod.ts` 不在でFAILした。詳細は `.agents/logs/check-20260920T035935489Z-32252.log` を参照する。いずれも既知のC#変更範囲外failureだが、リポジトリ全体をgreenとは報告しない。
 - 独立レビューは品質PASS（Critical/Highなし）、テストPASS（Critical/Highなし）、セキュリティChanges requested（旧Azure/local print hostにHigh 2件）である。新desktop境界には旧印刷資産・制限font・既知脆弱packageは入っていない。一方、legacy hostの匿名endpointは脆弱なImageSharp 1.0.4へ到達でき、request/decompression/image/PDF workも無制限なので、公開・配布はNO-GOである。詳細は `.agents/docs/research/review-{quality,tests,security}-csharp-frameweb-client.md` を参照する。
 
@@ -150,25 +152,25 @@ PDF_Manager.Core --HTTP--> FrameWeb (Python FEM)
 
 #### Step 3: Build the desktop shell and docking lifecycle
 
-- [ ] Implement `MainForm` with menu/commands, left navigation, central document viewport, right editor/tool panes, bottom diagnostics/progress pane, and optional floating panes.
-- [ ] Implement `DockContentRegistry<DocumentKey, Func<DockContent>>`; opening the same keyed tool reuses/activates it, while entity documents may coexist by key.
-- [ ] Implement versioned layout save/restore for keys, dock state, pane bounds/order, and active document using a whitelist registry.
-- [ ] Implement command state, dirty-document close confirmation, exception boundary, cancellation, and a pure activation reducer whose side effects are coalesced and cancellable.
-- [ ] Move all user-visible strings to `Strings.resx`, `Strings.ja.resx`, `Strings.en.resx`, and `Strings.zh.resx`; do not carry hardcoded Angular labels forward.
+- [x] Implement `MainForm` with menu/commands, left navigation, central document viewport, right editor/tool panes, bottom diagnostics/progress pane, and optional floating panes.
+- [x] Implement `DockContentRegistry<DocumentKey, Func<DockContent>>`; opening the same keyed tool reuses/activates it, while entity documents may coexist by key.
+- [x] Implement versioned layout save/restore for keys, dock state, pane bounds/order, and active document using a whitelist registry.
+- [x] Implement command state, dirty-document close confirmation, exception boundary, cancellation, and a pure activation reducer whose side effects are coalesced and cancellable.
+- [x] Move all user-visible strings to `Strings.resx`, `Strings.ja.resx`, `Strings.en.resx`, and `Strings.zh.resx`; do not carry hardcoded Angular labels forward.
 
-**Verification**: STA tests cover create-once/reuse, multi-document identity, hide-vs-dispose, invalid factory fail-fast, layout round-trip, unknown-version rejection, active-document restore, language switching, close confirmation, and no duplicate event subscriptions after repeated open/close.
+**Verification result**: STA tests cover create-once/reuse, multi-document identity, actual tool-hide/document-dispose close behavior, invalid factory fail-fast, bounded JSON/layout persistence, transactional rollback, live order/floating bounds, unknown-version/key rejection, active/null-document restore, creating-thread enforcement, language switching, serialized new/open/save/close races, expected versus unexpected cancellation, and bounded non-cooperative analysis/dirty-save/layout-save shutdown. UiTests pass 74/74; both solution test runs pass 168/168 (Core 75, composition/Printing 9, Rendering 10, UI 74); both Release solution builds and targeted `dotnet format` pass. Coverage percentage is not measured. LayoutState v1 intentionally does not persist docked pane proportions or auto-hide state.
 
 #### Step 4: Deliver the first end-to-end vertical MVP
 
-- [ ] Implement new/open/save/save-as and at least one representative preset using the new document schema.
-- [ ] Implement the minimum node/member/support/load-case editors required by the representative preset, with validation and undo/redo.
-- [ ] Implement the first viewport slice: Z-up nodes, members, supports, loads, selection highlight, orthographic/perspective toggle, fit/home, resize, and table/viewport selection sync.
-- [ ] Implement `FrameWebAnalysisClient` using the current documented JSON request path and strict `AnalysisResultSet` validation; use cancellation and user-safe diagnostic mapping.
-- [ ] Extract or wrap the Python-only lifecycle from `FrameWeb.Startup` into `FrameWeb.LocalRuntime`, retaining readiness, timeout, stdout/stderr capture, Job Object cleanup, and parent-exit cleanup; do not start Angular for the desktop path.
-- [ ] Implement basic static displacement/reaction/member-force tables and one result scene layer.
-- [ ] Implement one typed PDF job with model summary, one result table, and a deterministic viewport capture.
+- [x] Implement new/open/save/save-as and at least one representative preset using the new document schema.
+- [x] Implement the minimum node/member/support/load-case editors required by the representative preset, with validation and undo/redo.
+- [x] Implement the first viewport slice: Z-up nodes, members, supports, loads, selection highlight, orthographic/perspective toggle, fit/home, resize, and table/viewport selection sync.
+- [x] Implement `FrameWebAnalysisClient` using the current documented JSON request path and strict `AnalysisResultSet` validation; use cancellation and user-safe diagnostic mapping.
+- [x] Extract or wrap the Python-only lifecycle from `FrameWeb.Startup` into `FrameWeb.LocalRuntime`, retaining readiness, timeout, stdout/stderr capture, Job Object cleanup, and parent-exit cleanup; do not start Angular for the desktop path.
+- [x] Implement basic static displacement/reaction/member-force tables and one result scene layer.
+- [x] Implement one typed PDF job with model summary, one result table, and a deterministic viewport capture.
 
-**Verification**: from a clean checkout, one command starts the desktop app and Python service; a representative model can be opened, edited, saved/reopened, calculated, inspected, and exported to PDF; cancellation and backend failure leave prior results intact; application exit leaves no Python child process; the PDF passes structural/text/page assertions and an approved rendered-page golden.
+**Verification result**: both Release solutions build with 0 warnings/errors and both solution test runs pass 253/253 (Core 112, composition/Printing 17, Rendering 27, LocalRuntime 14, UI 83). The real `uv --locked` Flask process is started through the production runtime, the representative preset is serialized, calculated through `FrameWebAnalysisClient`, validated, inspected, and shut down with no owned child process left. Targeted Python transport/runtime tests pass 165/165. RendererProbe passes 20 contexts, 200 frames, and 60 captures with all live counters zero; repeated and concurrent independent WGL review also passes. Typed PDF structural/text/page assertions and the independently rasterized 595x842 Gray8 golden pass, including fail-closed mutation tests. Cancellation/backend failures retain prior state. Coverage percentage is not measured; the known Python/Angular full baseline was not rerun.
 
 #### Step 5: Complete all model input editors
 

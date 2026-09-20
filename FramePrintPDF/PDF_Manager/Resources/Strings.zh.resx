@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AppTitle" xml:space="preserve"><value>FrameWeb 桌面版</value></data>
+  <data name="WindowTitleWithDocument" xml:space="preserve"><value>{0} — {1}{2}</value></data>
+  <data name="MenuFile" xml:space="preserve"><value>文件(&amp;F)</value></data>
+  <data name="MenuNew" xml:space="preserve"><value>新建(&amp;N)</value></data>
+  <data name="MenuOpen" xml:space="preserve"><value>打开(&amp;O)...</value></data>
+  <data name="MenuSave" xml:space="preserve"><value>保存(&amp;S)</value></data>
+  <data name="MenuSaveAs" xml:space="preserve"><value>另存为(&amp;A)...</value></data>
+  <data name="MenuExit" xml:space="preserve"><value>退出(&amp;X)</value></data>
+  <data name="MenuAnalysis" xml:space="preserve"><value>分析(&amp;A)</value></data>
+  <data name="MenuRunAnalysis" xml:space="preserve"><value>运行分析(&amp;R)</value></data>
+  <data name="MenuCancel" xml:space="preserve"><value>取消操作(&amp;C)</value></data>
+  <data name="MenuPrint" xml:space="preserve"><value>打印(&amp;P)</value></data>
+  <data name="MenuExportPdf" xml:space="preserve"><value>导出 PDF(&amp;P)...</value></data>
+  <data name="MenuView" xml:space="preserve"><value>视图(&amp;V)</value></data>
+  <data name="MenuNavigation" xml:space="preserve"><value>导航(&amp;N)</value></data>
+  <data name="MenuEditor" xml:space="preserve"><value>编辑器(&amp;E)</value></data>
+  <data name="MenuDiagnostics" xml:space="preserve"><value>诊断(&amp;D)</value></data>
+  <data name="MenuLanguage" xml:space="preserve"><value>语言(&amp;L)</value></data>
+  <data name="LanguageJapanese" xml:space="preserve"><value>日语</value></data>
+  <data name="LanguageEnglish" xml:space="preserve"><value>英语</value></data>
+  <data name="LanguageChinese" xml:space="preserve"><value>中文</value></data>
+  <data name="PaneNavigation" xml:space="preserve"><value>项目导航</value></data>
+  <data name="PaneEditor" xml:space="preserve"><value>编辑器</value></data>
+  <data name="PaneDiagnostics" xml:space="preserve"><value>诊断与进度</value></data>
+  <data name="PaneViewport" xml:space="preserve"><value>模型视口</value></data>
+  <data name="NavigationModel" xml:space="preserve"><value>模型</value></data>
+  <data name="NavigationNodes" xml:space="preserve"><value>节点 ({0})</value></data>
+  <data name="NavigationMembers" xml:space="preserve"><value>构件 ({0})</value></data>
+  <data name="NavigationSupports" xml:space="preserve"><value>支座 ({0})</value></data>
+  <data name="NavigationLoads" xml:space="preserve"><value>荷载工况 ({0})</value></data>
+  <data name="NavigationResults" xml:space="preserve"><value>结果</value></data>
+  <data name="EditorNoSelection" xml:space="preserve"><value>未选择任何项目。</value></data>
+  <data name="ViewportEmpty" xml:space="preserve"><value>新建或打开项目后即可显示模型。</value></data>
+  <data name="ViewportSummary" xml:space="preserve"><value>{0} 个节点 · {1} 个构件</value></data>
+  <data name="StatusReady" xml:space="preserve"><value>就绪</value></data>
+  <data name="StatusWorking" xml:space="preserve"><value>处理中...</value></data>
+  <data name="StatusCanceled" xml:space="preserve"><value>操作已取消。</value></data>
+  <data name="StatusAnalysisCompleted" xml:space="preserve"><value>分析完成。</value></data>
+  <data name="StatusProjectOpened" xml:space="preserve"><value>已打开项目: {0}</value></data>
+  <data name="StatusProjectSaved" xml:space="preserve"><value>已保存项目: {0}</value></data>
+  <data name="StatusPdfExported" xml:space="preserve"><value>已导出 PDF: {0}</value></data>
+  <data name="StatusNotConfigured" xml:space="preserve"><value>此命令尚未配置。</value></data>
+  <data name="UntitledProject" xml:space="preserve"><value>未命名项目</value></data>
+  <data name="DirtyIndicator" xml:space="preserve"><value>*</value></data>
+  <data name="UnsavedChangesTitle" xml:space="preserve"><value>未保存的更改</value></data>
+  <data name="UnsavedChangesMessage" xml:space="preserve"><value>是否在关闭前保存对“{0}”的更改?</value></data>
+  <data name="ErrorTitle" xml:space="preserve"><value>FrameWeb 桌面版错误</value></data>
+  <data name="UnexpectedError" xml:space="preserve"><value>发生意外错误。</value></data>
+  <data name="OpenProjectTitle" xml:space="preserve"><value>打开 FrameWeb 项目</value></data>
+  <data name="SaveProjectTitle" xml:space="preserve"><value>保存 FrameWeb 项目</value></data>
+  <data name="ExportPdfTitle" xml:space="preserve"><value>导出 PDF</value></data>
+  <data name="ProjectFileFilter" xml:space="preserve"><value>FrameWeb 项目 (*.frameweb.json)|*.frameweb.json|JSON 文件 (*.json)|*.json|所有文件 (*.*)|*.*</value></data>
+  <data name="PdfFileFilter" xml:space="preserve"><value>PDF 文件 (*.pdf)|*.pdf|所有文件 (*.*)|*.*</value></data>
+  <data name="ViewportUnavailable" xml:space="preserve"><value>OpenGL 视口不可用。</value></data>
+  <data name="ViewportProjection" xml:space="preserve"><value>投影</value></data>
+  <data name="ViewportFit" xml:space="preserve"><value>适合窗口</value></data>
+  <data name="ViewportHome" xml:space="preserve"><value>主页</value></data>
+  <data name="ViewportLayer" xml:space="preserve"><value>图层</value></data>
+  <data name="ViewportLayerModel" xml:space="preserve"><value>模型</value></data>
+  <data name="ViewportLayerDisplacement" xml:space="preserve"><value>位移</value></data>
+  <data name="ResultDisplacements" xml:space="preserve"><value>位移</value></data>
+  <data name="ResultReactions" xml:space="preserve"><value>反力</value></data>
+  <data name="ResultMemberForces" xml:space="preserve"><value>构件内力</value></data>
+  <data name="ResultStation" xml:space="preserve"><value>位置</value></data>
+  <data name="ResultEnd" xml:space="preserve"><value>端部</value></data>
+  <data name="ResultTruncated" xml:space="preserve"><value>超出显示上限的行已省略。</value></data>
+  <data name="EditorUndo" xml:space="preserve"><value>撤销</value></data>
+  <data name="EditorRedo" xml:space="preserve"><value>重做</value></data>
+  <data name="EditorNodes" xml:space="preserve"><value>节点</value></data>
+  <data name="EditorMembers" xml:space="preserve"><value>构件</value></data>
+  <data name="EditorSupports" xml:space="preserve"><value>支座</value></data>
+  <data name="EditorLoadCases" xml:space="preserve"><value>荷载工况</value></data>
+  <data name="EditorLoads" xml:space="preserve"><value>节点荷载</value></data>
+  <data name="EditorInvalidValue" xml:space="preserve"><value>编辑后的值无效。</value></data>
+  <data name="EditorId" xml:space="preserve"><value>ID</value></data>
+  <data name="EditorName" xml:space="preserve"><value>名称</value></data>
+  <data name="EditorSymbol" xml:space="preserve"><value>符号</value></data>
+  <data name="EditorNode" xml:space="preserve"><value>节点</value></data>
+  <data name="EditorMember" xml:space="preserve"><value>构件</value></data>
+  <data name="EditorNodeI" xml:space="preserve"><value>I 端节点</value></data>
+  <data name="EditorNodeJ" xml:space="preserve"><value>J 端节点</value></data>
+  <data name="EditorCase" xml:space="preserve"><value>工况</value></data>
+  <data name="EditorX" xml:space="preserve"><value>X</value></data>
+  <data name="EditorY" xml:space="preserve"><value>Y</value></data>
+  <data name="EditorZ" xml:space="preserve"><value>Z</value></data>
+  <data name="EditorFx" xml:space="preserve"><value>Fx</value></data>
+  <data name="EditorFy" xml:space="preserve"><value>Fy</value></data>
+  <data name="EditorFz" xml:space="preserve"><value>Fz</value></data>
+  <data name="EditorMx" xml:space="preserve"><value>Mx</value></data>
+  <data name="EditorMy" xml:space="preserve"><value>My</value></data>
+  <data name="EditorMz" xml:space="preserve"><value>Mz</value></data>
+  <data name="EditorRx" xml:space="preserve"><value>Rx</value></data>
+  <data name="EditorRy" xml:space="preserve"><value>Ry</value></data>
+  <data name="EditorRz" xml:space="preserve"><value>Rz</value></data>
+  <data name="EditorFixX" xml:space="preserve"><value>固定 X</value></data>
+  <data name="EditorFixY" xml:space="preserve"><value>固定 Y</value></data>
+  <data name="EditorFixZ" xml:space="preserve"><value>固定 Z</value></data>
+  <data name="EditorFixRx" xml:space="preserve"><value>固定 Rx</value></data>
+  <data name="EditorFixRy" xml:space="preserve"><value>固定 Ry</value></data>
+  <data name="EditorFixRz" xml:space="preserve"><value>固定 Rz</value></data>
+  <data name="RuntimeStartError" xml:space="preserve"><value>无法启动本地 FrameWeb 分析服务。</value></data>
+</root>

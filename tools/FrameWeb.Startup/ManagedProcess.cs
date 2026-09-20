@@ -1,91 +1,102 @@
-using System.Diagnostics;
 using System.Text;
+using FrameWeb.LocalRuntime;
 
 namespace FrameWeb.Startup;
 
 internal sealed class ManagedProcess : IDisposable
 {
-    private readonly Process process;
-    private readonly StreamWriter log;
-    private readonly object logLock = new();
-    private bool disposed;
-    public string Name { get; }
-    public bool HasExited => process.HasExited;
-    public int ExitCode => process.ExitCode;
+    private readonly ManagedChildProcess _process;
+    private readonly StreamWriter _log;
+    private readonly object _logLock = new();
+    private bool _disposed;
 
-    public ManagedProcess(string name, string executable, string workingDirectory,
-        IEnumerable<string> arguments, string logDirectory, WindowsProcessJob job)
+    public ManagedProcess(
+        string name,
+        string executable,
+        string workingDirectory,
+        IEnumerable<string> arguments,
+        string logDirectory,
+        WindowsProcessJob job)
     {
         Name = name;
         Directory.CreateDirectory(logDirectory);
-        log = new StreamWriter(Path.Combine(logDirectory, name + ".log"), false, new UTF8Encoding(false))
-            { AutoFlush = true };
-        var info = new ProcessStartInfo(executable)
+        _log = new StreamWriter(
+            Path.Combine(logDirectory, name + ".log"),
+            append: false,
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false))
         {
-            WorkingDirectory = workingDirectory,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            StandardOutputEncoding = Encoding.UTF8,
-            StandardErrorEncoding = Encoding.UTF8
+            AutoFlush = true,
         };
-        foreach (var argument in arguments) info.ArgumentList.Add(argument);
-        info.Environment["PYTHONUTF8"] = "1";
-        info.Environment["PYTHONUNBUFFERED"] = "1";
-        info.Environment["NG_CLI_ANALYTICS"] = "false";
-        // Visual Studio/ASP.NET debugging settings belong to the .NET host only.
-        info.Environment.Remove("ASPNETCORE_URLS");
-        process = new Process { StartInfo = info };
-        process.OutputDataReceived += (_, e) => Write(e.Data);
-        process.ErrorDataReceived += (_, e) => Write(e.Data);
+        Dictionary<string, string?> environment = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["PYTHONUTF8"] = "1",
+            ["PYTHONUNBUFFERED"] = "1",
+            ["NG_CLI_ANALYTICS"] = "false",
+            ["ASPNETCORE_URLS"] = null,
+        };
+
         try
         {
-            process.Start();
-            job.Add(process);
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            Write($"Started PID {process.Id}");
+            _process = new ManagedChildProcess(
+                new FrameWebRuntimeCommand(executable, workingDirectory, arguments, environment),
+                job,
+                (_, line) => Write(line));
+            Write($"Started PID {_process.Id}");
         }
         catch
         {
-            Dispose();
+            _log.Dispose();
             throw;
         }
     }
 
-    public Task WaitForExitAsync(CancellationToken token) => process.WaitForExitAsync(token);
+    public string Name { get; }
 
-    private void Write(string? line)
-    {
-        if (line is null) return;
-        lock (logLock)
-        {
-            if (disposed) return;
-            log.WriteLine(line);
-            Console.WriteLine($"[{Name}] {line}");
-        }
-    }
+    public bool HasExited => _process.HasExited;
+
+    public int ExitCode => _process.ExitCode
+        ?? throw new InvalidOperationException($"{Name} has not exited.");
+
+    public Task WaitForExitAsync(CancellationToken cancellationToken) =>
+        _process.WaitForExitAsync(cancellationToken);
 
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         try
         {
-            if (!process.HasExited)
-            {
-                process.Kill(entireProcessTree: true);
-                process.WaitForExit(5000);
-            }
+            _process.StopAsync(TimeSpan.FromSeconds(5), CancellationToken.None).GetAwaiter().GetResult();
         }
-        catch (InvalidOperationException) { /* Process did not start or already exited. */ }
+        catch (TimeoutException)
+        {
+            // Closing the owning job remains the final bounded process-tree cleanup.
+        }
         finally
         {
-            lock (logLock)
+            _process.Dispose();
+            lock (_logLock)
             {
-                disposed = true;
-                log.Dispose();
+                _disposed = true;
+                _log.Dispose();
             }
-            process.Dispose();
+        }
+    }
+
+    private void Write(string line)
+    {
+        lock (_logLock)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _log.WriteLine(line);
+            Console.WriteLine($"[{Name}] {line}");
         }
     }
 }

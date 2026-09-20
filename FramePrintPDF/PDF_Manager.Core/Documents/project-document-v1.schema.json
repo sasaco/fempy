@@ -25,6 +25,7 @@
       "required": ["nodes", "members", "supports"],
       "properties": {
         "nodes": { "type": "array", "items": { "$ref": "#/$defs/node" } },
+        "sections": { "type": "array", "items": { "$ref": "#/$defs/frameSection" } },
         "members": { "type": "array", "items": { "$ref": "#/$defs/member" } },
         "supports": { "type": "array", "items": { "$ref": "#/$defs/support" } }
       }
@@ -62,7 +63,26 @@
       "properties": {
         "id": { "$ref": "#/$defs/id" },
         "node_i": { "$ref": "#/$defs/id" },
-        "node_j": { "$ref": "#/$defs/id" }
+        "node_j": { "$ref": "#/$defs/id" },
+        "section_id": { "type": ["string", "null"], "pattern": ".*\\S.*" },
+        "rotation_degrees": { "$ref": "#/$defs/number" },
+        "shear_correction": { "type": "boolean" }
+      }
+    },
+    "frameSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "youngs_modulus", "poisson_ratio", "shear_modulus", "area", "moment_of_inertia_y", "moment_of_inertia_z", "torsion_constant"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "$ref": "#/$defs/id" },
+        "youngs_modulus": { "type": "number", "exclusiveMinimum": 0 },
+        "poisson_ratio": { "type": "number", "exclusiveMinimum": -1, "exclusiveMaximum": 0.5 },
+        "shear_modulus": { "type": "number", "exclusiveMinimum": 0 },
+        "area": { "type": "number", "exclusiveMinimum": 0 },
+        "moment_of_inertia_y": { "type": "number", "exclusiveMinimum": 0 },
+        "moment_of_inertia_z": { "type": "number", "exclusiveMinimum": 0 },
+        "torsion_constant": { "type": "number", "exclusiveMinimum": 0 }
       }
     },
     "support": {

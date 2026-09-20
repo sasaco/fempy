@@ -132,3 +132,75 @@ Rolling progress summary (latest 5 checkpoints): [PROGRESS.md](../PROGRESS.md)
 
 - DEFINE/COMBINE use weighted linear combination; PICKUP chooses signed greatest-absolute component; moving-load envelopes retain source-case provenance.
 - The next implementation step is Step 3 desktop shell/docking lifecycle.
+
+---
+
+## Current Feature: C# FrameWeb Desktop Client Step 3
+<!-- orchestra:block-id: c-frameweb-desktop-client-step-3 -->
+
+### Context
+
+- Goal: Complete the WinForms desktop shell and docking lifecycle before the vertical MVP.
+- Key files: FramePrintPDF/PDF_Manager/Shell/{MainForm.cs,Contents/**,Docking/**,Lifecycle/**}, Resources/**, and PDF_Manager.UiTests/**.
+- Dependencies: DockPanelSuite 3.1.1, typed Step 2 Core contracts, and WinForms STA execution.
+- Complexity: COMPLEX
+
+### Architecture
+
+- Stable DocumentKey identities feed a whitelist-only creating-thread DockContentRegistry; tools hide/reuse and documents dispose/remove.
+- LayoutState v1 is size/count bounded, strict UTF-8, atomically stored, and transactionally restored with live tab order and floating bounds; docked ratios/auto-hide remain unsupported.
+- Document-changing commands are serialized and revision checked; activation is coalesced/cancellable; active work, dirty save, and layout persistence use bounded shutdown with late publication rejection.
+
+### Codex Validation
+
+- UiTests 74/74; both solutions 168/168 (Core 75, composition/Printing 9, Rendering 10, UI 74).
+- Both Release solution builds, targeted shell/UI formatting, ownership reconcile, delegated guardrails, work-log/document contracts, git diff check, and AgentOnly gate pass.
+- Coverage percentage is not measured; unchanged Python/Angular full suites were not rerun and retain the known 3,273 PASS / 6 FAIL / 4 ERROR baseline.
+
+### Integration Points
+
+- Step 4 implements FrameWebAnalysisClient behind IAnalysisClient with JSON byte/entity/result limits, cancellation, transport timeout, and strict AnalysisResultSet validation before commit.
+- Step 4 replaces the placeholder document viewport with the first OpenGL model/result slice and adds minimum editors plus FrameWeb.LocalRuntime.
+- Step 8 typed printing implements IPrintExporter; the isolated legacy Azure/local print host remains outside the desktop boundary.
+
+### Decisions
+
+- Dirty-save timeout aborts close; layout-save timeout is diagnosed but permits close because layout can fall back to defaults.
+- Unexpected OperationCanceledException is handled as a normal failure unless the owned token is actually canceled.
+- The next implementation step is Step 4 end-to-end vertical MVP; legacy host publication and completed-app redistribution remain NO-GO.
+
+---
+
+## Current Feature: C# FrameWeb Desktop Client Step 4
+<!-- orchestra:block-id: c-frameweb-desktop-client-step-4 -->
+
+### Context
+
+- Goal: Complete the first end-to-end desktop vertical MVP from typed project editing through local Python analysis, live OpenGL inspection, and typed PDF export.
+- Key files: FramePrintPDF/PDF_Manager{.Core,.Rendering,.Printing}/**, FramePrintPDF/PDF_Manager.UiTests/**, tools/FrameWeb.LocalRuntime/**, and FrameWeb/main.py.
+- Dependencies: .NET 8 WinForms, OpenTK 4, uv-managed Python/Flask, AnalysisResultSet v1, and Windows Job Objects.
+- Complexity: COMPLEX
+
+### Architecture
+
+- ProjectDocument edits use a bounded undo/redo session and deterministic request serialization; FrameWebAnalysisClient applies byte/entity/result/time/concurrency bounds and commits only a fully validated AnalysisResultSet.
+- FrameWeb.LocalRuntime starts only Python, keeps a per-launch secret private, verifies that the loopback listener belongs to its Job, and exposes a preconfigured HttpClient only after readiness.
+- The UI owns a typed Z-up scene, live UI-thread viewport capture, static result tables/layer, and a dependency-free typed one-page PDF path with an independent fail-closed raster golden.
+
+### Codex Validation
+
+- Both Release solutions build with 0 warnings/errors and both solution test runs pass 253/253 (Core 112, composition/Printing 17, Rendering 27, LocalRuntime 14, UI 83).
+- Targeted Python local-runtime/result transport tests pass 165/165; RendererProbe passes 20 contexts, 200 frames, 60 captures with all live counters zero, and independent repeated/concurrent WGL review also passes.
+- Independent Step 4 security, quality, and test reviews pass with no Critical/High/Medium Step 4 findings; coverage percentage remains unmeasured.
+
+### Integration Points
+
+- Step 5 expands the representative editor slice into the complete model-input matrix and shared grid behaviors.
+- Steps 6 and 7 extend the typed scene/result boundaries rather than adding a legacy adapter.
+- Step 8 replaces the remaining legacy print host only after CJK licensing, pagination, dependency, golden, and publish decisions are complete.
+
+### Decisions
+
+- The desktop runtime never starts Angular and never exposes its local bearer token; listener Job ownership is part of readiness and request acceptance.
+- Live viewport capture is the single diagram source for the vertical PDF slice and must run inside the UI exception boundary.
+- Step 4 is complete; next is Step 5. Legacy-host publication and completed-app redistribution remain NO-GO.

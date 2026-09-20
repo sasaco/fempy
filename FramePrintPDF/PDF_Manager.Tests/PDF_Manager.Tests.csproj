@@ -23,4 +23,8 @@
     <ProjectReference Include="..\PDF_Manager\PDF_Manager.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Goldens\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

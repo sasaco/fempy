@@ -101,11 +101,27 @@ public static class ProjectDocumentJson
                     Y = node.Y,
                     Z = node.Z,
                 }).ToList(),
+                Sections = document.Sections.OrderBy(section => section.Id, StringComparer.Ordinal).Select(section =>
+                    new FrameSectionWire
+                    {
+                        Id = section.Id,
+                        Name = section.Name,
+                        YoungsModulus = section.YoungsModulus,
+                        PoissonRatio = section.PoissonRatio,
+                        ShearModulus = section.ShearModulus,
+                        Area = section.Area,
+                        MomentOfInertiaY = section.MomentOfInertiaY,
+                        MomentOfInertiaZ = section.MomentOfInertiaZ,
+                        TorsionConstant = section.TorsionConstant,
+                    }).ToList(),
                 Members = document.Members.OrderBy(member => member.Id, StringComparer.Ordinal).Select(member => new MemberWire
                 {
                     Id = member.Id,
                     NodeI = member.NodeI,
                     NodeJ = member.NodeJ,
+                    SectionId = member.SectionId,
+                    RotationDegrees = member.RotationDegrees,
+                    ShearCorrection = member.ShearCorrection,
                 }).ToList(),
                 Supports = document.Supports.OrderBy(support => support.Id, StringComparer.Ordinal).Select(support => new SupportWire
                 {
@@ -176,7 +192,13 @@ public static class ProjectDocumentJson
                 wire.Metadata.Author,
                 wire.Metadata.UnitSystem),
             wire.Model.Nodes.Select(node => new ProjectNode(node.Id, node.X, node.Y, node.Z)),
-            wire.Model.Members.Select(member => new ProjectMember(member.Id, member.NodeI, member.NodeJ)),
+            wire.Model.Members.Select(member => new ProjectMember(
+                member.Id,
+                member.NodeI,
+                member.NodeJ,
+                member.SectionId,
+                member.RotationDegrees,
+                member.ShearCorrection)),
             wire.Model.Supports.Select(support => new ProjectSupport(
                 support.Id,
                 support.NodeId,
@@ -207,7 +229,17 @@ public static class ProjectDocumentJson
                 result.Terms.Select(term => new DerivedResultTerm(term.SourceId, term.Factor)))),
             wire.MovingLoads.Select(load => new MovingLoadDefinition(load.Id, load.Name, load.CaseIds)),
             ProjectSelection.Empty,
-            isDirty: false);
+            isDirty: false,
+            sections: (wire.Model.Sections ?? []).Select(section => new FrameSectionDefinition(
+                section.Id,
+                section.Name,
+                section.YoungsModulus,
+                section.PoissonRatio,
+                section.ShearModulus,
+                section.Area,
+                section.MomentOfInertiaY,
+                section.MomentOfInertiaZ,
+                section.TorsionConstant)));
     }
 
     private static string Format(DerivedResultKind kind) => kind switch
@@ -302,6 +334,9 @@ public static class ProjectDocumentJson
         [JsonPropertyName("nodes")]
         public required List<NodeWire> Nodes { get; init; }
 
+        [JsonPropertyName("sections")]
+        public List<FrameSectionWire>? Sections { get; init; }
+
         [JsonPropertyName("members")]
         public required List<MemberWire> Members { get; init; }
 
@@ -334,6 +369,45 @@ public static class ProjectDocumentJson
 
         [JsonPropertyName("node_j")]
         public required string NodeJ { get; init; }
+
+        [JsonPropertyName("section_id")]
+        public string? SectionId { get; init; }
+
+        [JsonPropertyName("rotation_degrees")]
+        public double RotationDegrees { get; init; }
+
+        [JsonPropertyName("shear_correction")]
+        public bool ShearCorrection { get; init; }
+    }
+
+    private sealed class FrameSectionWire
+    {
+        [JsonPropertyName("id")]
+        public required string Id { get; init; }
+
+        [JsonPropertyName("name")]
+        public required string Name { get; init; }
+
+        [JsonPropertyName("youngs_modulus")]
+        public required double YoungsModulus { get; init; }
+
+        [JsonPropertyName("poisson_ratio")]
+        public required double PoissonRatio { get; init; }
+
+        [JsonPropertyName("shear_modulus")]
+        public required double ShearModulus { get; init; }
+
+        [JsonPropertyName("area")]
+        public required double Area { get; init; }
+
+        [JsonPropertyName("moment_of_inertia_y")]
+        public required double MomentOfInertiaY { get; init; }
+
+        [JsonPropertyName("moment_of_inertia_z")]
+        public required double MomentOfInertiaZ { get; init; }
+
+        [JsonPropertyName("torsion_constant")]
+        public required double TorsionConstant { get; init; }
     }
 
     private sealed class SupportWire

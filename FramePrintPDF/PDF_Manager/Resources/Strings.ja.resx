@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AppTitle" xml:space="preserve"><value>FrameWeb デスクトップ</value></data>
+  <data name="WindowTitleWithDocument" xml:space="preserve"><value>{0} — {1}{2}</value></data>
+  <data name="MenuFile" xml:space="preserve"><value>ファイル(&amp;F)</value></data>
+  <data name="MenuNew" xml:space="preserve"><value>新規作成(&amp;N)</value></data>
+  <data name="MenuOpen" xml:space="preserve"><value>開く(&amp;O)...</value></data>
+  <data name="MenuSave" xml:space="preserve"><value>保存(&amp;S)</value></data>
+  <data name="MenuSaveAs" xml:space="preserve"><value>名前を付けて保存(&amp;A)...</value></data>
+  <data name="MenuExit" xml:space="preserve"><value>終了(&amp;X)</value></data>
+  <data name="MenuAnalysis" xml:space="preserve"><value>解析(&amp;A)</value></data>
+  <data name="MenuRunAnalysis" xml:space="preserve"><value>解析を実行(&amp;R)</value></data>
+  <data name="MenuCancel" xml:space="preserve"><value>操作をキャンセル(&amp;C)</value></data>
+  <data name="MenuPrint" xml:space="preserve"><value>印刷(&amp;P)</value></data>
+  <data name="MenuExportPdf" xml:space="preserve"><value>PDFに出力(&amp;P)...</value></data>
+  <data name="MenuView" xml:space="preserve"><value>表示(&amp;V)</value></data>
+  <data name="MenuNavigation" xml:space="preserve"><value>ナビゲーション(&amp;N)</value></data>
+  <data name="MenuEditor" xml:space="preserve"><value>エディター(&amp;E)</value></data>
+  <data name="MenuDiagnostics" xml:space="preserve"><value>診断(&amp;D)</value></data>
+  <data name="MenuLanguage" xml:space="preserve"><value>言語(&amp;L)</value></data>
+  <data name="LanguageJapanese" xml:space="preserve"><value>日本語</value></data>
+  <data name="LanguageEnglish" xml:space="preserve"><value>英語</value></data>
+  <data name="LanguageChinese" xml:space="preserve"><value>中国語</value></data>
+  <data name="PaneNavigation" xml:space="preserve"><value>プロジェクト ナビゲーション</value></data>
+  <data name="PaneEditor" xml:space="preserve"><value>エディター</value></data>
+  <data name="PaneDiagnostics" xml:space="preserve"><value>診断と進行状況</value></data>
+  <data name="PaneViewport" xml:space="preserve"><value>モデル ビューポート</value></data>
+  <data name="NavigationModel" xml:space="preserve"><value>モデル</value></data>
+  <data name="NavigationNodes" xml:space="preserve"><value>節点 ({0})</value></data>
+  <data name="NavigationMembers" xml:space="preserve"><value>部材 ({0})</value></data>
+  <data name="NavigationSupports" xml:space="preserve"><value>支持 ({0})</value></data>
+  <data name="NavigationLoads" xml:space="preserve"><value>荷重ケース ({0})</value></data>
+  <data name="NavigationResults" xml:space="preserve"><value>結果</value></data>
+  <data name="EditorNoSelection" xml:space="preserve"><value>項目が選択されていません。</value></data>
+  <data name="ViewportEmpty" xml:space="preserve"><value>プロジェクトを作成または開くと、モデルが表示されます。</value></data>
+  <data name="ViewportSummary" xml:space="preserve"><value>節点 {0} · 部材 {1}</value></data>
+  <data name="StatusReady" xml:space="preserve"><value>準備完了</value></data>
+  <data name="StatusWorking" xml:space="preserve"><value>処理中...</value></data>
+  <data name="StatusCanceled" xml:space="preserve"><value>操作をキャンセルしました。</value></data>
+  <data name="StatusAnalysisCompleted" xml:space="preserve"><value>解析が完了しました。</value></data>
+  <data name="StatusProjectOpened" xml:space="preserve"><value>プロジェクトを開きました: {0}</value></data>
+  <data name="StatusProjectSaved" xml:space="preserve"><value>プロジェクトを保存しました: {0}</value></data>
+  <data name="StatusPdfExported" xml:space="preserve"><value>PDFを出力しました: {0}</value></data>
+  <data name="StatusNotConfigured" xml:space="preserve"><value>このコマンドはまだ構成されていません。</value></data>
+  <data name="UntitledProject" xml:space="preserve"><value>無題のプロジェクト</value></data>
+  <data name="DirtyIndicator" xml:space="preserve"><value>*</value></data>
+  <data name="UnsavedChangesTitle" xml:space="preserve"><value>未保存の変更</value></data>
+  <data name="UnsavedChangesMessage" xml:space="preserve"><value>“{0}” の変更を保存してから閉じますか?</value></data>
+  <data name="ErrorTitle" xml:space="preserve"><value>FrameWeb デスクトップ エラー</value></data>
+  <data name="UnexpectedError" xml:space="preserve"><value>予期しないエラーが発生しました。</value></data>
+  <data name="OpenProjectTitle" xml:space="preserve"><value>FrameWebプロジェクトを開く</value></data>
+  <data name="SaveProjectTitle" xml:space="preserve"><value>FrameWebプロジェクトを保存</value></data>
+  <data name="ExportPdfTitle" xml:space="preserve"><value>PDFを出力</value></data>
+  <data name="ProjectFileFilter" xml:space="preserve"><value>FrameWebプロジェクト (*.frameweb.json)|*.frameweb.json|JSONファイル (*.json)|*.json|すべてのファイル (*.*)|*.*</value></data>
+  <data name="PdfFileFilter" xml:space="preserve"><value>PDFファイル (*.pdf)|*.pdf|すべてのファイル (*.*)|*.*</value></data>
+  <data name="ViewportUnavailable" xml:space="preserve"><value>OpenGLビューポートを利用できません。</value></data>
+  <data name="ViewportProjection" xml:space="preserve"><value>投影切替</value></data>
+  <data name="ViewportFit" xml:space="preserve"><value>全体表示</value></data>
+  <data name="ViewportHome" xml:space="preserve"><value>ホーム</value></data>
+  <data name="ViewportLayer" xml:space="preserve"><value>レイヤー</value></data>
+  <data name="ViewportLayerModel" xml:space="preserve"><value>モデル</value></data>
+  <data name="ViewportLayerDisplacement" xml:space="preserve"><value>変位</value></data>
+  <data name="ResultDisplacements" xml:space="preserve"><value>変位</value></data>
+  <data name="ResultReactions" xml:space="preserve"><value>反力</value></data>
+  <data name="ResultMemberForces" xml:space="preserve"><value>断面力</value></data>
+  <data name="ResultStation" xml:space="preserve"><value>位置</value></data>
+  <data name="ResultEnd" xml:space="preserve"><value>端</value></data>
+  <data name="ResultTruncated" xml:space="preserve"><value>表示上限を超えた行は省略されました。</value></data>
+  <data name="EditorUndo" xml:space="preserve"><value>元に戻す</value></data>
+  <data name="EditorRedo" xml:space="preserve"><value>やり直す</value></data>
+  <data name="EditorNodes" xml:space="preserve"><value>節点</value></data>
+  <data name="EditorMembers" xml:space="preserve"><value>部材</value></data>
+  <data name="EditorSupports" xml:space="preserve"><value>支持</value></data>
+  <data name="EditorLoadCases" xml:space="preserve"><value>荷重ケース</value></data>
+  <data name="EditorLoads" xml:space="preserve"><value>節点荷重</value></data>
+  <data name="EditorInvalidValue" xml:space="preserve"><value>編集した値が無効です。</value></data>
+  <data name="EditorId" xml:space="preserve"><value>ID</value></data>
+  <data name="EditorName" xml:space="preserve"><value>名称</value></data>
+  <data name="EditorSymbol" xml:space="preserve"><value>記号</value></data>
+  <data name="EditorNode" xml:space="preserve"><value>節点</value></data>
+  <data name="EditorMember" xml:space="preserve"><value>部材</value></data>
+  <data name="EditorNodeI" xml:space="preserve"><value>I端節点</value></data>
+  <data name="EditorNodeJ" xml:space="preserve"><value>J端節点</value></data>
+  <data name="EditorCase" xml:space="preserve"><value>ケース</value></data>
+  <data name="EditorX" xml:space="preserve"><value>X</value></data>
+  <data name="EditorY" xml:space="preserve"><value>Y</value></data>
+  <data name="EditorZ" xml:space="preserve"><value>Z</value></data>
+  <data name="EditorFx" xml:space="preserve"><value>Fx</value></data>
+  <data name="EditorFy" xml:space="preserve"><value>Fy</value></data>
+  <data name="EditorFz" xml:space="preserve"><value>Fz</value></data>
+  <data name="EditorMx" xml:space="preserve"><value>Mx</value></data>
+  <data name="EditorMy" xml:space="preserve"><value>My</value></data>
+  <data name="EditorMz" xml:space="preserve"><value>Mz</value></data>
+  <data name="EditorRx" xml:space="preserve"><value>Rx</value></data>
+  <data name="EditorRy" xml:space="preserve"><value>Ry</value></data>
+  <data name="EditorRz" xml:space="preserve"><value>Rz</value></data>
+  <data name="EditorFixX" xml:space="preserve"><value>X固定</value></data>
+  <data name="EditorFixY" xml:space="preserve"><value>Y固定</value></data>
+  <data name="EditorFixZ" xml:space="preserve"><value>Z固定</value></data>
+  <data name="EditorFixRx" xml:space="preserve"><value>Rx固定</value></data>
+  <data name="EditorFixRy" xml:space="preserve"><value>Ry固定</value></data>
+  <data name="EditorFixRz" xml:space="preserve"><value>Rz固定</value></data>
+  <data name="RuntimeStartError" xml:space="preserve"><value>ローカルのFrameWeb解析サービスを起動できませんでした。</value></data>
+</root>

@@ -30,7 +30,8 @@ public sealed class JsonProjectStoreTests
                 first.NodalLoads,
                 first.DerivedResults,
                 first.MovingLoads,
-                isDirty: true);
+                isDirty: true,
+                sections: first.Sections);
             await store.SaveAsync(replacement, path);
 
             Assert.Equal("Replacement", (await store.OpenAsync(path)).Metadata.Name);

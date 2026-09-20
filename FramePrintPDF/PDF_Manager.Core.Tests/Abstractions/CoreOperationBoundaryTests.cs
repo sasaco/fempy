@@ -75,4 +75,28 @@ public sealed class CoreOperationBoundaryTests
             resultSet,
             [new ResultCoordinate("missing", ResultStateKind.Static, 0)]));
     }
+
+    [Fact]
+    public void PrintRequest_StopsOversizedSelectionAtTheConfiguredBound()
+    {
+        ProjectDocument document = ProjectDocumentTestData.Create(isDirty: false);
+        AnalysisResultSet resultSet = AnalysisContractFixtureTests.ReadPositive("single-static.json");
+        ResultCoordinate coordinate = resultSet.Results[0].Coordinate;
+        int enumerated = 0;
+
+        IEnumerable<ResultCoordinate> UnboundedSelection()
+        {
+            while (true)
+            {
+                enumerated++;
+                yield return coordinate;
+            }
+        }
+
+        Assert.Throws<ArgumentException>(() => new PrintExportRequest(
+            document,
+            resultSet,
+            UnboundedSelection()));
+        Assert.Equal(PrintExportRequest.MaximumSelectedResultCount + 1, enumerated);
+    }
 }

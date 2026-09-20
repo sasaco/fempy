@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AppTitle" xml:space="preserve"><value>FrameWeb Desktop</value></data>
+  <data name="WindowTitleWithDocument" xml:space="preserve"><value>{0} — {1}{2}</value></data>
+  <data name="MenuFile" xml:space="preserve"><value>&amp;File</value></data>
+  <data name="MenuNew" xml:space="preserve"><value>&amp;New</value></data>
+  <data name="MenuOpen" xml:space="preserve"><value>&amp;Open...</value></data>
+  <data name="MenuSave" xml:space="preserve"><value>&amp;Save</value></data>
+  <data name="MenuSaveAs" xml:space="preserve"><value>Save &amp;As...</value></data>
+  <data name="MenuExit" xml:space="preserve"><value>E&amp;xit</value></data>
+  <data name="MenuAnalysis" xml:space="preserve"><value>&amp;Analysis</value></data>
+  <data name="MenuRunAnalysis" xml:space="preserve"><value>&amp;Run Analysis</value></data>
+  <data name="MenuCancel" xml:space="preserve"><value>&amp;Cancel Operation</value></data>
+  <data name="MenuPrint" xml:space="preserve"><value>&amp;Print</value></data>
+  <data name="MenuExportPdf" xml:space="preserve"><value>Export &amp;PDF...</value></data>
+  <data name="MenuView" xml:space="preserve"><value>&amp;View</value></data>
+  <data name="MenuNavigation" xml:space="preserve"><value>&amp;Navigation</value></data>
+  <data name="MenuEditor" xml:space="preserve"><value>&amp;Editor</value></data>
+  <data name="MenuDiagnostics" xml:space="preserve"><value>&amp;Diagnostics</value></data>
+  <data name="MenuLanguage" xml:space="preserve"><value>&amp;Language</value></data>
+  <data name="LanguageJapanese" xml:space="preserve"><value>Japanese</value></data>
+  <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>
+  <data name="LanguageChinese" xml:space="preserve"><value>Chinese</value></data>
+  <data name="PaneNavigation" xml:space="preserve"><value>Project Navigation</value></data>
+  <data name="PaneEditor" xml:space="preserve"><value>Editor</value></data>
+  <data name="PaneDiagnostics" xml:space="preserve"><value>Diagnostics and Progress</value></data>
+  <data name="PaneViewport" xml:space="preserve"><value>Model Viewport</value></data>
+  <data name="NavigationModel" xml:space="preserve"><value>Model</value></data>
+  <data name="NavigationNodes" xml:space="preserve"><value>Nodes ({0})</value></data>
+  <data name="NavigationMembers" xml:space="preserve"><value>Members ({0})</value></data>
+  <data name="NavigationSupports" xml:space="preserve"><value>Supports ({0})</value></data>
+  <data name="NavigationLoads" xml:space="preserve"><value>Load Cases ({0})</value></data>
+  <data name="NavigationResults" xml:space="preserve"><value>Results</value></data>
+  <data name="EditorNoSelection" xml:space="preserve"><value>No item is selected.</value></data>
+  <data name="ViewportEmpty" xml:space="preserve"><value>Create or open a project to display the model.</value></data>
+  <data name="ViewportSummary" xml:space="preserve"><value>{0} nodes · {1} members</value></data>
+  <data name="StatusReady" xml:space="preserve"><value>Ready</value></data>
+  <data name="StatusWorking" xml:space="preserve"><value>Working...</value></data>
+  <data name="StatusCanceled" xml:space="preserve"><value>The operation was canceled.</value></data>
+  <data name="StatusAnalysisCompleted" xml:space="preserve"><value>Analysis completed.</value></data>
+  <data name="StatusProjectOpened" xml:space="preserve"><value>Project opened: {0}</value></data>
+  <data name="StatusProjectSaved" xml:space="preserve"><value>Project saved: {0}</value></data>
+  <data name="StatusPdfExported" xml:space="preserve"><value>PDF exported: {0}</value></data>
+  <data name="StatusNotConfigured" xml:space="preserve"><value>This command is not configured yet.</value></data>
+  <data name="UntitledProject" xml:space="preserve"><value>Untitled Project</value></data>
+  <data name="DirtyIndicator" xml:space="preserve"><value>*</value></data>
+  <data name="UnsavedChangesTitle" xml:space="preserve"><value>Unsaved changes</value></data>
+  <data name="UnsavedChangesMessage" xml:space="preserve"><value>Save changes to “{0}” before closing?</value></data>
+  <data name="ErrorTitle" xml:space="preserve"><value>FrameWeb Desktop Error</value></data>
+  <data name="UnexpectedError" xml:space="preserve"><value>An unexpected error occurred.</value></data>
+  <data name="OpenProjectTitle" xml:space="preserve"><value>Open FrameWeb Project</value></data>
+  <data name="SaveProjectTitle" xml:space="preserve"><value>Save FrameWeb Project</value></data>
+  <data name="ExportPdfTitle" xml:space="preserve"><value>Export PDF</value></data>
+  <data name="ProjectFileFilter" xml:space="preserve"><value>FrameWeb project (*.frameweb.json)|*.frameweb.json|JSON files (*.json)|*.json|All files (*.*)|*.*</value></data>
+  <data name="PdfFileFilter" xml:space="preserve"><value>PDF files (*.pdf)|*.pdf|All files (*.*)|*.*</value></data>
+  <data name="ViewportUnavailable" xml:space="preserve"><value>The OpenGL viewport is unavailable.</value></data>
+  <data name="ViewportProjection" xml:space="preserve"><value>Projection</value></data>
+  <data name="ViewportFit" xml:space="preserve"><value>Fit</value></data>
+  <data name="ViewportHome" xml:space="preserve"><value>Home</value></data>
+  <data name="ViewportLayer" xml:space="preserve"><value>Layer</value></data>
+  <data name="ViewportLayerModel" xml:space="preserve"><value>Model</value></data>
+  <data name="ViewportLayerDisplacement" xml:space="preserve"><value>Displacement</value></data>
+  <data name="ResultDisplacements" xml:space="preserve"><value>Displacements</value></data>
+  <data name="ResultReactions" xml:space="preserve"><value>Reactions</value></data>
+  <data name="ResultMemberForces" xml:space="preserve"><value>Member forces</value></data>
+  <data name="ResultStation" xml:space="preserve"><value>Station</value></data>
+  <data name="ResultEnd" xml:space="preserve"><value>End</value></data>
+  <data name="ResultTruncated" xml:space="preserve"><value>Additional rows were omitted by the display limit.</value></data>
+  <data name="EditorUndo" xml:space="preserve"><value>Undo</value></data>
+  <data name="EditorRedo" xml:space="preserve"><value>Redo</value></data>
+  <data name="EditorNodes" xml:space="preserve"><value>Nodes</value></data>
+  <data name="EditorMembers" xml:space="preserve"><value>Members</value></data>
+  <data name="EditorSupports" xml:space="preserve"><value>Supports</value></data>
+  <data name="EditorLoadCases" xml:space="preserve"><value>Load cases</value></data>
+  <data name="EditorLoads" xml:space="preserve"><value>Nodal loads</value></data>
+  <data name="EditorInvalidValue" xml:space="preserve"><value>The edited value is invalid.</value></data>
+  <data name="EditorId" xml:space="preserve"><value>ID</value></data>
+  <data name="EditorName" xml:space="preserve"><value>Name</value></data>
+  <data name="EditorSymbol" xml:space="preserve"><value>Symbol</value></data>
+  <data name="EditorNode" xml:space="preserve"><value>Node</value></data>
+  <data name="EditorMember" xml:space="preserve"><value>Member</value></data>
+  <data name="EditorNodeI" xml:space="preserve"><value>Node I</value></data>
+  <data name="EditorNodeJ" xml:space="preserve"><value>Node J</value></data>
+  <data name="EditorCase" xml:space="preserve"><value>Case</value></data>
+  <data name="EditorX" xml:space="preserve"><value>X</value></data>
+  <data name="EditorY" xml:space="preserve"><value>Y</value></data>
+  <data name="EditorZ" xml:space="preserve"><value>Z</value></data>
+  <data name="EditorFx" xml:space="preserve"><value>Fx</value></data>
+  <data name="EditorFy" xml:space="preserve"><value>Fy</value></data>
+  <data name="EditorFz" xml:space="preserve"><value>Fz</value></data>
+  <data name="EditorMx" xml:space="preserve"><value>Mx</value></data>
+  <data name="EditorMy" xml:space="preserve"><value>My</value></data>
+  <data name="EditorMz" xml:space="preserve"><value>Mz</value></data>
+  <data name="EditorRx" xml:space="preserve"><value>Rx</value></data>
+  <data name="EditorRy" xml:space="preserve"><value>Ry</value></data>
+  <data name="EditorRz" xml:space="preserve"><value>Rz</value></data>
+  <data name="EditorFixX" xml:space="preserve"><value>Fix X</value></data>
+  <data name="EditorFixY" xml:space="preserve"><value>Fix Y</value></data>
+  <data name="EditorFixZ" xml:space="preserve"><value>Fix Z</value></data>
+  <data name="EditorFixRx" xml:space="preserve"><value>Fix Rx</value></data>
+  <data name="EditorFixRy" xml:space="preserve"><value>Fix Ry</value></data>
+  <data name="EditorFixRz" xml:space="preserve"><value>Fix Rz</value></data>
+  <data name="RuntimeStartError" xml:space="preserve"><value>The local FrameWeb analysis service could not be started.</value></data>
+</root>

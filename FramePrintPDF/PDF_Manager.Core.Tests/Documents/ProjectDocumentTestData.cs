@@ -13,7 +13,7 @@ internal static class ProjectDocumentTestData
                 new ProjectNode("N2", 4, 0, 0),
                 new ProjectNode("N1", 0, 0, 0),
             ],
-            [new ProjectMember("M1", "N1", "N2")],
+            [new ProjectMember("M1", "N1", "N2", "SEC1")],
             [new ProjectSupport("S1", "N1", true, true, true, true, true, true)],
             [new LoadCaseDefinition("D", "Dead", "D")],
             [new NodalLoadDefinition("P1", "D", "N2", 0, -10, 0, 0, 0, 0)],
@@ -31,6 +31,19 @@ internal static class ProjectDocumentTestData
             ],
             [new MovingLoadDefinition("MOVE1", "Moving load", ["D"])],
             new ProjectSelection(["N2"], ["M1"]),
-            isDirty);
+            isDirty,
+            sections:
+            [
+                new FrameSectionDefinition(
+                    "SEC1",
+                    "Test section",
+                    210_000_000,
+                    0.3,
+                    80_769_230.76923077,
+                    0.01,
+                    8.333333333333334e-6,
+                    8.333333333333334e-6,
+                    1.6666666666666667e-5),
+            ]);
     }
 }

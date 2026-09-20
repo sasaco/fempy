@@ -7,5 +7,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../FramePrintPDF/FramePrintAzure/FramePrintAzure.csproj" />
+    <ProjectReference Include="../FrameWeb.LocalRuntime/FrameWeb.LocalRuntime.csproj" />
   </ItemGroup>
 </Project>

@@ -42,6 +42,8 @@ public sealed class ProjectDocumentJsonTests
             text.IndexOf("\"id\": \"N2\"", StringComparison.Ordinal));
         Assert.False(restored.IsDirty);
         Assert.Empty(restored.Selection.NodeIds);
+        Assert.Equal("SEC1", Assert.Single(restored.Sections).Id);
+        Assert.Contains("youngs_modulus", text, StringComparison.Ordinal);
         Assert.DoesNotContain("selection", text, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("dirty", text, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("analysis_result", text, StringComparison.OrdinalIgnoreCase);
@@ -88,6 +90,27 @@ public sealed class ProjectDocumentJsonTests
 
         Assert.Throws<ProjectDocumentFormatException>(() =>
             ProjectDocumentJson.Deserialize(root.ToJsonString()));
+    }
+
+    [Fact]
+    public void LegacyV1WithoutAnalysisSections_RemainsEditableButIncomplete()
+    {
+        JsonObject root = JsonNode.Parse(
+            ProjectDocumentJson.SerializeToString(ProjectDocumentTestData.Create()))!.AsObject();
+        JsonObject model = root["model"]!.AsObject();
+        model.Remove("sections");
+        foreach (JsonNode? member in model["members"]!.AsArray())
+        {
+            JsonObject memberObject = member!.AsObject();
+            memberObject.Remove("section_id");
+            memberObject.Remove("rotation_degrees");
+            memberObject.Remove("shear_correction");
+        }
+
+        ProjectDocument restored = ProjectDocumentJson.Deserialize(root.ToJsonString());
+
+        Assert.Empty(restored.Sections);
+        Assert.Null(Assert.Single(restored.Members).SectionId);
     }
 
     private static string FindRepositoryRoot()

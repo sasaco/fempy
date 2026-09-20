@@ -26,7 +26,24 @@ public sealed record ProjectMetadata(
 
 public sealed record ProjectNode(string Id, double X, double Y, double Z);
 
-public sealed record ProjectMember(string Id, string NodeI, string NodeJ);
+public sealed record FrameSectionDefinition(
+    string Id,
+    string Name,
+    double YoungsModulus,
+    double PoissonRatio,
+    double ShearModulus,
+    double Area,
+    double MomentOfInertiaY,
+    double MomentOfInertiaZ,
+    double TorsionConstant);
+
+public sealed record ProjectMember(
+    string Id,
+    string NodeI,
+    string NodeJ,
+    string? SectionId = null,
+    double RotationDegrees = 0,
+    bool ShearCorrection = false);
 
 public sealed record ProjectSupport(
     string Id,
@@ -127,11 +144,13 @@ public sealed class ProjectDocument
         IEnumerable<DerivedResultDefinition> derivedResults,
         IEnumerable<MovingLoadDefinition> movingLoads,
         ProjectSelection? selection = null,
-        bool isDirty = false)
+        bool isDirty = false,
+        IEnumerable<FrameSectionDefinition>? sections = null)
     {
         Version = version;
         Metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
         Nodes = DocumentCollections.Freeze(nodes, nameof(nodes));
+        Sections = DocumentCollections.Freeze(sections ?? [], nameof(sections));
         Members = DocumentCollections.Freeze(members, nameof(members));
         Supports = DocumentCollections.Freeze(supports, nameof(supports));
         LoadCases = DocumentCollections.Freeze(loadCases, nameof(loadCases));
@@ -148,6 +167,13 @@ public sealed class ProjectDocument
     public ProjectMetadata Metadata { get; }
 
     public IReadOnlyList<ProjectNode> Nodes { get; }
+
+    /// <summary>
+    /// Persisted physical material/section values used by member analysis. A document may omit
+    /// these values for backwards-compatible editing, but it is not analysis-ready until every
+    /// member references one complete section.
+    /// </summary>
+    public IReadOnlyList<FrameSectionDefinition> Sections { get; }
 
     public IReadOnlyList<ProjectMember> Members { get; }
 
@@ -186,7 +212,8 @@ public sealed class ProjectDocument
             DerivedResults,
             MovingLoads,
             selection,
-            isDirty);
+            isDirty,
+            Sections);
 }
 
 public sealed class ProjectDocumentValidationException : ArgumentException
@@ -208,6 +235,7 @@ public static class ProjectDocumentValidator
         ValidateId(document.Metadata.UnitSystem, "metadata.unit_system");
 
         HashSet<string> nodeIds = UniqueIds(document.Nodes.Select(node => node.Id), "node");
+        HashSet<string> sectionIds = UniqueIds(document.Sections.Select(section => section.Id), "section");
         HashSet<string> memberIds = UniqueIds(document.Members.Select(member => member.Id), "member");
         UniqueIds(document.Supports.Select(support => support.Id), "support");
         HashSet<string> caseIds = UniqueIds(document.LoadCases.Select(loadCase => loadCase.Id), "load case");
@@ -226,11 +254,33 @@ public static class ProjectDocumentValidator
             RequireFinite(node.Z, $"node '{node.Id}' z");
         }
 
+        foreach (FrameSectionDefinition section in document.Sections)
+        {
+            ValidateId(section.Name, $"section '{section.Id}' name");
+            RequirePositiveFinite(section.YoungsModulus, $"section '{section.Id}' youngs_modulus");
+            RequireFinite(section.PoissonRatio, $"section '{section.Id}' poisson_ratio");
+            Require(section.PoissonRatio > -1 && section.PoissonRatio < 0.5,
+                $"Section '{section.Id}' poisson_ratio must be greater than -1 and less than 0.5.");
+            RequirePositiveFinite(section.ShearModulus, $"section '{section.Id}' shear_modulus");
+            RequirePositiveFinite(section.Area, $"section '{section.Id}' area");
+            RequirePositiveFinite(section.MomentOfInertiaY, $"section '{section.Id}' moment_of_inertia_y");
+            RequirePositiveFinite(section.MomentOfInertiaZ, $"section '{section.Id}' moment_of_inertia_z");
+            RequirePositiveFinite(section.TorsionConstant, $"section '{section.Id}' torsion_constant");
+        }
+
         foreach (ProjectMember member in document.Members)
         {
             Require(nodeIds.Contains(member.NodeI), $"Member '{member.Id}' references unknown node_i '{member.NodeI}'.");
             Require(nodeIds.Contains(member.NodeJ), $"Member '{member.Id}' references unknown node_j '{member.NodeJ}'.");
             Require(member.NodeI != member.NodeJ, $"Member '{member.Id}' cannot connect a node to itself.");
+            if (member.SectionId is not null)
+            {
+                ValidateId(member.SectionId, $"member '{member.Id}' section_id");
+                Require(sectionIds.Contains(member.SectionId),
+                    $"Member '{member.Id}' references unknown section '{member.SectionId}'.");
+            }
+
+            RequireFinite(member.RotationDegrees, $"member '{member.Id}' rotation_degrees");
         }
 
         foreach (ProjectSupport support in document.Supports)
@@ -304,6 +354,12 @@ public static class ProjectDocumentValidator
 
     private static void RequireFinite(double value, string description)
         => Require(double.IsFinite(value), $"{description} must be finite.");
+
+    private static void RequirePositiveFinite(double value, string description)
+    {
+        RequireFinite(value, description);
+        Require(value > 0, $"{description} must be positive.");
+    }
 
     private static void Require(bool condition, string message)
     {

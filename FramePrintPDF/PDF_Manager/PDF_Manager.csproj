@@ -25,6 +25,7 @@
     <ProjectReference Include="..\PDF_Manager.Core\PDF_Manager.Core.csproj" />
     <ProjectReference Include="..\PDF_Manager.Rendering\PDF_Manager.Rendering.csproj" />
     <ProjectReference Include="..\PDF_Manager.Printing\PDF_Manager.Printing.csproj" />
+    <ProjectReference Include="..\..\tools\FrameWeb.LocalRuntime\FrameWeb.LocalRuntime.csproj" />
   </ItemGroup>
 
 </Project>

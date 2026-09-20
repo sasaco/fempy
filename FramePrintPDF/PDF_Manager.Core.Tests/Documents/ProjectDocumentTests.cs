@@ -91,4 +91,25 @@ public sealed class ProjectDocumentTests
             [], [], [], [], [], [], [],
             new ProjectSelection(["missing"], [])));
     }
+
+    [Fact]
+    public void Validation_RejectsInvalidPhysicalSectionAndBrokenSectionReference()
+    {
+        Assert.Throws<ProjectDocumentValidationException>(() => new ProjectDocument(
+            1,
+            new ProjectMetadata("Model", "", "", "kN-m"),
+            [new ProjectNode("1", 0, 0, 0), new ProjectNode("2", 1, 0, 0)],
+            [new ProjectMember("1", "1", "2", "missing")],
+            [], [], [], [], [],
+            sections: []));
+
+        Assert.Throws<ProjectDocumentValidationException>(() => new ProjectDocument(
+            1,
+            new ProjectMetadata("Model", "", "", "kN-m"),
+            [], [], [], [], [], [], [],
+            sections:
+            [
+                new FrameSectionDefinition("1", "Bad", 0, 0.3, 1, 1, 1, 1, 1),
+            ]));
+    }
 }

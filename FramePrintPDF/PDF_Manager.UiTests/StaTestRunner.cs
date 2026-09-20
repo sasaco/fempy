@@ -6,7 +6,7 @@ internal static class StaTestRunner
 {
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(15);
 
-    public static void Run(Action action, string threadName)
+    public static void Run(Action action, string threadName, TimeSpan? timeout = null)
     {
         ArgumentNullException.ThrowIfNull(action);
         ArgumentException.ThrowIfNullOrWhiteSpace(threadName);
@@ -20,9 +20,10 @@ internal static class StaTestRunner
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
 
+        TimeSpan effectiveTimeout = timeout ?? DefaultTimeout;
         Assert.True(
-            thread.Join(DefaultTimeout),
-            $"The STA test thread '{threadName}' did not terminate within {DefaultTimeout}.");
+            thread.Join(effectiveTimeout),
+            $"The STA test thread '{threadName}' did not terminate within {effectiveTimeout}.");
         if (failure is not null)
         {
             ExceptionDispatchInfo.Capture(failure).Throw();

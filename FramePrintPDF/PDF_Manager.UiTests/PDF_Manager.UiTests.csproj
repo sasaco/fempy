@@ -21,6 +21,22 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PDF_Manager\PDF_Manager.csproj" />
+    <ProjectReference Include="LiveCaptureProbe\LiveCaptureProbe.csproj"
+                      ReferenceOutputAssembly="false"
+                      BuildReference="false"
+                      Private="false" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="LiveCaptureProbe\**\*.cs" />
+  </ItemGroup>
+
+  <Target Name="BuildLiveCaptureProbe"
+          BeforeTargets="CoreCompile"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <MSBuild Projects="$(MSBuildProjectDirectory)\LiveCaptureProbe\LiveCaptureProbe.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration)" />
+  </Target>
 
 </Project>

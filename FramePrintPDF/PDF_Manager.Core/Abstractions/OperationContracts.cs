@@ -55,6 +55,8 @@ public sealed class PrintExportException : CoreOperationException
 
 public sealed class PrintExportRequest
 {
+    public const int MaximumSelectedResultCount = 10_000;
+
     public PrintExportRequest(
         ProjectDocument document,
         AnalysisResultSet? resultSet,
@@ -68,7 +70,7 @@ public sealed class PrintExportRequest
             AnalysisResultSetValidator.Validate(resultSet);
         }
 
-        ResultCoordinate[] selection = selectedResults?.ToArray() ?? [];
+        ResultCoordinate[] selection = MaterializeSelection(selectedResults);
         if (resultSet is null && selection.Length > 0)
         {
             throw new ArgumentException("Selected results require an AnalysisResultSet.", nameof(selectedResults));
@@ -96,4 +98,28 @@ public sealed class PrintExportRequest
     public AnalysisResultSet? ResultSet { get; }
 
     public IReadOnlyList<ResultCoordinate> SelectedResults { get; }
+
+    private static ResultCoordinate[] MaterializeSelection(
+        IEnumerable<ResultCoordinate>? selectedResults)
+    {
+        if (selectedResults is null)
+        {
+            return [];
+        }
+
+        List<ResultCoordinate> selection = [];
+        foreach (ResultCoordinate coordinate in selectedResults)
+        {
+            if (selection.Count >= MaximumSelectedResultCount)
+            {
+                throw new ArgumentException(
+                    $"Selected results cannot exceed {MaximumSelectedResultCount} entries.",
+                    nameof(selectedResults));
+            }
+
+            selection.Add(coordinate);
+        }
+
+        return selection.ToArray();
+    }
 }

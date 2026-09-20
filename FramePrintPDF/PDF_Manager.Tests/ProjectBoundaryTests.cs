@@ -20,6 +20,7 @@ public sealed class ProjectBoundaryTests
         "PDF_Manager.Core/PDF_Manager.Core.csproj",
         "PDF_Manager.Printing/PDF_Manager.Printing.csproj",
         "PDF_Manager.Rendering/PDF_Manager.Rendering.csproj",
+        "tools/FrameWeb.LocalRuntime/FrameWeb.LocalRuntime.csproj",
     ];
 
     private static readonly string[] ExpectedShellPackages =
@@ -48,7 +49,7 @@ public sealed class ProjectBoundaryTests
     }
 
     [Fact]
-    public void CompositionRoot_ReferencesOnlyCoreRenderingAndPrintingProjects()
+    public void CompositionRoot_ReferencesOnlyProductLayersAndPythonRuntimeOwner()
     {
         XDocument project = LoadCompositionRootProject();
         string[] references = project.Descendants("ProjectReference")
