@@ -7,11 +7,15 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
-        ApplicationConfiguration.Initialize();
-
         try
         {
             CommandLineOptions options = CommandLineOptions.Parse(args);
+            if (options.Verify)
+            {
+                Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
+            }
+
+            ApplicationConfiguration.Initialize();
             if (options.Verify)
             {
                 VerificationReport report = RendererVerification.Run(options.Cycles);

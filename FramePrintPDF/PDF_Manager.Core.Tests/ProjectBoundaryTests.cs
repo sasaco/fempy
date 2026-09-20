@@ -7,8 +7,12 @@ public sealed class ProjectBoundaryTests
     private static readonly string[] ForbiddenSourceTerms =
     [
         "System.Windows.Forms",
+        "WeifenLuo.WinFormsUI.Docking",
         "OpenTK",
+        "OpenGL",
+        "GLControl",
         "PdfSharp",
+        "PDFsharp",
         "PrintInput",
         "PrintData",
         "Activator.",
@@ -26,7 +30,10 @@ public sealed class ProjectBoundaryTests
         Assert.Equal("net8.0", project.Descendants("TargetFramework").Single().Value);
         Assert.Empty(project.Descendants("ProjectReference"));
         Assert.Empty(project.Descendants("PackageReference"));
+        Assert.Empty(project.Descendants("FrameworkReference"));
+        Assert.Empty(project.Descendants("Reference"));
         Assert.Empty(project.Descendants("UseWindowsForms"));
+        Assert.Empty(project.Descendants("UseWPF"));
     }
 
     [Fact]

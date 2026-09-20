@@ -1,8 +1,9 @@
 # PDF Manager Renderer Probe
 
-This isolated .NET 8 WinForms executable proves the proposed desktop renderer
-route before it is introduced into the product projects. It uses a real
-OpenTK `GLControl` inside a DockPanelSuite `DockingWindow` document.
+This .NET 8 WinForms executable verifies the production
+`PDF_Manager.Rendering` library with a real OpenTK `GLControl` inside a
+DockPanelSuite `DockingWindow` document. The executable owns only the known
+scene, docking host, command-line runner, and verification assertions.
 
 The renderer owns its `GLControl`, GPU objects, and event subscriptions. All GL
 operations are restricted to the creating UI thread. `Initialize`, `SetModel`,

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using PDF_Manager.Rendering;
 
 namespace PDF_Manager.RendererProbe;
 
@@ -8,8 +9,8 @@ internal static class RendererVerification
 
     public static VerificationReport Run(int cycles)
     {
-        ProbeCounterSnapshot baseline = ProbeDiagnostics.Snapshot();
-        AssertNoLiveObjects(baseline, "verification start");
+        RendererDiagnosticSnapshot baseline = RendererDiagnostics.Snapshot();
+        AssertNoLiveObjects(baseline, ProbeWindowDiagnostics.LiveWindows, "verification start");
         string? openGlVersion = null;
         Color firstBackground = Color.Empty;
         Color firstCenter = Color.Empty;
@@ -60,10 +61,10 @@ internal static class RendererVerification
                 Application.DoEvents();
             }
 
-            AssertNoLiveObjects(ProbeDiagnostics.Snapshot(), $"cycle {cycle} teardown");
+            AssertNoLiveObjects(RendererDiagnostics.Snapshot(), ProbeWindowDiagnostics.LiveWindows, $"cycle {cycle} teardown");
         }
 
-        ProbeCounterSnapshot final = ProbeDiagnostics.Snapshot();
+        RendererDiagnosticSnapshot final = RendererDiagnostics.Snapshot();
         long contextsCreated = final.ContextsCreated - baseline.ContextsCreated;
         long framesRendered = final.FramesRendered - baseline.FramesRendered;
         long capturesCompleted = final.CapturesCompleted - baseline.CapturesCompleted;
@@ -78,7 +79,7 @@ internal static class RendererVerification
             capturesCompleted,
             final.LiveContexts,
             final.LiveSubscriptions,
-            final.LiveWindows,
+            ProbeWindowDiagnostics.LiveWindows,
             openGlVersion ?? string.Empty,
             ToRgb(firstBackground),
             ToRgb(firstCenter));
@@ -86,12 +87,12 @@ internal static class RendererVerification
 
     private static void VerifyIdempotentInitialization(OpenGlViewportLifecycle renderer, int cycle)
     {
-        ProbeCounterSnapshot before = ProbeDiagnostics.Snapshot();
+        RendererDiagnosticSnapshot before = RendererDiagnostics.Snapshot();
         int uploadsBefore = renderer.ModelUploadCount;
         renderer.Initialize();
         renderer.SetModel(ProbeSceneModel.KnownFrame);
         renderer.Resize(renderer.Control.ClientSize);
-        ProbeCounterSnapshot after = ProbeDiagnostics.Snapshot();
+        RendererDiagnosticSnapshot after = RendererDiagnostics.Snapshot();
 
         Assert(after.ContextsCreated == before.ContextsCreated, $"Cycle {cycle}: Initialize created a second context.");
         Assert(renderer.ModelUploadCount == uploadsBefore, $"Cycle {cycle}: SetModel uploaded an unchanged model.");
@@ -138,20 +139,20 @@ internal static class RendererVerification
 
     private static void AssertLiveObjects(int cycle, int expectedContexts, int expectedSubscriptions, int expectedWindows)
     {
-        ProbeCounterSnapshot snapshot = ProbeDiagnostics.Snapshot();
+        RendererDiagnosticSnapshot snapshot = RendererDiagnostics.Snapshot();
         Assert(snapshot.LiveContexts == expectedContexts,
             $"Cycle {cycle}: expected {expectedContexts} live context, found {snapshot.LiveContexts}.");
         Assert(snapshot.LiveSubscriptions == expectedSubscriptions,
             $"Cycle {cycle}: expected {expectedSubscriptions} live subscriptions, found {snapshot.LiveSubscriptions}.");
-        Assert(snapshot.LiveWindows == expectedWindows,
-            $"Cycle {cycle}: expected {expectedWindows} live windows, found {snapshot.LiveWindows}.");
+        Assert(ProbeWindowDiagnostics.LiveWindows == expectedWindows,
+            $"Cycle {cycle}: expected {expectedWindows} live windows, found {ProbeWindowDiagnostics.LiveWindows}.");
     }
 
-    private static void AssertNoLiveObjects(ProbeCounterSnapshot snapshot, string phase)
+    private static void AssertNoLiveObjects(RendererDiagnosticSnapshot snapshot, int liveWindows, string phase)
     {
         Assert(snapshot.LiveContexts == 0, $"{phase}: {snapshot.LiveContexts} GL contexts remain live.");
         Assert(snapshot.LiveSubscriptions == 0, $"{phase}: {snapshot.LiveSubscriptions} event subscriptions remain live.");
-        Assert(snapshot.LiveWindows == 0, $"{phase}: {snapshot.LiveWindows} windows remain live.");
+        Assert(liveWindows == 0, $"{phase}: {liveWindows} windows remain live.");
     }
 
     private static void PumpUntil(Func<bool> condition, int cycle, string operation)

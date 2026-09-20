@@ -1,38 +1,30 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Printing\PrintInput\新しいフォルダー\**" />
-    <Compile Remove="Printing\新しいフォルダー1\**" />
-    <EmbeddedResource Remove="Printing\PrintInput\新しいフォルダー\**" />
-    <EmbeddedResource Remove="Printing\新しいフォルダー1\**" />
-    <None Remove="Printing\PrintInput\新しいフォルダー\**" />
-    <None Remove="Printing\新しいフォルダー1\**" />
+    <Compile Remove="Printing\**\*.cs;PrintInput.cs;PrintData.cs;IPrintable.cs;PrintableBase*.cs" />
+    <EmbeddedResource Remove="Printing\**;PrintInput.cs;PrintData.cs;IPrintable.cs;PrintableBase*.cs;fonts\**" />
+    <Content Remove="Printing\**;PrintInput.cs;PrintData.cs;IPrintable.cs;PrintableBase*.cs;fonts\**" />
+    <None Remove="Printing\**;PrintInput.cs;PrintData.cs;IPrintable.cs;PrintableBase*.cs;fonts\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Printing\PrintDiagram\KAJYU_ZU23.cs" />
+    <PackageReference Include="DockPanelSuite" Version="3.1.1" />
+    <PackageReference Include="DockPanelSuite.ThemeVS2015" Version="3.1.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="fonts\MS Gothic.ttf" />
-    <None Remove="fonts\MS Mincho.ttf" />
-    <None Remove="fonts\simsun.ttf" />
-    <None Remove="Printing\PrintDiagram\InputDiagramFsec.cs~RF5f8c188b.TMP" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="fonts\MS Gothic.ttf" />
-    <EmbeddedResource Include="fonts\MS Mincho.ttf" />
-    <EmbeddedResource Include="fonts\simsun.ttf" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="PdfSharpCore" Version="1.3.9" />
+    <ProjectReference Include="..\PDF_Manager.Core\PDF_Manager.Core.csproj" />
+    <ProjectReference Include="..\PDF_Manager.Rendering\PDF_Manager.Rendering.csproj" />
+    <ProjectReference Include="..\PDF_Manager.Printing\PDF_Manager.Printing.csproj" />
   </ItemGroup>
 
 </Project>

@@ -10,6 +10,15 @@
 
 本計画は、C#デスクトップ製品の設計・実装・検証・切替までを対象とし、Python FEMの数値実装と旧クライアント互換は対象外とする。
 
+#### Implementation Status (2026-09-20)
+
+- Step 0 の実装成果は commit `572a1d1` に保存済みである。`PDF_Manager.Core` と41件の契約テスト、実OpenGLを使う `PDF_Manager.RendererProbe`、依存関係・来歴・再配布可否のinventory、および `.agents/docs/DESIGN.md` の設計決定が含まれる。
+- package-only の開発経路は **GO** である。DockPanelSuite 3.1.1、OpenTK.GLControl 4.0.2、OpenTK 4.9.4、および所有する最小renderer/shaderで Step 1 へ進める。
+- 完成アプリの再配布は **NO-GO** のままである。MS Gothic、MS Mincho、SimSun、旧THREE shader/typeface/LTC textureは製品へコピー・同梱せず、PDF font strategy、PDF golden、publish成果物のforbidden-file/SBOM検査を後続gateで解決する。
+- Step 1 は作業ツリーで完了した。`PDF_Manager` は `net8.0-windows` WinExeとなり、Core/Rendering/typed Printingを参照する空WinForms shell、4つの自動test project、両solutionへの登録が実装済みである。Step 2以降は未着手である。
+- Step 1完了後にリポジトリ正規の全体検査 `& .agents/check.ps1 -AllowProductPath 'FramePrintPDF'` を再実行した。Agent系、scope isolation、`git diff --check`、`.NET build` はPASSしたが、全体は `overall=fail` である。Pythonは3,273件PASS・6件FAIL・4件ERROR（1:55:37）、Angular test/buildはTypeScript compilation、FontAwesome path、`environment.prod.ts` 不在でFAILした。詳細は `.agents/logs/check-20260920T035935489Z-32252.log` を参照する。いずれも既知のC#変更範囲外failureだが、リポジトリ全体をgreenとは報告しない。
+- 独立レビューは品質PASS（Critical/Highなし）、テストPASS（Critical/Highなし）、セキュリティChanges requested（旧Azure/local print hostにHigh 2件）である。新desktop境界には旧印刷資産・制限font・既知脆弱packageは入っていない。一方、legacy hostの匿名endpointは脆弱なImageSharp 1.0.4へ到達でき、request/decompression/image/PDF workも無制限なので、公開・配布はNO-GOである。詳細は `.agents/docs/research/review-{quality,tests,security}-csharp-frameweb-client.md` を参照する。
+
 #### Current State
 
 - `FramePrintPDF/PDF_Manager/PDF_Manager.csproj` は現在 `netcoreapp3.1` のクラスライブラリで、依存は `Newtonsoft.Json` と `PdfSharpCore` のみである。WinForms、ドッキング、3Dレンダラー、製品エントリポイントはない（`PDF_Manager.csproj:1-5,33-36`）。
@@ -90,12 +99,12 @@ PDF_Manager.Core --HTTP--> FrameWeb (Python FEM)
   - `FramePrintPDF/FramePrintAzure/FramePrintAzure.csproj` if Azure printing remains in the product
   - `tools/FrameWeb.Startup/**`
   - `FrameWeb.sln` and `FramePrintPDF/FramePrintPDF.sln`
-  - `.agents/docs/DESIGN.md` after this plan is approved
+  - `.agents/docs/DESIGN.md`（Step 0で設計決定を記録済み）
 - Shared contract inputs:
   - `FrameWeb/tests/data/contracts/analysis-result-set-v1.schema.json`
   - `FrameWeb/tests/data/contracts/positive/*.json`
   - `FrameWeb/tests/data/contracts/negative/*.json`
-- Dependencies to resolve in Step 0:
+- Dependencies selected or inventoried in Step 0:
   - .NET 8 Windows Desktop SDK
   - a maintained DockPanelSuite package supporting .NET 8 WinForms
   - a maintained OpenTK/GLControl path and the reusable subset/provenance of `isasPrint/THREE`
@@ -109,23 +118,23 @@ PDF_Manager.Core --HTTP--> FrameWeb (Python FEM)
 
 #### Step 0: Freeze the greenfield contract and clear feasibility blockers
 
-- [ ] Record in `.agents/docs/DESIGN.md` that the C# app replaces the frontend behavior only, retains Python FEM, consumes only `AnalysisResultSet v1`, requires no legacy compatibility, and keeps calculation/printing separate.
-- [ ] Produce a source/provenance inventory for the `isasPrint/THREE` subset, DockPanelSuite, OpenTK, shaders, fonts, textures, and transitive packages; decide what may be copied, rewritten, or consumed as a package.
-- [ ] Build a minimal .NET 8 WinForms probe that opens a DockingWindow-style document, creates a real GL context, draws one deterministic frame, resizes, captures a bitmap, closes, and reopens repeatedly.
-- [ ] Define the renderer lifetime contract: UI-thread-only GL calls; idempotent `Initialize`, `SetModel`, `Resize`, `Render`, `Capture`, `Dispose`; one context and subscription set per viewport; explicit disposal order; render-on-invalidation when idle.
-- [ ] Define versioned `DocumentKey` and layout DTOs, tool-window hide policy, document-window dispose policy, and whitelist-only restore without `Activator` or CLR type names.
+- [x] Record in `.agents/docs/DESIGN.md` that the C# app replaces the frontend behavior only, retains Python FEM, consumes only `AnalysisResultSet v1`, requires no legacy compatibility, and keeps calculation/printing separate.
+- [x] Produce a source/provenance inventory for the `isasPrint/THREE` subset, DockPanelSuite, OpenTK, shaders, fonts, textures, and transitive packages; decide what may be copied, rewritten, or consumed as a package.
+- [x] Build a minimal .NET 8 WinForms probe that opens a DockingWindow-style document, creates a real GL context, draws one deterministic frame, resizes, captures a bitmap, closes, and reopens repeatedly.
+- [x] Define the renderer lifetime contract: UI-thread-only GL calls; idempotent `Initialize`, `SetModel`, `Resize`, `Render`, `Capture`, `Dispose`; one context and subscription set per viewport; explicit disposal order; render-on-invalidation when idle.
+- [x] Define versioned `DocumentKey` and layout DTOs, tool-window hide policy, document-window dispose policy, and whitelist-only restore without `Activator` or CLR type names.
 
-**Verification**: dependency/license checklist has no unresolved redistribution blocker; the .NET 8 probe renders and captures a known scene; 100 close/reopen cycles keep context, subscription, and live-window counts stable; an idle viewport performs no continuous render loop; malformed/unknown layout keys are rejected safely.
+**Verification result**: Core contract tests are 41/41 PASS. The real OpenGL 3.3 probe completed 100 create/resize/render/capture/close cycles, 600 frames, and 200 captures, ending with zero live contexts, subscriptions, and windows; it uses invalidation-only rendering and has no idle loop. Malformed/unknown layout data is covered by rejection tests. The package-only path is therefore cleared for Step 1. The full redistribution condition is not cleared: restricted or provenance-incomplete fonts and legacy assets must remain excluded, and the PDF font/publish verification described in the dependency inventory remains mandatory before shipping.
 
 #### Step 1: Establish the solution and project boundaries
 
-- [ ] Retarget `FramePrintPDF/PDF_Manager/PDF_Manager.csproj` to a `net8.0-windows` WinExe with WinForms enabled and make it the composition root.
-- [ ] Add `PDF_Manager.Core`, `PDF_Manager.Rendering`, `PDF_Manager.Printing`, unit tests, rendering tests, and STA UI tests with the dependency direction described above.
-- [ ] Move the useful existing `Printing/**` code into `PDF_Manager.Printing`; do not move `PrintInput`, `PrintData`, legacy dictionaries, or duplicate Function1/Function2 handlers as public design.
-- [ ] Add all product/test projects to `FrameWeb.sln` and `FramePrintPDF/FramePrintPDF.sln`; mark or remove `PDF_Test` / `PDF_Test_CLI` after their useful fixtures are represented by automated tests.
-- [ ] Prevent excluded files such as `KAJYU_ZU23.cs` from returning through wildcard moves.
+- [x] Retarget `FramePrintPDF/PDF_Manager/PDF_Manager.csproj` to a `net8.0-windows` WinExe with WinForms enabled and make it the composition root.
+- [x] Add `PDF_Manager.Core`, `PDF_Manager.Rendering`, `PDF_Manager.Printing`, unit tests, rendering tests, and STA UI tests with the dependency direction described above.
+- [x] Audit the existing `Printing/**` code before migration. No untyped source qualified for direct promotion before Step 8 characterization, so the new `PDF_Manager.Printing` contains only a typed, dependency-free page-layout contract; `PrintInput`, `PrintData`, legacy dictionaries, duplicate Function handlers, and restricted fonts remain outside the desktop boundary in the explicit non-packable `PDF_Manager.LegacyPrinting` bridge used only by the existing Azure/local print host.
+- [x] Add all product/test projects to `FrameWeb.sln` and `FramePrintPDF/FramePrintPDF.sln`. `PDF_Test` is removed from the active `FramePrintPDF.sln` only; `PDF_Test` / `PDF_Test_CLI` source and fixtures remain intact for Step 8 characterization and are not treated as automated tests.
+- [x] Prevent excluded files such as `KAJYU_ZU23.cs` from returning through wildcard moves.
 
-**Verification**: `dotnet build FrameWeb.sln` and `dotnet test FrameWeb.sln` pass with a nonzero test count; project-reference checks prove Core has no UI/render/PDF dependencies; the product opens an empty shell on Windows.
+**Verification result**: `dotnet build FrameWeb.sln -c Release` and `dotnet build FramePrintPDF/FramePrintPDF.sln -c Release --no-restore` pass. The newly added Step 1 projects build warning-free, while a clean/incrementally invalidated solution build emits 28 inherited warnings from the isolated `PDF_Manager.LegacyPrinting` source; an up-to-date incremental build can report 0 warnings and is not evidence of clean warning-free status. Both solution test runs pass 61/61: Core 41, composition/Printing 9, Rendering 10, STA UI smoke 1. Project-reference tests prove Core has no UI/render/PDF dependency and the desktop project excludes legacy printing sources and restricted fonts. The shell opens/closes on an STA thread without leaving forms. The production Rendering library passes the real OpenGL 3/20/100-cycle sequence; the final 100-cycle run created 100 contexts, rendered 600 frames, completed 200 captures, and ended with zero live contexts/subscriptions/windows. A teardown-order defect found during lead verification was fixed by disposing the renderer before WinForms removes its GLControl; verification-mode UI exceptions now exit nonzero instead of displaying a modal Continue dialog.
 
 #### Step 2: Implement typed document and result foundations
 
@@ -192,15 +201,15 @@ PDF_Manager.Core --HTTP--> FrameWeb (Python FEM)
 
 - [ ] Characterize the useful existing PDF behavior first: A3/A4, portrait/landscape, page numbers, Japanese/Chinese fonts, table pagination, diagram layouts, and representative existing fixtures.
 - [ ] Replace `PrintInput` / `PrintData` dictionaries with typed `PrintJob`, page-section, table, diagram, result, and viewport-capture models.
-- [ ] Initialize the PdfSharp font resolver once, make export concurrency explicit, preserve original exception types/causes, and validate image/data sizes before allocation.
+- [ ] Replace the vulnerable legacy PdfSharpCore/ImageSharp graph, initialize the selected font resolver once, make export concurrency explicit, preserve original exception types/causes, and enforce encoded/decompressed/image-dimension/page/work limits before allocation.
 - [ ] Implement preview, page count, input tables, displacement/reaction/section-force tables, load/model/result diagrams, scale/layout options, and file export from the desktop app.
 - [ ] Decide whether `FramePrintAzure` is removed or rebuilt against `PDF_Manager.Printing`; do not let the desktop executable become an Azure dependency.
 
-**Verification**: pure layout tests cover pagination and page geometry; generated PDFs pass parse/text/page assertions; representative rendered pages match approved goldens; repeated/parallel export follows the chosen concurrency policy; no old base64/comma-byte print endpoint is required by the desktop app.
+**Verification**: pure layout tests cover pagination and page geometry; generated PDFs pass parse/text/page assertions; representative rendered pages match approved goldens; repeated/parallel export follows the chosen concurrency policy; oversized/compression-amplified/image-bomb inputs fail before expensive work; shippable project graphs have no known High/Critical package advisory; no old base64/comma-byte print endpoint is required by the desktop app.
 
 #### Step 9: Production integration, parity sign-off, and cutover
 
-- [ ] Complete production authentication after selecting one provider; keep tokens out of files/logs and inject authorization only at the HTTP boundary.
+- [ ] Complete production authentication after selecting one provider; keep tokens out of files/logs and inject authorization only at the HTTP boundary. Any retained Azure print endpoint must be non-anonymous, POST-only, bounded by request/decompression/page/image/time/concurrency limits, and cancellation-aware before it may be deployed.
 - [ ] Choose installer/update strategy, per-user settings location, crash/diagnostic policy, backend endpoint discovery, offline/local-mode behavior, and signed release packaging.
 - [ ] Execute a scenario parity matrix against `FrameWebforJS`: file workflows, every editor, every viewport mode, calculation, first/last case, nonlinear/modal navigation, derived results, print selection, three languages, cancellation, and error recovery.
 - [ ] Only after the matrix passes, change `FrameWeb.Startup` and release documentation to make the C# desktop application the supported entrypoint and stop launching/redirecting to Angular.
@@ -220,15 +229,16 @@ PDF_Manager.Core --HTTP--> FrameWeb (Python FEM)
 - **Printing model**: current PDF code mixes input, results, screenshots, and presentation in untyped dictionaries. Characterize useful layout behavior before deletion, but do not preserve the old public API.
 - **Global PDF state**: current font resolver changes process-global state. Initialize once and define whether export is serialized or proven thread-safe.
 - **Startup ownership**: desktop, startup host, Azure print, and Python service currently overlap. Give the desktop path exactly one owner for process lifetime and leave cloud hosting behind explicit interfaces.
-- **Dirty worktree**: `FrameWeb/main.py` already contains user changes. Future implementation must not overwrite it; stabilize/commit that work or assign exclusive ownership before any backend-adjacent edit.
+- **Canonical gate debt**: the post-Step-1 full repository check in `.agents/logs/check-20260920T035935489Z-32252.log` completed with Python and Angular failures outside the C# diff. Keep those failures separate from task-scoped validation, but do not claim repository-wide green until they are fixed or explicitly baselined.
+- **Solution coverage**: Step 0/1のdesktop product、Core、Rendering、typed Printing、LegacyPrinting、probe、4 test projectsは両solutionへ登録済みである。以後はsolution-level build/testを受入証拠にする。
+- **Temporary legacy print bridge**: `FramePrintAzure` とlocal print hostの現行挙動を維持するため、旧untyped printing sourceと制限fontは非packableな `PDF_Manager.LegacyPrinting` に隔離した。desktop shellはこのprojectを参照しない。ただし `IsPackable=false` はpublish/copy-localを防がず、Startup出力のbridge DLLには制限fontが埋め込まれる。さらに匿名endpointからHigh advisoryを持つImageSharp 1.0.4と無制限のbase64/gzip/image/PDF処理へ到達できる。Step 8/9でtyped migration、patched dependency、resource limits、authentication、font licensing、golden、Azure継続判断を完了するまで、このhostを公開・配布しない。
 - **Review availability**: two bounded nested Codex decomposition attempts were unusable: the first returned only already-resolved questions, and the allowed retry timed out with an unrelated plan mixed into its partial response. This document therefore relies on direct repository evidence and three completed read-only collaborator audits; it must not be reported as nested-Codex PASS.
 
 ### Open Questions
 
 - Which production authentication provider should the C# app use: Microsoft Entra/B2C, Keycloak, another provider, or no login for the first release? This does not block Steps 0-8 but blocks production sign-off in Step 9.
 - Should `FramePrintAzure` remain as a cloud printing surface, be rebuilt over the typed printing library, or be retired in favor of local desktop PDF export?
-- May the `isasPrint/THREE` source and its assets be copied into this repository, or should only its architecture be referenced while the renderer is reimplemented against maintained packages? Step 0 must resolve this before source import.
+- Should CJK PDF output use installed system fonts or one exact redistributable upstream font artifact? The answer must be proven by PDF goldens and a publish-content scan before distribution; the three current embedded font binaries may not ship.
 - Should the final distribution use MSIX, a traditional installer, or another signed packaging/update channel?
 - After parity sign-off, should `FrameWebforJS` remain as a reference implementation, be archived outside the supported solution, or be deleted?
 - Are chat, Help/MyPage links, cloud document storage, and automatic update required for the first production release, or may they follow the engineering-analysis MVP?
-- User approval is required before implementation. Because nested Codex validation was unavailable, approval should explicitly accept this evidence-based draft or request another validation route.

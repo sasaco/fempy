@@ -1,3 +1,4 @@
+using PDF_Manager.Rendering;
 using WeifenLuo.WinFormsUI.Docking;
 
 namespace PDF_Manager.RendererProbe;
@@ -10,7 +11,7 @@ internal sealed class RendererProbeShell : Form
 
     public RendererProbeShell(bool verificationMode)
     {
-        ProbeDiagnostics.WindowOpened();
+        ProbeWindowDiagnostics.WindowOpened();
         Text = "FrameWeb Renderer Probe";
         ClientSize = new Size(640, 480);
         MinimumSize = new Size(320, 240);
@@ -44,7 +45,7 @@ internal sealed class RendererProbeShell : Form
             _dockPanel.Dispose();
             _theme.Dispose();
             _disposed = true;
-            ProbeDiagnostics.WindowClosed();
+            ProbeWindowDiagnostics.WindowClosed();
         }
 
         base.Dispose(disposing);
@@ -57,7 +58,7 @@ internal sealed class RendererProbeDocument : DockContent
 
     public RendererProbeDocument()
     {
-        ProbeDiagnostics.WindowOpened();
+        ProbeWindowDiagnostics.WindowOpened();
         Text = "Known OpenGL Frame";
         TabText = Text;
         HideOnClose = false;
@@ -85,10 +86,9 @@ internal sealed class RendererProbeDocument : DockContent
     {
         if (disposing && !_disposed)
         {
-            Controls.Remove(Renderer.Control);
             Renderer.Dispose();
             _disposed = true;
-            ProbeDiagnostics.WindowClosed();
+            ProbeWindowDiagnostics.WindowClosed();
         }
 
         base.Dispose(disposing);

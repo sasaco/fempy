@@ -7,9 +7,9 @@ using GlControl = OpenTK.GLControl.GLControl;
 using GlControlSettings = OpenTK.GLControl.GLControlSettings;
 using GlPixelFormat = OpenTK.Graphics.OpenGL4.PixelFormat;
 
-namespace PDF_Manager.RendererProbe;
+namespace PDF_Manager.Rendering;
 
-internal sealed class OpenGlViewportLifecycle : IDisposable
+public sealed class OpenGlViewportLifecycle : IDisposable
 {
     private const string VertexShaderSource = """
         #version 330 core
@@ -38,7 +38,7 @@ internal sealed class OpenGlViewportLifecycle : IDisposable
     private bool _isDirty = true;
     private bool _subscribed;
     private Size _viewportSize = new(1, 1);
-    private ProbeSceneModel? _model;
+    private RenderSceneModel? _model;
     private int _program;
     private int _vertexArray;
     private int _vertexBuffer;
@@ -60,7 +60,7 @@ internal sealed class OpenGlViewportLifecycle : IDisposable
         {
             BackColor = Color.Black,
             Dock = DockStyle.Fill,
-            Name = "RendererProbeGlControl",
+            Name = "FrameWebOpenGlViewport",
             TabStop = false,
         };
 
@@ -115,7 +115,7 @@ internal sealed class OpenGlViewportLifecycle : IDisposable
 
             ApplyViewport(_control.ClientSize);
             RequestRender();
-            ProbeDiagnostics.ContextCreated();
+            RendererDiagnostics.ContextCreated();
         }
         catch
         {
@@ -125,7 +125,7 @@ internal sealed class OpenGlViewportLifecycle : IDisposable
         }
     }
 
-    public void SetModel(ProbeSceneModel model)
+    public void SetModel(RenderSceneModel model)
     {
         EnsureUiThread();
         ThrowIfDisposed();
@@ -204,7 +204,7 @@ internal sealed class OpenGlViewportLifecycle : IDisposable
         _control.SwapBuffers();
         CompleteFrame();
         CaptureCount++;
-        ProbeDiagnostics.CaptureCompleted();
+        RendererDiagnostics.CaptureCompleted();
         return capture;
     }
 
@@ -245,7 +245,7 @@ internal sealed class OpenGlViewportLifecycle : IDisposable
         {
             if (hadContext)
             {
-                ProbeDiagnostics.ContextDisposed();
+                RendererDiagnostics.ContextDisposed();
             }
 
             _initialized = false;
@@ -268,7 +268,7 @@ internal sealed class OpenGlViewportLifecycle : IDisposable
         _control.Paint += OnControlPaint;
         _control.Resize += OnControlResize;
         _subscribed = true;
-        ProbeDiagnostics.SubscriptionsAdded(2);
+        RendererDiagnostics.SubscriptionsAdded(2);
     }
 
     private void UnsubscribeControlEvents()
@@ -281,7 +281,7 @@ internal sealed class OpenGlViewportLifecycle : IDisposable
         _control.Paint -= OnControlPaint;
         _control.Resize -= OnControlResize;
         _subscribed = false;
-        ProbeDiagnostics.SubscriptionsRemoved(2);
+        RendererDiagnostics.SubscriptionsRemoved(2);
     }
 
     private void OnControlPaint(object? sender, PaintEventArgs eventArgs) => Render();
@@ -319,7 +319,7 @@ internal sealed class OpenGlViewportLifecycle : IDisposable
         GL.ClearColor(0.05f, 0.10f, 0.20f, 1.0f);
     }
 
-    private void UploadModel(ProbeSceneModel model)
+    private void UploadModel(RenderSceneModel model)
     {
         float[] positions = model.Positions.ToArray();
         GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBuffer);
@@ -345,7 +345,7 @@ internal sealed class OpenGlViewportLifecycle : IDisposable
     {
         _isDirty = false;
         RenderedFrameCount++;
-        ProbeDiagnostics.FrameRendered();
+        RendererDiagnostics.FrameRendered();
     }
 
     private void EnsureReady()
