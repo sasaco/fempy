@@ -59,11 +59,36 @@
   <data name="PdfFileFilter" xml:space="preserve"><value>PDFファイル (*.pdf)|*.pdf|すべてのファイル (*.*)|*.*</value></data>
   <data name="ViewportUnavailable" xml:space="preserve"><value>OpenGLビューポートを利用できません。</value></data>
   <data name="ViewportProjection" xml:space="preserve"><value>投影切替</value></data>
+  <data name="ViewportProjectionOrthographic" xml:space="preserve"><value>2D 平行投影</value></data>
+  <data name="ViewportProjectionPerspective" xml:space="preserve"><value>3D 透視投影</value></data>
   <data name="ViewportFit" xml:space="preserve"><value>全体表示</value></data>
   <data name="ViewportHome" xml:space="preserve"><value>ホーム</value></data>
+  <data name="ViewportGrid" xml:space="preserve"><value>グリッド</value></data>
+  <data name="ViewportAxes" xml:space="preserve"><value>座標軸</value></data>
+  <data name="ViewportLabels" xml:space="preserve"><value>ラベル</value></data>
+  <data name="ViewportLegends" xml:space="preserve"><value>凡例</value></data>
   <data name="ViewportLayer" xml:space="preserve"><value>レイヤー</value></data>
   <data name="ViewportLayerModel" xml:space="preserve"><value>モデル</value></data>
+  <data name="ViewportLayerLoads" xml:space="preserve"><value>荷重</value></data>
   <data name="ViewportLayerDisplacement" xml:space="preserve"><value>変位</value></data>
+  <data name="ViewportLayerReaction" xml:space="preserve"><value>反力</value></data>
+  <data name="ViewportLayerSectionForce" xml:space="preserve"><value>断面力</value></data>
+  <data name="ViewportPng" xml:space="preserve"><value>PNG</value></data>
+  <data name="ViewportScaleLegend" xml:space="preserve"><value>倍率</value></data>
+  <data name="ViewportColorLegend" xml:space="preserve"><value>大きさ</value></data>
+  <data name="PngFileFilter" xml:space="preserve"><value>PNG画像 (*.png)|*.png|すべてのファイル (*.*)|*.*</value></data>
+  <data name="ResultCoordinate" xml:space="preserve"><value>結果</value></data>
+  <data name="ResultPrevious" xml:space="preserve"><value>前へ</value></data>
+  <data name="ResultNext" xml:space="preserve"><value>次へ</value></data>
+  <data name="ResultPage" xml:space="preserve"><value>{0} / {1}</value></data>
+  <data name="ResultExtrema" xml:space="preserve"><value>極値</value></data>
+  <data name="ResultExtremaValues" xml:space="preserve"><value>全値</value></data>
+  <data name="ResultExtremaMinimum" xml:space="preserve"><value>最小</value></data>
+  <data name="ResultExtremaMaximum" xml:space="preserve"><value>最大</value></data>
+  <data name="ResultExtremaAbsoluteMaximum" xml:space="preserve"><value>絶対値最大</value></data>
+  <data name="ResultStateStatic" xml:space="preserve"><value>静的</value></data>
+  <data name="ResultStateLoadStep" xml:space="preserve"><value>荷重ステップ</value></data>
+  <data name="ResultStateMode" xml:space="preserve"><value>モード</value></data>
   <data name="ResultDisplacements" xml:space="preserve"><value>変位</value></data>
   <data name="ResultReactions" xml:space="preserve"><value>反力</value></data>
   <data name="ResultMemberForces" xml:space="preserve"><value>断面力</value></data>
@@ -105,4 +130,77 @@
   <data name="EditorFixRy" xml:space="preserve"><value>Ry固定</value></data>
   <data name="EditorFixRz" xml:space="preserve"><value>Rz固定</value></data>
   <data name="RuntimeStartError" xml:space="preserve"><value>ローカルのFrameWeb解析サービスを起動できませんでした。</value></data>
+  <data name="EditorRigidZones" xml:space="preserve"><value>剛域</value></data>
+  <data name="EditorSections" xml:space="preserve"><value>材料・断面</value></data>
+  <data name="EditorPanels" xml:space="preserve"><value>パネル</value></data>
+  <data name="EditorJoints" xml:space="preserve"><value>結合条件</value></data>
+  <data name="EditorNoticePoints" xml:space="preserve"><value>着目点</value></data>
+  <data name="EditorMemberSprings" xml:space="preserve"><value>部材ばね</value></data>
+  <data name="EditorMemberLoads" xml:space="preserve"><value>部材荷重</value></data>
+  <data name="EditorDefine" xml:space="preserve"><value>DEFINE</value></data>
+  <data name="EditorCombine" xml:space="preserve"><value>COMBINE</value></data>
+  <data name="EditorPickup" xml:space="preserve"><value>PICKUP</value></data>
+  <data name="EditorSection" xml:space="preserve"><value>断面</value></data>
+  <data name="EditorRotation" xml:space="preserve"><value>回転角</value></data>
+  <data name="EditorShearCorrection" xml:space="preserve"><value>せん断補正</value></data>
+  <data name="EditorILength" xml:space="preserve"><value>I端長</value></data>
+  <data name="EditorJLength" xml:space="preserve"><value>J端長</value></data>
+  <data name="EditorSet" xml:space="preserve"><value>セット</value></data>
+  <data name="EditorYoungsModulus" xml:space="preserve"><value>ヤング係数</value></data>
+  <data name="EditorPoissonRatio" xml:space="preserve"><value>ポアソン比</value></data>
+  <data name="EditorShearModulus" xml:space="preserve"><value>せん断弾性係数</value></data>
+  <data name="EditorArea" xml:space="preserve"><value>断面積</value></data>
+  <data name="EditorIy" xml:space="preserve"><value>Iy</value></data>
+  <data name="EditorIz" xml:space="preserve"><value>Iz</value></data>
+  <data name="EditorTorsion" xml:space="preserve"><value>ねじり定数</value></data>
+  <data name="EditorThermalExpansion" xml:space="preserve"><value>熱膨張係数</value></data>
+  <data name="EditorDensity" xml:space="preserve"><value>密度</value></data>
+  <data name="EditorThickness" xml:space="preserve"><value>厚さ</value></data>
+  <data name="EditorNode1" xml:space="preserve"><value>節点1</value></data>
+  <data name="EditorNode2" xml:space="preserve"><value>節点2</value></data>
+  <data name="EditorNode3" xml:space="preserve"><value>節点3</value></data>
+  <data name="EditorNode4" xml:space="preserve"><value>節点4</value></data>
+  <data name="EditorXi" xml:space="preserve"><value>Xi</value></data>
+  <data name="EditorYi" xml:space="preserve"><value>Yi</value></data>
+  <data name="EditorZi" xml:space="preserve"><value>Zi</value></data>
+  <data name="EditorXj" xml:space="preserve"><value>Xj</value></data>
+  <data name="EditorYj" xml:space="preserve"><value>Yj</value></data>
+  <data name="EditorZj" xml:space="preserve"><value>Zj</value></data>
+  <data name="EditorDistance" xml:space="preserve"><value>距離</value></data>
+  <data name="EditorTx" xml:space="preserve"><value>Tx</value></data>
+  <data name="EditorTy" xml:space="preserve"><value>Ty</value></data>
+  <data name="EditorTz" xml:space="preserve"><value>Tz</value></data>
+  <data name="EditorTr" xml:space="preserve"><value>Tr</value></data>
+  <data name="EditorElementSet" xml:space="preserve"><value>要素セット</value></data>
+  <data name="EditorSupportSet" xml:space="preserve"><value>支持セット</value></data>
+  <data name="EditorMemberSpringSet" xml:space="preserve"><value>部材ばねセット</value></data>
+  <data name="EditorJointSet" xml:space="preserve"><value>結合セット</value></data>
+  <data name="EditorMovingPitch" xml:space="preserve"><value>移動ピッチ</value></data>
+  <data name="EditorLoadKind" xml:space="preserve"><value>荷重種別</value></data>
+  <data name="EditorDirection" xml:space="preserve"><value>方向</value></data>
+  <data name="EditorL1" xml:space="preserve"><value>L1</value></data>
+  <data name="EditorL2" xml:space="preserve"><value>L2</value></data>
+  <data name="EditorP1" xml:space="preserve"><value>P1</value></data>
+  <data name="EditorP2" xml:space="preserve"><value>P2</value></data>
+  <data name="EditorSources" xml:space="preserve"><value>参照元</value></data>
+  <data name="EditorFactors" xml:space="preserve"><value>係数</value></data>
+  <data name="EditorClipboardUnavailable" xml:space="preserve"><value>クリップボードを使用できません。</value></data>
+  <data name="EditorClipboardTooLarge" xml:space="preserve"><value>クリップボードの選択範囲が上限を超えています。</value></data>
+  <data name="EditorClipboardInvalidShape" xml:space="preserve"><value>クリップボードの行列をこの表に貼り付けられません。</value></data>
+  <data name="EditorReadOnlyTarget" xml:space="preserve"><value>貼り付け先に読み取り専用の列が含まれています。</value></data>
+  <data name="EditorDeleteRejected" xml:space="preserve"><value>参照されているため、選択した行を削除できません。</value></data>
+  <data name="EditorInsertRejected" xml:space="preserve"><value>未使用の有効な行候補がないため、この表には挿入できません。</value></data>
+  <data name="EditorModelSettings" xml:space="preserve"><value>モデル設定</value></data>
+  <data name="EditorDimension" xml:space="preserve"><value>次元</value></data>
+  <data name="EditorElementPropertySets" xml:space="preserve"><value>要素特性セット</value></data>
+  <data name="EditorSupportSets" xml:space="preserve"><value>支持条件セット</value></data>
+  <data name="EditorJointReleaseSets" xml:space="preserve"><value>結合解放セット</value></data>
+  <data name="EditorMemberSpringSets" xml:space="preserve"><value>部材ばねセット</value></data>
+  <data name="EditorPrescribedDisplacements" xml:space="preserve"><value>強制変位</value></data>
+  <data name="EditorDx" xml:space="preserve"><value>Dx</value></data>
+  <data name="EditorDy" xml:space="preserve"><value>Dy</value></data>
+  <data name="EditorDz" xml:space="preserve"><value>Dz</value></data>
+  <data name="EditorAx" xml:space="preserve"><value>Ax</value></data>
+  <data name="EditorAy" xml:space="preserve"><value>Ay</value></data>
+  <data name="EditorAz" xml:space="preserve"><value>Az</value></data>
 </root>

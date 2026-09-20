@@ -15,6 +15,9 @@ internal static class RendererVerification
         string? openGlVersion = null;
         Color firstBackground = Color.Empty;
         Color firstCenter = Color.Empty;
+        int orthographicCaptures = 0;
+        int perspectiveCaptures = 0;
+        int pngCaptures = 0;
 
         for (int cycle = 1; cycle <= cycles; cycle++)
         {
@@ -57,7 +60,10 @@ internal static class RendererVerification
                 AssertKnownFrame(resizedCapture, cycle, "resized");
                 Assert(resizedCapture.Size != initialSize, $"Cycle {cycle}: resizing did not change capture dimensions ({initialSize}).");
 
-                VerifyTypedScene(shell, renderer, cycle);
+                ProjectionCaptureCounts projectionCaptures = VerifyTypedScene(shell, renderer, cycle);
+                orthographicCaptures += projectionCaptures.Orthographic;
+                perspectiveCaptures += projectionCaptures.Perspective;
+                pngCaptures += projectionCaptures.Png;
                 VerifyIdleDoesNotRender(renderer, cycle);
 
                 shell.Close();
@@ -72,7 +78,13 @@ internal static class RendererVerification
         long framesRendered = final.FramesRendered - baseline.FramesRendered;
         long capturesCompleted = final.CapturesCompleted - baseline.CapturesCompleted;
         Assert(contextsCreated == cycles, $"Expected {cycles} contexts, created {contextsCreated}.");
-        Assert(capturesCompleted == cycles * 3L, $"Expected {cycles * 3L} captures, completed {capturesCompleted}.");
+        Assert(capturesCompleted == cycles * 6L, $"Expected {cycles * 6L} captures, completed {capturesCompleted}.");
+        Assert(orthographicCaptures == cycles,
+            $"Expected {cycles} orthographic typed captures, completed {orthographicCaptures}.");
+        Assert(perspectiveCaptures == cycles,
+            $"Expected {cycles} perspective typed captures, completed {perspectiveCaptures}.");
+        Assert(pngCaptures == cycles * 2,
+            $"Expected {cycles * 2} PNG encodes, completed {pngCaptures}.");
 
         return new VerificationReport(
             "pass",
@@ -80,6 +92,9 @@ internal static class RendererVerification
             contextsCreated,
             framesRendered,
             capturesCompleted,
+            orthographicCaptures,
+            perspectiveCaptures,
+            pngCaptures,
             final.LiveContexts,
             final.LiveSubscriptions,
             ProbeWindowDiagnostics.LiveWindows,
@@ -112,33 +127,78 @@ internal static class RendererVerification
         Assert(renderer.ResizeCount == resizesBefore, $"Cycle {cycle}: unchanged Resize changed renderer state.");
     }
 
-    private static void VerifyTypedScene(RendererProbeShell shell, OpenGlViewportLifecycle renderer, int cycle)
+    private static ProjectionCaptureCounts VerifyTypedScene(
+        RendererProbeShell shell,
+        OpenGlViewportLifecycle renderer,
+        int cycle)
     {
-        ViewportSceneModel scene = ProbeSceneModel.TypedFrame;
+        ViewportSceneModel scene = CreateDecoratedScene(ProbeSceneModel.TypedFrame);
         int uploadsBefore = renderer.ModelUploadCount;
         int framesBefore = renderer.RenderedFrameCount;
 
+        renderer.SetCameraPolicy(ViewportCameraPolicy.TwoDimensional);
         renderer.SetScene(scene);
         Assert(ReferenceEquals(renderer.Scene, scene), $"Cycle {cycle}: typed scene was not retained.");
         Assert(renderer.ModelUploadCount == uploadsBefore + 1,
             $"Cycle {cycle}: typed scene was not uploaded exactly once.");
 
-        renderer.Render();
-        Assert(renderer.RenderedFrameCount == framesBefore + 1,
-            $"Cycle {cycle}: SetScene did not produce a typed frame without a legacy model.");
+        PumpUntil(
+            () => renderer.RenderedFrameCount > framesBefore,
+            cycle,
+            "decorated two-dimensional Paint frame");
+
+        byte[] orthographicPng = renderer.CapturePng(new ViewportPngCaptureOptions(16 * 1024 * 1024));
+        AssertPng(orthographicPng, cycle, "orthographic");
+        using (MemoryStream stream = new(orthographicPng, writable: false))
+        using (Bitmap orthographicCapture = new(stream))
+        {
+            AssertTypedFrame(orthographicCapture, cycle, "orthographic", requireSelection: false);
+        }
 
         int uploadsAfterFirstSet = renderer.ModelUploadCount;
         renderer.SetScene(scene);
         Assert(renderer.ModelUploadCount == uploadsAfterFirstSet,
             $"Cycle {cycle}: setting the unchanged typed scene uploaded it again.");
 
-        Assert(renderer.Projection == ViewportProjection.Orthographic,
+        Assert(renderer.CameraPolicy == ViewportCameraPolicy.TwoDimensional &&
+               renderer.Projection == ViewportProjection.Orthographic,
             $"Cycle {cycle}: typed scene did not start in orthographic projection.");
-        renderer.ToggleProjection();
-        Assert(renderer.Projection == ViewportProjection.Perspective,
-            $"Cycle {cycle}: projection toggle did not select perspective.");
+        int frameBeforeThreeDimensionalPaint = renderer.RenderedFrameCount;
+        renderer.SetCameraPolicy(ViewportCameraPolicy.ThreeDimensional);
+        Assert(renderer.CameraPolicy == ViewportCameraPolicy.ThreeDimensional &&
+               renderer.Projection == ViewportProjection.Perspective,
+            $"Cycle {cycle}: three-dimensional policy did not select perspective.");
         renderer.Home();
         renderer.Fit();
+        PumpUntil(
+            () => renderer.RenderedFrameCount > frameBeforeThreeDimensionalPaint,
+            cycle,
+            "decorated three-dimensional Paint frame");
+
+        byte[] perspectivePng = renderer.CapturePng(new ViewportPngCaptureOptions(16 * 1024 * 1024));
+        AssertPng(perspectivePng, cycle, "perspective");
+        using (MemoryStream stream = new(perspectivePng, writable: false))
+        using (Bitmap perspectiveCapture = new(stream))
+        {
+            AssertTypedFrame(perspectiveCapture, cycle, "perspective", requireSelection: false);
+        }
+
+        SceneLayerMask visibleLayers = renderer.VisibleLayers;
+        renderer.SetVisibleLayers(visibleLayers & ~SceneLayerMask.Decorations);
+        renderer.Render();
+        using (Bitmap decorationsOffCapture = renderer.Capture())
+        {
+            AssertTypedFrame(
+                decorationsOffCapture,
+                cycle,
+                "decorations-off",
+                requireSelection: false,
+                requireDecorations: false);
+        }
+        renderer.SetVisibleLayers(visibleLayers);
+        renderer.Render();
+
+        VerifyFloatDockLifecycle(shell, renderer, cycle);
 
         int resizeBefore = renderer.ResizeCount;
         Size sizeBefore = renderer.Control.ClientSize;
@@ -197,7 +257,75 @@ internal static class RendererVerification
             $"Cycle {cycle}: dirty typed scene was not rendered.");
 
         using Bitmap typedCapture = renderer.Capture();
-        AssertTypedFrame(typedCapture, cycle);
+        AssertTypedFrame(typedCapture, cycle, "selected", requireSelection: true);
+        return new ProjectionCaptureCounts(1, 1, 2);
+    }
+
+    private static ViewportSceneModel CreateDecoratedScene(ViewportSceneModel source)
+    {
+        SceneNode labelNode = source.Nodes.Single(node => node.Id == "N3");
+        ScenePresentationOptions presentation = new(
+            grid: new SceneGridDefinition(SceneGridPlane.XZ, 0.5f, 5),
+            showAxes: true,
+            labels:
+            [
+                new SceneLabel(
+                    "probe-node-label",
+                    "N3",
+                    labelNode.Position,
+                    new SceneEntityKey(SceneEntityKind.Node, labelNode.Id)),
+            ],
+            scaleLegend: new SceneScaleLegend("probe-scale", "Displacement", 1.5f),
+            colorLegend: new SceneColorLegend(
+                "probe-color-legend",
+                "Response",
+                [
+                    new SceneColorLegendEntry("0", 0.0f, 0.10f, 0.30f, 0.90f),
+                    new SceneColorLegendEntry("50%", 0.5f, 0.10f, 0.80f, 0.30f),
+                    new SceneColorLegendEntry("100%", 1.0f, 0.90f, 0.20f, 0.10f),
+                ]));
+        return new ViewportSceneModel(
+            $"{source.StableId}:decorated",
+            source.Nodes,
+            source.Members,
+            source.Supports,
+            source.NodalLoads,
+            source.MemberLoads,
+            source.Displacement,
+            source.RigidZones,
+            source.Springs,
+            source.Joints,
+            source.Panels,
+            source.NoticePoints,
+            source.PrescribedDisplacements,
+            source.Reactions,
+            source.SectionForces,
+            presentation,
+            source.VisibleLayers);
+    }
+
+    private static void VerifyFloatDockLifecycle(
+        RendererProbeShell shell,
+        OpenGlViewportLifecycle renderer,
+        int cycle)
+    {
+        RendererDiagnosticSnapshot before = RendererDiagnostics.Snapshot();
+
+        shell.SetDocumentDockState(WeifenLuo.WinFormsUI.Docking.DockState.Float);
+        Assert(shell.Document.DockState == WeifenLuo.WinFormsUI.Docking.DockState.Float,
+            $"Cycle {cycle}: document did not float.");
+        renderer.Resize(renderer.Control.ClientSize);
+
+        shell.SetDocumentDockState(WeifenLuo.WinFormsUI.Docking.DockState.Document);
+        Assert(shell.Document.DockState == WeifenLuo.WinFormsUI.Docking.DockState.Document,
+            $"Cycle {cycle}: document did not redock.");
+        renderer.Resize(renderer.Control.ClientSize);
+
+        RendererDiagnosticSnapshot after = RendererDiagnostics.Snapshot();
+        Assert(after.LiveContexts == before.LiveContexts,
+            $"Cycle {cycle}: float/dock changed live context count from {before.LiveContexts} to {after.LiveContexts}.");
+        Assert(after.LiveSubscriptions == before.LiveSubscriptions,
+            $"Cycle {cycle}: float/dock changed live subscription count from {before.LiveSubscriptions} to {after.LiveSubscriptions}.");
     }
 
     private static void VerifyIdleDoesNotRender(OpenGlViewportLifecycle renderer, int cycle)
@@ -225,13 +353,20 @@ internal static class RendererVerification
         Assert(center.R >= 230 && center.G is >= 75 and <= 105 && center.B <= 50,
             $"Cycle {cycle} {phase}: expected triangle center, got {ToRgb(center)}.");
         Assert(background.ToArgb() != center.ToArgb(), $"Cycle {cycle} {phase}: capture did not contain distinct scene pixels.");
+        AssertDecorationPixels(bitmap, cycle, phase, expected: false);
         return (background, center);
     }
 
-    private static void AssertTypedFrame(Bitmap bitmap, int cycle)
+    private static void AssertTypedFrame(
+        Bitmap bitmap,
+        int cycle,
+        string projection,
+        bool requireSelection,
+        bool requireDecorations = true)
     {
         Assert(bitmap.Width > 1 && bitmap.Height > 1, $"Cycle {cycle} typed: capture dimensions were empty.");
-        Color background = bitmap.GetPixel(1, 1);
+        Color background = Color.FromArgb(13, 25, 51);
+        int backgroundPixels = 0;
         int scenePixels = 0;
         int displacementPixels = 0;
         int selectionPixels = 0;
@@ -243,6 +378,10 @@ internal static class RendererVerification
                 if (pixel.ToArgb() != background.ToArgb())
                 {
                     scenePixels++;
+                }
+                else
+                {
+                    backgroundPixels++;
                 }
 
                 if (pixel.R >= 220 && pixel.G <= 120 && pixel.B >= 140)
@@ -257,11 +396,77 @@ internal static class RendererVerification
             }
         }
 
-        Assert(background.B >= 45 && background.R <= 20,
-            $"Cycle {cycle} typed: unexpected background {ToRgb(background)}.");
-        Assert(scenePixels >= 10, $"Cycle {cycle} typed: capture did not contain typed scene pixels.");
-        Assert(displacementPixels > 0, $"Cycle {cycle} typed: displacement layer was not visible.");
-        Assert(selectionPixels > 0, $"Cycle {cycle} typed: selection highlight was not visible.");
+        Assert(backgroundPixels > 0,
+            $"Cycle {cycle} typed {projection}: the deterministic clear color {ToRgb(background)} was absent.");
+        Assert(scenePixels >= 10, $"Cycle {cycle} typed {projection}: capture did not contain typed scene pixels.");
+        Assert(displacementPixels > 0, $"Cycle {cycle} typed {projection}: displacement layer was not visible.");
+        if (requireSelection)
+        {
+            Assert(selectionPixels > 0, $"Cycle {cycle} typed {projection}: selection highlight was not visible.");
+        }
+
+        AssertDecorationPixels(bitmap, cycle, projection, requireDecorations);
+    }
+
+    private static void AssertDecorationPixels(Bitmap bitmap, int cycle, string phase, bool expected)
+    {
+        Color[] signatures =
+        [
+            Color.FromArgb(32, 52, 79),
+            Color.FromArgb(43, 73, 110),
+            Color.FromArgb(237, 67, 67),
+            Color.FromArgb(67, 220, 115),
+            Color.FromArgb(69, 137, 240),
+            Color.FromArgb(242, 242, 232),
+            Color.FromArgb(109, 227, 255),
+            Color.FromArgb(255, 175, 78),
+        ];
+        int[] counts = new int[signatures.Length];
+        for (int y = 0; y < bitmap.Height; y++)
+        {
+            for (int x = 0; x < bitmap.Width; x++)
+            {
+                Color pixel = bitmap.GetPixel(x, y);
+                for (int index = 0; index < signatures.Length; index++)
+                {
+                    Color signature = signatures[index];
+                    if (Math.Abs(pixel.R - signature.R) <= 2 &&
+                        Math.Abs(pixel.G - signature.G) <= 2 &&
+                        Math.Abs(pixel.B - signature.B) <= 2)
+                    {
+                        counts[index]++;
+                    }
+                }
+            }
+        }
+
+        if (expected)
+        {
+            Assert(counts[0] + counts[1] > 0,
+                $"Cycle {cycle} {phase}: grid decoration pixels were absent.");
+            Assert(counts[2] + counts[3] + counts[4] > 0,
+                $"Cycle {cycle} {phase}: axis decoration pixels were absent.");
+            Assert(counts[5] > 0,
+                $"Cycle {cycle} {phase}: label decoration pixels were absent.");
+            Assert(counts[6] > 0,
+                $"Cycle {cycle} {phase}: scale decoration pixels were absent.");
+            Assert(counts[7] > 0,
+                $"Cycle {cycle} {phase}: color-legend decoration pixels were absent.");
+            return;
+        }
+
+        Assert(counts.All(count => count == 0),
+            $"Cycle {cycle} {phase}: decoration pixels remained while decorations were absent or disabled ({string.Join(',', counts)}).");
+    }
+
+    private static void AssertPng(byte[] bytes, int cycle, string projection)
+    {
+        ReadOnlySpan<byte> signature = [137, 80, 78, 71, 13, 10, 26, 10];
+
+        Assert(bytes.AsSpan().StartsWith(signature),
+            $"Cycle {cycle} typed {projection}: encoded capture did not have a PNG signature.");
+        Assert(bytes.Length <= 16 * 1024 * 1024,
+            $"Cycle {cycle} typed {projection}: encoded capture exceeded the 16 MiB probe limit ({bytes.Length} bytes).");
     }
 
     private static Point FindHitPoint(
@@ -347,9 +552,14 @@ internal sealed record VerificationReport(
     long ContextsCreated,
     long FramesRendered,
     long CapturesCompleted,
+    int OrthographicCaptures,
+    int PerspectiveCaptures,
+    int PngCaptures,
     int LiveContexts,
     int LiveSubscriptions,
     int LiveWindows,
     string OpenGlVersion,
     string BackgroundRgb,
     string CenterRgb);
+
+internal readonly record struct ProjectionCaptureCounts(int Orthographic, int Perspective, int Png);

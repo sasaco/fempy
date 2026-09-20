@@ -14,6 +14,9 @@ public sealed class ProjectDocumentFormatException : FormatException
 
 public static class ProjectDocumentJson
 {
+    public const int DefaultMaxJsonBytes = 16 * 1024 * 1024;
+    public const int DefaultMaxEntityCount = 100_000;
+
     private static readonly JsonSerializerOptions Options = new()
     {
         AllowTrailingCommas = false,
@@ -27,7 +30,14 @@ public static class ProjectDocumentJson
     {
         ArgumentNullException.ThrowIfNull(document);
         ProjectDocumentValidator.Validate(document);
-        return JsonSerializer.SerializeToUtf8Bytes(Map(document), Options);
+        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(Map(document), Options);
+        if (bytes.Length > DefaultMaxJsonBytes)
+        {
+            throw new ProjectDocumentFormatException(
+                $"Project JSON exceeds the {DefaultMaxJsonBytes} byte limit.");
+        }
+
+        return bytes;
     }
 
     public static string SerializeToString(ProjectDocument document)
@@ -46,6 +56,12 @@ public static class ProjectDocumentJson
             throw new ProjectDocumentFormatException("Project JSON must not be empty.");
         }
 
+        if (utf8Json.Length > DefaultMaxJsonBytes)
+        {
+            throw new ProjectDocumentFormatException(
+                $"Project JSON exceeds the {DefaultMaxJsonBytes} byte limit.");
+        }
+
         try
         {
             byte[] bytes = utf8Json.ToArray();
@@ -58,6 +74,7 @@ public static class ProjectDocumentJson
             RejectDuplicateProperties(parsed.RootElement, "$", 0);
             ProjectFileWire wire = parsed.RootElement.Deserialize<ProjectFileWire>(Options)
                 ?? throw new JsonException("The project document root cannot be null.");
+            ValidateEntityBudget(wire);
             return Map(wire);
         }
         catch (ProjectDocumentValidationException)
@@ -94,6 +111,7 @@ public static class ProjectDocumentJson
             },
             Model = new ModelWire
             {
+                Dimension = Format(document.Dimension),
                 Nodes = document.Nodes.OrderBy(node => node.Id, StringComparer.Ordinal).Select(node => new NodeWire
                 {
                     Id = node.Id,
@@ -101,18 +119,16 @@ public static class ProjectDocumentJson
                     Y = node.Y,
                     Z = node.Z,
                 }).ToList(),
-                Sections = document.Sections.OrderBy(section => section.Id, StringComparer.Ordinal).Select(section =>
-                    new FrameSectionWire
+                Sections = document.Sections.OrderBy(section => section.Id, StringComparer.Ordinal)
+                    .Select(Map).ToList(),
+                ElementPropertySets = document.ElementPropertySets
+                    .OrderBy(set => set.Id, StringComparer.Ordinal)
+                    .Select(set => new ElementPropertySetWire
                     {
-                        Id = section.Id,
-                        Name = section.Name,
-                        YoungsModulus = section.YoungsModulus,
-                        PoissonRatio = section.PoissonRatio,
-                        ShearModulus = section.ShearModulus,
-                        Area = section.Area,
-                        MomentOfInertiaY = section.MomentOfInertiaY,
-                        MomentOfInertiaZ = section.MomentOfInertiaZ,
-                        TorsionConstant = section.TorsionConstant,
+                        Id = set.Id,
+                        Name = set.Name,
+                        Sections = set.Sections.OrderBy(section => section.Id, StringComparer.Ordinal)
+                            .Select(Map).ToList(),
                     }).ToList(),
                 Members = document.Members.OrderBy(member => member.Id, StringComparer.Ordinal).Select(member => new MemberWire
                 {
@@ -123,6 +139,15 @@ public static class ProjectDocumentJson
                     RotationDegrees = member.RotationDegrees,
                     ShearCorrection = member.ShearCorrection,
                 }).ToList(),
+                RigidZones = document.RigidZones.OrderBy(value => value.Id, StringComparer.Ordinal)
+                    .Select(value => new RigidZoneWire
+                    {
+                        Id = value.Id,
+                        MemberId = value.MemberId,
+                        ILength = value.ILength,
+                        JLength = value.JLength,
+                        SectionId = value.SectionId,
+                    }).ToList(),
                 Supports = document.Supports.OrderBy(support => support.Id, StringComparer.Ordinal).Select(support => new SupportWire
                 {
                     Id = support.Id,
@@ -134,6 +159,72 @@ public static class ProjectDocumentJson
                     FixRy = support.FixRy,
                     FixRz = support.FixRz,
                 }).ToList(),
+                SupportSets = document.SupportSets.OrderBy(set => set.Id, StringComparer.Ordinal)
+                    .Select(set => new SupportSetWire
+                    {
+                        Id = set.Id,
+                        Name = set.Name,
+                        Rows = set.Rows.OrderBy(value => value.Id, StringComparer.Ordinal)
+                            .Select(value => new SupportConditionWire
+                            {
+                                Id = value.Id,
+                                NodeId = value.NodeId,
+                                Tx = value.Tx,
+                                Ty = value.Ty,
+                                Tz = value.Tz,
+                                Rx = value.Rx,
+                                Ry = value.Ry,
+                                Rz = value.Rz,
+                            }).ToList(),
+                    }).ToList(),
+                Panels = document.Panels.OrderBy(value => value.Id, StringComparer.Ordinal)
+                    .Select(value => new PanelWire
+                    {
+                        Id = value.Id,
+                        SectionId = value.SectionId,
+                        NodeIds = value.NodeIds.ToList(),
+                    }).ToList(),
+                JointReleaseSets = document.JointReleaseSets.OrderBy(set => set.Id, StringComparer.Ordinal)
+                    .Select(set => new JointReleaseSetWire
+                    {
+                        Id = set.Id,
+                        Name = set.Name,
+                        Rows = set.Rows.OrderBy(value => value.Id, StringComparer.Ordinal)
+                            .Select(value => new JointReleaseWire
+                            {
+                                Id = value.Id,
+                                MemberId = value.MemberId,
+                                ConnectXi = value.ConnectXi,
+                                ConnectYi = value.ConnectYi,
+                                ConnectZi = value.ConnectZi,
+                                ConnectXj = value.ConnectXj,
+                                ConnectYj = value.ConnectYj,
+                                ConnectZj = value.ConnectZj,
+                            }).ToList(),
+                    }).ToList(),
+                NoticePoints = document.NoticePoints.OrderBy(value => value.Id, StringComparer.Ordinal)
+                    .Select(value => new NoticePointWire
+                    {
+                        Id = value.Id,
+                        MemberId = value.MemberId,
+                        Distance = value.Distance,
+                    }).ToList(),
+                MemberSpringSets = document.MemberSpringSets.OrderBy(set => set.Id, StringComparer.Ordinal)
+                    .Select(set => new MemberSpringSetWire
+                    {
+                        Id = set.Id,
+                        Name = set.Name,
+                        Rows = set.Rows.OrderBy(value => value.Id, StringComparer.Ordinal)
+                            .Select(value => new MemberSpringWire
+                            {
+                                Id = value.Id,
+                                MemberId = value.MemberId,
+                                Tx = value.Tx,
+                                Ty = value.Ty,
+                                Tz = value.Tz,
+                                Tr = value.Tr,
+                            }).ToList(),
+                    }).ToList(),
             },
             Loads = new LoadsWire
             {
@@ -142,6 +233,11 @@ public static class ProjectDocumentJson
                     Id = loadCase.Id,
                     Name = loadCase.Name,
                     Symbol = loadCase.Symbol,
+                    ElementSetId = loadCase.ElementSetId,
+                    SupportSetId = loadCase.SupportSetId,
+                    MemberSpringSetId = loadCase.MemberSpringSetId,
+                    JointSetId = loadCase.JointSetId,
+                    MovingLoadPitch = loadCase.MovingLoadPitch,
                 }).ToList(),
                 NodalLoads = document.NodalLoads.OrderBy(load => load.Id, StringComparer.Ordinal).Select(load => new NodalLoadWire
                 {
@@ -155,6 +251,33 @@ public static class ProjectDocumentJson
                     My = load.My,
                     Mz = load.Mz,
                 }).ToList(),
+                PrescribedDisplacements = document.PrescribedDisplacements
+                    .OrderBy(value => value.Id, StringComparer.Ordinal)
+                    .Select(value => new PrescribedDisplacementWire
+                    {
+                        Id = value.Id,
+                        CaseId = value.CaseId,
+                        NodeId = value.NodeId,
+                        Dx = value.Dx,
+                        Dy = value.Dy,
+                        Dz = value.Dz,
+                        Rx = value.Rx,
+                        Ry = value.Ry,
+                        Rz = value.Rz,
+                    }).ToList(),
+                MemberLoads = document.MemberLoads.OrderBy(value => value.Id, StringComparer.Ordinal)
+                    .Select(value => new MemberLoadWire
+                    {
+                        Id = value.Id,
+                        CaseId = value.CaseId,
+                        MemberId = value.MemberId,
+                        Kind = Format(value.Kind),
+                        Direction = Format(value.Direction),
+                        L1 = value.L1,
+                        L2 = value.L2,
+                        P1 = value.P1,
+                        P2 = value.P2,
+                    }).ToList(),
             },
             DerivedResults = document.DerivedResults.Select(result => new DerivedResultWire
             {
@@ -211,7 +334,16 @@ public static class ProjectDocumentJson
             wire.Loads.Cases.Select(loadCase => new LoadCaseDefinition(
                 loadCase.Id,
                 loadCase.Name,
-                loadCase.Symbol)),
+                loadCase.Symbol,
+                loadCase.ElementSetId
+                    ?? throw new ProjectDocumentFormatException("Load-case element_set_id cannot be null."),
+                loadCase.SupportSetId
+                    ?? throw new ProjectDocumentFormatException("Load-case support_set_id cannot be null."),
+                loadCase.MemberSpringSetId
+                    ?? throw new ProjectDocumentFormatException("Load-case member_spring_set_id cannot be null."),
+                loadCase.JointSetId
+                    ?? throw new ProjectDocumentFormatException("Load-case joint_set_id cannot be null."),
+                loadCase.MovingLoadPitch)),
             wire.Loads.NodalLoads.Select(load => new NodalLoadDefinition(
                 load.Id,
                 load.CaseId,
@@ -230,17 +362,122 @@ public static class ProjectDocumentJson
             wire.MovingLoads.Select(load => new MovingLoadDefinition(load.Id, load.Name, load.CaseIds)),
             ProjectSelection.Empty,
             isDirty: false,
-            sections: (wire.Model.Sections ?? []).Select(section => new FrameSectionDefinition(
-                section.Id,
-                section.Name,
-                section.YoungsModulus,
-                section.PoissonRatio,
-                section.ShearModulus,
-                section.Area,
-                section.MomentOfInertiaY,
-                section.MomentOfInertiaZ,
-                section.TorsionConstant)));
+            sections: RequireCollection(wire.Model.Sections, "model.sections").Select(Map),
+            dimension: ParseDimension(wire.Model.Dimension),
+            elementPropertySets: RequireCollection(
+                wire.Model.ElementPropertySets,
+                "model.element_property_sets").Select(set =>
+                new ElementPropertySetDefinition(set.Id, set.Name, set.Sections.Select(Map))),
+            rigidZones: RequireCollection(wire.Model.RigidZones, "model.rigid_zones").Select(value =>
+                new RigidZoneDefinition(
+                value.Id,
+                value.MemberId,
+                value.ILength,
+                value.JLength,
+                value.SectionId)),
+            supportSets: RequireCollection(wire.Model.SupportSets, "model.support_sets").Select(set =>
+                new SupportSetDefinition(
+                set.Id,
+                set.Name,
+                set.Rows.Select(value => new SupportConditionDefinition(
+                    value.Id,
+                    value.NodeId,
+                    value.Tx,
+                    value.Ty,
+                    value.Tz,
+                    value.Rx,
+                    value.Ry,
+                    value.Rz)))),
+            panels: RequireCollection(wire.Model.Panels, "model.panels").Select(value =>
+                new PanelDefinition(value.Id, value.SectionId, value.NodeIds)),
+            jointReleaseSets: RequireCollection(
+                wire.Model.JointReleaseSets,
+                "model.joint_release_sets").Select(set =>
+                new JointReleaseSetDefinition(
+                    set.Id,
+                    set.Name,
+                    set.Rows.Select(value => new JointReleaseDefinition(
+                        value.Id,
+                        value.MemberId,
+                        value.ConnectXi,
+                        value.ConnectYi,
+                        value.ConnectZi,
+                        value.ConnectXj,
+                        value.ConnectYj,
+                        value.ConnectZj)))),
+            noticePoints: RequireCollection(wire.Model.NoticePoints, "model.notice_points").Select(value =>
+                new NoticePointDefinition(value.Id, value.MemberId, value.Distance)),
+            memberSpringSets: RequireCollection(
+                wire.Model.MemberSpringSets,
+                "model.member_spring_sets").Select(set =>
+                new MemberSpringSetDefinition(
+                    set.Id,
+                    set.Name,
+                    set.Rows.Select(value => new MemberSpringDefinition(
+                        value.Id,
+                        value.MemberId,
+                        value.Tx,
+                        value.Ty,
+                        value.Tz,
+                        value.Tr)))),
+            prescribedDisplacements: RequireCollection(
+                wire.Loads.PrescribedDisplacements,
+                "loads.prescribed_displacements").Select(value =>
+                new PrescribedDisplacementDefinition(
+                    value.Id,
+                    value.CaseId,
+                    value.NodeId,
+                    value.Dx,
+                    value.Dy,
+                    value.Dz,
+                    value.Rx,
+                    value.Ry,
+                    value.Rz)),
+            memberLoads: RequireCollection(wire.Loads.MemberLoads, "loads.member_loads").Select(value =>
+                new MemberLoadDefinition(
+                value.Id,
+                value.CaseId,
+                value.MemberId,
+                ParseMemberLoadKind(value.Kind),
+                ParseMemberLoadDirection(value.Direction),
+                value.L1,
+                value.L2,
+                value.P1,
+                value.P2)));
     }
+
+    private static IReadOnlyList<T> RequireCollection<T>(List<T>? values, string path)
+        => values ?? throw new ProjectDocumentFormatException($"Project member '{path}' cannot be null.");
+
+    private static FrameSectionWire Map(FrameSectionDefinition section) => new()
+    {
+        Id = section.Id,
+        Name = section.Name,
+        YoungsModulus = section.YoungsModulus,
+        PoissonRatio = section.PoissonRatio,
+        ShearModulus = section.ShearModulus,
+        Area = section.Area,
+        MomentOfInertiaY = section.MomentOfInertiaY,
+        MomentOfInertiaZ = section.MomentOfInertiaZ,
+        TorsionConstant = section.TorsionConstant,
+        ThermalExpansionCoefficient = section.ThermalExpansionCoefficient,
+        Density = section.Density,
+        PanelThickness = section.PanelThickness,
+    };
+
+    private static FrameSectionDefinition Map(FrameSectionWire section) => new(
+        section.Id,
+        section.Name,
+        section.YoungsModulus,
+        section.PoissonRatio,
+        section.ShearModulus,
+        section.Area,
+        section.MomentOfInertiaY,
+        section.MomentOfInertiaZ,
+        section.TorsionConstant,
+        section.ThermalExpansionCoefficient,
+        section.Density,
+        section.PanelThickness);
 
     private static string Format(DerivedResultKind kind) => kind switch
     {
@@ -257,6 +494,114 @@ public static class ProjectDocumentJson
         "pickup" => DerivedResultKind.Pickup,
         _ => throw new ProjectDocumentFormatException($"Derived-result kind '{kind}' is not supported."),
     };
+
+    private static string Format(ModelDimension value) => value switch
+    {
+        ModelDimension.TwoDimensional => "2d",
+        ModelDimension.ThreeDimensional => "3d",
+        _ => throw new ProjectDocumentValidationException("Unsupported model dimension."),
+    };
+
+    private static ModelDimension ParseDimension(string value) => value switch
+    {
+        "2d" => ModelDimension.TwoDimensional,
+        "3d" => ModelDimension.ThreeDimensional,
+        _ => throw new ProjectDocumentFormatException($"Model dimension '{value}' is not supported."),
+    };
+
+    private static string Format(MemberLoadKind value) => value switch
+    {
+        MemberLoadKind.PointForce => "point_force",
+        MemberLoadKind.PointMoment => "point_moment",
+        MemberLoadKind.DistributedForce => "distributed_force",
+        MemberLoadKind.Thermal => "thermal",
+        _ => throw new ProjectDocumentValidationException("Unsupported member-load kind."),
+    };
+
+    private static MemberLoadKind ParseMemberLoadKind(string value) => value switch
+    {
+        "point_force" => MemberLoadKind.PointForce,
+        "point_moment" => MemberLoadKind.PointMoment,
+        "distributed_force" => MemberLoadKind.DistributedForce,
+        "thermal" => MemberLoadKind.Thermal,
+        _ => throw new ProjectDocumentFormatException($"Member-load kind '{value}' is not supported."),
+    };
+
+    private static string Format(MemberLoadDirection value) => value switch
+    {
+        MemberLoadDirection.LocalX => "local_x",
+        MemberLoadDirection.LocalY => "local_y",
+        MemberLoadDirection.LocalZ => "local_z",
+        MemberLoadDirection.GlobalX => "global_x",
+        MemberLoadDirection.GlobalY => "global_y",
+        MemberLoadDirection.GlobalZ => "global_z",
+        _ => throw new ProjectDocumentValidationException("Unsupported member-load direction."),
+    };
+
+    private static MemberLoadDirection ParseMemberLoadDirection(string value) => value switch
+    {
+        "local_x" => MemberLoadDirection.LocalX,
+        "local_y" => MemberLoadDirection.LocalY,
+        "local_z" => MemberLoadDirection.LocalZ,
+        "global_x" => MemberLoadDirection.GlobalX,
+        "global_y" => MemberLoadDirection.GlobalY,
+        "global_z" => MemberLoadDirection.GlobalZ,
+        _ => throw new ProjectDocumentFormatException($"Member-load direction '{value}' is not supported."),
+    };
+
+    private static void ValidateEntityBudget(ProjectFileWire wire)
+    {
+        int count = 0;
+        void Add(int value) => count = checked(count + value);
+
+        Add(wire.Model.Nodes.Count);
+        Add(wire.Model.Sections?.Count ?? 0);
+        Add(wire.Model.ElementPropertySets?.Count ?? 0);
+        foreach (ElementPropertySetWire set in wire.Model.ElementPropertySets ?? [])
+        {
+            Add(set.Sections.Count);
+        }
+
+        Add(wire.Model.Members.Count);
+        Add(wire.Model.RigidZones?.Count ?? 0);
+        Add(wire.Model.Supports.Count);
+        Add(wire.Model.SupportSets?.Count ?? 0);
+        foreach (SupportSetWire set in wire.Model.SupportSets ?? [])
+        {
+            Add(set.Rows.Count);
+        }
+
+        Add(wire.Model.Panels?.Count ?? 0);
+        Add(wire.Model.JointReleaseSets?.Count ?? 0);
+        foreach (JointReleaseSetWire set in wire.Model.JointReleaseSets ?? [])
+        {
+            Add(set.Rows.Count);
+        }
+
+        Add(wire.Model.NoticePoints?.Count ?? 0);
+        Add(wire.Model.MemberSpringSets?.Count ?? 0);
+        foreach (MemberSpringSetWire set in wire.Model.MemberSpringSets ?? [])
+        {
+            Add(set.Rows.Count);
+        }
+
+        Add(wire.Loads.Cases.Count);
+        Add(wire.Loads.NodalLoads.Count);
+        Add(wire.Loads.PrescribedDisplacements?.Count ?? 0);
+        Add(wire.Loads.MemberLoads?.Count ?? 0);
+        Add(wire.DerivedResults.Count);
+        foreach (DerivedResultWire result in wire.DerivedResults)
+        {
+            Add(result.Terms.Count);
+        }
+
+        Add(wire.MovingLoads.Count);
+        if (count > DefaultMaxEntityCount)
+        {
+            throw new ProjectDocumentFormatException(
+                $"Project JSON contains {count} entities; the limit is {DefaultMaxEntityCount}.");
+        }
+    }
 
     private static void RejectDuplicateProperties(JsonElement element, string path, int depth)
     {
@@ -331,17 +676,41 @@ public static class ProjectDocumentJson
 
     private sealed class ModelWire
     {
+        [JsonPropertyName("dimension")]
+        public string Dimension { get; init; } = "3d";
+
         [JsonPropertyName("nodes")]
         public required List<NodeWire> Nodes { get; init; }
 
         [JsonPropertyName("sections")]
-        public List<FrameSectionWire>? Sections { get; init; }
+        public List<FrameSectionWire>? Sections { get; init; } = [];
+
+        [JsonPropertyName("element_property_sets")]
+        public List<ElementPropertySetWire>? ElementPropertySets { get; init; } = [];
 
         [JsonPropertyName("members")]
         public required List<MemberWire> Members { get; init; }
 
+        [JsonPropertyName("rigid_zones")]
+        public List<RigidZoneWire>? RigidZones { get; init; } = [];
+
         [JsonPropertyName("supports")]
         public required List<SupportWire> Supports { get; init; }
+
+        [JsonPropertyName("support_sets")]
+        public List<SupportSetWire>? SupportSets { get; init; } = [];
+
+        [JsonPropertyName("panels")]
+        public List<PanelWire>? Panels { get; init; } = [];
+
+        [JsonPropertyName("joint_release_sets")]
+        public List<JointReleaseSetWire>? JointReleaseSets { get; init; } = [];
+
+        [JsonPropertyName("notice_points")]
+        public List<NoticePointWire>? NoticePoints { get; init; } = [];
+
+        [JsonPropertyName("member_spring_sets")]
+        public List<MemberSpringSetWire>? MemberSpringSets { get; init; } = [];
     }
 
     private sealed class NodeWire
@@ -408,6 +777,45 @@ public static class ProjectDocumentJson
 
         [JsonPropertyName("torsion_constant")]
         public required double TorsionConstant { get; init; }
+
+        [JsonPropertyName("thermal_expansion_coefficient")]
+        public double ThermalExpansionCoefficient { get; init; }
+
+        [JsonPropertyName("density")]
+        public double Density { get; init; }
+
+        [JsonPropertyName("panel_thickness")]
+        public double PanelThickness { get; init; }
+    }
+
+    private sealed class ElementPropertySetWire
+    {
+        [JsonPropertyName("id")]
+        public required string Id { get; init; }
+
+        [JsonPropertyName("name")]
+        public required string Name { get; init; }
+
+        [JsonPropertyName("sections")]
+        public required List<FrameSectionWire> Sections { get; init; }
+    }
+
+    private sealed class RigidZoneWire
+    {
+        [JsonPropertyName("id")]
+        public required string Id { get; init; }
+
+        [JsonPropertyName("member_id")]
+        public required string MemberId { get; init; }
+
+        [JsonPropertyName("i_length")]
+        public required double ILength { get; init; }
+
+        [JsonPropertyName("j_length")]
+        public required double JLength { get; init; }
+
+        [JsonPropertyName("section_id")]
+        public required string SectionId { get; init; }
     }
 
     private sealed class SupportWire
@@ -437,6 +845,141 @@ public static class ProjectDocumentJson
         public required bool FixRz { get; init; }
     }
 
+    private sealed class SupportSetWire
+    {
+        [JsonPropertyName("id")]
+        public required string Id { get; init; }
+
+        [JsonPropertyName("name")]
+        public required string Name { get; init; }
+
+        [JsonPropertyName("rows")]
+        public required List<SupportConditionWire> Rows { get; init; }
+    }
+
+    private sealed class SupportConditionWire
+    {
+        [JsonPropertyName("id")]
+        public required string Id { get; init; }
+
+        [JsonPropertyName("node_id")]
+        public required string NodeId { get; init; }
+
+        [JsonPropertyName("tx")]
+        public required double Tx { get; init; }
+
+        [JsonPropertyName("ty")]
+        public required double Ty { get; init; }
+
+        [JsonPropertyName("tz")]
+        public required double Tz { get; init; }
+
+        [JsonPropertyName("rx")]
+        public required double Rx { get; init; }
+
+        [JsonPropertyName("ry")]
+        public required double Ry { get; init; }
+
+        [JsonPropertyName("rz")]
+        public required double Rz { get; init; }
+    }
+
+    private sealed class PanelWire
+    {
+        [JsonPropertyName("id")]
+        public required string Id { get; init; }
+
+        [JsonPropertyName("section_id")]
+        public required string SectionId { get; init; }
+
+        [JsonPropertyName("node_ids")]
+        public required List<string> NodeIds { get; init; }
+    }
+
+    private sealed class JointReleaseSetWire
+    {
+        [JsonPropertyName("id")]
+        public required string Id { get; init; }
+
+        [JsonPropertyName("name")]
+        public required string Name { get; init; }
+
+        [JsonPropertyName("rows")]
+        public required List<JointReleaseWire> Rows { get; init; }
+    }
+
+    private sealed class JointReleaseWire
+    {
+        [JsonPropertyName("id")]
+        public required string Id { get; init; }
+
+        [JsonPropertyName("member_id")]
+        public required string MemberId { get; init; }
+
+        [JsonPropertyName("connect_xi")]
+        public required bool ConnectXi { get; init; }
+
+        [JsonPropertyName("connect_yi")]
+        public required bool ConnectYi { get; init; }
+
+        [JsonPropertyName("connect_zi")]
+        public required bool ConnectZi { get; init; }
+
+        [JsonPropertyName("connect_xj")]
+        public required bool ConnectXj { get; init; }
+
+        [JsonPropertyName("connect_yj")]
+        public required bool ConnectYj { get; init; }
+
+        [JsonPropertyName("connect_zj")]
+        public required bool ConnectZj { get; init; }
+    }
+
+    private sealed class NoticePointWire
+    {
+        [JsonPropertyName("id")]
+        public required string Id { get; init; }
+
+        [JsonPropertyName("member_id")]
+        public required string MemberId { get; init; }
+
+        [JsonPropertyName("distance")]
+        public required double Distance { get; init; }
+    }
+
+    private sealed class MemberSpringSetWire
+    {
+        [JsonPropertyName("id")]
+        public required string Id { get; init; }
+
+        [JsonPropertyName("name")]
+        public required string Name { get; init; }
+
+        [JsonPropertyName("rows")]
+        public required List<MemberSpringWire> Rows { get; init; }
+    }
+
+    private sealed class MemberSpringWire
+    {
+        [JsonPropertyName("id")]
+        public required string Id { get; init; }
+
+        [JsonPropertyName("member_id")]
+        public required string MemberId { get; init; }
+
+        [JsonPropertyName("tx")]
+        public required double Tx { get; init; }
+
+        [JsonPropertyName("ty")]
+        public required double Ty { get; init; }
+
+        [JsonPropertyName("tz")]
+        public required double Tz { get; init; }
+
+        [JsonPropertyName("tr")]
+        public required double Tr { get; init; }
+    }
+
     private sealed class LoadsWire
     {
         [JsonPropertyName("cases")]
@@ -444,6 +987,12 @@ public static class ProjectDocumentJson
 
         [JsonPropertyName("nodal_loads")]
         public required List<NodalLoadWire> NodalLoads { get; init; }
+
+        [JsonPropertyName("prescribed_displacements")]
+        public List<PrescribedDisplacementWire>? PrescribedDisplacements { get; init; } = [];
+
+        [JsonPropertyName("member_loads")]
+        public List<MemberLoadWire>? MemberLoads { get; init; } = [];
     }
 
     private sealed class LoadCaseWire
@@ -456,6 +1005,21 @@ public static class ProjectDocumentJson
 
         [JsonPropertyName("symbol")]
         public required string Symbol { get; init; }
+
+        [JsonPropertyName("element_set_id")]
+        public string? ElementSetId { get; init; } = "1";
+
+        [JsonPropertyName("support_set_id")]
+        public string? SupportSetId { get; init; } = "1";
+
+        [JsonPropertyName("member_spring_set_id")]
+        public string? MemberSpringSetId { get; init; } = "1";
+
+        [JsonPropertyName("joint_set_id")]
+        public string? JointSetId { get; init; } = "1";
+
+        [JsonPropertyName("moving_load_pitch")]
+        public double MovingLoadPitch { get; init; } = 0.1;
     }
 
     private sealed class NodalLoadWire
@@ -486,6 +1050,66 @@ public static class ProjectDocumentJson
 
         [JsonPropertyName("mz")]
         public required double Mz { get; init; }
+    }
+
+    private sealed class PrescribedDisplacementWire
+    {
+        [JsonPropertyName("id")]
+        public required string Id { get; init; }
+
+        [JsonPropertyName("case_id")]
+        public required string CaseId { get; init; }
+
+        [JsonPropertyName("node_id")]
+        public required string NodeId { get; init; }
+
+        [JsonPropertyName("dx")]
+        public required double Dx { get; init; }
+
+        [JsonPropertyName("dy")]
+        public required double Dy { get; init; }
+
+        [JsonPropertyName("dz")]
+        public required double Dz { get; init; }
+
+        [JsonPropertyName("rx")]
+        public required double Rx { get; init; }
+
+        [JsonPropertyName("ry")]
+        public required double Ry { get; init; }
+
+        [JsonPropertyName("rz")]
+        public required double Rz { get; init; }
+    }
+
+    private sealed class MemberLoadWire
+    {
+        [JsonPropertyName("id")]
+        public required string Id { get; init; }
+
+        [JsonPropertyName("case_id")]
+        public required string CaseId { get; init; }
+
+        [JsonPropertyName("member_id")]
+        public required string MemberId { get; init; }
+
+        [JsonPropertyName("kind")]
+        public required string Kind { get; init; }
+
+        [JsonPropertyName("direction")]
+        public required string Direction { get; init; }
+
+        [JsonPropertyName("l1")]
+        public required double L1 { get; init; }
+
+        [JsonPropertyName("l2")]
+        public required double L2 { get; init; }
+
+        [JsonPropertyName("p1")]
+        public required double P1 { get; init; }
+
+        [JsonPropertyName("p2")]
+        public required double P2 { get; init; }
     }
 
     private sealed class DerivedResultWire

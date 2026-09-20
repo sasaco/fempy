@@ -59,11 +59,36 @@
   <data name="PdfFileFilter" xml:space="preserve"><value>PDF files (*.pdf)|*.pdf|All files (*.*)|*.*</value></data>
   <data name="ViewportUnavailable" xml:space="preserve"><value>The OpenGL viewport is unavailable.</value></data>
   <data name="ViewportProjection" xml:space="preserve"><value>Projection</value></data>
+  <data name="ViewportProjectionOrthographic" xml:space="preserve"><value>2D orthographic</value></data>
+  <data name="ViewportProjectionPerspective" xml:space="preserve"><value>3D perspective</value></data>
   <data name="ViewportFit" xml:space="preserve"><value>Fit</value></data>
   <data name="ViewportHome" xml:space="preserve"><value>Home</value></data>
+  <data name="ViewportGrid" xml:space="preserve"><value>Grid</value></data>
+  <data name="ViewportAxes" xml:space="preserve"><value>Axes</value></data>
+  <data name="ViewportLabels" xml:space="preserve"><value>Labels</value></data>
+  <data name="ViewportLegends" xml:space="preserve"><value>Legends</value></data>
   <data name="ViewportLayer" xml:space="preserve"><value>Layer</value></data>
   <data name="ViewportLayerModel" xml:space="preserve"><value>Model</value></data>
+  <data name="ViewportLayerLoads" xml:space="preserve"><value>Loads</value></data>
   <data name="ViewportLayerDisplacement" xml:space="preserve"><value>Displacement</value></data>
+  <data name="ViewportLayerReaction" xml:space="preserve"><value>Reaction</value></data>
+  <data name="ViewportLayerSectionForce" xml:space="preserve"><value>Section force</value></data>
+  <data name="ViewportPng" xml:space="preserve"><value>PNG</value></data>
+  <data name="ViewportScaleLegend" xml:space="preserve"><value>Scale</value></data>
+  <data name="ViewportColorLegend" xml:space="preserve"><value>Magnitude</value></data>
+  <data name="PngFileFilter" xml:space="preserve"><value>PNG images (*.png)|*.png|All files (*.*)|*.*</value></data>
+  <data name="ResultCoordinate" xml:space="preserve"><value>Result</value></data>
+  <data name="ResultPrevious" xml:space="preserve"><value>Previous</value></data>
+  <data name="ResultNext" xml:space="preserve"><value>Next</value></data>
+  <data name="ResultPage" xml:space="preserve"><value>{0} / {1}</value></data>
+  <data name="ResultExtrema" xml:space="preserve"><value>Extrema</value></data>
+  <data name="ResultExtremaValues" xml:space="preserve"><value>Values</value></data>
+  <data name="ResultExtremaMinimum" xml:space="preserve"><value>Minimum</value></data>
+  <data name="ResultExtremaMaximum" xml:space="preserve"><value>Maximum</value></data>
+  <data name="ResultExtremaAbsoluteMaximum" xml:space="preserve"><value>Absolute maximum</value></data>
+  <data name="ResultStateStatic" xml:space="preserve"><value>Static</value></data>
+  <data name="ResultStateLoadStep" xml:space="preserve"><value>Load step</value></data>
+  <data name="ResultStateMode" xml:space="preserve"><value>Mode</value></data>
   <data name="ResultDisplacements" xml:space="preserve"><value>Displacements</value></data>
   <data name="ResultReactions" xml:space="preserve"><value>Reactions</value></data>
   <data name="ResultMemberForces" xml:space="preserve"><value>Member forces</value></data>
@@ -105,4 +130,77 @@
   <data name="EditorFixRy" xml:space="preserve"><value>Fix Ry</value></data>
   <data name="EditorFixRz" xml:space="preserve"><value>Fix Rz</value></data>
   <data name="RuntimeStartError" xml:space="preserve"><value>The local FrameWeb analysis service could not be started.</value></data>
+  <data name="EditorRigidZones" xml:space="preserve"><value>Rigid zones</value></data>
+  <data name="EditorSections" xml:space="preserve"><value>Materials / sections</value></data>
+  <data name="EditorPanels" xml:space="preserve"><value>Panels</value></data>
+  <data name="EditorJoints" xml:space="preserve"><value>Joints</value></data>
+  <data name="EditorNoticePoints" xml:space="preserve"><value>Notice points</value></data>
+  <data name="EditorMemberSprings" xml:space="preserve"><value>Member springs</value></data>
+  <data name="EditorMemberLoads" xml:space="preserve"><value>Member loads</value></data>
+  <data name="EditorDefine" xml:space="preserve"><value>DEFINE</value></data>
+  <data name="EditorCombine" xml:space="preserve"><value>COMBINE</value></data>
+  <data name="EditorPickup" xml:space="preserve"><value>PICKUP</value></data>
+  <data name="EditorSection" xml:space="preserve"><value>Section</value></data>
+  <data name="EditorRotation" xml:space="preserve"><value>Rotation</value></data>
+  <data name="EditorShearCorrection" xml:space="preserve"><value>Shear correction</value></data>
+  <data name="EditorILength" xml:space="preserve"><value>I length</value></data>
+  <data name="EditorJLength" xml:space="preserve"><value>J length</value></data>
+  <data name="EditorSet" xml:space="preserve"><value>Set</value></data>
+  <data name="EditorYoungsModulus" xml:space="preserve"><value>Young's modulus</value></data>
+  <data name="EditorPoissonRatio" xml:space="preserve"><value>Poisson ratio</value></data>
+  <data name="EditorShearModulus" xml:space="preserve"><value>Shear modulus</value></data>
+  <data name="EditorArea" xml:space="preserve"><value>Area</value></data>
+  <data name="EditorIy" xml:space="preserve"><value>Iy</value></data>
+  <data name="EditorIz" xml:space="preserve"><value>Iz</value></data>
+  <data name="EditorTorsion" xml:space="preserve"><value>Torsion constant</value></data>
+  <data name="EditorThermalExpansion" xml:space="preserve"><value>Thermal expansion</value></data>
+  <data name="EditorDensity" xml:space="preserve"><value>Density</value></data>
+  <data name="EditorThickness" xml:space="preserve"><value>Thickness</value></data>
+  <data name="EditorNode1" xml:space="preserve"><value>Node 1</value></data>
+  <data name="EditorNode2" xml:space="preserve"><value>Node 2</value></data>
+  <data name="EditorNode3" xml:space="preserve"><value>Node 3</value></data>
+  <data name="EditorNode4" xml:space="preserve"><value>Node 4</value></data>
+  <data name="EditorXi" xml:space="preserve"><value>Xi</value></data>
+  <data name="EditorYi" xml:space="preserve"><value>Yi</value></data>
+  <data name="EditorZi" xml:space="preserve"><value>Zi</value></data>
+  <data name="EditorXj" xml:space="preserve"><value>Xj</value></data>
+  <data name="EditorYj" xml:space="preserve"><value>Yj</value></data>
+  <data name="EditorZj" xml:space="preserve"><value>Zj</value></data>
+  <data name="EditorDistance" xml:space="preserve"><value>Distance</value></data>
+  <data name="EditorTx" xml:space="preserve"><value>Tx</value></data>
+  <data name="EditorTy" xml:space="preserve"><value>Ty</value></data>
+  <data name="EditorTz" xml:space="preserve"><value>Tz</value></data>
+  <data name="EditorTr" xml:space="preserve"><value>Tr</value></data>
+  <data name="EditorElementSet" xml:space="preserve"><value>Element set</value></data>
+  <data name="EditorSupportSet" xml:space="preserve"><value>Support set</value></data>
+  <data name="EditorMemberSpringSet" xml:space="preserve"><value>Member spring set</value></data>
+  <data name="EditorJointSet" xml:space="preserve"><value>Joint set</value></data>
+  <data name="EditorMovingPitch" xml:space="preserve"><value>Moving pitch</value></data>
+  <data name="EditorLoadKind" xml:space="preserve"><value>Load kind</value></data>
+  <data name="EditorDirection" xml:space="preserve"><value>Direction</value></data>
+  <data name="EditorL1" xml:space="preserve"><value>L1</value></data>
+  <data name="EditorL2" xml:space="preserve"><value>L2</value></data>
+  <data name="EditorP1" xml:space="preserve"><value>P1</value></data>
+  <data name="EditorP2" xml:space="preserve"><value>P2</value></data>
+  <data name="EditorSources" xml:space="preserve"><value>Sources</value></data>
+  <data name="EditorFactors" xml:space="preserve"><value>Factors</value></data>
+  <data name="EditorClipboardUnavailable" xml:space="preserve"><value>The clipboard is unavailable.</value></data>
+  <data name="EditorClipboardTooLarge" xml:space="preserve"><value>The clipboard selection exceeds the editor limit.</value></data>
+  <data name="EditorClipboardInvalidShape" xml:space="preserve"><value>The clipboard rows do not fit this table.</value></data>
+  <data name="EditorReadOnlyTarget" xml:space="preserve"><value>The paste targets a read-only column.</value></data>
+  <data name="EditorDeleteRejected" xml:space="preserve"><value>The selected rows cannot be deleted because they are referenced.</value></data>
+  <data name="EditorInsertRejected" xml:space="preserve"><value>No unused valid row can be inserted in this table.</value></data>
+  <data name="EditorModelSettings" xml:space="preserve"><value>Model settings</value></data>
+  <data name="EditorDimension" xml:space="preserve"><value>Dimension</value></data>
+  <data name="EditorElementPropertySets" xml:space="preserve"><value>Element property sets</value></data>
+  <data name="EditorSupportSets" xml:space="preserve"><value>Support sets</value></data>
+  <data name="EditorJointReleaseSets" xml:space="preserve"><value>Joint release sets</value></data>
+  <data name="EditorMemberSpringSets" xml:space="preserve"><value>Member spring sets</value></data>
+  <data name="EditorPrescribedDisplacements" xml:space="preserve"><value>Prescribed displacements</value></data>
+  <data name="EditorDx" xml:space="preserve"><value>Dx</value></data>
+  <data name="EditorDy" xml:space="preserve"><value>Dy</value></data>
+  <data name="EditorDz" xml:space="preserve"><value>Dz</value></data>
+  <data name="EditorAx" xml:space="preserve"><value>Ax</value></data>
+  <data name="EditorAy" xml:space="preserve"><value>Ay</value></data>
+  <data name="EditorAz" xml:space="preserve"><value>Az</value></data>
 </root>

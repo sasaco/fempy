@@ -52,6 +52,22 @@ public static class FrameWebAnalysisRequestJson
             Dictionary<string, int> nodeIds = ParseIds(document.Nodes.Select(value => value.Id), "node");
             Dictionary<string, int> memberIds = ParseIds(document.Members.Select(value => value.Id), "member");
             Dictionary<string, int> sectionIds = ParseIds(document.Sections.Select(value => value.Id), "section");
+            ParseIds(document.LoadCases.Select(value => value.Id), "load case");
+            ParseIds(document.ElementPropertySets.Select(value => value.Id).Prepend("1"), "element property set");
+            ParseIds(document.SupportSets.Select(value => value.Id).Prepend("1"), "support set");
+            ParseIds(
+                document.MemberSpringSets.Select(value => value.Id).Append("1").Distinct(StringComparer.Ordinal),
+                "member spring set");
+            ParseIds(
+                document.JointReleaseSets.Select(value => value.Id).Append("1").Distinct(StringComparer.Ordinal),
+                "joint set");
+            ParseIds(document.RigidZones.Select(value => value.Id), "rigid zone");
+            ParseIds(document.Panels.Select(value => value.Id), "panel");
+            foreach (ElementPropertySetDefinition set in document.ElementPropertySets)
+            {
+                ParseIds(set.Sections.Select(value => value.Id), $"element property set '{set.Id}' section");
+            }
+
             ValidateAnalysisReadiness(document, nodeIds, memberIds, sectionIds);
 
             using BoundedMemoryStream buffer = new(maxJsonBytes);
@@ -102,10 +118,19 @@ public static class FrameWebAnalysisRequestJson
         int entities = checked(
             document.Nodes.Count +
             document.Sections.Count +
+            document.ElementPropertySets.Sum(set => 1 + set.Sections.Count) +
             document.Members.Count +
+            document.RigidZones.Count +
             document.Supports.Count +
+            document.SupportSets.Sum(set => 1 + set.Rows.Count) +
+            document.Panels.Count +
+            document.JointReleaseSets.Sum(set => 1 + set.Rows.Count) +
+            document.NoticePoints.Count +
+            document.MemberSpringSets.Sum(set => 1 + set.Rows.Count) +
             document.LoadCases.Count +
-            document.NodalLoads.Count);
+            document.NodalLoads.Count +
+            document.PrescribedDisplacements.Count +
+            document.MemberLoads.Count);
         if (entities > maxEntityCount)
         {
             throw new FrameWebAnalysisRequestException(
@@ -125,10 +150,10 @@ public static class FrameWebAnalysisRequestJson
                 "The vertical MVP analysis transport currently requires the explicit 'kN-m' unit system.");
         }
 
-        if (nodeIds.Count < 2 || memberIds.Count < 1 || sectionIds.Count < 1)
+        if (nodeIds.Count < 2 || (memberIds.Count < 1 && document.Panels.Count < 1) || sectionIds.Count < 1)
         {
             throw new FrameWebAnalysisRequestException(
-                "Analysis requires at least two nodes, one member, and one persisted frame section.");
+                "Analysis requires at least two nodes, one member or panel, and one persisted section.");
         }
 
         foreach (ProjectMember member in document.Members)
@@ -140,22 +165,96 @@ public static class FrameWebAnalysisRequestJson
             }
         }
 
-        if (document.Supports.Count < 1 || document.Supports.All(value =>
-            !value.FixX && !value.FixY && !value.FixZ && !value.FixRx && !value.FixRy && !value.FixRz))
+        foreach (PanelDefinition panel in document.Panels)
         {
-            throw new FrameWebAnalysisRequestException(
-                "Analysis requires at least one support with a restrained degree of freedom.");
+            foreach (LoadCaseDefinition loadCase in document.LoadCases)
+            {
+                FrameSectionDefinition section = SectionsFor(document, loadCase.ElementSetId)
+                    .Single(value => value.Id == panel.SectionId);
+                if (section.PanelThickness <= 0)
+                {
+                    throw new FrameWebAnalysisRequestException(
+                        $"Panel '{panel.Id}' requires a positive thickness in property set '{loadCase.ElementSetId}'.");
+                }
+            }
         }
 
-        string duplicateSupportNode = document.Supports
-            .GroupBy(value => value.NodeId, StringComparer.Ordinal)
-            .FirstOrDefault(group => group.Count() > 1)?.Key ?? string.Empty;
-        if (duplicateSupportNode.Length > 0)
+        foreach (LoadCaseDefinition loadCase in document.LoadCases)
         {
-            throw new FrameWebAnalysisRequestException(
-                $"Multiple support rows for node '{duplicateSupportNode}' are not supported by the MVP request contract.");
+            IEnumerable<double> nodeConditions = SupportRowsFor(document, loadCase.SupportSetId)
+                .SelectMany(row => new[] { row.Tx, row.Ty, row.Tz, row.Rx, row.Ry, row.Rz });
+            IEnumerable<double> memberConditions = MemberSpringRowsFor(document, loadCase.MemberSpringSetId)
+                .SelectMany(row => new[] { row.Tx, row.Ty, row.Tz, row.Tr });
+            if (!nodeConditions.Concat(memberConditions).Any(value => value != 0))
+            {
+                throw new FrameWebAnalysisRequestException(
+                    $"Load case '{loadCase.Id}' requires a selected support or member-spring table with a nonzero condition.");
+            }
+
+            if (!HasEffectiveLoadContribution(document, loadCase.Id))
+            {
+                throw new FrameWebAnalysisRequestException(
+                    $"Load case '{loadCase.Id}' must contain at least one effective nonzero nodal, " +
+                    "prescribed-displacement, or member-load contribution.");
+            }
+
+            IReadOnlyDictionary<string, ProjectMember> membersById = document.Members.ToDictionary(
+                member => member.Id, StringComparer.Ordinal);
+            IReadOnlyDictionary<string, FrameSectionDefinition> selectedSections = SectionsFor(
+                document, loadCase.ElementSetId).ToDictionary(section => section.Id, StringComparer.Ordinal);
+            foreach (MemberLoadDefinition thermal in document.MemberLoads.Where(load =>
+                load.CaseId == loadCase.Id && load.Kind == MemberLoadKind.Thermal))
+            {
+                string? sectionId = membersById[thermal.MemberId].SectionId;
+                if (sectionId is null || selectedSections[sectionId].ThermalExpansionCoefficient == 0)
+                {
+                    throw new FrameWebAnalysisRequestException(
+                        $"Thermal member load '{thermal.Id}' requires a nonzero thermal expansion coefficient.");
+                }
+            }
         }
     }
+
+    private static bool HasEffectiveLoadContribution(ProjectDocument document, string caseId)
+        => document.NodalLoads.Any(load =>
+                load.CaseId == caseId &&
+                (load.Fx != 0 || load.Fy != 0 || load.Fz != 0 ||
+                 load.Mx != 0 || load.My != 0 || load.Mz != 0))
+            || document.PrescribedDisplacements.Any(load =>
+                load.CaseId == caseId &&
+                (load.Dx != 0 || load.Dy != 0 || load.Dz != 0 ||
+                 load.Rx != 0 || load.Ry != 0 || load.Rz != 0))
+            || document.MemberLoads.Any(load =>
+                load.CaseId == caseId &&
+                (load.Kind == MemberLoadKind.Thermal
+                    ? load.P1 != 0
+                    : load.P1 != 0 || load.P2 != 0));
+
+    private static IReadOnlyList<FrameSectionDefinition> SectionsFor(ProjectDocument document, string setId)
+        => setId == "1"
+            ? document.Sections
+            : document.ElementPropertySets.Single(set => set.Id == setId).Sections;
+
+    private static IEnumerable<SupportConditionDefinition> SupportRowsFor(ProjectDocument document, string setId)
+    {
+        if (setId == "1")
+        {
+            return document.Supports.Select(support => new SupportConditionDefinition(
+                support.Id,
+                support.NodeId,
+                support.FixX ? 1 : 0,
+                support.FixY ? 1 : 0,
+                support.FixZ ? 1 : 0,
+                support.FixRx ? 1 : 0,
+                support.FixRy ? 1 : 0,
+                support.FixRz ? 1 : 0));
+        }
+
+        return document.SupportSets.Single(set => set.Id == setId).Rows;
+    }
+
+    private static IEnumerable<MemberSpringDefinition> MemberSpringRowsFor(ProjectDocument document, string setId)
+        => document.MemberSpringSets.FirstOrDefault(set => set.Id == setId)?.Rows ?? [];
 
     private static Dictionary<string, int> ParseIds(IEnumerable<string> values, string description)
     {
@@ -193,12 +292,21 @@ public static class FrameWebAnalysisRequestJson
         writer.WriteStartObject();
         writer.WriteString("analysis_type", "static");
         WriteUnits(writer);
+        if (document.Dimension == ModelDimension.TwoDimensional)
+        {
+            writer.WriteNumber("dimension", 2);
+        }
+
         WriteNodes(writer, document, nodeIds);
         WriteMembers(writer, document, nodeIds, memberIds, sectionIds);
+        WriteRigidZones(writer, document, memberIds, sectionIds);
+        WritePanels(writer, document, nodeIds, sectionIds);
+        WriteNoticePoints(writer, document, memberIds);
         WriteSections(writer, document, sectionIds);
         WriteSupports(writer, document, nodeIds);
-        WriteEmptyMemberBoundaryTables(writer);
-        WriteLoads(writer, document, nodeIds);
+        WriteMemberSprings(writer, document, memberIds);
+        WriteJointReleases(writer, document, memberIds);
+        WriteLoads(writer, document, nodeIds, memberIds);
         writer.WriteEndObject();
     }
 
@@ -261,6 +369,98 @@ public static class FrameWebAnalysisRequestJson
         writer.WriteEndObject();
     }
 
+    private static void WriteRigidZones(
+        Utf8JsonWriter writer,
+        ProjectDocument document,
+        IReadOnlyDictionary<string, int> memberIds,
+        IReadOnlyDictionary<string, int> sectionIds)
+    {
+        if (document.RigidZones.Count == 0)
+        {
+            return;
+        }
+
+        writer.WritePropertyName("rigid");
+        writer.WriteStartArray();
+        foreach (RigidZoneDefinition zone in document.RigidZones
+            .OrderBy(value => int.Parse(value.Id, CultureInfo.InvariantCulture)))
+        {
+            writer.WriteStartObject();
+            writer.WriteNumber("m", memberIds[zone.MemberId]);
+            writer.WriteNumber("Ilength", zone.ILength);
+            writer.WriteNumber("Jlength", zone.JLength);
+            writer.WriteNumber("e", sectionIds[zone.SectionId]);
+            writer.WriteEndObject();
+        }
+
+        writer.WriteEndArray();
+    }
+
+    private static void WritePanels(
+        Utf8JsonWriter writer,
+        ProjectDocument document,
+        IReadOnlyDictionary<string, int> nodeIds,
+        IReadOnlyDictionary<string, int> sectionIds)
+    {
+        if (document.Panels.Count == 0)
+        {
+            return;
+        }
+
+        writer.WritePropertyName("shell");
+        writer.WriteStartObject();
+        foreach (PanelDefinition panel in document.Panels
+            .OrderBy(value => int.Parse(value.Id, CultureInfo.InvariantCulture)))
+        {
+            writer.WritePropertyName(panel.Id);
+            writer.WriteStartObject();
+            writer.WriteNumber("e", sectionIds[panel.SectionId]);
+            writer.WritePropertyName("nodes");
+            writer.WriteStartArray();
+            foreach (string nodeId in panel.NodeIds)
+            {
+                writer.WriteNumberValue(nodeIds[nodeId]);
+            }
+
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+        }
+
+        writer.WriteEndObject();
+    }
+
+    private static void WriteNoticePoints(
+        Utf8JsonWriter writer,
+        ProjectDocument document,
+        IReadOnlyDictionary<string, int> memberIds)
+    {
+        if (document.NoticePoints.Count == 0)
+        {
+            return;
+        }
+
+        writer.WritePropertyName("notice_points");
+        writer.WriteStartArray();
+        foreach (IGrouping<string, NoticePointDefinition> group in document.NoticePoints
+            .GroupBy(value => value.MemberId, StringComparer.Ordinal)
+            .OrderBy(group => memberIds[group.Key]))
+        {
+            writer.WriteStartObject();
+            writer.WriteNumber("m", memberIds[group.Key]);
+            writer.WritePropertyName("Points");
+            writer.WriteStartArray();
+            foreach (double distance in group.Select(value => value.Distance).Order())
+            {
+                writer.WriteNumberValue(distance);
+            }
+
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+        }
+
+        writer.WriteEndArray();
+    }
+
     private static void WriteSections(
         Utf8JsonWriter writer,
         ProjectDocument document,
@@ -268,9 +468,25 @@ public static class FrameWebAnalysisRequestJson
     {
         writer.WritePropertyName("element");
         writer.WriteStartObject();
-        writer.WritePropertyName("1");
+        WriteSectionTable(writer, "1", document.Sections, sectionIds);
+        foreach (ElementPropertySetDefinition set in document.ElementPropertySets
+            .OrderBy(value => int.Parse(value.Id, CultureInfo.InvariantCulture)))
+        {
+            WriteSectionTable(writer, set.Id, set.Sections, ParseIds(set.Sections.Select(value => value.Id), "section"));
+        }
+
+        writer.WriteEndObject();
+    }
+
+    private static void WriteSectionTable(
+        Utf8JsonWriter writer,
+        string setId,
+        IEnumerable<FrameSectionDefinition> sections,
+        IReadOnlyDictionary<string, int> sectionIds)
+    {
+        writer.WritePropertyName(setId);
         writer.WriteStartObject();
-        foreach (FrameSectionDefinition section in document.Sections.OrderBy(value => sectionIds[value.Id]))
+        foreach (FrameSectionDefinition section in sections.OrderBy(value => sectionIds[value.Id]))
         {
             writer.WritePropertyName(section.Id);
             writer.WriteStartObject();
@@ -282,10 +498,24 @@ public static class FrameWebAnalysisRequestJson
             writer.WriteNumber("Iy", section.MomentOfInertiaY);
             writer.WriteNumber("Iz", section.MomentOfInertiaZ);
             writer.WriteNumber("J", section.TorsionConstant);
+            if (section.ThermalExpansionCoefficient != 0)
+            {
+                writer.WriteNumber("Xp", section.ThermalExpansionCoefficient);
+            }
+
+            if (section.Density != 0)
+            {
+                writer.WriteNumber("den", section.Density);
+            }
+
+            if (section.PanelThickness != 0)
+            {
+                writer.WriteNumber("thickness", section.PanelThickness);
+            }
+
             writer.WriteEndObject();
         }
 
-        writer.WriteEndObject();
         writer.WriteEndObject();
     }
 
@@ -296,55 +526,152 @@ public static class FrameWebAnalysisRequestJson
     {
         writer.WritePropertyName("fix_node");
         writer.WriteStartObject();
-        writer.WritePropertyName("1");
+        WriteSupportTable(writer, "1", SupportRowsFor(document, "1"), nodeIds);
+        foreach (SupportSetDefinition set in document.SupportSets
+            .OrderBy(value => int.Parse(value.Id, CultureInfo.InvariantCulture)))
+        {
+            WriteSupportTable(writer, set.Id, set.Rows, nodeIds);
+        }
+
+        writer.WriteEndObject();
+    }
+
+    private static void WriteSupportTable(
+        Utf8JsonWriter writer,
+        string setId,
+        IEnumerable<SupportConditionDefinition> rows,
+        IReadOnlyDictionary<string, int> nodeIds)
+    {
+        writer.WritePropertyName(setId);
         writer.WriteStartArray();
-        foreach (ProjectSupport support in document.Supports.OrderBy(value => nodeIds[value.NodeId]))
+        foreach (SupportConditionDefinition row in rows.OrderBy(value => nodeIds[value.NodeId]))
         {
             writer.WriteStartObject();
-            writer.WriteNumber("n", nodeIds[support.NodeId]);
-            writer.WriteNumber("tx", support.FixX ? 1 : 0);
-            writer.WriteNumber("ty", support.FixY ? 1 : 0);
-            writer.WriteNumber("tz", support.FixZ ? 1 : 0);
-            writer.WriteNumber("rx", support.FixRx ? 1 : 0);
-            writer.WriteNumber("ry", support.FixRy ? 1 : 0);
-            writer.WriteNumber("rz", support.FixRz ? 1 : 0);
+            writer.WriteNumber("n", nodeIds[row.NodeId]);
+            writer.WriteNumber("tx", Math.Abs(row.Tx));
+            writer.WriteNumber("ty", Math.Abs(row.Ty));
+            writer.WriteNumber("tz", Math.Abs(row.Tz));
+            writer.WriteNumber("rx", Math.Abs(row.Rx));
+            writer.WriteNumber("ry", Math.Abs(row.Ry));
+            writer.WriteNumber("rz", Math.Abs(row.Rz));
             writer.WriteEndObject();
         }
 
         writer.WriteEndArray();
+    }
+
+    private static void WriteMemberSprings(
+        Utf8JsonWriter writer,
+        ProjectDocument document,
+        IReadOnlyDictionary<string, int> memberIds)
+    {
+        writer.WritePropertyName("fix_member");
+        writer.WriteStartObject();
+        if (document.MemberSpringSets.All(set => set.Id != "1"))
+        {
+            WriteMemberSpringTable(writer, "1", [], memberIds);
+        }
+
+        foreach (MemberSpringSetDefinition set in document.MemberSpringSets
+            .OrderBy(value => int.Parse(value.Id, CultureInfo.InvariantCulture)))
+        {
+            WriteMemberSpringTable(writer, set.Id, set.Rows, memberIds);
+        }
+
         writer.WriteEndObject();
     }
 
-    private static void WriteEmptyMemberBoundaryTables(Utf8JsonWriter writer)
+    private static void WriteMemberSpringTable(
+        Utf8JsonWriter writer,
+        string setId,
+        IEnumerable<MemberSpringDefinition> rows,
+        IReadOnlyDictionary<string, int> memberIds)
     {
-        foreach (string name in new[] { "fix_member", "joint" })
+        writer.WritePropertyName(setId);
+        writer.WriteStartArray();
+        foreach (MemberSpringDefinition row in rows.OrderBy(value => memberIds[value.MemberId]))
         {
-            writer.WritePropertyName(name);
             writer.WriteStartObject();
-            writer.WritePropertyName("1");
-            writer.WriteStartArray();
-            writer.WriteEndArray();
+            writer.WriteNumber("m", memberIds[row.MemberId]);
+            writer.WriteNumber("tx", Math.Abs(row.Tx));
+            writer.WriteNumber("ty", Math.Abs(row.Ty));
+            writer.WriteNumber("tz", Math.Abs(row.Tz));
+            writer.WriteNumber("tr", Math.Abs(row.Tr));
             writer.WriteEndObject();
         }
+
+        writer.WriteEndArray();
+    }
+
+    private static void WriteJointReleases(
+        Utf8JsonWriter writer,
+        ProjectDocument document,
+        IReadOnlyDictionary<string, int> memberIds)
+    {
+        writer.WritePropertyName("joint");
+        writer.WriteStartObject();
+        if (document.JointReleaseSets.All(set => set.Id != "1"))
+        {
+            WriteJointReleaseTable(writer, "1", [], memberIds);
+        }
+
+        foreach (JointReleaseSetDefinition set in document.JointReleaseSets
+            .OrderBy(value => int.Parse(value.Id, CultureInfo.InvariantCulture)))
+        {
+            WriteJointReleaseTable(writer, set.Id, set.Rows, memberIds);
+        }
+
+        writer.WriteEndObject();
+    }
+
+    private static void WriteJointReleaseTable(
+        Utf8JsonWriter writer,
+        string setId,
+        IEnumerable<JointReleaseDefinition> rows,
+        IReadOnlyDictionary<string, int> memberIds)
+    {
+        writer.WritePropertyName(setId);
+        writer.WriteStartArray();
+        foreach (JointReleaseDefinition row in rows.OrderBy(value => memberIds[value.MemberId]))
+        {
+            writer.WriteStartObject();
+            writer.WriteNumber("m", memberIds[row.MemberId]);
+            writer.WriteNumber("xi", row.ConnectXi ? 1 : 0);
+            writer.WriteNumber("yi", row.ConnectYi ? 1 : 0);
+            writer.WriteNumber("zi", row.ConnectZi ? 1 : 0);
+            writer.WriteNumber("xj", row.ConnectXj ? 1 : 0);
+            writer.WriteNumber("yj", row.ConnectYj ? 1 : 0);
+            writer.WriteNumber("zj", row.ConnectZj ? 1 : 0);
+            writer.WriteEndObject();
+        }
+
+        writer.WriteEndArray();
     }
 
     private static void WriteLoads(
         Utf8JsonWriter writer,
         ProjectDocument document,
-        IReadOnlyDictionary<string, int> nodeIds)
+        IReadOnlyDictionary<string, int> nodeIds,
+        IReadOnlyDictionary<string, int> memberIds)
     {
         writer.WritePropertyName("load");
         writer.WriteStartObject();
-        foreach (LoadCaseDefinition loadCase in document.LoadCases.OrderBy(value => value.Id, StringComparer.Ordinal))
+        foreach (LoadCaseDefinition loadCase in document.LoadCases
+            .OrderBy(value => int.Parse(value.Id, CultureInfo.InvariantCulture)))
         {
             writer.WritePropertyName(loadCase.Id);
             writer.WriteStartObject();
             writer.WriteString("name", loadCase.Name);
             writer.WriteString("symbol", loadCase.Symbol);
-            writer.WriteNumber("element", 1);
-            writer.WriteNumber("fix_node", 1);
-            writer.WriteNumber("fix_member", 1);
-            writer.WriteNumber("joint", 1);
+            writer.WriteNumber("element", int.Parse(loadCase.ElementSetId, CultureInfo.InvariantCulture));
+            writer.WriteNumber("fix_node", int.Parse(loadCase.SupportSetId, CultureInfo.InvariantCulture));
+            writer.WriteNumber("fix_member", int.Parse(loadCase.MemberSpringSetId, CultureInfo.InvariantCulture));
+            writer.WriteNumber("joint", int.Parse(loadCase.JointSetId, CultureInfo.InvariantCulture));
+            if (loadCase.MovingLoadPitch != 0.1)
+            {
+                writer.WriteNumber("LL_pitch", loadCase.MovingLoadPitch);
+            }
+
             writer.WritePropertyName("load_node");
             writer.WriteStartArray();
             foreach (NodalLoadDefinition load in document.NodalLoads
@@ -362,12 +689,71 @@ public static class FrameWebAnalysisRequestJson
                 writer.WriteEndObject();
             }
 
+            foreach (PrescribedDisplacementDefinition load in document.PrescribedDisplacements
+                .Where(value => value.CaseId == loadCase.Id)
+                .OrderBy(value => value.Id, StringComparer.Ordinal))
+            {
+                writer.WriteStartObject();
+                writer.WriteNumber("n", nodeIds[load.NodeId]);
+                writer.WriteNumber("dx", load.Dx);
+                writer.WriteNumber("dy", load.Dy);
+                writer.WriteNumber("dz", load.Dz);
+                writer.WriteNumber("ax", load.Rx);
+                writer.WriteNumber("ay", load.Ry);
+                writer.WriteNumber("az", load.Rz);
+                writer.WriteEndObject();
+            }
+
             writer.WriteEndArray();
+            MemberLoadDefinition[] memberLoads = document.MemberLoads
+                .Where(value => value.CaseId == loadCase.Id)
+                .OrderBy(value => value.Id, StringComparer.Ordinal)
+                .ToArray();
+            if (memberLoads.Length > 0)
+            {
+                writer.WritePropertyName("load_member");
+                writer.WriteStartArray();
+                foreach (MemberLoadDefinition load in memberLoads)
+                {
+                    writer.WriteStartObject();
+                    writer.WriteNumber("m", memberIds[load.MemberId]);
+                    writer.WriteString("direction", DirectionCode(load.Direction));
+                    writer.WriteNumber("mark", Mark(load.Kind));
+                    writer.WriteNumber("L1", load.L1);
+                    writer.WriteNumber("L2", load.L2);
+                    writer.WriteNumber("P1", load.P1);
+                    writer.WriteNumber("P2", load.P2);
+                    writer.WriteEndObject();
+                }
+
+                writer.WriteEndArray();
+            }
+
             writer.WriteEndObject();
         }
 
         writer.WriteEndObject();
     }
+
+    private static int Mark(MemberLoadKind kind) => kind switch
+    {
+        MemberLoadKind.PointForce => 1,
+        MemberLoadKind.PointMoment => 11,
+        MemberLoadKind.DistributedForce => 2,
+        MemberLoadKind.Thermal => 9,
+        _ => throw new InvalidOperationException($"Unsupported member-load kind '{kind}'."),
+    };
+
+    private static string DirectionCode(MemberLoadDirection direction) => direction switch
+    {
+        MemberLoadDirection.LocalX => "x",
+        MemberLoadDirection.LocalY => "y",
+        MemberLoadDirection.LocalZ => "z",
+        MemberLoadDirection.GlobalX => "gx",
+        MemberLoadDirection.GlobalY => "gy",
+        MemberLoadDirection.GlobalZ => "gz",
+        _ => throw new InvalidOperationException($"Unsupported member-load direction '{direction}'."),
+    };
 
     private sealed class BoundedMemoryStream(int maxBytes) : MemoryStream
     {

@@ -18,7 +18,7 @@
 - Step 1 は作業ツリーで完了した。`PDF_Manager` は `net8.0-windows` WinExeとなり、Core/Rendering/typed Printingを参照する空WinForms shell、4つの自動test project、両solutionへの登録が実装済みである。Step 2以降は未着手である。
 - Step 2 は作業ツリーで完了した。Coreへtyped `ProjectDocument v1`、厳格かつ決定的なJSON/atomic store、完全な`AnalysisResultSet v1` DTO/validator/index/commit boundary、static-only derived presentation、moving-load paging/envelope、およびtyped service boundaryを実装した。
 - Step 3 は作業ツリーで完了した。localized WinForms shell、stable-key docking registry、bounded/atomic/transactional layout、serialized document transition、coalesced activation、dirty-close/cancellation/exception boundaryを実装した。
-- Step 4 は作業ツリーで完了した。representative document edit、authenticated Python-only runtime、strict analysis transport、typed OpenGL scene/result presentation、live viewport capture、typed PDF vertical sliceを実装した。次はStep 5の全model input editorである。
+- Step 6 は作業ツリーで完了した。Step 5の全model input editorに続き、12個の独立typed scene layer、2D/3D camera、実描画decorations、case/state/extrema interaction、dependency-aware invalidation、bounded PNG/renderer workを実装した。次はStep 7の計算・結果表示完成である。
 - Step 1完了後にリポジトリ正規の全体検査 `& .agents/check.ps1 -AllowProductPath 'FramePrintPDF'` を再実行した。Agent系、scope isolation、`git diff --check`、`.NET build` はPASSしたが、全体は `overall=fail` である。Pythonは3,273件PASS・6件FAIL・4件ERROR（1:55:37）、Angular test/buildはTypeScript compilation、FontAwesome path、`environment.prod.ts` 不在でFAILした。詳細は `.agents/logs/check-20260920T035935489Z-32252.log` を参照する。いずれも既知のC#変更範囲外failureだが、リポジトリ全体をgreenとは報告しない。
 - 独立レビューは品質PASS（Critical/Highなし）、テストPASS（Critical/Highなし）、セキュリティChanges requested（旧Azure/local print hostにHigh 2件）である。新desktop境界には旧印刷資産・制限font・既知脆弱packageは入っていない。一方、legacy hostの匿名endpointは脆弱なImageSharp 1.0.4へ到達でき、request/decompression/image/PDF workも無制限なので、公開・配布はNO-GOである。詳細は `.agents/docs/research/review-{quality,tests,security}-csharp-frameweb-client.md` を参照する。
 
@@ -174,21 +174,25 @@ PDF_Manager.Core --HTTP--> FrameWeb (Python FEM)
 
 #### Step 5: Complete all model input editors
 
-- [ ] Add typed editors and validation for nodes, members, rigid zones, supports, elements/materials/sections, panels, joints, notice points, member springs, load cases, load values, DEFINE, COMBINE, and PICKUP.
-- [ ] Add keyboard navigation, multi-row edit, copy/paste, insert/delete, selection synchronization, and undo/redo as shared grid behaviors rather than per-screen copies.
-- [ ] Add all four built-in presets as C# resources or typed fixture builders and validate them on load.
-- [ ] Enforce cross-table references, dimensional requirements, duplicate IDs, case limits, and calculation preconditions in Core before HTTP submission.
+- [x] Add typed editors and validation for nodes, members, rigid zones, supports, elements/materials/sections, panels, joints, notice points, member springs, load cases, load values, DEFINE, COMBINE, and PICKUP.
+- [x] Add keyboard navigation, multi-row edit, copy/paste, insert/delete, selection synchronization, and undo/redo as shared grid behaviors rather than per-screen copies.
+- [x] Add all four built-in presets as C# resources or typed fixture builders and validate them on load.
+- [x] Enforce cross-table references, dimensional requirements, duplicate IDs, case limits, and calculation preconditions in Core before HTTP submission.
 
 **Verification**: each input module has focused ViewModel/domain tests for create/edit/delete/paste/invalid references; every preset opens without warning, round-trips, and produces the expected request; the full editor matrix is navigable from the shell without orphaned dock panes.
 
+**Verification result**: one descriptor-driven editor pane exposes 21 typed tables, including model dimension, four set managers, non-default set rows, prescribed displacements, every load table, and DEFINE/COMBINE/PICKUP. Shared bounded clipboard/keyboard/insert/delete/selection behavior commits multi-row edits as one validated undo item and preserves document/history on rejection. All four stable built-in presets use typed semantic builders, round-trip byte-stably, and have pinned topology/material/support/load/selector assertions plus canonical request hashes. Core enforces references, 2D/3D requirements, topology and panel geometry, duplicate identities, the 256-case limit, effective nonzero loads, member-load positions, and request limits before HTTP submission. Both Release solutions build with 0 warnings/errors and both solution test runs pass 401/401 (Core 243, composition/Printing 17, Rendering 27, LocalRuntime 14, UI 100). Final independent security, quality, and test reviews report no Critical/High/Medium Step 5 findings; coverage percentage is not measured. The known Python/Angular full baseline was not rerun.
+
 #### Step 6: Complete rendering and interaction parity
 
-- [ ] Implement independent node, member, rigid-zone, support, spring, joint, panel, notice-point, load, displacement, reaction, and section-force scene layers.
-- [ ] Implement 2D orthographic and 3D perspective camera policies, grid/axis/labels, scale and color legends, hit testing, hover/selection policy, case/state paging, max/min selection, and PNG capture.
-- [ ] Keep the rendering engine behind `IViewportScene`, `ICameraController`, `IHitTestService`, and stable domain IDs; do not reproduce the Angular service graph.
-- [ ] Invalidate only affected layers after document/result changes and coalesce rapid edit/activation events.
+- [x] Implement independent node, member, rigid-zone, support, spring, joint, panel, notice-point, load, displacement, reaction, and section-force scene layers.
+- [x] Implement 2D orthographic and 3D perspective camera policies, grid/axis/labels, scale and color legends, hit testing, hover/selection policy, case/state paging, max/min selection, and PNG capture.
+- [x] Keep the rendering engine behind `IViewportScene`, `ICameraController`, `IHitTestService`, and stable domain IDs; do not reproduce the Angular service graph.
+- [x] Invalidate only affected layers after document/result changes and coalesce rapid edit/activation events.
 
 **Verification**: layer-level scene snapshots or command-buffer assertions cover every input/result mode; real-context smoke tests draw at least one frame for 2D and 3D; selection is bidirectionally stable; resize/float/dock/close/reopen tests show no duplicate events or growing GPU resource counters; representative large presets remain responsive under a recorded performance baseline.
+
+**Verification result**: all twelve typed model/load/result layers compile independently behind `IViewportScene`, `ICameraController`, and `IHitTestService`. The viewport applies explicit 2D XZ orthographic and 3D perspective policies, active-case load filtering, deterministic signed extrema shared by scene/legend/table, bidirectional hit/hover/selection, result paging, bounded PNG capture, and a bounded OpenGL texture overlay that renders grid, axes, labels, scale, and color legends identically in live Paint and capture. Node/member dependency closure prevents stale cached geometry; rapid invalidations coalesce and the 10,000-node/9,999-member masked update recompiles only Loads in 5.873 ms. Both Release solutions build with 0 warnings/errors and both solution test runs pass 463/463 (Core 243, composition/Printing 17, Rendering 56, LocalRuntime 14, UI 133). The real OpenGL probe passes 100 contexts, 1,700 frames, 600 captures, 200 PNG encodes, and final live context/subscription/window counters of zero. Final security, quality, and test reviews report no Critical/High/Medium Step 6 findings; coverage percentage is not measured. The full Python/Angular baseline was not completed or rebaselined, so the known 3,273 PASS / 6 FAIL / 4 ERROR baseline remains authoritative.
 
 #### Step 7: Complete calculation and result presentation
 

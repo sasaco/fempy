@@ -9,13 +9,19 @@ public static class RendererDiagnostics
     private static long _contextsCreated;
     private static long _framesRendered;
     private static long _capturesCompleted;
+    private static long _layerCompilations;
+    private static long _invalidationRequests;
+    private static long _invalidationBatches;
 
     public static RendererDiagnosticSnapshot Snapshot() => new(
         Volatile.Read(ref _liveContexts),
         Volatile.Read(ref _liveSubscriptions),
         Interlocked.Read(ref _contextsCreated),
         Interlocked.Read(ref _framesRendered),
-        Interlocked.Read(ref _capturesCompleted));
+        Interlocked.Read(ref _capturesCompleted),
+        Interlocked.Read(ref _layerCompilations),
+        Interlocked.Read(ref _invalidationRequests),
+        Interlocked.Read(ref _invalidationBatches));
 
     internal static void ContextCreated()
     {
@@ -32,6 +38,12 @@ public static class RendererDiagnostics
     internal static void FrameRendered() => Interlocked.Increment(ref _framesRendered);
 
     internal static void CaptureCompleted() => Interlocked.Increment(ref _capturesCompleted);
+
+    internal static void LayerCompiled() => Interlocked.Increment(ref _layerCompilations);
+
+    internal static void InvalidationRequested() => Interlocked.Increment(ref _invalidationRequests);
+
+    internal static void InvalidationBatchConsumed() => Interlocked.Increment(ref _invalidationBatches);
 }
 
 public readonly record struct RendererDiagnosticSnapshot(
@@ -39,4 +51,7 @@ public readonly record struct RendererDiagnosticSnapshot(
     int LiveSubscriptions,
     long ContextsCreated,
     long FramesRendered,
-    long CapturesCompleted);
+    long CapturesCompleted,
+    long LayerCompilations,
+    long InvalidationRequests,
+    long InvalidationBatches);

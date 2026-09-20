@@ -37,6 +37,12 @@ internal sealed class RendererProbeShell : Form
 
     public RendererProbeDocument Document { get; }
 
+    public void SetDocumentDockState(DockState dockState)
+    {
+        Document.DockState = dockState;
+        Application.DoEvents();
+    }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing && !_disposed)

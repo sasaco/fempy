@@ -1,8 +1,8 @@
-# Handoff — C# FrameWeb Desktop Client（Step 5以降）
+# Handoff — C# FrameWeb Desktop Client（Step 7以降）
 
 ## Goal
 
-`FramePrintPDF/PDF_Manager` を .NET 8 / WinForms のデスクトップ製品へ再構築し、Python FEMを維持したまま、型付き文書、`AnalysisResultSet v1`、ドッキングUI、OpenGL描画、型付きPDF出力を段階的に実装する。Step 0～4は完了したため、次セッションは `.agents/docs/plans/csharp-frameweb-client.md` の Step 5「complete all model input editors」から開始する。
+`FramePrintPDF/PDF_Manager` を .NET 8 / WinForms のデスクトップ製品へ再構築し、Python FEMを維持したまま、型付き文書、`AnalysisResultSet v1`、ドッキングUI、OpenGL描画、型付きPDF出力を段階的に実装する。Step 0～6は完了したため、次セッションは `.agents/docs/plans/csharp-frameweb-client.md` の Step 7「complete calculation and result presentation」から開始する。
 
 ## Current Progress
 
@@ -37,8 +37,20 @@
 - dependency-free typed PDFはmodel summary、result table、live viewport RGBを1 pageへ出力する。test-only subset rasterizerはxref/trailer/page/resource/content/imageを独立解析し、595x842 Gray8 goldenと壊れたresource/matrix/image mutationのfail-closedを検証する。CJK font、pagination、full print parityはStep 8へ継続する。
 - 両Release solution buildは0 warning/error、両solution testは253/253 PASS（Core 112、composition/Printing 17、Rendering 27、LocalRuntime 14、UI 83）。targeted Pythonは165/165 PASS。RendererProbe 20-cycleと独立した反復/並行WGL reviewは全PASSし、live counterは0。coverage率は未計測。
 - Step 4の独立reviewはsecurity/quality/testsすべてPASSで新規Critical/High/Mediumは0。残件は各reviewのLow（security 3、quality 1、tests 2）。legacy Startup匿名analysis Medium 1、legacy print High 2/Medium 1と公開・完成アプリ再配布NO-GOは不変。
+- Step 5は完了。単一`EditorContent`に21個のtyped tableをdescriptor-drivenで収容し、model dimension、element/support/joint/member-spring set管理、非default set row、prescribed displacement、全load入力、DEFINE/COMBINE/PICKUPを編集できる。共有controllerはkeyboard、bounded clipboard、multi-row paste、insert/delete、selection、creating-thread/disposalを担い、1 batchを1 undo itemとしてatomicにcommitする。
+- `ProjectDocument v1`はversion 1を維持してadditiveに拡張した。strict/deterministic JSON、16 MiB input、100,000 aggregate entity/row、cross-table reference、2D/3D、panel幾何、duplicate identity、256 cases、effective nonzero load、point load L1/L2をCore/request境界で検証する。永続IDは英数字を含むstable IDを維持し、Python用正整数IDはrequest projectionだけで検査する。
+- built-in presetは`ramen-viaduct`、`concrete-t-beam-bridge`、`u-shaped-retaining-wall`、`portal-pier`の4件。legacy Angular importerは作らずtyped semantic builderとし、topology/material/support/load/selectorの固定assertionとcanonical request SHA-256を持つ。
+- MemberLoadはdocumentからtyped sceneへ代表glyphを射影し、table/viewport selectionを双方向同期する。完全な分布荷重形状を含む全scene layerはStep 6で実装する。
+- Step 5最終結果は両Release solution build 0 warnings/errors、両solution tests 401/401 PASS（Core 243、composition/Printing 17、Rendering 27、LocalRuntime 14、UI 100）、focused Core 53/53・persistence/preset 78/78・UI 17/17 PASS。ownershipはoverlap 0 / unowned 0 / idle 0、AgentOnlyは`overall=pass`（`.agents/logs/check-20260920T154552806Z-28216.log`）。
+- Step 5 closeout reviewはsecurity/quality/testsともCritical 0 / High 0 / Medium 0 / Low 3。coverage率は未計測。Python/Angular全件は再実行せず、既知baseline 3,273 PASS・6 FAIL・4 ERRORを維持する。legacy側High 2 / Medium 2と完成アプリ再配布NO-GOも不変。
+- Step 6は完了。node/member/rigid-zone/support/spring/joint/panel/notice-point/load/displacement/reaction/section-forceの12独立layerを`IViewportScene`、`ICameraController`、`IHitTestService`とstable domain IDの背後へ実装した。support/joint 6 DOF、point/distributed/thermal member load、変位・反力・断面力をtyped command bufferへ保持する。
+- 2D XZ orthographic／3D perspective、grid/axes/labels、scale/color legend、hit/hover/selection、active-case load filter、case/state paging、signed min/max/absolute-max、bounded PNGを実装した。decorationsはbounded BGRA bitmapをOpenGL textureへuploadし、Paint/Capture/PNGの同一frame pathでalpha合成する。空workspaceではGL handle/contextを作らない。
+- node/member dependency closureで座標・topology依存layerを明示的にinvalidateし、rapid updateをcoalesceする。scene aggregate 250,000、derived vertex/batch/hit/decor/legend、result table 10,000 rows、PNG dimension/pixel/encoded bytesをfail-fastで上限化した。10,000 nodes／9,999 membersのactual masked updateはLoadsだけを再compileし5.873 ms。
+- document replacementだけを新scene install後にHomeし、通常editはcameraを保持する。extremaで除外されたselectionはscene置換前にclearし、table/viewport selectionを安定化した。viewport failureはoperation、safe message、original exception、expected/unexpectedを保持するtyped boundaryへ送る。
+- 最終結果は両Release solution build 0 warnings/errors、両solution tests 463/463 PASS（Core 243、composition/Printing 17、Rendering 56、LocalRuntime 14、UI 133）。RendererProbe 100-cycleは100 contexts、1,700 frames、600 captures、PNG 200、live context/subscription/window 0。coverage率は未計測。
+- Step 6 closeout reviewはsecurity Critical 0 / High 0 / Medium 0 / Low 3、quality 0 / 0 / 0 / Low 3、tests 0 / 0 / 0 / Low 4。Python/Angular full gateは完走・rebaselineせず、既知baseline 3,273 PASS・6 FAIL・4 ERRORを維持する。legacy側High 2 / Medium 2と完成アプリ再配布NO-GOも不変。
 
-現在のHEADはStep 3 base `090cc5a3bb3eddc219819add2219769c50eb3f97`。作業ツリーにはStep 4の未commit product/test変更、計画・DESIGN・STATE・review・本handoff変更がある。既存stage状態を含め、変更を破棄・reset・re-stageしないこと。
+現在のHEADはStep 4 commit `b82b4b52b6cb126cec305afec2107d8c077ee5f3`。作業ツリーにはStep 5～6の未commit product/test変更、計画・DESIGN・STATE・review・本handoff変更がある。commit、push、stage状態の変更は行っていないため、変更を破棄・reset・re-stageしないこと。
 
 ## What Worked
 
@@ -57,6 +69,10 @@
 - OpenGL teardownは、GLControlを親から外す前にrendererをDisposeする。`--verify` はUI-thread例外をmodal dialogにせずstderr + exit 2へ変換する。
 - local runtimeはready JSONだけを信頼せず、listener PIDのJob ownershipをready時とrequest connect時に検査する。呼出側はruntimeが生成するpreconfigured `HttpClient`だけを使い、secretを扱わない。
 - scene/input/result/PDF enumerablesはdimension-firstかmax+1で上限検査し、大きな列挙を無制限にmaterializeしない。PDF goldenはproduction writerから独立したsubset parser/rasterizerで検査する。
+- full input authoringは21個のtable-specific descriptor/adapterと1個のshared grid controllerへ分離する。set managerとrow tableを分け、invalid multi-row editはfinal candidate validation前に公開せず、失敗時にdocument/undo/redoを完全維持する。
+- topology自動挿入は辞書順かつ最大10,000候補の共通combination enumeratorで制限し、候補枯渇時はdocument/historyを変更しない。
+- rendererはtyped layerごとのcommand bufferをcacheし、dependency closureを通したaffected maskだけを再compileする。screenとPNGのdecorationsを同じOpenGL overlayへ統一し、100-cycle probeでcontext/resource lifecycleを実測する。
+- signed extremaは各rowの絶対値最大componentを代表値とし、Minimum／Maximum／AbsoluteMaximumをscene、legend、tableで共通選択する。同値はcontract順を保持する。
 - task-scoped検証:
   - `dotnet test FramePrintPDF/PDF_Manager.Core.Tests/PDF_Manager.Core.Tests.csproj -c Release`
   - `dotnet build FrameWeb.sln -c Release`
@@ -85,15 +101,19 @@
 - Step 3初回レビューではdirty-save reentrancy、operation cleanup、layout未配線、非transactional restore、thread affinity、未キャンセルOCEの黙殺、close-phase saveの無期限待ちが見つかった。すべて修正し回帰テストを追加した。STA harnessはtimeout時にbackground threadを安全に強制終了できないため、Lowのprocess-isolation改善余地が残る。
 - Step 4のWGL反復検証では、GPU resource解放後もcontextがcurrentのままGLControlをdisposeする競合で一時的な失敗が再現した。冗長な`MakeCurrent`を避け、解放後に`MakeNoneCurrent`して修正し、反復・並行probeで再発しないことを確認した。
 - Step 4 Low follow-upは、runtime出力のwhole-line allocation/転送量、`Process.Start`からJob assignmentまでの短いescape window、同期Python solveへのclient cancellation非伝播、Core/user messageとtyped PDF labelのCJK fallback、STA timeout child-process isolation、runtime 503/post-ready-exit/stop-during-start race coverageである。
+- Step 5初回reviewは全入力authoring不足、Nodes以外の実grid coverage不足、zero-effect load、point-load L2、退化panel、insert候補衝突、MemberLoad selection、load/displacement ID衝突などを検出した。すべて修正し、最終closeoutでCritical/High/Medium 0を確認した。
+- Step 5残存Lowは、security: clipboard/JSONの上限判定前の全量取得・serialize allocationとID/nameの長さ・制御/区切り文字、quality: semantic no-op history・delimiter identity・大規模switch責務、tests: matrix各行の型別success oracle・unsupported enum string・clipboard accepted-at-limit境界である。
+- Step 6初回reviewは、node/member依存cache失効、decorations未描画、extrema no-op／load case混在、結果表・derived render workの上限不足、camera replacement、glyph semantics、exception provenanceを検出した。全Critical/High/Mediumを修正し、member topology→Displacementsの最終依存枝もactual cache regressionで閉じた。
+- Step 6残存Lowは、security: PNG encode後のbyte上限・非atomic overwrite・delimiter stable ID、quality: renderer/shell責務肥大・未使用scheduler interval・bounded/measured O(N) masked compile、tests: PNG実保存・pinned semantic snapshot・empty-workspace counter・malformed boundary matrixである。
+- Step 6 closeout中にdefault `.agents/check.ps1`が対象外Python全件へ入り、出力なしで72分超継続したため中断した。Step 6対象の.NET／agent gatesは別途完走し、既知Python/Angular baselineをgreenとは報告しない。
 
 ## Next Steps
 
-1. `AGENTS.md` とcontext-loaderに従い、`git status --short --branch`、本handoff、計画書、`.agents/docs/DESIGN.md`、Step 4 public boundariesとreviewを確認する。未追跡/既存stage状態を捨てない。
-2. Step 5をtest-firstで開始し、nodes、members、rigid zones、supports、elements/materials/sections、panels、joints、notice points、member springs、load cases/values、DEFINE/COMBINE/PICKUPのtyped editorを完成させる。
-3. keyboard navigation、multi-row edit、copy/paste、insert/delete、selection sync、undo/redoをshared grid behaviorとして実装し、画面ごとの複製を避ける。
-4. 残る3つを含む全4 built-in presetをtyped fixture/resourceとして追加し、warningなしのload、deterministic round-trip、expected requestを検証する。
-5. cross-table reference、dimension、duplicate ID、case limit、calculation preconditionをHTTP submission前のCore validationへ集約する。
-6. Step 4 Low follow-upを次の担当範囲に合わせて解消し、legacy Startup/print findingsとCJK/full print/publish NO-GOを別枠で維持する。
-7. task-scoped .NET/Python gates、ownership/delegation/work-log/document contracts、`git diff --check`、AgentOnlyを継続し、coverage未計測と既知Python/Angular full baselineを明示する。
+1. `AGENTS.md` とcontext-loaderに従い、`git status --short --branch`、本handoff、計画書、`.agents/docs/DESIGN.md`、Step 6のtyped scene/result boundariesと最終reviewを確認する。未追跡/既存stage状態を捨てない。
+2. Step 7をtest-firstで開始し、ordered multi-case static result、全accepted nonlinear load step、modal modeを`AnalysisResultSet`から直接navigation・表示する。
+3. displacement、support reaction、member section forceのtable/diagramを明示case/state selectorと接続し、既存active-case filter、signed extrema、stable selectionを拡張する。
+4. DEFINE／COMBINE／PICKUPをstatic operandだけへ適用し、nonlinear/modal operandにはvisible domain errorを出す。canonical base resultは変更しない。
+5. moving-load parent/child paging、component max/min envelope、reaction absolute maximum、member-force extrema、CSV/PICKUP export、deterministic orderを完成させる。shell/solid dataはvalidated modelに保持するが専用screenは初期parity外とする。
+6. task-scoped .NET gates、ownership/delegation/work-log/document contracts、`git diff --check`、AgentOnlyを継続し、coverage未計測と既知Python/Angular full baselineを明示する。legacy Startup/print findings、CJK/full print/publish NO-GOは別枠で維持する。
 
-package-only開発経路はStep 5へ進んでよい。ただし、`PDF_Manager.LegacyPrinting` のHigh security findings、CJK font strategy、full PDF parity、publish SBOM/forbidden-file scanが解消されるまで、legacy hostの公開と完成アプリの再配布はNO-GOのままである。
+package-only開発経路はStep 7へ進んでよい。ただし、`PDF_Manager.LegacyPrinting` のHigh security findings、CJK font strategy、full PDF parity、publish SBOM/forbidden-file scanが解消されるまで、legacy hostの公開と完成アプリの再配布はNO-GOのままである。

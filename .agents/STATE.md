@@ -204,3 +204,81 @@ Rolling progress summary (latest 5 checkpoints): [PROGRESS.md](../PROGRESS.md)
 - The desktop runtime never starts Angular and never exposes its local bearer token; listener Job ownership is part of readiness and request acceptance.
 - Live viewport capture is the single diagram source for the vertical PDF slice and must run inside the UI exception boundary.
 - Step 4 is complete; next is Step 5. Legacy-host publication and completed-app redistribution remain NO-GO.
+
+---
+
+## Current Feature: C# FrameWeb Desktop Client Step 5
+<!-- orchestra:block-id: c-frameweb-desktop-client-step-5 -->
+
+### Context
+
+- Goal: Complete the full typed model-input editor matrix, shared editing behavior, all four built-in presets, and Core validation before HTTP submission.
+- Key files: FramePrintPDF/PDF_Manager.Core/Documents/**, FramePrintPDF/PDF_Manager.Core/Analysis/FrameWebAnalysisRequestJson.cs, FramePrintPDF/PDF_Manager/Shell/{Contents,Editing}/**, Resources/**, and matching Core/UI tests.
+- Dependencies: Step 4 ProjectDocument v1, WinForms/DockPanelSuite shell, typed Z-up viewport, and the Python legacy analysis-input meaning.
+- Complexity: COMPLEX
+
+### Architecture
+
+- ProjectDocument v1 remains additive, strict, deterministic, and input-only; new dimension, property/support/joint/spring sets, rigid zones, panels, notice points, prescribed displacements, and member loads are validated before commit. JSON input is bounded to 16 MiB and 100,000 aggregate entities/rows.
+- One descriptor-driven EditorContent hosts 21 typed tables. Shared controller behavior owns bounded clipboard, keyboard routing, multi-row paste, insert/delete, stable selection, lifecycle, and one-batch/one-undo semantics. Dedicated tables expose model dimension, four set managers, and prescribed displacements.
+- Four stable built-in presets are typed semantic builders with explicit topology/material/support/load/selector assertions and pinned canonical request hashes; no public legacy Angular importer is part of the contract.
+- The Python request boundary checks effective nonzero loads, table selectors, member-load positions, case/entity limits, and numeric legacy IDs. DEFINE/COMBINE/PICKUP remain client-side and are not sent.
+- Member-load rows now project to stable representative SceneMemberLoad glyphs for bidirectional table/viewport selection; full load-shape rendering remains Step 6.
+
+### Codex Validation
+
+- Both Release solutions build with 0 warnings/errors; both solution test runs pass 401/401 (Core 243, composition/Printing 17, Rendering 27, LocalRuntime 14, UI 100). Focused domain/request tests pass 53/53, persistence/preset tests 78/78, and Step 5 UI tests 17/17.
+- Ownership reconcile reports overlap 0, unowned 0, idle 0; all team work logs validate; final AgentOnly is overall=pass at .agents/logs/check-20260920T154552806Z-28216.log.
+- Final security, quality, and test closeout reviews each report Critical 0 / High 0 / Medium 0 / Low 3. Coverage percentage is not measured.
+- Full Python/Angular suites were not rerun; retain the known 3,273 PASS / 6 FAIL / 4 ERROR baseline.
+
+### Integration Points
+
+- Step 6 extends the typed scene with complete independent input/result layers and full load-shape rendering without changing the editor document contract.
+- Step 7 consumes the existing load-case, DEFINE/COMBINE/PICKUP, and request/result boundaries for complete result presentation.
+- Step 8 still replaces the isolated legacy print path; legacy host publication and completed-app redistribution remain NO-GO.
+
+### Decisions
+
+- Keep schema version 1 and make the complete input surface additive rather than introduce a parallel document format.
+- Keep persisted stable alphanumeric IDs; validate the Python service's positive-integer ID requirement only at request projection.
+- Treat one final validated batch as the edit transaction and one undo entry; rejected edits preserve document, undo, and redo exactly.
+- Step 5 is complete; next is Step 6 rendering and interaction parity.
+
+---
+
+## Current Feature: C# FrameWeb Desktop Client Step 6
+<!-- orchestra:block-id: c-frameweb-desktop-client-step-6 -->
+
+### Context
+
+- Goal: Complete rendering and interaction parity for every typed model, load, and result layer while preserving deterministic UI/GL lifecycle behavior.
+- Key files: FramePrintPDF/PDF_Manager.Rendering/Scene/ViewportSceneContracts.cs, ViewportSceneModel.cs, ViewportSceneCompiler.cs, OpenGlViewportLifecycle.cs, PDF_Manager/Shell/Viewport/**, ProjectDocumentContent.cs, RendererProbe, and Step6 Rendering/UI tests.
+- Dependencies: Step 5 ProjectDocument v1 inputs and presets, AnalysisResultSet v1, OpenTK GLControl, WinForms shell.
+- Complexity: COMPLEX
+
+### Architecture
+
+- Twelve independent stable-ID scene layers are exposed behind IViewportScene, ICameraController, and IHitTestService.
+- Node/member dependency closure expands shallow diffs before cached layer reuse; invalidations coalesce and only affected render buffers are replaced.
+- Scene materialization, compiled vertices/batches/hit targets/decorations, result-grid rows, PNG dimensions/pixels/bytes, and topology exploration have explicit limits.
+- Grid, axes, labels, scale, and color legends are rasterized to a bounded transparent texture and alpha-composited by the same OpenGL path used for Paint and capture.
+
+### Codex Validation
+
+- Both Release solutions build with 0 warnings/errors and both solution test runs pass 463/463: Core 243, composition/Printing 17, Rendering 56, LocalRuntime 14, UI 133.
+- RendererProbe passes 100 contexts, 1,700 frames, 600 captures, 200 PNG encodes, and final live contexts/subscriptions/windows of zero.
+- The 10,000-node/9,999-member masked update recompiles only Loads and completes in 5.873 ms; all budgets and exact/+1 boundaries are covered.
+- Final security, quality, and test reviews each report Critical 0 / High 0 / Medium 0. Coverage percentage remains unmeasured.
+
+### Integration Points
+
+- Step 7 consumes the existing active-case filtering, ordered case/state navigator, signed extrema helper, result tables, typed result layers, and stable bidirectional selection.
+- Step 8 continues to capture the live decorated viewport rather than reconstructing a second diagram and must retain bounded capture/resource semantics.
+- Full Python/Angular validation was not completed or rebaselined; retain the known 3,273 PASS / 6 FAIL / 4 ERROR baseline.
+
+### Decisions
+
+- Keep screen and PNG decorations on one bounded OpenGL overlay path; do not introduce a separate GDI export path.
+- Preserve camera on ordinary document edits, reset it only after replacement scene installation, and avoid creating a GL context for an empty workspace.
+- Step 6 is complete; next is Step 7 calculation and result presentation. Legacy-host publication and completed-app redistribution remain NO-GO.

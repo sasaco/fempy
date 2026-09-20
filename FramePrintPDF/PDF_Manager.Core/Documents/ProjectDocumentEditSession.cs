@@ -37,40 +37,123 @@ public sealed class ProjectDocumentEditSession
     public bool CanRedo => _redo.Count > 0;
 
     public bool UpsertNode(ProjectNode value)
-        => Upsert(Current.Nodes, value, item => item.Id, nodes => Rebuild(nodes: nodes));
+        => ApplyBatch(batch => batch.UpsertNode(value));
 
     public bool UpsertSection(FrameSectionDefinition value)
-        => Upsert(Current.Sections, value, item => item.Id, sections => Rebuild(sections: sections));
+        => ApplyBatch(batch => batch.UpsertSection(value));
+
+    public bool UpsertElementPropertySet(ElementPropertySetDefinition value)
+        => ApplyBatch(batch => batch.UpsertElementPropertySet(value));
 
     public bool UpsertMember(ProjectMember value)
-        => Upsert(Current.Members, value, item => item.Id, members => Rebuild(members: members));
+        => ApplyBatch(batch => batch.UpsertMember(value));
+
+    public bool UpsertRigidZone(RigidZoneDefinition value)
+        => ApplyBatch(batch => batch.UpsertRigidZone(value));
 
     public bool UpsertSupport(ProjectSupport value)
-        => Upsert(Current.Supports, value, item => item.Id, supports => Rebuild(supports: supports));
+        => ApplyBatch(batch => batch.UpsertSupport(value));
+
+    public bool UpsertSupportSet(SupportSetDefinition value)
+        => ApplyBatch(batch => batch.UpsertSupportSet(value));
+
+    public bool UpsertPanel(PanelDefinition value)
+        => ApplyBatch(batch => batch.UpsertPanel(value));
+
+    public bool UpsertJointReleaseSet(JointReleaseSetDefinition value)
+        => ApplyBatch(batch => batch.UpsertJointReleaseSet(value));
+
+    public bool UpsertNoticePoint(NoticePointDefinition value)
+        => ApplyBatch(batch => batch.UpsertNoticePoint(value));
+
+    public bool UpsertMemberSpringSet(MemberSpringSetDefinition value)
+        => ApplyBatch(batch => batch.UpsertMemberSpringSet(value));
 
     public bool UpsertLoadCase(LoadCaseDefinition value)
-        => Upsert(Current.LoadCases, value, item => item.Id, loadCases => Rebuild(loadCases: loadCases));
+        => ApplyBatch(batch => batch.UpsertLoadCase(value));
 
     public bool UpsertNodalLoad(NodalLoadDefinition value)
-        => Upsert(Current.NodalLoads, value, item => item.Id, nodalLoads => Rebuild(nodalLoads: nodalLoads));
+        => ApplyBatch(batch => batch.UpsertNodalLoad(value));
+
+    public bool UpsertPrescribedDisplacement(PrescribedDisplacementDefinition value)
+        => ApplyBatch(batch => batch.UpsertPrescribedDisplacement(value));
+
+    public bool UpsertMemberLoad(MemberLoadDefinition value)
+        => ApplyBatch(batch => batch.UpsertMemberLoad(value));
+
+    public bool UpsertDerivedResult(DerivedResultDefinition value)
+        => ApplyBatch(batch => batch.UpsertDerivedResult(value));
+
+    public bool UpsertMovingLoad(MovingLoadDefinition value)
+        => ApplyBatch(batch => batch.UpsertMovingLoad(value));
 
     public bool RemoveNode(string id)
-        => Remove(Current.Nodes, id, item => item.Id, nodes => Rebuild(nodes: nodes));
+        => ApplyBatch(batch => batch.RemoveNode(id));
 
     public bool RemoveSection(string id)
-        => Remove(Current.Sections, id, item => item.Id, sections => Rebuild(sections: sections));
+        => ApplyBatch(batch => batch.RemoveSection(id));
+
+    public bool RemoveElementPropertySet(string id)
+        => ApplyBatch(batch => batch.RemoveElementPropertySet(id));
 
     public bool RemoveMember(string id)
-        => Remove(Current.Members, id, item => item.Id, members => Rebuild(members: members));
+        => ApplyBatch(batch => batch.RemoveMember(id));
+
+    public bool RemoveRigidZone(string id)
+        => ApplyBatch(batch => batch.RemoveRigidZone(id));
 
     public bool RemoveSupport(string id)
-        => Remove(Current.Supports, id, item => item.Id, supports => Rebuild(supports: supports));
+        => ApplyBatch(batch => batch.RemoveSupport(id));
+
+    public bool RemoveSupportSet(string id)
+        => ApplyBatch(batch => batch.RemoveSupportSet(id));
+
+    public bool RemovePanel(string id)
+        => ApplyBatch(batch => batch.RemovePanel(id));
+
+    public bool RemoveJointReleaseSet(string id)
+        => ApplyBatch(batch => batch.RemoveJointReleaseSet(id));
+
+    public bool RemoveNoticePoint(string id)
+        => ApplyBatch(batch => batch.RemoveNoticePoint(id));
+
+    public bool RemoveMemberSpringSet(string id)
+        => ApplyBatch(batch => batch.RemoveMemberSpringSet(id));
 
     public bool RemoveLoadCase(string id)
-        => Remove(Current.LoadCases, id, item => item.Id, loadCases => Rebuild(loadCases: loadCases));
+        => ApplyBatch(batch => batch.RemoveLoadCase(id));
 
     public bool RemoveNodalLoad(string id)
-        => Remove(Current.NodalLoads, id, item => item.Id, nodalLoads => Rebuild(nodalLoads: nodalLoads));
+        => ApplyBatch(batch => batch.RemoveNodalLoad(id));
+
+    public bool RemovePrescribedDisplacement(string id)
+        => ApplyBatch(batch => batch.RemovePrescribedDisplacement(id));
+
+    public bool RemoveMemberLoad(string id)
+        => ApplyBatch(batch => batch.RemoveMemberLoad(id));
+
+    public bool RemoveDerivedResult(string id)
+        => ApplyBatch(batch => batch.RemoveDerivedResult(id));
+
+    public bool RemoveMovingLoad(string id)
+        => ApplyBatch(batch => batch.RemoveMovingLoad(id));
+
+    /// <summary>
+    /// Applies all requested changes atomically. The final candidate is validated once and a
+    /// successful changed batch creates exactly one undo entry.
+    /// </summary>
+    public bool ApplyBatch(Action<ProjectDocumentEditBatch> edit)
+    {
+        ArgumentNullException.ThrowIfNull(edit);
+        ProjectDocumentEditBatch batch = new(Current);
+        edit(batch);
+        if (!batch.HasChanges)
+        {
+            return false;
+        }
+
+        return Commit(batch.Build());
+    }
 
     public bool Undo()
     {
@@ -100,47 +183,6 @@ public sealed class ProjectDocumentEditSession
         return true;
     }
 
-    private bool Upsert<T>(
-        IReadOnlyList<T> source,
-        T value,
-        Func<T, string> idSelector,
-        Func<IReadOnlyList<T>, ProjectDocument> rebuild)
-        where T : class
-    {
-        ArgumentNullException.ThrowIfNull(value);
-        List<T> changed = source.ToList();
-        string id = idSelector(value);
-        int index = changed.FindIndex(item => StringComparer.Ordinal.Equals(idSelector(item), id));
-        if (index >= 0)
-        {
-            if (EqualityComparer<T>.Default.Equals(changed[index], value))
-            {
-                return false;
-            }
-
-            changed[index] = value;
-        }
-        else
-        {
-            changed.Add(value);
-        }
-
-        return Commit(rebuild(changed));
-    }
-
-    private bool Remove<T>(
-        IReadOnlyList<T> source,
-        string id,
-        Func<T, string> idSelector,
-        Func<IReadOnlyList<T>, ProjectDocument> rebuild)
-        where T : class
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(id);
-        List<T> changed = source.ToList();
-        int removed = changed.RemoveAll(item => StringComparer.Ordinal.Equals(idSelector(item), id));
-        return removed > 0 && Commit(rebuild(changed));
-    }
-
     private bool Commit(ProjectDocument candidate)
     {
         ProjectDocumentValidator.Validate(candidate);
@@ -159,24 +201,4 @@ public sealed class ProjectDocumentEditSession
         }
     }
 
-    private ProjectDocument Rebuild(
-        IReadOnlyList<ProjectNode>? nodes = null,
-        IReadOnlyList<FrameSectionDefinition>? sections = null,
-        IReadOnlyList<ProjectMember>? members = null,
-        IReadOnlyList<ProjectSupport>? supports = null,
-        IReadOnlyList<LoadCaseDefinition>? loadCases = null,
-        IReadOnlyList<NodalLoadDefinition>? nodalLoads = null)
-        => new(
-            Current.Version,
-            Current.Metadata,
-            nodes ?? Current.Nodes,
-            members ?? Current.Members,
-            supports ?? Current.Supports,
-            loadCases ?? Current.LoadCases,
-            nodalLoads ?? Current.NodalLoads,
-            Current.DerivedResults,
-            Current.MovingLoads,
-            Current.Selection,
-            isDirty: true,
-            sections: sections ?? Current.Sections);
 }

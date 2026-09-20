@@ -12,6 +12,7 @@ using PDF_Manager.Shell.Contents;
 using PDF_Manager.Shell.Docking;
 using PDF_Manager.Shell.Lifecycle;
 using PDF_Manager.Shell.Printing;
+using PDF_Manager.Shell.Viewport;
 using WeifenLuo.WinFormsUI.Docking;
 using CoreDockState = PDF_Manager.Core.Shell.DockState;
 
@@ -429,7 +430,7 @@ public sealed class MainForm : Form
         EditorPane.SelectionChanged += OnEditorSelectionChanged;
         EditorPane.ValidationFailed += OnEditorValidationFailed;
         DocumentHost.SelectionChanged += OnViewportSelectionChanged;
-        DocumentHost.ViewportFailed += OnEditorValidationFailed;
+        DocumentHost.ViewportOperationFailed += OnViewportOperationFailed;
         Shown += OnShown;
         FormClosing += OnFormClosing;
     }
@@ -457,7 +458,7 @@ public sealed class MainForm : Form
         EditorPane.SelectionChanged -= OnEditorSelectionChanged;
         EditorPane.ValidationFailed -= OnEditorValidationFailed;
         DocumentHost.SelectionChanged -= OnViewportSelectionChanged;
-        DocumentHost.ViewportFailed -= OnEditorValidationFailed;
+        DocumentHost.ViewportOperationFailed -= OnViewportOperationFailed;
         Shown -= OnShown;
         FormClosing -= OnFormClosing;
     }
@@ -511,7 +512,7 @@ public sealed class MainForm : Form
         NavigationPane.SetDocument(document);
         EditorPane.SetDocument(document);
         ProjectDocumentContent viewport = EnsureDocumentHost();
-        viewport.SetDocument(document);
+        viewport.SetDocument(document, resetCamera: true);
         viewport.SetResult(_analysisState.Current);
         UpdateWindowTitle();
         UpdateCommandState();
@@ -908,6 +909,13 @@ public sealed class MainForm : Form
 
     private UserSafeExceptionInfo MapException(Exception exception)
     {
+        if (exception is ViewportOperationException viewportFailure)
+        {
+            return new UserSafeExceptionInfo(
+                viewportFailure.IsExpected ? UserSafeFailureKind.Operation : UserSafeFailureKind.Unexpected,
+                viewportFailure.SafeMessage);
+        }
+
         UserSafeExceptionInfo mapped = UserExceptionBoundary.Map(exception);
         return mapped.Kind == UserSafeFailureKind.Unexpected
             ? mapped with { Message = _services.Localization["UnexpectedError"] }
@@ -967,8 +975,8 @@ public sealed class MainForm : Form
         {
             DocumentHost = (ProjectDocumentContent)eventArgs.Content;
             DocumentHost.SelectionChanged += OnViewportSelectionChanged;
-            DocumentHost.ViewportFailed += OnEditorValidationFailed;
-            DocumentHost.SetDocument(_currentDocument);
+            DocumentHost.ViewportOperationFailed += OnViewportOperationFailed;
+            DocumentHost.SetDocument(_currentDocument, resetCamera: true);
             DocumentHost.SetResult(_analysisState.Current);
         }
     }
@@ -1011,7 +1019,7 @@ public sealed class MainForm : Form
         _documentRevision = checked(_documentRevision + 1);
         _analysisState = new AnalysisResultState();
         NavigationPane.SetDocument(_currentDocument);
-        DocumentHost.SetDocument(_currentDocument);
+        DocumentHost.SetDocument(_currentDocument, resetCamera: false);
         DocumentHost.SetResult(null);
         UpdateWindowTitle();
         UpdateCommandState();
@@ -1039,6 +1047,31 @@ public sealed class MainForm : Form
         {
             DiagnosticsPane.Report(eventArgs.Message);
         }
+    }
+
+    private void OnViewportOperationFailed(object? sender, ViewportOperationFailedEventArgs eventArgs)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (!eventArgs.Failure.IsExpected)
+        {
+            ReportException(eventArgs.Failure);
+            return;
+        }
+
+        try
+        {
+            _services.ReportDiagnostic?.Invoke(eventArgs.Failure);
+        }
+        catch (Exception diagnosticException)
+        {
+            System.Diagnostics.Debug.WriteLine(diagnosticException);
+        }
+
+        DiagnosticsPane.Report(eventArgs.Failure.SafeMessage);
     }
 
     private void OnCultureChanged(object? sender, EventArgs eventArgs) => ApplyLocalization();

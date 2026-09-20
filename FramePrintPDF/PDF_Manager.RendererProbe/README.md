@@ -18,7 +18,13 @@ dotnet build FramePrintPDF/PDF_Manager.RendererProbe/PDF_Manager.RendererProbe.c
 dotnet run --project FramePrintPDF/PDF_Manager.RendererProbe/PDF_Manager.RendererProbe.csproj -- --verify --cycles 100
 ```
 
-Verification opens, resizes, captures, closes, and recreates the real context.
-It exits nonzero when pixels, dimensions, event-driven idle behavior, lifecycle
-idempotency, or live context/subscription/window counters do not meet the
-contract. Captures remain in memory and are never written to the repository.
+Verification opens, resizes, floats, redocks, captures, closes, and recreates
+the real context. Every cycle renders and captures both a typed orthographic 2D
+frame and a typed perspective 3D frame, validates their in-memory PNG signature
+and 16 MiB probe limit, and reports projection-specific capture counts. The
+typed scene verifies grid, axes, labels, scale, and color-legend pixels through
+the shared Paint/capture OpenGL composition path, then disables all decoration
+layers and verifies that those pixels disappear. It exits nonzero when pixels,
+dimensions, event-driven idle behavior, lifecycle idempotency, or live
+context/subscription/window counters do not meet the contract. Captures remain
+in memory and are never written to the repository.
