@@ -5,16 +5,12 @@ namespace PDF_Manager.UiTests;
 public sealed class MainFormSmokeTests
 {
     [Fact]
-    public void MainForm_OnStaThread_CanShowCloseAndDisposeWithoutLeavingOpenForms()
+    public void MainForm_OnStaThread_RepeatedlyShowsClosesAndDisposesWithoutLeavingOpenForms()
     {
-        Exception? failure = null;
-        Thread thread = new(() =>
+        StaTestRunner.Run(() =>
         {
-            try
+            for (int cycle = 0; cycle < 25; cycle++)
             {
-                Assert.Equal(ApartmentState.STA, Thread.CurrentThread.GetApartmentState());
-                Assert.Empty(Application.OpenForms.Cast<Form>());
-
                 using MainForm form = new();
                 form.Show();
                 Assert.True(form.Visible);
@@ -23,22 +19,9 @@ public sealed class MainFormSmokeTests
                 form.Close();
 
                 Assert.False(form.Visible);
+                Assert.True(form.IsDisposed);
                 Assert.Empty(Application.OpenForms.Cast<Form>());
             }
-            catch (Exception exception)
-            {
-                failure = exception;
-            }
-        })
-        {
-            IsBackground = true,
-            Name = "PDF Manager UI smoke",
-        };
-        thread.SetApartmentState(ApartmentState.STA);
-
-        thread.Start();
-
-        Assert.True(thread.Join(TimeSpan.FromSeconds(10)), "The STA UI smoke thread did not terminate.");
-        Assert.Null(failure);
+        }, "PDF Manager UI smoke");
     }
 }

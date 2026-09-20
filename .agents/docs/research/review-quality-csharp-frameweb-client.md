@@ -40,3 +40,44 @@ Reviewed the Step 1 implementation diff, the approved plan, `DESIGN.md`, reposit
 - The reviewer reran a 3-cycle real-context probe, not the full 100-cycle sequence. The recorded 100-cycle result is consistent with the same executable and lifecycle path, but was not independently repeated in this review.
 - The requested nested read-only Codex consultation was unavailable: the first call failed while persisting PowerShell stdin because of an encoding error; the single UTF-8 retry produced no response for approximately ten minutes and was terminated. No conclusion in this report depends on that consultation.
 - Repository-wide Python and Angular failures are known and outside this C# Step 1 quality scope; this PASS is not a repository-wide green verdict.
+
+## Step 2 Addendum (2026-09-20)
+
+### Step 2 Result
+
+**PASS** — no Critical, High, or Medium Step 2 finding remains. The review found
+two public-boundary gaps during verification: required JSON objects set to
+`null` escaped the typed format boundary, and direct moving-load envelope calls
+did not reject duplicate or reverse-ordered source cases. Both were fixed and
+covered before this verdict.
+
+### Verified Strengths
+
+- `ProjectDocument` is an input-only aggregate. Serializer output excludes
+  runtime result, selection, and dirty state, while preserving dependency order
+  for chained derived definitions and canonical ordering for independent IDs.
+- `AnalysisResultSet` collections are defensively copied and read-only. Parsing,
+  semantic validation, indexing, and state commit remain separate; rejected
+  candidates cannot replace the current result.
+- The C# contract consumes the repository's six positive and seven negative
+  Python fixtures directly instead of maintaining a forked fixture copy.
+- Presentation logic leaves base results unchanged, carries source provenance,
+  rejects non-static/incompatible/overflowing inputs, and deterministically
+  handles DEFINE, COMBINE, PICKUP, paging, and signed envelopes.
+- Core remains package-free and has no UI, rendering, PDF, HTTP, filesystem-host,
+  or legacy-dictionary leakage across its typed service interfaces.
+
+### Validation
+
+- Core tests: 75/75 PASS.
+- `FrameWeb.sln` and `FramePrintPDF.sln`: 95/95 PASS in each solution graph.
+- Both Release solution builds: PASS; clean legacy-warning behavior remains the
+  Step 1 baseline rather than a new Step 2 warning.
+- Shared Python result-contract tests: 14/14 PASS.
+- Formatting and whitespace checks: PASS before the repository-wide gate.
+
+The hand-written wire mapper and semantic validator are intentionally explicit
+but large; future contract changes should continue to start from shared fixtures
+and focused semantic tests to prevent drift. Parallel reviewer runtimes were
+unavailable at their usage limit, so this addendum records the lead fallback
+review rather than an independent-agent verdict.

@@ -79,3 +79,39 @@ The separate 100-cycle probe is also meaningful. It uses the production renderer
 | Low | 2 | Add with the next focused test pass |
 
 Overall: **PASS** for Step 1 test/validation review, with the Medium recommendations tracked before relying on the solution test count alone as the long-term lifecycle and redistribution boundary gate.
+
+## Step 2 Addendum (2026-09-20)
+
+### Step 2 Verdict
+
+**PASS** — no Critical or High Step 2 test gap was found. Coverage percentage
+remains **not measured** and is not inferred from test counts.
+
+### Evidence
+
+- Core tests pass 75/75 after adding typed-failure tests for `null` required JSON
+  objects and duplicate/reverse-ordered moving-load envelope sources.
+- Both solution test graphs pass 95/95: Core 75, composition/Printing 9,
+  Rendering 10, and STA UI 1.
+- The C# suite reads all six positive and seven negative
+  `FrameWeb/tests/data/contracts` fixtures in place and asserts that no fixture
+  copies exist under the C# test source tree.
+- `uv --directory FrameWeb run --locked --extra dev python -m pytest
+  tests/io/test_result_contracts.py -q` passes 14/14, retaining the producer-side
+  contract gate.
+- Focused tests cover deterministic project serialization, strict parsing,
+  validation/reference failures, atomic save/cancellation/temp cleanup,
+  immutable indexes and failed-candidate preservation, derived-result chaining,
+  PICKUP sign behavior, moving paging, and envelope provenance.
+
+### Remaining Test Debt
+
+- No fuzz/property corpus currently explores arbitrary JSON `null` placement,
+  extreme nesting near the accepted limit, or large collection/resource
+  budgets. Add these with the Step 4 transport limits rather than claiming a
+  measured robustness percentage now.
+- Existing Step 1 OpenGL/UI/publish-boundary Medium findings remain unchanged;
+  Step 2 did not modify those components.
+
+Parallel reviewer runtimes stopped at their usage limit before reviewing code;
+this addendum is the lead fallback test review of the gathered Step 2 patch.

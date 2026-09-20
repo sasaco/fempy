@@ -185,3 +185,45 @@ redistribution NO-GO** remains correct.
 Known repository-wide Python and Angular gate failures were excluded as
 requested. The pre-existing user-owned handoff skill was not reviewed. No
 product code was modified by this review.
+
+## Step 2 Addendum (2026-09-20)
+
+### Step 2 Verdict
+
+**PASS for the new Step 2 Core boundary** — Critical: 0; High: 0; Medium: 0;
+Low: 1. The repository-level verdict remains **Changes requested** because the
+two Step 1 High findings in the legacy Azure/local print host are unchanged.
+The new desktop still has no dependency path to that host.
+
+### [Low] Project and result readers do not yet enforce byte or collection budgets
+
+- **Evidence**: `JsonProjectStore.OpenAsync` reads the complete project file,
+  while `AnalysisResultSetJson.DeserializeAsync` copies a complete stream into
+  memory. Both readers enforce JSON depth and strict shape/semantic validation,
+  but neither currently caps encoded bytes or topology/result collection sizes.
+- **Impact**: Step 2 exposes only local Core APIs, so this is presently a local
+  malformed-file/resource-exhaustion concern rather than a remote path. It
+  becomes externally relevant when Step 4 connects analysis responses.
+- **Required follow-up**: define product-sized byte/entity/result budgets before
+  the Step 4 HTTP adapter and reject over-budget streams before buffering. Keep
+  the limit policy outside the exact shared `AnalysisResultSet v1` semantics.
+
+### Step 2 Positive Controls
+
+- Project and result JSON reject unknown and duplicate members, malformed UTF-8,
+  unsupported versions/variants, non-finite values, invalid references, and
+  `null` required objects through typed non-sensitive failures.
+- Project saves use a same-directory temporary file, flush it to disk, atomically
+  replace/move the destination, honor cancellation before commit, and clean up
+  the temporary file on failure.
+- The new Core code adds no package, network, process, reflection, dynamic-load,
+  credential, image-decoder, font, or legacy-print dependency.
+- Derived and moving-load presentation operates on validated immutable results;
+  arithmetic overflow, missing/non-static sources, duplicate cases, and
+  out-of-order envelope sources are rejected.
+
+Verification: Core 75/75, both solution graphs 95/95, shared Python contract
+tests 14/14, Release builds PASS, and `dotnet format --verify-no-changes` PASS.
+The requested parallel reviewers were unavailable because all three worker
+runtimes stopped at their usage limit; this addendum is the lead's read-only
+fallback review of the frozen Step 2 diff.

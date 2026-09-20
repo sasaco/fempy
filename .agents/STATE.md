@@ -97,3 +97,38 @@ Rolling progress summary (latest 5 checkpoints): [PROGRESS.md](../PROGRESS.md)
 - transport/input形式からresponse versionを暗黙推測しない。plain/canonical compressed/legacy compressedはいずれもtransportでありschema selectorではない。
 - 本セッションは診断とhandoffまで。表示互換adapterは未実装。次セッションはlegacy-cases-v1の選択方法を確定し、contract testから開始する。
 - 詳細は.agents/logs/troubleshoot-framewebforjs-results-not-displayed-diagnosis.md、root-cause/impact reportを参照。
+
+---
+
+## Current Feature: C# FrameWeb Desktop Client Step 2
+<!-- orchestra:block-id: c-frameweb-desktop-client-step-2 -->
+
+### Context
+
+- Goal: Complete typed document/result foundations before docking UI work.
+- Key files: FramePrintPDF/PDF_Manager.Core/{Documents,Analysis,Results,Abstractions}/** and matching Core.Tests paths.
+- Dependencies: package-free .NET 8 Core plus shared FrameWeb AnalysisResultSet fixtures.
+- Complexity: COMPLEX
+
+### Architecture
+
+- ProjectDocument v1 persists validated inputs only; runtime result, selection, and dirty state are excluded.
+- AnalysisResultSet v1 uses immutable DTOs, strict parsing/semantic validation, ResultCoordinate indexing, and validate-before-commit state.
+- Derived and moving-load behavior is presentation-only and cannot mutate base results.
+
+### Codex Validation
+
+- Core tests 75/75; both solutions 95/95; shared Python contract tests 14/14.
+- Both Release solution builds pass; clean root build exposes only the 28 known LegacyPrinting warnings.
+- Repository-wide Python/Angular known failures remain separate and are not reported green.
+
+### Integration Points
+
+- Step 3 shell consumes ProjectDocument dirty/selection state and typed operation errors.
+- Step 4 FrameWebAnalysisClient implements IAnalysisClient and commits only fully validated results.
+- Step 8 typed printing implements IPrintExporter without exposing legacy dictionaries.
+
+### Decisions
+
+- DEFINE/COMBINE use weighted linear combination; PICKUP chooses signed greatest-absolute component; moving-load envelopes retain source-case provenance.
+- The next implementation step is Step 3 desktop shell/docking lifecycle.

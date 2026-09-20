@@ -16,6 +16,7 @@
 - package-only の開発経路は **GO** である。DockPanelSuite 3.1.1、OpenTK.GLControl 4.0.2、OpenTK 4.9.4、および所有する最小renderer/shaderで Step 1 へ進める。
 - 完成アプリの再配布は **NO-GO** のままである。MS Gothic、MS Mincho、SimSun、旧THREE shader/typeface/LTC textureは製品へコピー・同梱せず、PDF font strategy、PDF golden、publish成果物のforbidden-file/SBOM検査を後続gateで解決する。
 - Step 1 は作業ツリーで完了した。`PDF_Manager` は `net8.0-windows` WinExeとなり、Core/Rendering/typed Printingを参照する空WinForms shell、4つの自動test project、両solutionへの登録が実装済みである。Step 2以降は未着手である。
+- Step 2 は作業ツリーで完了した。Coreへtyped `ProjectDocument v1`、厳格かつ決定的なJSON/atomic store、完全な`AnalysisResultSet v1` DTO/validator/index/commit boundary、static-only derived presentation、moving-load paging/envelope、およびtyped service boundaryを実装した。Step 3以降は未着手である。
 - Step 1完了後にリポジトリ正規の全体検査 `& .agents/check.ps1 -AllowProductPath 'FramePrintPDF'` を再実行した。Agent系、scope isolation、`git diff --check`、`.NET build` はPASSしたが、全体は `overall=fail` である。Pythonは3,273件PASS・6件FAIL・4件ERROR（1:55:37）、Angular test/buildはTypeScript compilation、FontAwesome path、`environment.prod.ts` 不在でFAILした。詳細は `.agents/logs/check-20260920T035935489Z-32252.log` を参照する。いずれも既知のC#変更範囲外failureだが、リポジトリ全体をgreenとは報告しない。
 - 独立レビューは品質PASS（Critical/Highなし）、テストPASS（Critical/Highなし）、セキュリティChanges requested（旧Azure/local print hostにHigh 2件）である。新desktop境界には旧印刷資産・制限font・既知脆弱packageは入っていない。一方、legacy hostの匿名endpointは脆弱なImageSharp 1.0.4へ到達でき、request/decompression/image/PDF workも無制限なので、公開・配布はNO-GOである。詳細は `.agents/docs/research/review-{quality,tests,security}-csharp-frameweb-client.md` を参照する。
 
@@ -138,14 +139,14 @@ PDF_Manager.Core --HTTP--> FrameWeb (Python FEM)
 
 #### Step 2: Implement typed document and result foundations
 
-- [ ] Define one new `ProjectDocument` aggregate for model inputs, load definitions, derived-result definitions, metadata, selection, dirty state, and validation; keep runtime `AnalysisResultSet` outside the persisted input document unless a later persisted-result feature is approved.
-- [ ] Define the new C# project-file JSON schema and deterministic serializer using `System.Text.Json`; add open/save/save-as, atomic replace, UTF-8, finite-number, ID/reference, and unknown-field policies.
-- [ ] Implement immutable C# DTOs and strict validation/indexing for the exact `AnalysisResultSet v1` contract, keyed by `ResultCoordinate(caseId, stateKind, stateIndex)`.
-- [ ] Consume every shared positive and negative fixture under `FrameWeb/tests/data/contracts/` from C# tests; do not copy fixtures into a divergent C# directory.
-- [ ] Implement `ResultPresentationService` for static-only DEFINE/COMBINE/PICKUP and moving-load paging/envelopes without mutating base results.
-- [ ] Define `IAnalysisClient`, `IPrintExporter`, `IProjectStore`, and cancellation/error contracts without coupling Core to HTTP, WinForms, OpenGL, or PdfSharpCore.
+- [x] Define one new `ProjectDocument` aggregate for model inputs, load definitions, derived-result definitions, metadata, selection, dirty state, and validation; keep runtime `AnalysisResultSet` outside the persisted input document unless a later persisted-result feature is approved.
+- [x] Define the new C# project-file JSON schema and deterministic serializer using `System.Text.Json`; add open/save/save-as, atomic replace, UTF-8, finite-number, ID/reference, and unknown-field policies.
+- [x] Implement immutable C# DTOs and strict validation/indexing for the exact `AnalysisResultSet v1` contract, keyed by `ResultCoordinate(caseId, stateKind, stateIndex)`.
+- [x] Consume every shared positive and negative fixture under `FrameWeb/tests/data/contracts/` from C# tests; do not copy fixtures into a divergent C# directory.
+- [x] Implement `ResultPresentationService` for static-only DEFINE/COMBINE/PICKUP and moving-load paging/envelopes without mutating base results.
+- [x] Define `IAnalysisClient`, `IPrintExporter`, `IProjectStore`, and cancellation/error contracts without coupling Core to HTTP, WinForms, OpenGL, or PdfSharpCore.
 
-**Verification**: new document round-trips byte-stably after canonical formatting; broken references and non-finite values fail before save/calculate; all shared contract positives pass and all negatives fail in both Python and C#; result order and coordinates match fixtures; failed response validation leaves the document's previous result state unchanged.
+**Verification result**: project JSON round-trips byte-stably with canonical entity ordering, strict unknown/duplicate/UTF-8/version/null checks, non-finite/reference rejection, transient selection/dirty exclusion, and same-directory atomic replace. C# reads all six shared positive fixtures and rejects all seven shared negative fixtures in place; Python contract tests pass 14/14. Core tests pass 75/75, both solution test runs pass 95/95, and both Release solution builds pass. `ResultCoordinate` ordering, semantic frame/station/segment/modal validation, failed-candidate state preservation, derived-result immutability, moving-load paging/envelope provenance and source-order rejection, cancellation-aware interfaces, and the dependency-free Core boundary are covered.
 
 #### Step 3: Build the desktop shell and docking lifecycle
 

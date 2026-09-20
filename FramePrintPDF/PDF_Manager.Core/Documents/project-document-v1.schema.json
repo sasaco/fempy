@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://frameweb.local/contracts/project-document-v1.schema.json",
+  "title": "FrameWeb Project Document v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schema_version", "metadata", "model", "loads", "derived_results", "moving_loads"],
+  "properties": {
+    "kind": { "const": "frameweb_project" },
+    "schema_version": { "const": 1 },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "description", "author", "unit_system"],
+      "properties": {
+        "name": { "$ref": "#/$defs/id" },
+        "description": { "type": "string" },
+        "author": { "type": "string" },
+        "unit_system": { "$ref": "#/$defs/id" }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "members", "supports"],
+      "properties": {
+        "nodes": { "type": "array", "items": { "$ref": "#/$defs/node" } },
+        "members": { "type": "array", "items": { "$ref": "#/$defs/member" } },
+        "supports": { "type": "array", "items": { "$ref": "#/$defs/support" } }
+      }
+    },
+    "loads": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cases", "nodal_loads"],
+      "properties": {
+        "cases": { "type": "array", "items": { "$ref": "#/$defs/loadCase" } },
+        "nodal_loads": { "type": "array", "items": { "$ref": "#/$defs/nodalLoad" } }
+      }
+    },
+    "derived_results": { "type": "array", "items": { "$ref": "#/$defs/derivedResult" } },
+    "moving_loads": { "type": "array", "items": { "$ref": "#/$defs/movingLoad" } }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" },
+    "number": { "type": "number" },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "x", "y", "z"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "x": { "$ref": "#/$defs/number" },
+        "y": { "$ref": "#/$defs/number" },
+        "z": { "$ref": "#/$defs/number" }
+      }
+    },
+    "member": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "node_i", "node_j"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "node_i": { "$ref": "#/$defs/id" },
+        "node_j": { "$ref": "#/$defs/id" }
+      }
+    },
+    "support": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "node_id", "fix_x", "fix_y", "fix_z", "fix_rx", "fix_ry", "fix_rz"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "node_id": { "$ref": "#/$defs/id" },
+        "fix_x": { "type": "boolean" },
+        "fix_y": { "type": "boolean" },
+        "fix_z": { "type": "boolean" },
+        "fix_rx": { "type": "boolean" },
+        "fix_ry": { "type": "boolean" },
+        "fix_rz": { "type": "boolean" }
+      }
+    },
+    "loadCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "symbol"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "$ref": "#/$defs/id" },
+        "symbol": { "$ref": "#/$defs/id" }
+      }
+    },
+    "nodalLoad": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "case_id", "node_id", "fx", "fy", "fz", "mx", "my", "mz"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "case_id": { "$ref": "#/$defs/id" },
+        "node_id": { "$ref": "#/$defs/id" },
+        "fx": { "$ref": "#/$defs/number" },
+        "fy": { "$ref": "#/$defs/number" },
+        "fz": { "$ref": "#/$defs/number" },
+        "mx": { "$ref": "#/$defs/number" },
+        "my": { "$ref": "#/$defs/number" },
+        "mz": { "$ref": "#/$defs/number" }
+      }
+    },
+    "derivedResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "kind", "terms"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["define", "combine", "pickup"] },
+        "terms": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["source_id", "factor"],
+            "properties": {
+              "source_id": { "$ref": "#/$defs/id" },
+              "factor": { "$ref": "#/$defs/number" }
+            }
+          }
+        }
+      }
+    },
+    "movingLoad": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "case_ids"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "$ref": "#/$defs/id" },
+        "case_ids": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } }
+      }
+    }
+  }
+}

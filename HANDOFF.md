@@ -1,8 +1,8 @@
-# Handoff — C# FrameWeb Desktop Client（Step 2以降）
+# Handoff — C# FrameWeb Desktop Client（Step 3以降）
 
 ## Goal
 
-`FramePrintPDF/PDF_Manager` を .NET 8 / WinForms のデスクトップ製品へ再構築し、Python FEMを維持したまま、型付き文書、`AnalysisResultSet v1`、ドッキングUI、OpenGL描画、型付きPDF出力を段階的に実装する。Step 0とStep 1は完了したため、次セッションは `.agents/docs/plans/csharp-frameweb-client.md` の Step 2「型付きdocument/result foundation」から開始する。
+`FramePrintPDF/PDF_Manager` を .NET 8 / WinForms のデスクトップ製品へ再構築し、Python FEMを維持したまま、型付き文書、`AnalysisResultSet v1`、ドッキングUI、OpenGL描画、型付きPDF出力を段階的に実装する。Step 0～2は完了したため、次セッションは `.agents/docs/plans/csharp-frameweb-client.md` の Step 3「desktop shell and docking lifecycle」から開始する。
 
 ## Current Progress
 
@@ -19,8 +19,14 @@
 - dependency-freeなtyped `PDF_Manager.Printing` と、Core 41件・composition/Printing 9件・Rendering 10件・STA UI 1件の自動テストを追加した。両solutionで61/61 PASS。
 - `FramePrintAzure` の旧`PrintInput`依存は非packableな `PDF_Manager.LegacyPrinting` に隔離した。desktop shellはlegacy bridge、旧dictionary、PdfSharpCore、restricted fontを参照しない。
 - Step 0/1のproduct/test/probe/legacy bridgeは `FrameWeb.sln` と `FramePrintPDF/FramePrintPDF.sln` へ登録済み。`PDF_Test` はactive solutionからのみ外し、source/fixtureはStep 8 characterization用に保持している。
-- `.agents/docs/DESIGN.md` にはLegacyPrinting隔離とStep 8での廃止条件を共有writerで記録済み。Step 2以降と縦切りMVPは未着手。
-- team-executeの独立レビューは、品質PASS（Critical/Highなし）、テストPASS（Critical/Highなし）、セキュリティChanges requested（legacy Azure/local print hostにHigh 2件）。新desktopの依存・資産境界は確認済みだが、旧hostの公開・配布は認められない。詳細は `.agents/docs/research/review-{quality,tests,security}-csharp-frameweb-client.md`。
+- Step 2は完了。`PDF_Manager.Core/Documents` にinput-only `ProjectDocument v1`、strict/deterministic `System.Text.Json` serializer、schema artifact、UTF-8/unknown/duplicate/non-finite/reference validation、atomic `JsonProjectStore` を追加した。selection/dirtyとruntime `AnalysisResultSet`は永続化しない。
+- `PDF_Manager.Core/Analysis` に全`AnalysisResultSet v1` variantのimmutable DTO、strict parser/semantic validator、`ResultCoordinate` index、全体検証後だけ置換する`AnalysisResultState`を追加した。C#は共有positive 6件/negative 7件を直接読み、Python側contract testも14/14 PASS。
+- `PDF_Manager.Core/Results` にstatic-only DEFINE/COMBINE（線形和）/PICKUP（成分別absolute selection）、明示的moving-load paging、signed min/max envelopeとsource case provenanceを追加した。base resultは変更しない。
+- `IAnalysisClient`、`IPrintExporter`、`IProjectStore` とtyped error/cancellation contractを追加し、Coreは引き続きHTTP/WinForms/OpenGL/PdfSharpCore/legacy dictionaryへ依存しない。
+- Core testsは75/75、両solution testは95/95 PASS。必須JSON objectの`null`はtyped format/contract errorとして拒否し、moving-load envelope単体でもcase重複・逆順を拒否する。`FrameWeb.sln` Release buildは成功し、既知の`LegacyPrinting` 28 warningsだけをclean/invalidation時に再確認した。incrementalなsolution buildの0 warningsはclean品質の根拠には使わない。
+- `.agents/docs/DESIGN.md` にはLegacyPrinting隔離、Step 2のdocument/result/presentation contract、Step 8での廃止条件を共有writerで記録済み。Step 3以降と縦切りMVPは未着手。
+- Step 1の独立レビューとStep 2のlead fallback addendumは、品質PASS（Critical/Highなし）、テストPASS（Critical/Highなし）、セキュリティChanges requested（legacy Azure/local print hostにHigh 2件）を維持した。Step 2には、Step 4前にJSON byte/entity/result上限を定義するLow 1件がある。詳細は `.agents/docs/research/review-{quality,tests,security}-csharp-frameweb-client.md`。
+- Step 2の関連gateはすべてPASS。agent-infrastructure gateは `overall=pass`（最新確定ログ `.agents/logs/check-20260920T082712131Z-27880.log`）。未変更のPython/Angular全件は約2時間かかる既知failのため再実行せず、最新full baseline `.agents/logs/check-20260920T035935489Z-32252.log` を維持する。
 
 現在の作業ツリーには、このhandoff作業による計画書変更と`HANDOFF.md`に加え、ユーザー提供の未追跡 `.agents/skills/handoff/SKILL.md` がある。skillファイルを変更・削除・上書きしないこと。
 
@@ -42,6 +48,8 @@
   - `dotnet test FrameWeb.sln -c Release --no-build`
   - `dotnet build FramePrintPDF/FramePrintPDF.sln -c Release --no-restore`
   - `dotnet test FramePrintPDF/FramePrintPDF.sln -c Release --no-build`
+  - `uv --directory FrameWeb run --locked --extra dev python -m pytest tests/io/test_result_contracts.py -q`
+  - `& .agents/check.ps1 -AgentOnly -AllowProductPath 'FramePrintPDF'`
   - `dotnet run --project FramePrintPDF/PDF_Manager.RendererProbe/PDF_Manager.RendererProbe.csproj -c Release --no-build -- --verify --cycles 100`
 
 ## What Didn't Work
@@ -57,17 +65,18 @@
 - セキュリティレビューでは、legacy hostの匿名HTTP triggerからHigh advisoryを持つImageSharp 1.0.4へ到達できること、request body・base64・gzip展開・image/page/PDF work・時間・同時実行数に上限がないことをHighと判定した。加えて、非packable bridge DLLに制限fontが埋め込まれStartup出力へcopy-localされる。新desktopはこれらを参照しないが、legacy hostは認証・上限・patched PDF/image基盤・font方針が揃うまで公開/配布しない。
 - MS Gothic、MS Mincho、SimSunの再配布権は確認できず、旧THREE shader/typeface JSON/LTC textureも来歴が不十分。これらをコピーして検査を通す方針は不可。
 - PdfSharpCoreのblind upgradeや、ComponentOne、machine-absolute DLL referenceの導入も不可。
+- Step 2のteam-execute実装担当3名はruntime usage limitでコード変更前に停止した。共有ツリーに部分変更がないことを確認後、主担当が同じ所有境界でfallback実装したため、teammate self-reportは完了根拠に使用していない。
+- Step 2完了後にfull `.agents/check.ps1`を開始したが、今回未変更のPython全件が前回同様の長時間実行に入ったため、AGENTS.mdのtask-scoped gate指示に従って安全に中断した。対象.NET gateとAgent-only gateは別途すべて完走済みであり、既知full baselineをgreenとは報告しない。
 
 ## Next Steps
 
-1. `AGENTS.md` とcontext-loaderに従い、`git status --short --branch`、本handoff、計画書、`.agents/docs/DESIGN.md`、dependency inventoryを確認する。作業ツリーにはStep 1実装と前回のplan/HANDOFF変更、ユーザー提供の未追跡 `.agents/skills/handoff/SKILL.md` があるため捨てない。
-2. Step 2をtest-firstで開始し、新しい `ProjectDocument` aggregateとvalidation boundaryをCoreへ追加する。runtime `AnalysisResultSet` をpersisted input documentへ混在させない。
-3. `System.Text.Json` によるversioned project-file schema、deterministic serializer、UTF-8、finite-number、unknown-field、ID/reference、atomic save policyを定義する。
-4. 共有 `FrameWeb/tests/data/contracts/analysis-result-set-v1.schema.json` とpositive/negative fixturesを直接読むC# DTO/validator/index testを追加し、fixtureをC#側へ複製しない。
-5. `ResultCoordinate(caseId, stateKind, stateIndex)` によるimmutable result indexと、失敗時にprevious resultを保持するcommit boundaryを実装する。
-6. `ResultPresentationService` と `IAnalysisClient` / `IPrintExporter` / `IProjectStore` のUI非依存interfaceを定義する。HTTP、WinForms、OpenGL、PdfSharpCoreをCoreへ持ち込まない。
-7. Step 2完了時に両solution build/test、共有contract fixtures、Core dependency testsを実行する。Rendererを変更した場合は短い3-cycle probeの後に100-cycleを実行し、modalなし・live resource 0を確認する。
-8. 正規全体検査の既知Python/Angular failureはC# Step 2と混ぜて隠さず、repository-wide greenになるまで全体PASSとは報告しない。
-9. 実GL probeの自動gate化、DockPanel構成をassertするSTA test、solution/LegacyPrinting境界の回帰test、evaluated MSBuild/publish itemsとassembly resourceを検査するrestricted-asset testを後続gateへ追加する。coverage率は未計測なので数値を推定しない。
+1. `AGENTS.md` とcontext-loaderに従い、`git status --short --branch`、本handoff、計画書、`.agents/docs/DESIGN.md`、Step 2のCore public contractを確認する。未追跡/既存変更を捨てない。
+2. Step 3をSTA test-firstで開始し、`MainForm`へmenu/commands、left navigation、central document viewport、right editor/tools、bottom diagnostics/progressを構成する。
+3. 既存Coreの`DocumentKey`と`ContentFactoryRegistry`を使う`DockContentRegistry<DocumentKey, Func<DockContent>>`をshell側へ実装し、same-key reuse/activationとentity document coexistenceを固定する。
+4. versioned layout save/restoreをCore layout DTOとwhitelist registryへ接続し、unknown version/key、active document、bounds/order、hide-vs-disposeをSTA testで検証する。
+5. dirty close confirmation、command state、exception boundary、cancellation、coalesced activation reducerを実装する。Step 2の`ProjectDocument.IsDirty`とtyped operation exceptionを使用し、UI層からCore contractを変更しない。
+6. user-visible stringsを`Strings.resx`/`Strings.ja.resx`/`Strings.en.resx`/`Strings.zh.resx`へ移し、caption/CLR type名をidentityに使わない。
+7. Step 3完了時にCore 75件をbaselineとする両solution build/test、STA repeated open/close、layout/language/confirmation testsを実行する。Renderingを変更しない限りGL probe再実行は不要。
+8. 正規全体検査の既知Python/Angular failure、legacy hostのHigh findings、CJK font/PDF/publish NO-GOはStep 3と混ぜて隠さない。coverage率は未計測なので数値を推定しない。
 
-package-only開発経路はStep 2へ進んでよい。ただし、`PDF_Manager.LegacyPrinting` のHigh security findings、CJK font strategy、PDF golden、publish SBOM/forbidden-file scanが解消されるまで、legacy hostの公開と完成アプリの再配布はNO-GOのままである。
+package-only開発経路はStep 3へ進んでよい。ただし、`PDF_Manager.LegacyPrinting` のHigh security findings、CJK font strategy、PDF golden、publish SBOM/forbidden-file scanが解消されるまで、legacy hostの公開と完成アプリの再配布はNO-GOのままである。
