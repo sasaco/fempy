@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows7.0</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Printing\**\*.cs;PrintInput.cs;PrintData.cs;IPrintable.cs;PrintableBase*.cs" />
+    <Compile Remove="tests\**" />
+    <EmbeddedResource Remove="Printing\**;PrintInput.cs;PrintData.cs;IPrintable.cs;PrintableBase*.cs;fonts\**" />
+    <EmbeddedResource Remove="tests\**" />
+    <Content Remove="Printing\**;PrintInput.cs;PrintData.cs;IPrintable.cs;PrintableBase*.cs;fonts\**" />
+    <None Remove="Printing\**;PrintInput.cs;PrintData.cs;IPrintable.cs;PrintableBase*.cs;fonts\**" />
+    <None Remove="tests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DockPanelSuite" Version="3.1.1" />
+    <PackageReference Include="DockPanelSuite.ThemeVS2015" Version="3.1.1" />
+    <PackageReference Include="OpenTK.GLControl" Version="4.0.2" />
+    <PackageReference Include="OpenTK.Graphics" Version="4.9.4" />
+    <PackageReference Include="OpenTK.Mathematics" Version="4.9.4" />
+    <PackageReference Include="OpenTK.Windowing.Desktop" Version="4.9.4" />
+    <PackageReference Include="PDFsharp" Version="6.2.4" />
+  </ItemGroup>
+
+</Project>
