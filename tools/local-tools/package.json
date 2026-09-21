@@ -1,9 +1,0 @@
-{
-  "name": "frameweb-local-tools",
-  "private": true,
-  "description": "Repository-local Node/npm matching FrameWebforJS engines",
-  "dependencies": {
-    "node": "18.20.8",
-    "npm": "9.9.4"
-  }
-}

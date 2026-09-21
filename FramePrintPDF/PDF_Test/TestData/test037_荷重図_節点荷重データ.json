@@ -1,0 +1,701 @@
+﻿{
+    "ver": "2.0.10",
+    "node": {
+        "1": {
+            "x": 4.5,
+            "y": -11.2,
+            "z": null
+        },
+        "2": {
+            "x": 4.5,
+            "y": 0,
+            "z": null
+        },
+        "3": {
+            "x": 4.5,
+            "y": 0.001,
+            "z": null
+        }
+    },
+    "fix_node": {
+        "1": [
+            {
+                "row": 1,
+                "n": "3",
+                "tx": 1,
+                "ty": 1,
+                "tz": null,
+                "rx": null,
+                "ry": null,
+                "rz": 1
+            }
+        ],
+        "2": [
+            {
+                "row": 1,
+                "n": "3",
+                "tx": 1,
+                "ty": 1,
+                "tz": null,
+                "rx": null,
+                "ry": null,
+                "rz": 1
+            }
+        ]
+    },
+    "member": {
+        "1": {
+            "ni": 1,
+            "nj": 2,
+            "e": 1,
+            "cg": null
+        },
+        "2": {
+            "ni": 2,
+            "nj": 3,
+            "e": 2,
+            "cg": null
+        }
+    },
+    "element": {
+        "1": {
+            "1": {
+                "E": 25000000,
+                "G": null,
+                "Xp": 0.00001,
+                "A": 14.4,
+                "J": null,
+                "Iy": null,
+                "Iz": 24.3,
+                "n": "柱"
+            },
+            "2": {
+                "E": 25000000,
+                "G": null,
+                "Xp": 0.00001,
+                "A": 1000,
+                "J": null,
+                "Iy": null,
+                "Iz": 1000,
+                "n": "剛域"
+            }
+        }
+    },
+    "notice_points": [
+        {
+            "row": 0,
+            "m": "1",
+            "Points": [
+                11.2
+            ]
+        },
+        {
+            "row": 1,
+            "m": "1",
+            "Points": [
+                11.2
+            ]
+        }
+    ],
+    "load": {
+        "1": {
+            "fix_node": 1,
+            "fix_member": 1,
+            "element": 1,
+            "joint": 1,
+            "symbol": "D1",
+            "LL_pitch": 0,
+            "rate": 1,
+            "name": "固定死荷重                              1",
+            "load_node": [
+                {
+                    "n": "1",
+                    "tx": 0,
+                    "ty": 21540.8,
+                    "tz": null,
+                    "rx": null,
+                    "ry": null,
+                    "rz": 0,
+                    "row": 1
+                }
+            ],
+            "load_member": [
+                {
+                    "m1": "1",
+                    "m2": "",
+                    "direction": "x",
+                    "mark": "2",
+                    "L1": "0.000",
+                    "L2": 0,
+                    "P1": 352.8,
+                    "P2": 352.8,
+                    "row": 1
+                }
+            ]
+        },
+        "2": {
+            "fix_node": 1,
+            "fix_member": 1,
+            "element": 1,
+            "joint": 1,
+            "symbol": "D2",
+            "LL_pitch": 0,
+            "rate": 1,
+            "name": "付加死荷重                              1",
+            "load_node": [
+                {
+                    "n": "1",
+                    "tx": 0,
+                    "ty": 2400,
+                    "tz": null,
+                    "rx": null,
+                    "ry": null,
+                    "rz": 0,
+                    "row": 1
+                },
+                {
+                    "n": "2",
+                    "tx": 0,
+                    "ty": 442.95,
+                    "tz": null,
+                    "rx": null,
+                    "ry": null,
+                    "rz": 0,
+                    "row": 2
+                }
+            ],
+            "load_member": [
+                {
+                    "P1": null,
+                    "P2": null,
+                    "row": 1
+                },
+                {
+                    "P1": null,
+                    "P2": null,
+                    "row": 2
+                }
+            ]
+        },
+        "3": {
+            "fix_node": 1,
+            "fix_member": 1,
+            "element": 1,
+            "joint": 1,
+            "symbol": "Sw1",
+            "LL_pitch": 0,
+            "rate": 1,
+            "name": "雪荷重 (２年確率)                       1",
+            "load_node": [
+                {
+                    "n": "1",
+                    "tx": 0,
+                    "ty": 440,
+                    "tz": null,
+                    "rx": null,
+                    "ry": null,
+                    "rz": 0,
+                    "row": 1
+                }
+            ],
+            "load_member": [
+                {
+                    "P1": null,
+                    "P2": null,
+                    "row": 1
+                }
+            ]
+        },
+        "4": {
+            "fix_node": 2,
+            "fix_member": 2,
+            "element": 1,
+            "joint": 1,
+            "symbol": "L1",
+            "LL_pitch": 0,
+            "rate": 1,
+            "name": "列車荷重 使用性（単線載荷）下り線       2",
+            "load_node": [
+                {
+                    "n": "1",
+                    "tx": 0,
+                    "ty": 497.05,
+                    "tz": null,
+                    "rx": null,
+                    "ry": null,
+                    "rz": -1441.45,
+                    "row": 1
+                }
+            ],
+            "load_member": [
+                {
+                    "P1": null,
+                    "P2": null,
+                    "row": 1
+                }
+            ]
+        },
+        "5": {
+            "fix_node": 2,
+            "fix_member": 2,
+            "element": 1,
+            "joint": 1,
+            "symbol": "L2",
+            "LL_pitch": 0,
+            "rate": 1,
+            "name": "列車荷重 使用性（単線載荷）上り線       2",
+            "load_node": [
+                {
+                    "n": "1",
+                    "tx": 0,
+                    "ty": 497.05,
+                    "tz": null,
+                    "rx": null,
+                    "ry": null,
+                    "rz": 1441.45,
+                    "row": 1
+                }
+            ],
+            "load_member": [
+                {
+                    "P1": null,
+                    "P2": null,
+                    "row": 1
+                }
+            ]
+        },
+        "6": {
+            "fix_node": 2,
+            "fix_member": 2,
+            "element": 1,
+            "joint": 1,
+            "symbol": "L3",
+            "LL_pitch": 0,
+            "rate": 1,
+            "name": "列車荷重 使用性（複線載荷）             2",
+            "load_node": [
+                {
+                    "n": "1",
+                    "tx": 0,
+                    "ty": 994.1,
+                    "tz": null,
+                    "rx": null,
+                    "ry": null,
+                    "rz": 0,
+                    "row": 1
+                }
+            ],
+            "load_member": [
+                {
+                    "P1": null,
+                    "P2": null,
+                    "row": 1
+                }
+            ]
+        },
+        "7": {
+            "fix_node": 2,
+            "fix_member": 2,
+            "element": 1,
+            "joint": 1,
+            "symbol": "L4",
+            "LL_pitch": 0,
+            "rate": 1,
+            "name": "列車荷重 終局限界（複線載荷）           2",
+            "load_node": [
+                {
+                    "n": "1",
+                    "tx": 0,
+                    "ty": 994.1,
+                    "tz": null,
+                    "rx": null,
+                    "ry": null,
+                    "rz": 0,
+                    "row": 1
+                }
+            ],
+            "load_member": [
+                {
+                    "P1": null,
+                    "P2": null,
+                    "row": 1
+                }
+            ]
+        },
+        "8": {
+            "fix_node": 2,
+            "fix_member": 2,
+            "element": 1,
+            "joint": 1,
+            "symbol": "I1",
+            "LL_pitch": 0,
+            "rate": 1,
+            "name": "衝撃荷重 使用性（単線載荷）下り線       2",
+            "load_node": [
+                {
+                    "n": "1",
+                    "tx": 0,
+                    "ty": 1743.65,
+                    "tz": null,
+                    "rx": null,
+                    "ry": null,
+                    "rz": -5056.59,
+                    "row": 1
+                }
+            ],
+            "load_member": [
+                {
+                    "P1": null,
+                    "P2": null,
+                    "row": 1
+                }
+            ]
+        },
+        "9": {
+            "fix_node": 2,
+            "fix_member": 2,
+            "element": 1,
+            "joint": 1,
+            "symbol": "I2",
+            "LL_pitch": 0,
+            "rate": 1,
+            "name": "衝撃荷重 使用性（単線載荷）上り線       2",
+            "load_node": [
+                {
+                    "n": "1",
+                    "tx": 0,
+                    "ty": 1743.65,
+                    "tz": null,
+                    "rx": null,
+                    "ry": null,
+                    "rz": 5056.59,
+                    "row": 1
+                }
+            ],
+            "load_member": [
+                {
+                    "P1": null,
+                    "P2": null,
+                    "row": 1
+                }
+            ]
+        },
+        "10": {
+            "fix_node": 2,
+            "fix_member": 2,
+            "element": 1,
+            "joint": 1,
+            "symbol": "I3",
+            "LL_pitch": 0,
+            "rate": 1,
+            "name": "衝撃荷重 使用性（複線載荷）             2",
+            "load_node": [
+                {
+                    "n": "1",
+                    "tx": 0,
+                    "ty": 3009.14,
+                    "tz": null,
+                    "rx": null,
+                    "ry": null,
+                    "rz": 0,
+                    "row": 1
+                }
+            ],
+            "load_member": [
+                {
+                    "P1": null,
+                    "P2": null,
+                    "row": 1
+                }
+            ]
+        },
+        "11": {
+            "fix_node": 2,
+            "fix_member": 2,
+            "element": 1,
+            "joint": 1,
+            "symbol": "I4",
+            "LL_pitch": 0,
+            "rate": 1,
+            "name": "衝撃荷重 破壊安全性（複線載荷）         2",
+            "load_node": [
+                {
+                    "n": "1",
+                    "tx": 0,
+                    "ty": 4012.19,
+                    "tz": null,
+                    "rx": null,
+                    "ry": null,
+                    "rz": 0,
+                    "row": 1
+                }
+            ],
+            "load_member": [
+                {
+                    "P1": null,
+                    "P2": null,
+                    "row": 1
+                }
+            ]
+        },
+        "12": {
+            "fix_node": 2,
+            "fix_member": 2,
+            "element": 1,
+            "joint": 1,
+            "symbol": "LF",
+            "LL_pitch": 0,
+            "rate": 1,
+            "name": "車両横荷重 (→)                         2",
+            "load_node": [
+                {
+                    "n": "1",
+                    "tx": 828.32,
+                    "ty": 0,
+                    "tz": null,
+                    "rx": null,
+                    "ry": null,
+                    "rz": 3503.79,
+                    "row": 1
+                }
+            ],
+            "load_member": [
+                {
+                    "P1": null,
+                    "P2": null,
+                    "row": 1
+                }
+            ]
+        },
+        "13": {
+            "fix_node": 2,
+            "fix_member": 2,
+            "element": 1,
+            "joint": 1,
+            "symbol": "W1",
+            "LL_pitch": 0,
+            "rate": 1,
+            "name": "風荷重  (→)                            2",
+            "load_node": [
+                {
+                    "n": "1",
+                    "tx": 1029.12,
+                    "ty": 0,
+                    "tz": null,
+                    "rx": null,
+                    "ry": null,
+                    "rz": 5073.56,
+                    "row": 1
+                }
+            ],
+            "load_member": [
+                {
+                    "m1": "1",
+                    "m2": "",
+                    "direction": "y",
+                    "mark": "2",
+                    "L1": "0.000",
+                    "L2": 0.5,
+                    "P1": -9.6,
+                    "P2": -9.6,
+                    "row": 1
+                }
+            ]
+        }
+    },
+    "define": {
+        "1": {
+            "row": 1,
+            "C1": 1
+        },
+        "2": {
+            "row": 2,
+            "C1": 2
+        },
+        "3": {
+            "row": 3,
+            "C1": 3
+        },
+        "4": {
+            "row": 4,
+            "C1": 4,
+            "C2": 5
+        },
+        "5": {
+            "row": 5,
+            "C1": 6
+        },
+        "6": {
+            "row": 6,
+            "C1": 7
+        },
+        "7": {
+            "row": 7,
+            "C1": 8,
+            "C2": 9
+        },
+        "8": {
+            "row": 8,
+            "C1": 10
+        },
+        "9": {
+            "row": 9,
+            "C1": 11
+        },
+        "10": {
+            "row": 10,
+            "C1": 12
+        },
+        "11": {
+            "row": 11,
+            "C1": 13
+        }
+    },
+    "combine": {
+        "1": {
+            "row": 1,
+            "name": "破壊安全性(1)",
+            "C1": 1.1,
+            "C2": 1.2,
+            "C3": 1.2,
+            "C6": 1.1,
+            "C9": 1.1,
+            "C10": 1,
+            "C11": 1
+        },
+        "2": {
+            "row": 2,
+            "name": "破壊安全性(2)",
+            "C1": 1.1,
+            "C2": 1.2,
+            "C3": 1.2,
+            "C6": 1,
+            "C9": 1,
+            "C10": 1.1,
+            "C11": 1
+        },
+        "3": {
+            "row": 3,
+            "name": "破壊安全性(3)",
+            "C1": 1.1,
+            "C2": 1.2,
+            "C11": 1.2
+        },
+        "4": {
+            "row": 4,
+            "name": "破壊安全性(4)",
+            "C1": 0.9,
+            "C2": 0.8,
+            "C3": 0.8,
+            "C6": 1.1,
+            "C9": 1.1,
+            "C10": 1,
+            "C11": 1
+        },
+        "5": {
+            "row": 5,
+            "name": "破壊安全性(5)",
+            "C1": 0.9,
+            "C2": 0.8,
+            "C3": 0.8,
+            "C6": 1,
+            "C9": 1,
+            "C10": 1.1,
+            "C11": 1
+        },
+        "6": {
+            "row": 6,
+            "name": "破壊安全性(6)",
+            "C1": 0.9,
+            "C2": 0.8,
+            "C11": 1.2
+        },
+        "7": {
+            "row": 7,
+            "name": "使用性 縁応力",
+            "C1": 1,
+            "C2": 1,
+            "C3": 1,
+            "C5": 1,
+            "C8": 1
+        },
+        "8": {
+            "row": 8,
+            "name": "使用性 永久荷重",
+            "C1": 1,
+            "C2": 1,
+            "C3": 1
+        },
+        "9": {
+            "row": 9,
+            "name": "使用性 変動荷重",
+            "C4": 1,
+            "C7": 1
+        },
+        "10": {
+            "row": 10,
+            "name": "復旧性 損 傷",
+            "C1": 1,
+            "C2": 1,
+            "C3": 1,
+            "C6": 1,
+            "C9": 1,
+            "C10": 1,
+            "C11": 1
+        }
+    },
+    "pickup": {
+        "1": {
+            "row": 1,
+            "name": "破壊安全性",
+            "C1": 1,
+            "C2": 2,
+            "C3": 3,
+            "C4": 4,
+            "C5": 5,
+            "C6": 6
+        },
+        "2": {
+            "row": 2,
+            "name": "使用性 縁応力",
+            "C1": 7
+        },
+        "3": {
+            "row": 3,
+            "name": "使用性 永久荷重",
+            "C1": 8
+        },
+        "4": {
+            "row": 4,
+            "name": "使用性 変動荷重",
+            "C1": 9
+        },
+        "5": {
+            "row": 5,
+            "name": "復旧性 損 傷",
+            "C1": 10
+        }
+    },
+    "three": {
+        "camera": {
+            "x": 3.8476913072503764,
+            "y": -6.045383095220031,
+            "z": -9.999993954353108,
+            "zoom": 49.318061523273826
+        },
+        "target": {
+            "x": 3.8476913072503764,
+            "y": -6.04537309477554,
+            "z": 0.00000604564180792963
+        }
+    },
+    "dimension": 2,
+    "pageOrientation": "Vertical",
+    "diagramInput": {
+        "layout": "splithorizontal2",
+        "output": [
+            "axis",
+            "load"
+        ]
+    }
+}
