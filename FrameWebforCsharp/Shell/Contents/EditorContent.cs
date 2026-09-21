@@ -1,12 +1,12 @@
 using System.Globalization;
-using PDF_Manager.Core.Documents;
-using PDF_Manager.Core.Shell;
-using PDF_Manager.Rendering.Scene;
-using PDF_Manager.Resources;
-using PDF_Manager.Shell.Editing;
+using FrameWebforCsharp.Core.Documents;
+using FrameWebforCsharp.Core.Shell;
+using FrameWebforCsharp.Rendering.Scene;
+using FrameWebforCsharp.Resources;
+using FrameWebforCsharp.Shell.Editing;
 using WeifenLuo.WinFormsUI.Docking;
 
-namespace PDF_Manager.Shell.Contents;
+namespace FrameWebforCsharp.Shell.Contents;
 
 public sealed class DocumentEditedEventArgs(ProjectDocument document) : EventArgs
 {

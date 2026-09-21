@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace PDF_Manager.Core.Analysis;
+namespace FrameWebforCsharp.Core.Analysis;
 
 public sealed class AnalysisContractException : FormatException
 {

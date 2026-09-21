@@ -1,22 +1,22 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
-using PDF_Manager.Core.Abstractions;
-using PDF_Manager.Core.Analysis;
-using PDF_Manager.Core.Documents;
-using PDF_Manager.Core.Shell;
-using PDF_Manager.Printing;
-using PDF_Manager.Rendering.Scene;
-using PDF_Manager.Resources;
-using PDF_Manager.Shell.Contents;
-using PDF_Manager.Shell.Lifecycle;
-using PDF_Manager.Shell.Printing;
-using PDF_Manager.Shell.ScreenComposition.Core;
-using PDF_Manager.Shell.ScreenComposition.Surfaces;
-using PDF_Manager.Shell.Viewport;
-using CorePrintPageSettings = PDF_Manager.Core.Abstractions.PrintPageSettings;
+using FrameWebforCsharp.Core.Abstractions;
+using FrameWebforCsharp.Core.Analysis;
+using FrameWebforCsharp.Core.Documents;
+using FrameWebforCsharp.Core.Shell;
+using FrameWebforCsharp.Printing;
+using FrameWebforCsharp.Rendering.Scene;
+using FrameWebforCsharp.Resources;
+using FrameWebforCsharp.Shell.Contents;
+using FrameWebforCsharp.Shell.Lifecycle;
+using FrameWebforCsharp.Shell.Printing;
+using FrameWebforCsharp.Shell.ScreenComposition.Core;
+using FrameWebforCsharp.Shell.ScreenComposition.Surfaces;
+using FrameWebforCsharp.Shell.Viewport;
+using CorePrintPageSettings = FrameWebforCsharp.Core.Abstractions.PrintPageSettings;
 
-namespace PDF_Manager.Shell;
+namespace FrameWebforCsharp.Shell;
 
 public sealed class MainForm : Form
 {

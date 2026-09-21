@@ -1,6 +1,6 @@
-using PDF_Manager.Core.Shell;
+using FrameWebforCsharp.Core.Shell;
 
-namespace PDF_Manager.Shell.Lifecycle;
+namespace FrameWebforCsharp.Shell.Lifecycle;
 
 public enum ActivationPhase
 {

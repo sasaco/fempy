@@ -1,4 +1,4 @@
-namespace PDF_Manager.Core.Shell;
+namespace FrameWebforCsharp.Core.Shell;
 
 /// <summary>Identifies a stable validation failure at a persisted contract boundary.</summary>
 public enum ContractError

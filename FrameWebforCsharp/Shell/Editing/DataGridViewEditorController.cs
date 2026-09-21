@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
-using PDF_Manager.Rendering.Scene;
+using FrameWebforCsharp.Rendering.Scene;
 
-namespace PDF_Manager.Shell.Editing;
+namespace FrameWebforCsharp.Shell.Editing;
 
 public sealed class DataGridViewEditorController : IDisposable
 {

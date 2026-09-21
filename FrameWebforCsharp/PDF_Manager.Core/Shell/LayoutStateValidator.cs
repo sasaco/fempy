@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace PDF_Manager.Core.Shell;
+namespace FrameWebforCsharp.Core.Shell;
 
 public interface IContentKeyWhitelist
 {

@@ -1,8 +1,8 @@
-using PDF_Manager.Core.Abstractions;
-using PDF_Manager.Printing;
-using PDF_Manager.Resources;
+using FrameWebforCsharp.Core.Abstractions;
+using FrameWebforCsharp.Printing;
+using FrameWebforCsharp.Resources;
 
-namespace PDF_Manager.Shell.Printing;
+namespace FrameWebforCsharp.Shell.Printing;
 
 public interface ILiveViewportPrintExporter
 {

@@ -1,4 +1,4 @@
-namespace PDF_Manager.Core.Documents;
+namespace FrameWebforCsharp.Core.Documents;
 
 /// <summary>
 /// Mutable, session-scoped draft used to construct one validated document edit.

@@ -1,7 +1,7 @@
 using System.Globalization;
-using PDF_Manager.Core.Documents;
+using FrameWebforCsharp.Core.Documents;
 
-namespace PDF_Manager.Shell.Editing;
+namespace FrameWebforCsharp.Shell.Editing;
 
 internal static class ProjectDocumentInsertPolicy
 {

@@ -1,9 +1,9 @@
-using PDF_Manager.Core.Shell;
-using CoreDockState = PDF_Manager.Core.Shell.DockState;
+using FrameWebforCsharp.Core.Shell;
+using CoreDockState = FrameWebforCsharp.Core.Shell.DockState;
 using DockPanelState = WeifenLuo.WinFormsUI.Docking.DockState;
 using WeifenLuo.WinFormsUI.Docking;
 
-namespace PDF_Manager.Shell.Docking;
+namespace FrameWebforCsharp.Shell.Docking;
 
 /// <summary>
 /// Owns the live DockPanelSuite content associated with explicit, whitelisted factories.

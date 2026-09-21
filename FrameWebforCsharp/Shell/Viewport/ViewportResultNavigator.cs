@@ -1,6 +1,6 @@
-using PDF_Manager.Core.Analysis;
+using FrameWebforCsharp.Core.Analysis;
 
-namespace PDF_Manager.Shell.Viewport;
+namespace FrameWebforCsharp.Shell.Viewport;
 
 /// <summary>
 /// Maintains deterministic paging over the ordered AnalysisResultSet coordinates.

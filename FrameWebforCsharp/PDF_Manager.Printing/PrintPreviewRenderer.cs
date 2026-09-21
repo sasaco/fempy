@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace PDF_Manager.Printing;
+namespace FrameWebforCsharp.Printing;
 
 internal readonly record struct PrintPreviewRasterSize(int Width, int Height, int DecodedBytes);
 

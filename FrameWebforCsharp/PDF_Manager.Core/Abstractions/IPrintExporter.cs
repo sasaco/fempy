@@ -1,4 +1,4 @@
-namespace PDF_Manager.Core.Abstractions;
+namespace FrameWebforCsharp.Core.Abstractions;
 
 public interface IPrintExporter
 {

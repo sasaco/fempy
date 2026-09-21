@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 
-namespace PDF_Manager.Core.Shell;
+namespace FrameWebforCsharp.Core.Shell;
 
 public enum DockState
 {

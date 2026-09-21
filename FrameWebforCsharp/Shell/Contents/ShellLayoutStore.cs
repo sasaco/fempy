@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace PDF_Manager.Shell;
+namespace FrameWebforCsharp.Shell;
 
 public interface IShellLayoutStore
 {
@@ -169,7 +169,7 @@ public sealed class LocalShellLayoutStore : IShellLayoutStore
             throw new InvalidOperationException("The local application-data directory is unavailable.");
         }
 
-        return Path.Combine(localApplicationData, "FrameWeb3", "PDF_Manager", "layout-v1.json");
+        return Path.Combine(localApplicationData, "FrameWeb3", "FrameWebforCsharp", "layout-v1.json");
     }
 
     private static string ValidatePath(string path)

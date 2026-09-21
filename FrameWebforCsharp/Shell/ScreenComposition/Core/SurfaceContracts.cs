@@ -1,7 +1,7 @@
-using PDF_Manager.Core.Documents;
-using PDF_Manager.Shell.Printing;
+using FrameWebforCsharp.Core.Documents;
+using FrameWebforCsharp.Shell.Printing;
 
-namespace PDF_Manager.Shell.ScreenComposition.Core;
+namespace FrameWebforCsharp.Shell.ScreenComposition.Core;
 
 public enum ScreenCommandKind
 {

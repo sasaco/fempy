@@ -1,20 +1,20 @@
 using System.Globalization;
-using PDF_Manager.Core.Abstractions;
-using PDF_Manager.Core.Analysis;
-using PDF_Manager.Core.Documents;
-using PDF_Manager.Core.Results;
-using PDF_Manager.Printing;
-using PDF_Manager.Resources;
-using CoreLayoutChoice = PDF_Manager.Core.Abstractions.PrintLayoutChoice;
-using CorePageOrientation = PDF_Manager.Core.Abstractions.PrintPageOrientation;
-using CorePageSettings = PDF_Manager.Core.Abstractions.PrintPageSettings;
-using CorePaperSize = PDF_Manager.Core.Abstractions.PrintPaperSize;
-using EngineLayoutMode = PDF_Manager.Printing.PrintLayoutMode;
-using EnginePageOrientation = PDF_Manager.Printing.PrintPageOrientation;
-using EnginePageSettings = PDF_Manager.Printing.PrintPageSettings;
-using EnginePaperSize = PDF_Manager.Printing.PrintPaperSize;
+using FrameWebforCsharp.Core.Abstractions;
+using FrameWebforCsharp.Core.Analysis;
+using FrameWebforCsharp.Core.Documents;
+using FrameWebforCsharp.Core.Results;
+using FrameWebforCsharp.Printing;
+using FrameWebforCsharp.Resources;
+using CoreLayoutChoice = FrameWebforCsharp.Core.Abstractions.PrintLayoutChoice;
+using CorePageOrientation = FrameWebforCsharp.Core.Abstractions.PrintPageOrientation;
+using CorePageSettings = FrameWebforCsharp.Core.Abstractions.PrintPageSettings;
+using CorePaperSize = FrameWebforCsharp.Core.Abstractions.PrintPaperSize;
+using EngineLayoutMode = FrameWebforCsharp.Printing.PrintLayoutMode;
+using EnginePageOrientation = FrameWebforCsharp.Printing.PrintPageOrientation;
+using EnginePageSettings = FrameWebforCsharp.Printing.PrintPageSettings;
+using EnginePaperSize = FrameWebforCsharp.Printing.PrintPaperSize;
 
-namespace PDF_Manager.Shell.Printing;
+namespace FrameWebforCsharp.Shell.Printing;
 
 public sealed class DesktopPrintJob
 {

@@ -4,14 +4,14 @@ using System.Globalization;
 using System.Numerics;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
-using PDF_Manager.Rendering.Scene;
+using FrameWebforCsharp.Rendering.Scene;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Windowing.Common;
 using GlControl = OpenTK.GLControl.GLControl;
 using GlControlSettings = OpenTK.GLControl.GLControlSettings;
 using GlPixelFormat = OpenTK.Graphics.OpenGL4.PixelFormat;
 
-namespace PDF_Manager.Rendering;
+namespace FrameWebforCsharp.Rendering;
 
 public sealed class OpenGlViewportLifecycle : IDisposable, ICameraController, IHitTestService
 {

@@ -3,7 +3,7 @@ using PdfSharp.Drawing;
 using PdfSharp.Fonts;
 using PdfSharp.Pdf;
 
-namespace PDF_Manager.Printing;
+namespace FrameWebforCsharp.Printing;
 
 public sealed partial class TypedPdfDocumentWriter
 {
@@ -249,7 +249,7 @@ public sealed partial class TypedPdfDocumentWriter
     {
         using PdfDocument document = new();
         document.Info.Title = job.Title;
-        document.Info.Creator = "FrameWeb PDF_Manager.Printing";
+        document.Info.Creator = "FrameWeb FrameWebforCsharp.Printing";
         document.Info.CreationDate = DeterministicPdfDate;
         document.Info.ModificationDate = DeterministicPdfDate;
         document.Options.CompressContentStreams = true;

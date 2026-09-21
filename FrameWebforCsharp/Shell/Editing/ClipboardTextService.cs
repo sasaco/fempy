@@ -1,4 +1,4 @@
-namespace PDF_Manager.Shell.Editing;
+namespace FrameWebforCsharp.Shell.Editing;
 
 public interface IClipboardTextService
 {

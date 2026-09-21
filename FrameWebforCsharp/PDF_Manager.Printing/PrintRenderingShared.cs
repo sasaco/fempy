@@ -2,7 +2,7 @@ using System.Buffers.Binary;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace PDF_Manager.Printing;
+namespace FrameWebforCsharp.Printing;
 
 internal sealed record PrintLayoutMetrics
 {

@@ -1,4 +1,4 @@
-namespace PDF_Manager.Core.Documents;
+namespace FrameWebforCsharp.Core.Documents;
 
 /// <summary>
 /// Runtime-only, bounded command history over immutable validated project documents.

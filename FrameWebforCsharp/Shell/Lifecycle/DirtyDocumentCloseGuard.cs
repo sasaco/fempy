@@ -1,6 +1,6 @@
-using PDF_Manager.Core.Documents;
+using FrameWebforCsharp.Core.Documents;
 
-namespace PDF_Manager.Shell.Lifecycle;
+namespace FrameWebforCsharp.Shell.Lifecycle;
 
 public enum DirtyDocumentCloseDecision
 {

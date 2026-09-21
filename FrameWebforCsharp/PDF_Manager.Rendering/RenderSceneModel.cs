@@ -1,4 +1,4 @@
-namespace PDF_Manager.Rendering;
+namespace FrameWebforCsharp.Rendering;
 
 public sealed class RenderSceneModel
 {

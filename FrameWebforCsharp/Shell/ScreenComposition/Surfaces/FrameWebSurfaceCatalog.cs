@@ -1,7 +1,7 @@
-using PDF_Manager.Shell.Editing;
-using PDF_Manager.Shell.ScreenComposition.Core;
+using FrameWebforCsharp.Shell.Editing;
+using FrameWebforCsharp.Shell.ScreenComposition.Core;
 
-namespace PDF_Manager.Shell.ScreenComposition.Surfaces;
+namespace FrameWebforCsharp.Shell.ScreenComposition.Surfaces;
 
 public sealed record InputRouteSurfaceDefinition(
     ScreenRouteId Route,

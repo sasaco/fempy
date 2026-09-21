@@ -1,4 +1,4 @@
-namespace PDF_Manager.Shell.Viewport;
+namespace FrameWebforCsharp.Shell.Viewport;
 
 internal static class AtomicResultExportWriter
 {

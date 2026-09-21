@@ -1,8 +1,8 @@
-using PDF_Manager.Core.Abstractions;
-using PDF_Manager.Core.Documents;
-using PDF_Manager.Core.Shell;
+using FrameWebforCsharp.Core.Abstractions;
+using FrameWebforCsharp.Core.Documents;
+using FrameWebforCsharp.Core.Shell;
 
-namespace PDF_Manager.Shell.Lifecycle;
+namespace FrameWebforCsharp.Shell.Lifecycle;
 
 public enum UserSafeFailureKind
 {

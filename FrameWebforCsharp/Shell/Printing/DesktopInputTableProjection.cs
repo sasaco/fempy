@@ -1,9 +1,9 @@
 using System.Globalization;
-using PDF_Manager.Core.Documents;
-using PDF_Manager.Printing;
-using PDF_Manager.Resources;
+using FrameWebforCsharp.Core.Documents;
+using FrameWebforCsharp.Printing;
+using FrameWebforCsharp.Resources;
 
-namespace PDF_Manager.Shell.Printing;
+namespace FrameWebforCsharp.Shell.Printing;
 
 internal static class DesktopInputTableProjection
 {

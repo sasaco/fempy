@@ -1,9 +1,9 @@
-using PDF_Manager.Core.Documents;
-using PDF_Manager.Resources;
-using PDF_Manager.Shell.Contents;
-using PDF_Manager.Shell.ScreenComposition.Core;
+using FrameWebforCsharp.Core.Documents;
+using FrameWebforCsharp.Resources;
+using FrameWebforCsharp.Shell.Contents;
+using FrameWebforCsharp.Shell.ScreenComposition.Core;
 
-namespace PDF_Manager.Shell.ScreenComposition.Surfaces;
+namespace FrameWebforCsharp.Shell.ScreenComposition.Surfaces;
 
 public sealed class ResultRouteSurfaceControl : FloatingCardSurface, IFrameWebSurface
 {

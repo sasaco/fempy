@@ -1,6 +1,6 @@
-using PDF_Manager.Shell.Contents;
+using FrameWebforCsharp.Shell.Contents;
 
-namespace PDF_Manager.Shell.ScreenComposition.Core;
+namespace FrameWebforCsharp.Shell.ScreenComposition.Core;
 
 public sealed class WorkspaceControl : UserControl
 {

@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Numerics;
 
-namespace PDF_Manager.Rendering.Scene;
+namespace FrameWebforCsharp.Rendering.Scene;
 
 public enum ScenePrimitive
 {

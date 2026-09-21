@@ -1,8 +1,8 @@
-using PDF_Manager.Core.Analysis;
-using PDF_Manager.Core.Results;
-using PDF_Manager.Rendering.Scene;
+using FrameWebforCsharp.Core.Analysis;
+using FrameWebforCsharp.Core.Results;
+using FrameWebforCsharp.Rendering.Scene;
 
-namespace PDF_Manager.Shell.Viewport;
+namespace FrameWebforCsharp.Shell.Viewport;
 
 internal sealed record ViewportSectionForceValue(
     string Id,

@@ -1,8 +1,8 @@
-using PDF_Manager.Core.Analysis;
-using PDF_Manager.Core.Documents;
-using PDF_Manager.Core.Results;
+using FrameWebforCsharp.Core.Analysis;
+using FrameWebforCsharp.Core.Documents;
+using FrameWebforCsharp.Core.Results;
 
-namespace PDF_Manager.Core.Abstractions;
+namespace FrameWebforCsharp.Core.Abstractions;
 
 public enum OperationFailureKind
 {

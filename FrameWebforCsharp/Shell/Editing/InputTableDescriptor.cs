@@ -1,6 +1,6 @@
-using PDF_Manager.Rendering.Scene;
+using FrameWebforCsharp.Rendering.Scene;
 
-namespace PDF_Manager.Shell.Editing;
+namespace FrameWebforCsharp.Shell.Editing;
 
 public enum InputTableKey
 {

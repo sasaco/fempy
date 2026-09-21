@@ -1,12 +1,12 @@
-using PDF_Manager.Core.Abstractions;
-using PDF_Manager.Core.Documents;
-using PDF_Manager.Resources;
-using PDF_Manager.Shell.Contents;
-using PDF_Manager.Shell.Lifecycle;
-using PDF_Manager.Shell.Printing;
-using PDF_Manager.Shell.ScreenComposition.Core;
+using FrameWebforCsharp.Core.Abstractions;
+using FrameWebforCsharp.Core.Documents;
+using FrameWebforCsharp.Resources;
+using FrameWebforCsharp.Shell.Contents;
+using FrameWebforCsharp.Shell.Lifecycle;
+using FrameWebforCsharp.Shell.Printing;
+using FrameWebforCsharp.Shell.ScreenComposition.Core;
 
-namespace PDF_Manager.Shell;
+namespace FrameWebforCsharp.Shell;
 
 public interface IShellDialogService
 {

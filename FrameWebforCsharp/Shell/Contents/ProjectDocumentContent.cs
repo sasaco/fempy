@@ -1,17 +1,17 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
-using PDF_Manager.Core.Abstractions;
-using PDF_Manager.Core.Analysis;
-using PDF_Manager.Core.Documents;
-using PDF_Manager.Core.Results;
-using PDF_Manager.Core.Shell;
-using PDF_Manager.Rendering;
-using PDF_Manager.Rendering.Scene;
-using PDF_Manager.Resources;
-using PDF_Manager.Shell.Viewport;
+using FrameWebforCsharp.Core.Abstractions;
+using FrameWebforCsharp.Core.Analysis;
+using FrameWebforCsharp.Core.Documents;
+using FrameWebforCsharp.Core.Results;
+using FrameWebforCsharp.Core.Shell;
+using FrameWebforCsharp.Rendering;
+using FrameWebforCsharp.Rendering.Scene;
+using FrameWebforCsharp.Resources;
+using FrameWebforCsharp.Shell.Viewport;
 using WeifenLuo.WinFormsUI.Docking;
 
-namespace PDF_Manager.Shell.Contents;
+namespace FrameWebforCsharp.Shell.Contents;
 
 public sealed class ResultPageChangedEventArgs(int pageIndex, int pageCount) : EventArgs
 {

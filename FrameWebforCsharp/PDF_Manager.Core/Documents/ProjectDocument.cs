@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 
-namespace PDF_Manager.Core.Documents;
+namespace FrameWebforCsharp.Core.Documents;
 
 internal static class DocumentCollections
 {

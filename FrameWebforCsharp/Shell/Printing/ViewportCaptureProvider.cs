@@ -1,11 +1,11 @@
 using System.Collections.ObjectModel;
 using System.Runtime.ExceptionServices;
-using PDF_Manager.Printing;
-using PDF_Manager.Rendering.Scene;
-using PDF_Manager.Shell.Contents;
-using PDF_Manager.Shell.Viewport;
+using FrameWebforCsharp.Printing;
+using FrameWebforCsharp.Rendering.Scene;
+using FrameWebforCsharp.Shell.Contents;
+using FrameWebforCsharp.Shell.Viewport;
 
-namespace PDF_Manager.Shell.Printing;
+namespace FrameWebforCsharp.Shell.Printing;
 
 public sealed class PrintDiagramCaptureSet
 {

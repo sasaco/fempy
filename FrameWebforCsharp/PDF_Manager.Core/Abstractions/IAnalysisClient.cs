@@ -1,7 +1,7 @@
-using PDF_Manager.Core.Analysis;
-using PDF_Manager.Core.Documents;
+using FrameWebforCsharp.Core.Analysis;
+using FrameWebforCsharp.Core.Documents;
 
-namespace PDF_Manager.Core.Abstractions;
+namespace FrameWebforCsharp.Core.Abstractions;
 
 public interface IAnalysisClient
 {

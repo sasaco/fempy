@@ -1,14 +1,14 @@
 using System.Resources;
-using PDF_Manager.Core.Documents;
-using PDF_Manager.Resources;
-using PDF_Manager.Shell.ScreenComposition.Core;
+using FrameWebforCsharp.Core.Documents;
+using FrameWebforCsharp.Resources;
+using FrameWebforCsharp.Shell.ScreenComposition.Core;
 
-namespace PDF_Manager.Shell.ScreenComposition.Surfaces;
+namespace FrameWebforCsharp.Shell.ScreenComposition.Surfaces;
 
 public sealed class PresetOverlayControl : OverlaySurfaceBase, IPresetOverlaySurface
 {
     private static readonly ResourceManager PresetImages =
-        new("PDF_Manager.Resources.Strings", typeof(LocalizationService).Assembly);
+        new("FrameWebforCsharp.Resources.Strings", typeof(LocalizationService).Assembly);
     private readonly LocalizationService _localization;
     private readonly FlowLayoutPanel _tiles = new()
     {

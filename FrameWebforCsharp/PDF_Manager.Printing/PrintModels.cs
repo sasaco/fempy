@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 
-namespace PDF_Manager.Printing;
+namespace FrameWebforCsharp.Printing;
 
 public static class PrintEngineLimits
 {

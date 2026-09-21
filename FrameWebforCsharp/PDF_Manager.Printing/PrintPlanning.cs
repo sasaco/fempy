@@ -1,4 +1,4 @@
-namespace PDF_Manager.Printing;
+namespace FrameWebforCsharp.Printing;
 
 public sealed class PrintLimitExceededException : InvalidOperationException
 {

@@ -1,11 +1,11 @@
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Text.Json;
-using PDF_Manager.Core.Shell;
+using FrameWebforCsharp.Core.Shell;
 using WeifenLuo.WinFormsUI.Docking;
-using CoreDockState = PDF_Manager.Core.Shell.DockState;
+using CoreDockState = FrameWebforCsharp.Core.Shell.DockState;
 
-namespace PDF_Manager.Shell.Docking;
+namespace FrameWebforCsharp.Shell.Docking;
 
 /// <summary>
 /// Captures and restores LayoutState v1 using only stable whitelisted keys. The supported

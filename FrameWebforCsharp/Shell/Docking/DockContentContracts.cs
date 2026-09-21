@@ -1,7 +1,7 @@
-using PDF_Manager.Core.Shell;
+using FrameWebforCsharp.Core.Shell;
 using WeifenLuo.WinFormsUI.Docking;
 
-namespace PDF_Manager.Shell.Docking;
+namespace FrameWebforCsharp.Shell.Docking;
 
 /// <summary>
 /// Supplies the stable identity of a dock pane. Display text and CLR type names are never used

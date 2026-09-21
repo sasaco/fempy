@@ -1,6 +1,6 @@
-using PDF_Manager.Core.Shell;
+using FrameWebforCsharp.Core.Shell;
 
-namespace PDF_Manager.Shell.Lifecycle;
+namespace FrameWebforCsharp.Shell.Lifecycle;
 
 /// <summary>
 /// Runs at most one activation effect at a time. A newer request cancels the running effect,

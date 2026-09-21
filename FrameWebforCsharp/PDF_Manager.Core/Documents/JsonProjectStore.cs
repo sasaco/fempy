@@ -1,6 +1,6 @@
-using PDF_Manager.Core.Abstractions;
+using FrameWebforCsharp.Core.Abstractions;
 
-namespace PDF_Manager.Core.Documents;
+namespace FrameWebforCsharp.Core.Documents;
 
 public enum ProjectStoreOperation
 {

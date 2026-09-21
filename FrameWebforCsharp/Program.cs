@@ -1,8 +1,8 @@
-using PDF_Manager.Resources;
-using PDF_Manager.Shell;
-using PDF_Manager.Shell.Composition;
+using FrameWebforCsharp.Resources;
+using FrameWebforCsharp.Shell;
+using FrameWebforCsharp.Shell.Composition;
 
-namespace PDF_Manager;
+namespace FrameWebforCsharp;
 
 internal static class Program
 {

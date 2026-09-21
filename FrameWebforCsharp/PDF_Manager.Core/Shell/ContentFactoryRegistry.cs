@@ -1,4 +1,4 @@
-namespace PDF_Manager.Core.Shell;
+namespace FrameWebforCsharp.Core.Shell;
 
 /// <summary>
 /// Explicit whitelist of shell factories. Tool instances are cached for hide/show reuse;

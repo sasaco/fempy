@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace PDF_Manager.Core.Documents;
+namespace FrameWebforCsharp.Core.Documents;
 
 public sealed class ProjectDocumentFormatException : FormatException
 {

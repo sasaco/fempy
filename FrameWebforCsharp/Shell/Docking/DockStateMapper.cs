@@ -1,7 +1,7 @@
-using CoreDockState = PDF_Manager.Core.Shell.DockState;
+using CoreDockState = FrameWebforCsharp.Core.Shell.DockState;
 using DockPanelState = WeifenLuo.WinFormsUI.Docking.DockState;
 
-namespace PDF_Manager.Shell.Docking;
+namespace FrameWebforCsharp.Shell.Docking;
 
 internal static class DockStateMapper
 {

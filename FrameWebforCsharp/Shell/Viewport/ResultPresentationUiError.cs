@@ -1,6 +1,6 @@
-using PDF_Manager.Core.Results;
+using FrameWebforCsharp.Core.Results;
 
-namespace PDF_Manager.Shell.Viewport;
+namespace FrameWebforCsharp.Shell.Viewport;
 
 public sealed record ResultPresentationUiError(
     ResultPresentationErrorCode Code,

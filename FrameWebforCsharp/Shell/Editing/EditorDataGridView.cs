@@ -1,4 +1,4 @@
-namespace PDF_Manager.Shell.Editing;
+namespace FrameWebforCsharp.Shell.Editing;
 
 internal sealed class EditorDataGridView : DataGridView
 {

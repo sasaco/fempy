@@ -1,4 +1,4 @@
-namespace PDF_Manager.Shell.Lifecycle;
+namespace FrameWebforCsharp.Shell.Lifecycle;
 
 /// <summary>
 /// Owns cancellation sources for replaceable shell commands. Exceptions thrown by cancellation

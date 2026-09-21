@@ -1,8 +1,8 @@
-using PDF_Manager.Core.Analysis;
-using PDF_Manager.Core.Documents;
-using PDF_Manager.Rendering.Scene;
+using FrameWebforCsharp.Core.Analysis;
+using FrameWebforCsharp.Core.Documents;
+using FrameWebforCsharp.Rendering.Scene;
 
-namespace PDF_Manager.Shell.Viewport;
+namespace FrameWebforCsharp.Shell.Viewport;
 
 public sealed record ViewportSceneProjectionText(string ScaleCaption, string ColorCaption);
 

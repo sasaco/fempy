@@ -1,6 +1,6 @@
 using System.Threading;
 
-namespace PDF_Manager.Rendering;
+namespace FrameWebforCsharp.Rendering;
 
 public static class RendererDiagnostics
 {

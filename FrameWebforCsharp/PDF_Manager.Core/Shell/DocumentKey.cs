@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace PDF_Manager.Core.Shell;
+namespace FrameWebforCsharp.Core.Shell;
 
 /// <summary>Classifies stable shell content without using captions or runtime type names.</summary>
 public enum DocumentKind

@@ -1,7 +1,7 @@
-using PDF_Manager.Resources;
-using PDF_Manager.Shell.ScreenComposition.Core;
+using FrameWebforCsharp.Resources;
+using FrameWebforCsharp.Shell.ScreenComposition.Core;
 
-namespace PDF_Manager.Shell.ScreenComposition.Surfaces;
+namespace FrameWebforCsharp.Shell.ScreenComposition.Surfaces;
 
 public sealed class StartOverlayControl : OverlaySurfaceBase
 {

@@ -1,9 +1,9 @@
-using PDF_Manager.Core.Abstractions;
-using PDF_Manager.Resources;
-using PDF_Manager.Shell.Printing;
-using PDF_Manager.Shell.ScreenComposition.Core;
+using FrameWebforCsharp.Core.Abstractions;
+using FrameWebforCsharp.Resources;
+using FrameWebforCsharp.Shell.Printing;
+using FrameWebforCsharp.Shell.ScreenComposition.Core;
 
-namespace PDF_Manager.Shell.ScreenComposition.Surfaces;
+namespace FrameWebforCsharp.Shell.ScreenComposition.Surfaces;
 
 public sealed class PrintOverlayControl : OverlaySurfaceBase, IPrintOverlaySurface
 {

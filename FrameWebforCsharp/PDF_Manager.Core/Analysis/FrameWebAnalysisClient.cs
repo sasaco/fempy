@@ -2,10 +2,10 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using PDF_Manager.Core.Abstractions;
-using PDF_Manager.Core.Documents;
+using FrameWebforCsharp.Core.Abstractions;
+using FrameWebforCsharp.Core.Documents;
 
-namespace PDF_Manager.Core.Analysis;
+namespace FrameWebforCsharp.Core.Analysis;
 
 public sealed record FrameWebAnalysisClientOptions
 {

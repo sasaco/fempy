@@ -1,4 +1,4 @@
-namespace PDF_Manager.Rendering.Scene;
+namespace FrameWebforCsharp.Rendering.Scene;
 
 public enum ViewportProjection
 {

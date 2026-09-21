@@ -1,4 +1,4 @@
-namespace PDF_Manager.Core.Shell;
+namespace FrameWebforCsharp.Core.Shell;
 
 public enum WindowCloseAction
 {

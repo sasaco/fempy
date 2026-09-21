@@ -1,6 +1,6 @@
-using PDF_Manager.Core.Analysis;
+using FrameWebforCsharp.Core.Analysis;
 
-namespace PDF_Manager.Core.Results;
+namespace FrameWebforCsharp.Core.Results;
 
 internal sealed record PickupEngineeringSource(
     string Id,

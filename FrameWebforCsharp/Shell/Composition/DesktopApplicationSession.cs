@@ -1,9 +1,9 @@
 using FrameWeb.LocalRuntime;
-using PDF_Manager.Core.Analysis;
-using PDF_Manager.Resources;
-using PDF_Manager.Shell.Printing;
+using FrameWebforCsharp.Core.Analysis;
+using FrameWebforCsharp.Resources;
+using FrameWebforCsharp.Shell.Printing;
 
-namespace PDF_Manager.Shell.Composition;
+namespace FrameWebforCsharp.Shell.Composition;
 
 public interface IDesktopRuntime : IAsyncDisposable
 {

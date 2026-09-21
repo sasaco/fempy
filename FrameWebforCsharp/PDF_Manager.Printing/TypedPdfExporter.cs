@@ -2,7 +2,7 @@ using System.Globalization;
 using System.IO.Compression;
 using System.Text;
 
-namespace PDF_Manager.Printing;
+namespace FrameWebforCsharp.Printing;
 
 public sealed record PdfModelNode(string Id, double X, double Y, double Z);
 

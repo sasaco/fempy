@@ -1,8 +1,8 @@
 using System.Globalization;
 using System.Text.Json;
-using PDF_Manager.Core.Documents;
+using FrameWebforCsharp.Core.Documents;
 
-namespace PDF_Manager.Core.Analysis;
+namespace FrameWebforCsharp.Core.Analysis;
 
 public sealed class FrameWebAnalysisRequestException : ArgumentException
 {

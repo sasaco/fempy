@@ -1,9 +1,9 @@
-using PDF_Manager.Core.Shell;
-using PDF_Manager.Resources;
-using PDF_Manager.Shell.Docking;
+using FrameWebforCsharp.Core.Shell;
+using FrameWebforCsharp.Resources;
+using FrameWebforCsharp.Shell.Docking;
 using WeifenLuo.WinFormsUI.Docking;
 
-namespace PDF_Manager.Shell.Contents;
+namespace FrameWebforCsharp.Shell.Contents;
 
 public interface ILocalizedShellContent
 {

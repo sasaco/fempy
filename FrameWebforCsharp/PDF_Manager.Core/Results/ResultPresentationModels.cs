@@ -1,7 +1,7 @@
-using PDF_Manager.Core.Analysis;
-using PDF_Manager.Core.Documents;
+using FrameWebforCsharp.Core.Analysis;
+using FrameWebforCsharp.Core.Documents;
 
-namespace PDF_Manager.Core.Results;
+namespace FrameWebforCsharp.Core.Results;
 
 public sealed class PresentedStaticResult
 {

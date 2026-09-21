@@ -1,6 +1,6 @@
 using System.Buffers.Binary;
 
-namespace PDF_Manager.Printing;
+namespace FrameWebforCsharp.Printing;
 
 internal static class TrueTypeCollectionExtractor
 {

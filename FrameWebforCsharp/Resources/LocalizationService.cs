@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Resources;
 
-namespace PDF_Manager.Resources;
+namespace FrameWebforCsharp.Resources;
 
 public enum UiLanguage
 {
@@ -12,7 +12,7 @@ public enum UiLanguage
 
 public sealed class LocalizationService
 {
-    private const string ResourceBaseName = "PDF_Manager.Resources.Strings";
+    private const string ResourceBaseName = "FrameWebforCsharp.Resources.Strings";
     private static readonly ResourceManager ResourceManager =
         new(ResourceBaseName, typeof(LocalizationService).Assembly);
 

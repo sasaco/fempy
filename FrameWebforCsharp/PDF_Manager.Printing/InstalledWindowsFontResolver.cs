@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using PdfSharp.Fonts;
 
-namespace PDF_Manager.Printing;
+namespace FrameWebforCsharp.Printing;
 
 public sealed class PrintFontUnavailableException : InvalidOperationException
 {

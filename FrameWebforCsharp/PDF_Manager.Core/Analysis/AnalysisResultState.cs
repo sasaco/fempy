@@ -1,4 +1,4 @@
-namespace PDF_Manager.Core.Analysis;
+namespace FrameWebforCsharp.Core.Analysis;
 
 /// <summary>
 /// Owns the last fully validated result. A rejected candidate never replaces the current value.

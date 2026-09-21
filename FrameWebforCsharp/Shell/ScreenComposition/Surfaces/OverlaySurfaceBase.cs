@@ -1,6 +1,6 @@
-using PDF_Manager.Shell.ScreenComposition.Core;
+using FrameWebforCsharp.Shell.ScreenComposition.Core;
 
-namespace PDF_Manager.Shell.ScreenComposition.Surfaces;
+namespace FrameWebforCsharp.Shell.ScreenComposition.Surfaces;
 
 public abstract class OverlaySurfaceBase : UserControl, IFrameWebSurface
 {

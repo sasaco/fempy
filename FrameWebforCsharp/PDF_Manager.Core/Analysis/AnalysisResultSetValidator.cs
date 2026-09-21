@@ -1,4 +1,4 @@
-namespace PDF_Manager.Core.Analysis;
+namespace FrameWebforCsharp.Core.Analysis;
 
 public static class AnalysisResultSetValidator
 {

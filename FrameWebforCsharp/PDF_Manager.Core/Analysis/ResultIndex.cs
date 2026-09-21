@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 
-namespace PDF_Manager.Core.Analysis;
+namespace FrameWebforCsharp.Core.Analysis;
 
 public sealed class ResultIndex
 {

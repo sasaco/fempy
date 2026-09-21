@@ -1,4 +1,4 @@
-namespace PDF_Manager.Shell.ScreenComposition.Core;
+namespace FrameWebforCsharp.Shell.ScreenComposition.Core;
 
 internal static class ScreenCompositionStyle
 {
