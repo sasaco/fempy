@@ -77,6 +77,34 @@
   <data name="ViewportScaleLegend" xml:space="preserve"><value>Scale</value></data>
   <data name="ViewportColorLegend" xml:space="preserve"><value>Magnitude</value></data>
   <data name="PngFileFilter" xml:space="preserve"><value>PNG images (*.png)|*.png|All files (*.*)|*.*</value></data>
+  <data name="ResultCase" xml:space="preserve"><value>Case</value></data>
+  <data name="ResultState" xml:space="preserve"><value>State</value></data>
+  <data name="ResultDerived" xml:space="preserve"><value>Derived</value></data>
+  <data name="ResultParent" xml:space="preserve"><value>Page</value></data>
+  <data name="ResultChild" xml:space="preserve"><value>Source</value></data>
+  <data name="ResultBase" xml:space="preserve"><value>Base results</value></data>
+  <data name="ResultMovingEnvelope" xml:space="preserve"><value>Moving-load envelope</value></data>
+  <data name="ResultCsv" xml:space="preserve"><value>CSV</value></data>
+  <data name="ResultPickupCsv" xml:space="preserve"><value>PICKUP CSV</value></data>
+  <data name="ResultPickupExport" xml:space="preserve"><value>PICKUP export</value></data>
+  <data name="ResultCsvFileFilter" xml:space="preserve"><value>CSV files (*.csv)|*.csv|All files (*.*)|*.*</value></data>
+  <data name="ResultPickupPikFileFilter" xml:space="preserve"><value>PICKUP files (*.pik)|*.pik|All files (*.*)|*.*</value></data>
+  <data name="ResultExportLimitExceeded" xml:space="preserve"><value>The result export exceeded the {0} limit ({2} requested; maximum {1}).</value></data>
+  <data name="ResultPresentationLimitExceeded" xml:space="preserve"><value>The result presentation exceeded the {0} limit ({2} requested; maximum {1}).</value></data>
+  <data name="ResultExportFailed" xml:space="preserve"><value>The result export could not be saved.</value></data>
+  <data name="ResultPresentationUnavailable" xml:space="preserve"><value>The requested result presentation is unavailable.</value></data>
+  <data name="ResultDerivedStaticOnly" xml:space="preserve"><value>Derived result '{0}' accepts static operands only; '{1}' is not static.</value></data>
+  <data name="ResultCategory" xml:space="preserve"><value>Category</value></data>
+  <data name="ResultEntity" xml:space="preserve"><value>Entity</value></data>
+  <data name="ResultLocation" xml:space="preserve"><value>Location</value></data>
+  <data name="ResultComponent" xml:space="preserve"><value>Component</value></data>
+  <data name="ResultMaximumValue" xml:space="preserve"><value>Maximum</value></data>
+  <data name="ResultMaximumCase" xml:space="preserve"><value>Maximum case</value></data>
+  <data name="ResultMinimumValue" xml:space="preserve"><value>Minimum</value></data>
+  <data name="ResultMinimumCase" xml:space="preserve"><value>Minimum case</value></data>
+  <data name="ResultAbsoluteMaximumValue" xml:space="preserve"><value>Absolute maximum</value></data>
+  <data name="ResultAbsoluteMaximumCase" xml:space="preserve"><value>Absolute-maximum case</value></data>
+  <data name="ResultMemberForceExtrema" xml:space="preserve"><value>Member-force extrema</value></data>
   <data name="ResultCoordinate" xml:space="preserve"><value>Result</value></data>
   <data name="ResultPrevious" xml:space="preserve"><value>Previous</value></data>
   <data name="ResultNext" xml:space="preserve"><value>Next</value></data>

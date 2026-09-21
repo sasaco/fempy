@@ -77,6 +77,34 @@
   <data name="ViewportScaleLegend" xml:space="preserve"><value>比例</value></data>
   <data name="ViewportColorLegend" xml:space="preserve"><value>幅值</value></data>
   <data name="PngFileFilter" xml:space="preserve"><value>PNG 图像 (*.png)|*.png|所有文件 (*.*)|*.*</value></data>
+  <data name="ResultCase" xml:space="preserve"><value>工况</value></data>
+  <data name="ResultState" xml:space="preserve"><value>状态</value></data>
+  <data name="ResultDerived" xml:space="preserve"><value>派生结果</value></data>
+  <data name="ResultParent" xml:space="preserve"><value>页面</value></data>
+  <data name="ResultChild" xml:space="preserve"><value>源工况</value></data>
+  <data name="ResultBase" xml:space="preserve"><value>基本结果</value></data>
+  <data name="ResultMovingEnvelope" xml:space="preserve"><value>移动荷载包络</value></data>
+  <data name="ResultCsv" xml:space="preserve"><value>结果 CSV</value></data>
+  <data name="ResultPickupCsv" xml:space="preserve"><value>PICKUP CSV</value></data>
+  <data name="ResultPickupExport" xml:space="preserve"><value>PICKUP 导出</value></data>
+  <data name="ResultCsvFileFilter" xml:space="preserve"><value>CSV 文件 (*.csv)|*.csv|所有文件 (*.*)|*.*</value></data>
+  <data name="ResultPickupPikFileFilter" xml:space="preserve"><value>PICKUP 文件 (*.pik)|*.pik|所有文件 (*.*)|*.*</value></data>
+  <data name="ResultExportLimitExceeded" xml:space="preserve"><value>结果导出超过了 {0} 限制（请求: {2}，上限: {1}）。</value></data>
+  <data name="ResultPresentationLimitExceeded" xml:space="preserve"><value>结果显示超过了 {0} 限制（请求: {2}，上限: {1}）。</value></data>
+  <data name="ResultExportFailed" xml:space="preserve"><value>无法保存结果导出文件。</value></data>
+  <data name="ResultPresentationUnavailable" xml:space="preserve"><value>无法显示请求的结果。</value></data>
+  <data name="ResultDerivedStaticOnly" xml:space="preserve"><value>派生结果“{0}”只能使用静力工况；“{1}”不是静力工况。</value></data>
+  <data name="ResultCategory" xml:space="preserve"><value>类别</value></data>
+  <data name="ResultEntity" xml:space="preserve"><value>对象</value></data>
+  <data name="ResultLocation" xml:space="preserve"><value>位置</value></data>
+  <data name="ResultComponent" xml:space="preserve"><value>分量</value></data>
+  <data name="ResultMaximumValue" xml:space="preserve"><value>最大值</value></data>
+  <data name="ResultMaximumCase" xml:space="preserve"><value>最大值工况</value></data>
+  <data name="ResultMinimumValue" xml:space="preserve"><value>最小值</value></data>
+  <data name="ResultMinimumCase" xml:space="preserve"><value>最小值工况</value></data>
+  <data name="ResultAbsoluteMaximumValue" xml:space="preserve"><value>绝对最大值</value></data>
+  <data name="ResultAbsoluteMaximumCase" xml:space="preserve"><value>绝对最大值工况</value></data>
+  <data name="ResultMemberForceExtrema" xml:space="preserve"><value>构件内力极值</value></data>
   <data name="ResultCoordinate" xml:space="preserve"><value>结果</value></data>
   <data name="ResultPrevious" xml:space="preserve"><value>上一个</value></data>
   <data name="ResultNext" xml:space="preserve"><value>下一个</value></data>

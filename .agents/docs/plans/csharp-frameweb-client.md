@@ -10,7 +10,7 @@
 
 本計画は、C#デスクトップ製品の設計・実装・検証・切替までを対象とし、Python FEMの数値実装と旧クライアント互換は対象外とする。
 
-#### Implementation Status (2026-09-20)
+#### Implementation Status (2026-09-21)
 
 - Step 0 の実装成果は commit `572a1d1` に保存済みである。`PDF_Manager.Core` と41件の契約テスト、実OpenGLを使う `PDF_Manager.RendererProbe`、依存関係・来歴・再配布可否のinventory、および `.agents/docs/DESIGN.md` の設計決定が含まれる。
 - package-only の開発経路は **GO** である。DockPanelSuite 3.1.1、OpenTK.GLControl 4.0.2、OpenTK 4.9.4、および所有する最小renderer/shaderで Step 1 へ進める。
@@ -18,7 +18,7 @@
 - Step 1 は作業ツリーで完了した。`PDF_Manager` は `net8.0-windows` WinExeとなり、Core/Rendering/typed Printingを参照する空WinForms shell、4つの自動test project、両solutionへの登録が実装済みである。Step 2以降は未着手である。
 - Step 2 は作業ツリーで完了した。Coreへtyped `ProjectDocument v1`、厳格かつ決定的なJSON/atomic store、完全な`AnalysisResultSet v1` DTO/validator/index/commit boundary、static-only derived presentation、moving-load paging/envelope、およびtyped service boundaryを実装した。
 - Step 3 は作業ツリーで完了した。localized WinForms shell、stable-key docking registry、bounded/atomic/transactional layout、serialized document transition、coalesced activation、dirty-close/cancellation/exception boundaryを実装した。
-- Step 6 は作業ツリーで完了した。Step 5の全model input editorに続き、12個の独立typed scene layer、2D/3D camera、実描画decorations、case/state/extrema interaction、dependency-aware invalidation、bounded PNG/renderer workを実装した。次はStep 7の計算・結果表示完成である。
+- Step 7 は作業ツリーで完了した。ordered static/nonlinear/modal navigation、result table/diagram、static-only DEFINE/COMBINE/PICKUP、moving parent/child paging/envelope、3D CSV／2D `.pik` export、presentation budget、atomic exportを実装した。次はStep 8のtyped printing移行である。
 - Step 1完了後にリポジトリ正規の全体検査 `& .agents/check.ps1 -AllowProductPath 'FramePrintPDF'` を再実行した。Agent系、scope isolation、`git diff --check`、`.NET build` はPASSしたが、全体は `overall=fail` である。Pythonは3,273件PASS・6件FAIL・4件ERROR（1:55:37）、Angular test/buildはTypeScript compilation、FontAwesome path、`environment.prod.ts` 不在でFAILした。詳細は `.agents/logs/check-20260920T035935489Z-32252.log` を参照する。いずれも既知のC#変更範囲外failureだが、リポジトリ全体をgreenとは報告しない。
 - 独立レビューは品質PASS（Critical/Highなし）、テストPASS（Critical/Highなし）、セキュリティChanges requested（旧Azure/local print hostにHigh 2件）である。新desktop境界には旧印刷資産・制限font・既知脆弱packageは入っていない。一方、legacy hostの匿名endpointは脆弱なImageSharp 1.0.4へ到達でき、request/decompression/image/PDF workも無制限なので、公開・配布はNO-GOである。詳細は `.agents/docs/research/review-{quality,tests,security}-csharp-frameweb-client.md` を参照する。
 
@@ -196,13 +196,15 @@ PDF_Manager.Core --HTTP--> FrameWeb (Python FEM)
 
 #### Step 7: Complete calculation and result presentation
 
-- [ ] Support ordered multi-case static results, every accepted nonlinear load step, and modal modes directly from `AnalysisResultSet`.
-- [ ] Implement displacement, support-reaction, and member-section-force tables and diagrams for basic results, with explicit case/state selectors.
-- [ ] Implement DEFINE/COMBINE/PICKUP only for static operands and show a visible domain error for nonlinear/modal attempts.
-- [ ] Implement moving-load parent/child paging, component max/min envelopes, reaction absolute maximum, member-force extrema, CSV/PICKUP export, and deterministic ordering.
-- [ ] Retain shell/solid data in the validated result model; dedicated shell/solid screens are outside initial parity because the current Angular app has no such result routes.
+- [x] Support ordered multi-case static results, every accepted nonlinear load step, and modal modes directly from `AnalysisResultSet`.
+- [x] Implement displacement, support-reaction, and member-section-force tables and diagrams for basic results, with explicit case/state selectors.
+- [x] Implement DEFINE/COMBINE/PICKUP only for static operands and show a visible domain error for nonlinear/modal attempts.
+- [x] Implement moving-load parent/child paging, component max/min envelopes, reaction absolute maximum, member-force extrema, CSV/PICKUP export, and deterministic ordering.
+- [x] Retain shell/solid data in the validated result model; dedicated shell/solid screens are outside initial parity because the current Angular app has no such result routes.
 
 **Verification**: shared and Angular-derived fixtures produce identical order, coordinates, extrema, pages, and static-only rejection; Ct first/last cases and all accepted nonlinear steps are accessible; malformed or partial responses never enable result commands; no legacy `disg` / `reac` / `fsec` adapter exists in active C# code.
+
+**Verification result**: Ctの全11ケース、ordered static/nonlinear/modal navigation、Angular由来のmoving `1, 2, 1.1, 1.2`順序、child-only reaction absolute projection、all-source signed envelope、DEFINE/COMBINE/PICKUPのstatic-only境界、3D CSV／2D fixed-width `.pik`、formula-safe text、失敗時のrich UI state保持、atomic overwriteをactual Core/Shell経路で検証した。presentation候補はpages、derived definitions、moving definitions、operands、output entities、scalar workを共有budgetでfail-fastし、exact/+1境界を網羅する。両Release solution buildは0 warnings/errors、両solution testsは501/501 PASS（Core 272、composition/Printing 17、Rendering 56、LocalRuntime 14、UI 142）。ownershipはoverlap 0 / unowned 0 / idle 0、AgentOnlyは`overall=pass`。最終reviewはsecurity Critical 0 / High 0 / Medium 0 / Low 1、quality 0 / 0 / 0 / Low 2、tests 0 / 0 / 0 / Low 2。coverage率は未計測で、Python/Angular全件は再baseline化せず既知の3,273 PASS / 6 FAIL / 4 ERRORを維持する。
 
 #### Step 8: Replace the legacy print path with typed printing
 

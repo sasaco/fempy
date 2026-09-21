@@ -112,7 +112,9 @@ public sealed class Step6ViewportIntegrationTests
             using ProjectDocumentContent content = CreateContent();
             _ = content.ResultGrid.Handle;
             content.SetDocument(ProjectDocumentPresets.CreateRepresentativeFrame());
-            AnalysisResultSet results = Step6ViewportBehaviorTests.ReadCombinedResultSet();
+            (_, AnalysisResultSet unvalidatedResults) =
+                Step6ViewportBehaviorTests.CreateSignedCaseFixture();
+            AnalysisResultSet results = NormalizeSignedResultSet(unvalidatedResults);
             content.SetResult(results);
             content.FlushPendingUpdates();
 
@@ -260,6 +262,7 @@ public sealed class Step6ViewportIntegrationTests
             _ = content.ResultGrid.Handle;
             (ProjectDocument document, AnalysisResultSet results) =
                 Step6ViewportBehaviorTests.CreateSignedCaseFixture();
+            results = NormalizeSignedResultSet(results);
             content.SetDocument(document);
             content.SetResult(results);
             content.SetDisplayMode(ViewportDisplayMode.Displacements);
@@ -279,19 +282,19 @@ public sealed class Step6ViewportIntegrationTests
             Assert.Equal(-9.0f, content.CurrentScene.Presentation.ColorLegend.Entries[^1].Value);
             AssertResultKeys(content, 0, new SceneEntityKey(SceneEntityKind.Displacement, "1"));
             AssertResultKeys(content, 1, new SceneEntityKey(SceneEntityKind.Reaction, "1"));
-            AssertResultKeys(content, 2, new SceneEntityKey(SceneEntityKind.SectionForce, "1/S1/i"));
+            AssertResultKeys(content, 2, new SceneEntityKey(SceneEntityKind.SectionForce, "1/S0-S1/i"));
 
             content.SetExtremaMode(SceneExtremaMode.Maximum);
             content.FlushPendingUpdates();
             AssertResultKeys(content, 0, new SceneEntityKey(SceneEntityKind.Displacement, "2"));
             AssertResultKeys(content, 1, new SceneEntityKey(SceneEntityKind.Reaction, "2"));
-            AssertResultKeys(content, 2, new SceneEntityKey(SceneEntityKind.SectionForce, "1/S1/j"));
+            AssertResultKeys(content, 2, new SceneEntityKey(SceneEntityKind.SectionForce, "1/S0-S1/j"));
 
             content.SetExtremaMode(SceneExtremaMode.AbsoluteMaximum);
             content.FlushPendingUpdates();
             AssertResultKeys(content, 0, new SceneEntityKey(SceneEntityKind.Displacement, "1"));
             AssertResultKeys(content, 1, new SceneEntityKey(SceneEntityKind.Reaction, "1"));
-            AssertResultKeys(content, 2, new SceneEntityKey(SceneEntityKind.SectionForce, "1/S1/i"));
+            AssertResultKeys(content, 2, new SceneEntityKey(SceneEntityKind.SectionForce, "1/S0-S1/i"));
             Assert.Equal(new ResultCoordinate("C1", ResultStateKind.Static, 0), content.SelectedResultCoordinate);
         }, "Step 6 signed extrema integration");
     }
@@ -359,16 +362,20 @@ public sealed class Step6ViewportIntegrationTests
             using ProjectDocumentContent content = CreateContent();
             (ProjectDocument document, AnalysisResultSet source) =
                 Step6ViewportBehaviorTests.CreateSignedCaseFixture();
+            source = NormalizeSignedResultSet(source);
+            StaticAnalysisResult valid = Assert.IsType<StaticAnalysisResult>(source.Results[0]);
             StaticAnalysisResult invalid = new(
                 "C1",
-                [new NodeDisplacement(
-                    "1",
-                    new DisplacementComponents(double.MaxValue, 0, 0, 0, 0, 0))],
-                [],
-                [],
-                [],
-                [],
-                new WarningDiagnostics([]));
+                valid.NodeDisplacements.Select(row => row.NodeId == "1"
+                    ? new NodeDisplacement(
+                        row.NodeId,
+                        new DisplacementComponents(double.MaxValue, 0, 0, 0, 0, 0))
+                    : row),
+                valid.SupportReactions,
+                valid.MemberSectionForces,
+                valid.ShellResults,
+                valid.SolidResults,
+                valid.Diagnostics);
             AnalysisResultSet invalidSet = new(
                 source.Kind,
                 source.SchemaVersion,
@@ -376,7 +383,7 @@ public sealed class Step6ViewportIntegrationTests
                 source.CoordinateSystem,
                 source.Cases,
                 source.Topology,
-                [invalid]);
+                [invalid, .. source.Results.Skip(1)]);
             List<ViewportOperationException> typed = [];
             List<string> legacy = [];
             content.ViewportOperationFailed += (_, eventArgs) => typed.Add(eventArgs.Failure);
@@ -414,12 +421,12 @@ public sealed class Step6ViewportIntegrationTests
                 content,
                 tableIndex: 1,
                 expectedRowCount: ProjectDocumentContent.MaximumResultTableRows,
-                expectedLastDataKey: new SceneEntityKey(SceneEntityKind.Reaction, "R9998"));
+                expectedLastDataKey: new SceneEntityKey(SceneEntityKind.Reaction, "N9998"));
             AssertResultTable(
                 content,
                 tableIndex: 2,
                 expectedRowCount: ProjectDocumentContent.MaximumResultTableRows - 1,
-                expectedLastDataKey: new SceneEntityKey(SceneEntityKind.SectionForce, "M1/S4998/j"));
+                expectedLastDataKey: new SceneEntityKey(SceneEntityKind.SectionForce, "M1/S4998-S4999/j"));
         }, "Step 6 bounded result tables");
     }
 
@@ -459,17 +466,41 @@ public sealed class Step6ViewportIntegrationTests
             .Select(index => new NodeDisplacement($"N{index}", new DisplacementComponents(index, 0, 0, 0, 0, 0)))
             .ToArray();
         SupportReaction[] reactions = Enumerable.Range(0, ProjectDocumentContent.MaximumResultTableRows + 1)
-            .Select(index => new SupportReaction($"R{index}", new ForceComponents(index, 0, 0, 0, 0, 0)))
+            .Select(index => new SupportReaction($"N{index}", new ForceComponents(index, 0, 0, 0, 0, 0)))
             .ToArray();
         MemberSegmentResult[] segments = Enumerable.Range(0, (ProjectDocumentContent.MaximumResultTableRows / 2) + 1)
             .Select(index => new MemberSegmentResult(
+                $"S{index}-S{index + 1}",
                 $"S{index}",
-                $"P{index}",
-                $"P{index + 1}",
+                $"S{index + 1}",
                 1.0,
                 new ForceComponents(index, 0, 0, 0, 0, 0),
                 new ForceComponents(index, 0, 0, 0, 0, 0)))
             .ToArray();
+        TopologyNode[] nodes = Enumerable.Range(0, ProjectDocumentContent.MaximumResultTableRows + 1)
+            .Select(index => new TopologyNode(
+                $"N{index}",
+                new Vector3Value(index, 0, 0),
+                $"N{index}",
+                false))
+            .ToArray();
+        MemberStation[] stations = Enumerable.Range(0, segments.Length + 1)
+            .Select(index => new MemberStation($"S{index}", index))
+            .ToArray();
+        AnalysisTopology topology = new(
+            nodes,
+            [new TopologyMember(
+                "M1",
+                "N0",
+                $"N{segments.Length}",
+                new CoordinateFrame(
+                    new Vector3Value(0, 0, 0),
+                    new Vector3Value(1, 0, 0),
+                    new Vector3Value(0, 1, 0),
+                    new Vector3Value(0, 0, 1)),
+                stations)],
+            [],
+            []);
         StaticAnalysisResult result = new(
             "C1",
             displacements,
@@ -483,9 +514,55 @@ public sealed class Step6ViewportIntegrationTests
             AnalysisResultSet.ContractVersion,
             new AnalysisUnits("SI", "m", "N", "kg", "s"),
             new CoordinateSystem("global_cartesian", "right", ["x", "y", "z"]),
-            [new AnalysisCase("C1", "Case", "C1", AnalysisType.Static, [])],
-            new AnalysisTopology([], [], [], []),
+            [new AnalysisCase("C1", "Case", "C1", AnalysisType.Static, nodes.Select(node => node.NodeId))],
+            topology,
             [result]);
+    }
+
+    private static AnalysisResultSet NormalizeSignedResultSet(AnalysisResultSet value)
+    {
+        StaticAnalysisResult firstResult = Assert.IsType<StaticAnalysisResult>(value.Results[0]);
+        double memberLength = firstResult.MemberSectionForces[0].Segments[0].Length;
+        AnalysisTopology topology = new(
+            value.Topology.Nodes,
+            value.Topology.Members.Select(member => new TopologyMember(
+                member.MemberId,
+                member.NodeI,
+                member.NodeJ,
+                member.LocalFrame,
+                [new MemberStation("S0", 0), new MemberStation("S1", memberLength)])),
+            value.Topology.ShellElements,
+            value.Topology.SolidElements);
+        AnalysisResult[] results = value.Results.Select(result =>
+        {
+            StaticAnalysisResult source = Assert.IsType<StaticAnalysisResult>(result);
+            return (AnalysisResult)new StaticAnalysisResult(
+                source.CaseId,
+                source.NodeDisplacements,
+                source.SupportReactions,
+                source.MemberSectionForces.Select(member => new MemberSectionForces(
+                    member.MemberId,
+                    member.Segments.Select(segment => new MemberSegmentResult(
+                        "S0-S1",
+                        "S0",
+                        "S1",
+                        segment.Length,
+                        segment.IEnd,
+                        segment.JEnd)))),
+                source.ShellResults,
+                source.SolidResults,
+                source.Diagnostics);
+        }).ToArray();
+        AnalysisResultSet normalized = new(
+            value.Kind,
+            value.SchemaVersion,
+            value.Units,
+            value.CoordinateSystem,
+            value.Cases,
+            topology,
+            results);
+        AnalysisResultSetValidator.Validate(normalized);
+        return normalized;
     }
 
     private static ProjectDocumentContent CreateContent() =>

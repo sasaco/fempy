@@ -77,6 +77,34 @@
   <data name="ViewportScaleLegend" xml:space="preserve"><value>倍率</value></data>
   <data name="ViewportColorLegend" xml:space="preserve"><value>大きさ</value></data>
   <data name="PngFileFilter" xml:space="preserve"><value>PNG画像 (*.png)|*.png|すべてのファイル (*.*)|*.*</value></data>
+  <data name="ResultCase" xml:space="preserve"><value>ケース</value></data>
+  <data name="ResultState" xml:space="preserve"><value>状態</value></data>
+  <data name="ResultDerived" xml:space="preserve"><value>派生結果</value></data>
+  <data name="ResultParent" xml:space="preserve"><value>ページ</value></data>
+  <data name="ResultChild" xml:space="preserve"><value>元ケース</value></data>
+  <data name="ResultBase" xml:space="preserve"><value>基本結果</value></data>
+  <data name="ResultMovingEnvelope" xml:space="preserve"><value>移動荷重包絡</value></data>
+  <data name="ResultCsv" xml:space="preserve"><value>結果 CSV</value></data>
+  <data name="ResultPickupCsv" xml:space="preserve"><value>PICKUP CSV</value></data>
+  <data name="ResultPickupExport" xml:space="preserve"><value>PICKUP エクスポート</value></data>
+  <data name="ResultCsvFileFilter" xml:space="preserve"><value>CSV ファイル (*.csv)|*.csv|すべてのファイル (*.*)|*.*</value></data>
+  <data name="ResultPickupPikFileFilter" xml:space="preserve"><value>PICKUP ファイル (*.pik)|*.pik|すべてのファイル (*.*)|*.*</value></data>
+  <data name="ResultExportLimitExceeded" xml:space="preserve"><value>結果のエクスポートが {0} の上限を超えました（要求: {2}、上限: {1}）。</value></data>
+  <data name="ResultPresentationLimitExceeded" xml:space="preserve"><value>結果表示が {0} の上限を超えました（要求: {2}、上限: {1}）。</value></data>
+  <data name="ResultExportFailed" xml:space="preserve"><value>結果エクスポートを保存できませんでした。</value></data>
+  <data name="ResultPresentationUnavailable" xml:space="preserve"><value>要求された結果表示を利用できません。</value></data>
+  <data name="ResultDerivedStaticOnly" xml:space="preserve"><value>派生結果「{0}」に使用できるのは静的ケースのみです。「{1}」は静的ケースではありません。</value></data>
+  <data name="ResultCategory" xml:space="preserve"><value>分類</value></data>
+  <data name="ResultEntity" xml:space="preserve"><value>対象</value></data>
+  <data name="ResultLocation" xml:space="preserve"><value>位置</value></data>
+  <data name="ResultComponent" xml:space="preserve"><value>成分</value></data>
+  <data name="ResultMaximumValue" xml:space="preserve"><value>最大値</value></data>
+  <data name="ResultMaximumCase" xml:space="preserve"><value>最大ケース</value></data>
+  <data name="ResultMinimumValue" xml:space="preserve"><value>最小値</value></data>
+  <data name="ResultMinimumCase" xml:space="preserve"><value>最小ケース</value></data>
+  <data name="ResultAbsoluteMaximumValue" xml:space="preserve"><value>絶対値最大</value></data>
+  <data name="ResultAbsoluteMaximumCase" xml:space="preserve"><value>絶対値最大ケース</value></data>
+  <data name="ResultMemberForceExtrema" xml:space="preserve"><value>部材力極値</value></data>
   <data name="ResultCoordinate" xml:space="preserve"><value>結果</value></data>
   <data name="ResultPrevious" xml:space="preserve"><value>前へ</value></data>
   <data name="ResultNext" xml:space="preserve"><value>次へ</value></data>

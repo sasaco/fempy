@@ -1,4 +1,5 @@
 using PDF_Manager.Core.Analysis;
+using PDF_Manager.Core.Results;
 using PDF_Manager.Rendering.Scene;
 
 namespace PDF_Manager.Shell.Viewport;
@@ -31,6 +32,11 @@ internal static class ViewportResultExtrema
         return Select(values, mode, static value => SignedValue(value.Components));
     }
 
+    internal static IReadOnlyList<NodeDisplacement> SelectDisplacements(
+        ResultTableSet? tables,
+        SceneExtremaMode mode) =>
+        Select(tables?.NodeDisplacements ?? [], mode, static value => SignedValue(value.Components));
+
     internal static IReadOnlyList<SupportReaction> SelectReactions(
         AnalysisResult? result,
         SceneExtremaMode mode)
@@ -41,6 +47,16 @@ internal static class ViewportResultExtrema
         return Select(values, mode, static value => SignedValue(value.Components));
     }
 
+    internal static IReadOnlyList<SupportReaction> SelectReactions(
+        ResultTableSet? tables,
+        SceneExtremaMode mode) =>
+        Select(tables?.SupportReactions ?? [], mode, static value => SignedValue(value.Components));
+
+    internal static IReadOnlyList<SupportReaction> SelectReactions(
+        IReadOnlyList<SupportReaction> values,
+        SceneExtremaMode mode) =>
+        Select(values, mode, static value => SignedValue(value.Components));
+
     internal static IReadOnlyList<ViewportSectionForceValue> SelectSectionForces(
         AnalysisResult? result,
         SceneExtremaMode mode)
@@ -49,9 +65,20 @@ internal static class ViewportResultExtrema
         {
             return [];
         }
+        return SelectSectionForces(force.MemberSectionForces, mode);
+    }
 
+    internal static IReadOnlyList<ViewportSectionForceValue> SelectSectionForces(
+        ResultTableSet? tables,
+        SceneExtremaMode mode) =>
+        SelectSectionForces(tables?.MemberSectionForces ?? [], mode);
+
+    private static IReadOnlyList<ViewportSectionForceValue> SelectSectionForces(
+        IReadOnlyList<MemberSectionForces> memberSectionForces,
+        SceneExtremaMode mode)
+    {
         List<ViewportSectionForceValue> values = [];
-        foreach (MemberSectionForces member in force.MemberSectionForces)
+        foreach (MemberSectionForces member in memberSectionForces)
         {
             foreach (MemberSegmentResult segment in member.Segments)
             {

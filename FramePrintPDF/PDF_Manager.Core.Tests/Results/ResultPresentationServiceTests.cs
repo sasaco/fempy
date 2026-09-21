@@ -40,7 +40,13 @@ public sealed class ResultPresentationServiceTests
         DerivedResultDefinition nonStatic = new(
             "X", "X", DerivedResultKind.Define, [new DerivedResultTerm("NL", 1)]);
 
-        Assert.Throws<ResultPresentationException>(() => service.BuildDerivedResults(nonlinear, [nonStatic]));
+        NonStaticDerivedOperandException nonStaticError = Assert.Throws<NonStaticDerivedOperandException>(
+            () => service.BuildDerivedResults(nonlinear, [nonStatic]));
+        Assert.Equal("X", nonStaticError.DerivedResultId);
+        Assert.Equal("NL", nonStaticError.OperandId);
+        Assert.Equal(AnalysisType.MaterialNonlinear, nonStaticError.OperandAnalysisType);
+        Assert.Equal("ResultDerivedStaticOnly", nonStaticError.ResourceKey);
+        Assert.Contains("NL", nonStaticError.Message, StringComparison.Ordinal);
 
         AnalysisResultSet staticSet = CreateStaticSet(("A", 2, 1, 1));
         DerivedResultDefinition missing = new(

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using PDF_Manager.Core.Analysis;
 using PDF_Manager.Core.Documents;
+using PDF_Manager.Core.Results;
 using PDF_Manager.Core.Shell;
 using PDF_Manager.Rendering;
 using PDF_Manager.Rendering.Scene;
@@ -21,6 +22,8 @@ public sealed class ProjectDocumentContent : ShellDockContent
     private readonly OpenGlViewportLifecycle _renderer = new();
     private readonly ProjectDocumentSceneProjector _projector = new();
     private readonly ViewportResultNavigator _resultNavigator = new();
+    private readonly ResultPresentationService _resultPresentationService = new();
+    private readonly ResultCsvExporter _resultCsvExporter = new();
     private readonly ViewportUpdateScheduler _updateScheduler;
     private readonly Dictionary<SceneLayerKind, long> _layerInvalidationCounts =
         Enum.GetValues<SceneLayerKind>().ToDictionary(kind => kind, _ => 0L);
@@ -61,6 +64,8 @@ public sealed class ProjectDocumentContent : ShellDockContent
     private readonly ToolStripButton _labels = new() { CheckOnClick = true, Name = "LabelsButton" };
     private readonly ToolStripButton _legends = new() { CheckOnClick = true, Name = "LegendsButton" };
     private readonly ToolStripButton _png = new() { Name = "PngButton" };
+    private readonly ToolStripButton _resultCsv = new() { Name = "ResultCsvExportButton" };
+    private readonly ToolStripButton _pickupCsv = new() { Name = "ResultPickupExportButton" };
     private readonly ToolStripLabel _layerLabel = new() { Name = "LayerLabel" };
     private readonly ToolStripComboBox _layerSelector = new()
     {
@@ -77,9 +82,49 @@ public sealed class ProjectDocumentContent : ShellDockContent
         Name = "ResultCoordinateSelector",
         Width = 180,
     };
+    private readonly ToolStripLabel _caseLabel = new() { Name = "ResultCaseLabel" };
+    private readonly ToolStripComboBox _caseSelector = new()
+    {
+        AutoSize = false,
+        DropDownStyle = ComboBoxStyle.DropDownList,
+        Name = "ResultCaseSelector",
+        Width = 132,
+    };
+    private readonly ToolStripLabel _stateLabel = new() { Name = "ResultStateLabel" };
+    private readonly ToolStripComboBox _stateSelector = new()
+    {
+        AutoSize = false,
+        DropDownStyle = ComboBoxStyle.DropDownList,
+        Name = "ResultStateSelector",
+        Width = 132,
+    };
     private readonly ToolStripButton _previousResult = new() { Name = "PreviousResultButton" };
     private readonly ToolStripButton _nextResult = new() { Name = "NextResultButton" };
     private readonly ToolStripLabel _page = new() { Name = "ResultPageLabel" };
+    private readonly ToolStripLabel _derivedLabel = new() { Name = "ResultDerivedLabel" };
+    private readonly ToolStripComboBox _derivedSelector = new()
+    {
+        AutoSize = false,
+        DropDownStyle = ComboBoxStyle.DropDownList,
+        Name = "ResultDerivedSelector",
+        Width = 132,
+    };
+    private readonly ToolStripLabel _parentLabel = new() { Name = "ResultParentLabel" };
+    private readonly ToolStripComboBox _parentSelector = new()
+    {
+        AutoSize = false,
+        DropDownStyle = ComboBoxStyle.DropDownList,
+        Name = "ResultParentSelector",
+        Width = 132,
+    };
+    private readonly ToolStripLabel _childLabel = new() { Name = "ResultChildLabel" };
+    private readonly ToolStripComboBox _childSelector = new()
+    {
+        AutoSize = false,
+        DropDownStyle = ComboBoxStyle.DropDownList,
+        Name = "ResultChildSelector",
+        Width = 132,
+    };
     private readonly ToolStripLabel _extremaLabel = new() { Name = "ResultExtremaLabel" };
     private readonly ToolStripComboBox _extremaSelector = new()
     {
@@ -113,9 +158,27 @@ public sealed class ProjectDocumentContent : ShellDockContent
         RowHeadersVisible = false,
         SelectionMode = DataGridViewSelectionMode.FullRowSelect,
     };
+    private readonly Label _resultPresentationError = new()
+    {
+        AutoSize = true,
+        BackColor = Color.FromArgb(255, 235, 238),
+        Dock = DockStyle.Top,
+        ForeColor = Color.FromArgb(183, 28, 28),
+        Name = "ResultPresentationErrorLabel",
+        Padding = new Padding(8, 4, 8, 4),
+        Visible = false,
+    };
 
     private ProjectDocument? _document;
     private AnalysisResultSet? _resultSet;
+    private IReadOnlyList<PresentedStaticResult> _derivedResults = [];
+    private IReadOnlyList<ResultPresentationPage> _resultPages = [];
+    private IReadOnlyDictionary<string, MovingLoadEnvelope> _movingLoadEnvelopes =
+        new ReadOnlyDictionary<string, MovingLoadEnvelope>(new Dictionary<string, MovingLoadEnvelope>());
+    private PresentedStaticResult? _selectedDerivedResult;
+    private ResultPresentationPage? _selectedResultPage;
+    private ResultPresentationSourcePage? _selectedSourcePage;
+    private ResultTableSet? _currentResultTables;
     private ViewportPresentationState _presentation = ViewportPresentationState.Default;
     private SceneLayerMask _lastInvalidatedLayers;
     private bool _updatingControls;
@@ -134,12 +197,16 @@ public sealed class ProjectDocumentContent : ShellDockContent
         ShowHint = WeifenLuo.WinFormsUI.Docking.DockState.Document;
         _toolbar.Items.AddRange(
         [
-            _projection, _fit, _home, _png, new ToolStripSeparator(),
+            _projection, _fit, _home, _png, _resultCsv, _pickupCsv, new ToolStripSeparator(),
             _grid, _axes, _labels, _legends, new ToolStripSeparator(),
             _layerLabel, _layerSelector, new ToolStripSeparator(),
+            _caseLabel, _caseSelector, _stateLabel, _stateSelector,
             _coordinateLabel, _coordinateSelector, _previousResult, _page, _nextResult,
+            _derivedLabel, _derivedSelector, _parentLabel, _parentSelector, _childLabel, _childSelector,
             _extremaLabel, _extremaSelector,
         ]);
+        _coordinateLabel.Visible = false;
+        _coordinateSelector.Visible = false;
         _viewport.Controls.Add(_renderer.Control);
         _viewport.Controls.Add(_renderFailure);
         _viewport.Controls.Add(_summary);
@@ -147,20 +214,28 @@ public sealed class ProjectDocumentContent : ShellDockContent
         _layout.Panel1.Controls.Add(_toolbar);
         _layout.Panel2.Controls.Add(_resultGrid);
         _layout.Panel2.Controls.Add(_resultTableSelector);
+        _layout.Panel2.Controls.Add(_resultPresentationError);
         Controls.Add(_layout);
 
         _projection.Click += OnProjectionClick;
         _fit.Click += OnFitClick;
         _home.Click += OnHomeClick;
         _png.Click += OnPngClick;
+        _resultCsv.Click += OnResultCsvClick;
+        _pickupCsv.Click += OnPickupCsvClick;
         _grid.CheckedChanged += OnDecorationChanged;
         _axes.CheckedChanged += OnDecorationChanged;
         _labels.CheckedChanged += OnDecorationChanged;
         _legends.CheckedChanged += OnDecorationChanged;
         _layerSelector.SelectedIndexChanged += OnLayerChanged;
+        _caseSelector.SelectedIndexChanged += OnCaseChanged;
+        _stateSelector.SelectedIndexChanged += OnStateChanged;
         _coordinateSelector.SelectedIndexChanged += OnCoordinateChanged;
         _previousResult.Click += OnPreviousResultClick;
         _nextResult.Click += OnNextResultClick;
+        _derivedSelector.SelectedIndexChanged += OnDerivedChanged;
+        _parentSelector.SelectedIndexChanged += OnParentChanged;
+        _childSelector.SelectedIndexChanged += OnChildChanged;
         _extremaSelector.SelectedIndexChanged += OnExtremaChanged;
         _resultTableSelector.SelectedIndexChanged += OnResultTableChanged;
         _resultGrid.SelectionChanged += OnResultGridSelectionChanged;
@@ -184,8 +259,16 @@ public sealed class ProjectDocumentContent : ShellDockContent
     public DataGridView ResultGrid => _resultGrid;
     public ComboBox ResultTableSelector => _resultTableSelector;
     public ToolStripComboBox ResultLayerSelector => _layerSelector;
+    public ToolStripComboBox ResultCaseSelector => _caseSelector;
+    public ToolStripComboBox ResultStateSelector => _stateSelector;
     public ToolStripComboBox ResultCoordinateSelector => _coordinateSelector;
+    public ToolStripComboBox ResultDerivedSelector => _derivedSelector;
+    public ToolStripComboBox ResultParentSelector => _parentSelector;
+    public ToolStripComboBox ResultChildSelector => _childSelector;
     public ToolStripComboBox ResultExtremaSelector => _extremaSelector;
+    public ToolStripButton ResultCsvExportButton => _resultCsv;
+    public ToolStripButton ResultPickupExportButton => _pickupCsv;
+    public Label ResultPresentationErrorLabel => _resultPresentationError;
     public ViewportProjection Projection => _renderer.Projection;
     public ViewportCameraState Camera => _renderer.Camera;
     public ViewportCameraPolicy CameraPolicy => _renderer.CameraPolicy;
@@ -195,6 +278,22 @@ public sealed class ProjectDocumentContent : ShellDockContent
         _renderer.VisibleLayers & (_renderer.Scene?.VisibleLayers ?? SceneLayerMask.None);
     public ViewportPresentationState Presentation => _presentation;
     public ResultCoordinate? SelectedResultCoordinate => _resultNavigator.CurrentCoordinate;
+    public string? SelectedDerivedResultId => _selectedDerivedResult?.Id;
+    public ResultPresentationPage? SelectedResultParentPage => _selectedResultPage;
+    public ResultPresentationSourcePage? SelectedResultSourcePage => _selectedSourcePage;
+    public MovingLoadEnvelope? SelectedMovingLoadEnvelope =>
+        _selectedResultPage is { IsMovingLoad: true } page &&
+        _movingLoadEnvelopes.TryGetValue(page.PageId, out MovingLoadEnvelope? envelope)
+            ? envelope
+            : null;
+    public bool CanExportSelectedResultCsv =>
+        SelectedMovingLoadEnvelope is not null ||
+        (_selectedDerivedResult is null && DisplayedResult is StaticAnalysisResult);
+    public bool CanExportSelectedPickupCsv =>
+        _document is not null &&
+        _selectedDerivedResult is { Kind: DerivedResultKind.Pickup, PickupEnvelope: not null };
+    public ResultPresentationLimits PresentationLimits { get; set; } = ResultPresentationLimits.Default;
+    public ResultPresentationUiError? LastResultPresentationError { get; private set; }
     public int ResultPageIndex => _resultNavigator.PageIndex;
     public int ResultPageCount => _resultNavigator.PageCount;
     public ViewportUpdateReason PendingUpdates => _updateScheduler.Pending;
@@ -226,16 +325,44 @@ public sealed class ProjectDocumentContent : ShellDockContent
 
     public void SetDocument(ProjectDocument? document, bool resetCamera)
     {
+        ResultPresentationCandidate candidate;
+        try
+        {
+            candidate = BuildResultPresentationCandidate(_resultSet, document);
+        }
+        catch (ResultPresentationLimitException exception)
+        {
+            SetResultPresentationError(exception);
+            throw;
+        }
+
         _document = document;
         _resetCameraAfterProjection |= resetCamera;
+        ApplyResultPresentationCandidate(candidate);
+        SynchronizePresentationPageFromCoordinate();
+        RefreshCurrentResultTables();
         ApplyLocalization();
         QueueSceneUpdate(ViewportUpdateReason.Document);
     }
 
     public void SetResult(AnalysisResultSet? resultSet)
     {
+        ResultPresentationCandidate candidate;
+        try
+        {
+            candidate = BuildResultPresentationCandidate(resultSet, _document);
+        }
+        catch (ResultPresentationLimitException exception)
+        {
+            SetResultPresentationError(exception);
+            throw;
+        }
+
         _resultSet = resultSet;
         _resultNavigator.SetResultSet(resultSet);
+        ApplyResultPresentationCandidate(candidate);
+        SynchronizePresentationPageFromCoordinate();
+        RefreshCurrentResultTables();
         RefreshResultCoordinateItems();
         RebuildResultTable();
         QueueSceneUpdate(ViewportUpdateReason.Result);
@@ -245,6 +372,9 @@ public sealed class ProjectDocumentContent : ShellDockContent
     {
         if (_resultNavigator.Select(coordinate))
         {
+            SelectBaseResult();
+            SynchronizePresentationPageFromCoordinate();
+            RefreshCurrentResultTables();
             RefreshResultCoordinateItems();
             RebuildResultTable();
             QueueSceneUpdate(ViewportUpdateReason.Result);
@@ -253,6 +383,44 @@ public sealed class ProjectDocumentContent : ShellDockContent
 
     public bool MoveToPreviousResult() => MoveResult(_resultNavigator.MovePrevious);
     public bool MoveToNextResult() => MoveResult(_resultNavigator.MoveNext);
+
+    public ResultExportArtifact ExportSelectedResultCsv(ResultCsvExportLimits? limits = null)
+    {
+        if (SelectedMovingLoadEnvelope is MovingLoadEnvelope movingLoad)
+        {
+            return ResultExportArtifact.From(_resultCsvExporter.ExportMovingLoad(movingLoad, limits));
+        }
+
+        if (_selectedDerivedResult is null && DisplayedResult is StaticAnalysisResult staticResult)
+        {
+            return ResultExportArtifact.From(_resultCsvExporter.ExportBaseStatic(staticResult, limits));
+        }
+
+        throw new ResultPresentationException(
+            ResultPresentationErrorCode.InvalidDefinition,
+            "The selected result cannot be exported as base-static or moving-load CSV.");
+    }
+
+    public ResultExportArtifact ExportSelectedPickupCsv(ResultCsvExportLimits? limits = null)
+    {
+        if (_document is not null &&
+            _selectedDerivedResult is { Kind: DerivedResultKind.Pickup, PickupEnvelope: not null } pickup)
+        {
+            return _document.Dimension == ModelDimension.TwoDimensional
+                ? ResultExportArtifact.From(_resultCsvExporter.ExportPickup2D(pickup, limits))
+                : ResultExportArtifact.From(_resultCsvExporter.ExportPickup(pickup, limits));
+        }
+
+        throw new ResultPresentationException(
+            ResultPresentationErrorCode.InvalidDefinition,
+            "The selected result is not a PICKUP result.");
+    }
+
+    public void SaveSelectedResultCsv(string path, ResultCsvExportLimits? limits = null) =>
+        SaveResultExport(path, ExportSelectedResultCsv(limits));
+
+    public void SaveSelectedPickupCsv(string path, ResultCsvExportLimits? limits = null) =>
+        SaveResultExport(path, ExportSelectedPickupCsv(limits));
 
     public void SetDisplayMode(ViewportDisplayMode mode)
     {
@@ -403,12 +571,19 @@ public sealed class ProjectDocumentContent : ShellDockContent
         _fit.Text = Localization["ViewportFit"];
         _home.Text = Localization["ViewportHome"];
         _png.Text = Localization["ViewportPng"];
+        _resultCsv.Text = Localization["ResultCsv"];
+        _pickupCsv.Text = Localization["ResultPickupExport"];
         _grid.Text = Localization["ViewportGrid"];
         _axes.Text = Localization["ViewportAxes"];
         _labels.Text = Localization["ViewportLabels"];
         _legends.Text = Localization["ViewportLegends"];
         _layerLabel.Text = Localization["ViewportLayer"];
+        _caseLabel.Text = Localization["ResultCase"];
+        _stateLabel.Text = Localization["ResultState"];
         _coordinateLabel.Text = Localization["ResultCoordinate"];
+        _derivedLabel.Text = Localization["ResultDerived"];
+        _parentLabel.Text = Localization["ResultParent"];
+        _childLabel.Text = Localization["ResultChild"];
         _previousResult.Text = Localization["ResultPrevious"];
         _nextResult.Text = Localization["ResultNext"];
         _extremaLabel.Text = Localization["ResultExtrema"];
@@ -435,11 +610,7 @@ public sealed class ProjectDocumentContent : ShellDockContent
             ]);
             _extremaSelector.SelectedIndex = extrema is >= 0 and <= 3 ? extrema : (int)_presentation.ExtremaMode;
 
-            int table = _resultTableSelector.SelectedIndex;
-            _resultTableSelector.Items.Clear();
-            _resultTableSelector.Items.AddRange(
-                [Localization["ResultDisplacements"], Localization["ResultReactions"], Localization["ResultMemberForces"]]);
-            _resultTableSelector.SelectedIndex = table is >= 0 and <= 2 ? table : 0;
+            RefreshResultTableItems();
             _grid.Checked = _presentation.ShowGrid;
             _axes.Checked = _presentation.ShowAxes;
             _labels.Checked = _presentation.ShowLabels;
@@ -451,7 +622,9 @@ public sealed class ProjectDocumentContent : ShellDockContent
         }
 
         UpdateProjectionCaption();
+        RelocalizeResultPresentationError();
         RefreshResultCoordinateItems();
+        RebuildResultTable();
     }
 
     protected override void Dispose(bool disposing)
@@ -463,14 +636,21 @@ public sealed class ProjectDocumentContent : ShellDockContent
             _fit.Click -= OnFitClick;
             _home.Click -= OnHomeClick;
             _png.Click -= OnPngClick;
+            _resultCsv.Click -= OnResultCsvClick;
+            _pickupCsv.Click -= OnPickupCsvClick;
             _grid.CheckedChanged -= OnDecorationChanged;
             _axes.CheckedChanged -= OnDecorationChanged;
             _labels.CheckedChanged -= OnDecorationChanged;
             _legends.CheckedChanged -= OnDecorationChanged;
             _layerSelector.SelectedIndexChanged -= OnLayerChanged;
+            _caseSelector.SelectedIndexChanged -= OnCaseChanged;
+            _stateSelector.SelectedIndexChanged -= OnStateChanged;
             _coordinateSelector.SelectedIndexChanged -= OnCoordinateChanged;
             _previousResult.Click -= OnPreviousResultClick;
             _nextResult.Click -= OnNextResultClick;
+            _derivedSelector.SelectedIndexChanged -= OnDerivedChanged;
+            _parentSelector.SelectedIndexChanged -= OnParentChanged;
+            _childSelector.SelectedIndexChanged -= OnChildChanged;
             _extremaSelector.SelectedIndexChanged -= OnExtremaChanged;
             _resultTableSelector.SelectedIndexChanged -= OnResultTableChanged;
             _resultGrid.SelectionChanged -= OnResultGridSelectionChanged;
@@ -493,11 +673,222 @@ public sealed class ProjectDocumentContent : ShellDockContent
         bool changed = move();
         if (changed)
         {
+            SelectBaseResult();
+            SynchronizePresentationPageFromCoordinate();
+            RefreshCurrentResultTables();
             RefreshResultCoordinateItems();
             RebuildResultTable();
             QueueSceneUpdate(ViewportUpdateReason.Result);
         }
         return changed;
+    }
+
+    private AnalysisResult? DisplayedResult =>
+        _selectedDerivedResult?.AnalysisResult ?? _selectedSourcePage?.Result ?? _resultNavigator.Current;
+
+    private IReadOnlyList<SupportReaction>? DisplayedReactionProjection =>
+        _selectedDerivedResult is null &&
+        _selectedResultPage is { IsMovingLoad: true } &&
+        _selectedSourcePage is { IsParent: true }
+            ? SelectedMovingLoadEnvelope?.AbsoluteReactionProjection
+            : null;
+
+    private ResultPresentationCandidate BuildResultPresentationCandidate(
+        AnalysisResultSet? resultSet,
+        ProjectDocument? document)
+    {
+        if (resultSet is null)
+        {
+            return ResultPresentationCandidate.Empty;
+        }
+
+        AnalysisResultSetValidator.Validate(resultSet);
+        ResultPresentationBudget budget = new(PresentationLimits);
+        IReadOnlyList<MovingLoadDefinition> movingLoads = document?.MovingLoads ?? [];
+        IReadOnlyList<DerivedResultDefinition> derivedDefinitions = document?.DerivedResults ?? [];
+        ResultPresentationException? error = null;
+        IReadOnlyList<ResultPresentationPage> pages;
+        try
+        {
+            pages = _resultPresentationService.BuildPages(resultSet, movingLoads, budget);
+        }
+        catch (ResultPresentationLimitException)
+        {
+            throw;
+        }
+        catch (ResultPresentationException exception)
+        {
+            error = exception;
+            pages = _resultPresentationService.BuildPages(resultSet, [], budget);
+        }
+
+        IReadOnlyList<PresentedStaticResult> derivedResults;
+        try
+        {
+            derivedResults = _resultPresentationService.BuildDerivedResults(resultSet, derivedDefinitions, budget);
+        }
+        catch (ResultPresentationLimitException)
+        {
+            throw;
+        }
+        catch (NonStaticDerivedOperandException exception)
+        {
+            error = exception;
+            derivedResults = [];
+        }
+        catch (ResultPresentationException exception)
+        {
+            error ??= exception;
+            derivedResults = [];
+        }
+
+        Dictionary<string, MovingLoadEnvelope> envelopes = new(StringComparer.Ordinal);
+        if (error is null || pages.Any(page => page.IsMovingLoad))
+        {
+            foreach (MovingLoadDefinition movingLoad in movingLoads)
+            {
+                if (!pages.Any(page => page.IsMovingLoad &&
+                    string.Equals(page.PageId, movingLoad.Id, StringComparison.Ordinal)))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    envelopes.Add(
+                        movingLoad.Id,
+                        _resultPresentationService.BuildMovingLoadEnvelope(resultSet, movingLoad, budget));
+                }
+                catch (ResultPresentationLimitException)
+                {
+                    throw;
+                }
+                catch (ResultPresentationException exception)
+                {
+                    error ??= exception;
+                }
+            }
+        }
+
+        return new ResultPresentationCandidate(
+            derivedResults,
+            pages,
+            new ReadOnlyDictionary<string, MovingLoadEnvelope>(envelopes),
+            error);
+    }
+
+    private void ApplyResultPresentationCandidate(ResultPresentationCandidate candidate)
+    {
+        _derivedResults = candidate.DerivedResults;
+        _resultPages = candidate.Pages;
+        _movingLoadEnvelopes = candidate.MovingLoadEnvelopes;
+        if (_selectedDerivedResult is not null &&
+            !_derivedResults.Any(result => string.Equals(result.Id, _selectedDerivedResult.Id, StringComparison.Ordinal)))
+        {
+            _selectedDerivedResult = null;
+        }
+
+        if (candidate.Error is null)
+        {
+            ClearResultPresentationError();
+        }
+        else
+        {
+            SetResultPresentationError(candidate.Error);
+        }
+    }
+
+    private void SelectBaseResult() => _selectedDerivedResult = null;
+
+    private void SynchronizePresentationPageFromCoordinate()
+    {
+        ResultCoordinate? coordinate = _resultNavigator.CurrentCoordinate;
+        _selectedResultPage = null;
+        _selectedSourcePage = null;
+        if (coordinate is null)
+        {
+            return;
+        }
+
+        foreach (ResultPresentationPage page in _resultPages)
+        {
+            ResultPresentationSourcePage? source = page.SourcePages
+                .FirstOrDefault(value => value.Result.Coordinate == coordinate.Value);
+            if (source is not null)
+            {
+                _selectedResultPage = page;
+                _selectedSourcePage = source;
+                return;
+            }
+        }
+    }
+
+    private void RefreshCurrentResultTables()
+    {
+        _currentResultTables = _selectedDerivedResult is not null
+            ? _resultPresentationService.BuildTables(_selectedDerivedResult)
+            : _resultSet is not null && _resultNavigator.CurrentCoordinate is ResultCoordinate coordinate
+                ? _resultPresentationService.BuildTables(_resultSet, coordinate)
+                : null;
+        RefreshResultTableItems();
+    }
+
+    private void SetResultPresentationError(Exception exception)
+    {
+        string resourceKey = exception switch
+        {
+            NonStaticDerivedOperandException nonStatic => nonStatic.ResourceKey,
+            ResultExportLimitException limit => limit.ResourceKey,
+            ResultPresentationLimitException limit => limit.ResourceKey,
+            ResultExportOperationException export => export.ResourceKey,
+            _ => "ResultPresentationUnavailable",
+        };
+        string message = exception switch
+        {
+            NonStaticDerivedOperandException typed => string.Format(
+                Localization.Culture,
+                Localization[resourceKey],
+                typed.DerivedResultId,
+                typed.OperandId),
+            ResultExportLimitException limit => string.Format(
+                Localization.Culture,
+                Localization[resourceKey],
+                limit.LimitKind,
+                limit.Limit,
+                limit.Actual),
+            ResultPresentationLimitException limit => string.Format(
+                Localization.Culture,
+                Localization[resourceKey],
+                limit.LimitKind,
+                limit.Limit,
+                limit.Actual),
+            _ => Localization[resourceKey],
+        };
+        ResultPresentationErrorCode code = exception is ResultPresentationException presentation
+            ? presentation.Code
+            : ResultPresentationErrorCode.InvalidDefinition;
+        LastResultPresentationError = new ResultPresentationUiError(
+            code,
+            resourceKey,
+            message,
+            exception);
+        _resultPresentationError.Text = message;
+        _resultPresentationError.Visible = true;
+    }
+
+    private void ClearResultPresentationError()
+    {
+        LastResultPresentationError = null;
+        _resultPresentationError.Text = string.Empty;
+        _resultPresentationError.Visible = false;
+    }
+
+    private void RelocalizeResultPresentationError()
+    {
+        if (LastResultPresentationError?.Exception is Exception exception)
+        {
+            SetResultPresentationError(exception);
+        }
     }
 
     private void QueueSceneUpdate(ViewportUpdateReason reason)
@@ -535,11 +926,12 @@ public sealed class ProjectDocumentContent : ShellDockContent
         try
         {
             ViewportSceneProjection projection = _projector.Project(
-                _sceneStableId, _document, _resultSet, _resultNavigator.Current,
+                _sceneStableId, _document, _resultSet, DisplayedResult,
                 Math.Max(0, _resultNavigator.PageIndex), Math.Max(1, _resultNavigator.PageCount),
                 _presentation,
                 new ViewportSceneProjectionText(Localization["ViewportScaleLegend"], Localization["ViewportColorLegend"]),
-                _renderer.Scene);
+                _renderer.Scene,
+                DisplayedReactionProjection);
             SceneProjectionCount++;
             _lastInvalidatedLayers = projection.ChangedLayers;
             CountInvalidations(projection.ChangedLayers);
@@ -614,6 +1006,27 @@ public sealed class ProjectDocumentContent : ShellDockContent
         _updatingControls = true;
         try
         {
+            _caseSelector.Items.Clear();
+            foreach (AnalysisCase resultCase in _resultNavigator.Cases)
+            {
+                _caseSelector.Items.Add(new ResultCaseItem(
+                    resultCase.CaseId,
+                    $"{resultCase.CaseId} · {resultCase.Name}"));
+            }
+
+            _caseSelector.SelectedIndex = _resultNavigator.CurrentCaseIndex;
+
+            _stateSelector.Items.Clear();
+            if (_resultNavigator.Current is AnalysisResult current)
+            {
+                foreach (AnalysisResult result in _resultNavigator.GetStates(current.CaseId))
+                {
+                    _stateSelector.Items.Add(new ResultStateItem(result.Coordinate, DescribeResultState(result)));
+                }
+            }
+
+            _stateSelector.SelectedIndex = _resultNavigator.CurrentStateIndex;
+
             _coordinateSelector.Items.Clear();
             if (_resultSet is not null)
                 foreach (AnalysisResult result in _resultSet.Results)
@@ -625,11 +1038,63 @@ public sealed class ProjectDocumentContent : ShellDockContent
                     _coordinateSelector.SelectedIndex = index;
                     break;
                 }
+
+            _derivedSelector.Items.Clear();
+            _derivedSelector.Items.Add(new DerivedResultItem(null, Localization["ResultBase"]));
+            foreach (PresentedStaticResult derived in _derivedResults)
+            {
+                _derivedSelector.Items.Add(new DerivedResultItem(
+                    derived,
+                    $"{derived.Id} · {derived.Name}"));
+            }
+
+            _derivedSelector.SelectedIndex = 0;
+            if (_selectedDerivedResult is not null)
+            {
+                for (int index = 1; index < _derivedSelector.Items.Count; index++)
+                {
+                    if (_derivedSelector.Items[index] is DerivedResultItem item &&
+                        string.Equals(item.Result?.Id, _selectedDerivedResult.Id, StringComparison.Ordinal))
+                    {
+                        _derivedSelector.SelectedIndex = index;
+                        break;
+                    }
+                }
+            }
+
+            _parentSelector.Items.Clear();
+            foreach (ResultPresentationPage page in _resultPages)
+            {
+                _parentSelector.Items.Add(new ResultParentItem(page, DescribeResultParent(page)));
+            }
+
+            _parentSelector.SelectedIndex = FindParentSelectorIndex(_selectedResultPage);
+
+            _childSelector.Items.Clear();
+            if (_selectedResultPage is not null)
+            {
+                foreach (ResultPresentationSourcePage source in _selectedResultPage.SourcePages)
+                {
+                    _childSelector.Items.Add(new ResultChildItem(source, DescribeResult(source.Result)));
+                }
+            }
+
+            _childSelector.SelectedIndex = FindChildSelectorIndex(_selectedSourcePage);
         }
         finally
         {
             _updatingControls = false;
         }
+        bool hasResults = _resultNavigator.PageCount > 0;
+        _caseSelector.Enabled = hasResults;
+        _stateSelector.Enabled = hasResults;
+        _coordinateSelector.Enabled = hasResults;
+        _derivedSelector.Enabled = _derivedResults.Count > 0;
+        _parentSelector.Enabled = _resultPages.Count > 0;
+        _childSelector.Enabled = _selectedResultPage?.SourcePages.Count > 1;
+        _extremaSelector.Enabled = _currentResultTables is not null;
+        _resultCsv.Enabled = CanExportSelectedResultCsv;
+        _pickupCsv.Enabled = CanExportSelectedPickupCsv;
         _previousResult.Enabled = _resultNavigator.CanMovePrevious;
         _nextResult.Enabled = _resultNavigator.CanMoveNext;
         _page.Text = string.Format(
@@ -640,6 +1105,60 @@ public sealed class ProjectDocumentContent : ShellDockContent
 
     private string DescribeResult(AnalysisResult result)
     {
+        return $"{result.CaseId} · {DescribeResultState(result)}";
+    }
+
+    private string DescribeResultParent(ResultPresentationPage page)
+    {
+        if (!page.IsMovingLoad)
+        {
+            return DescribeResult(page.PrimaryResult);
+        }
+
+        string name = _document?.MovingLoads
+            .FirstOrDefault(value => string.Equals(value.Id, page.PageId, StringComparison.Ordinal))?.Name
+            ?? page.PageId;
+        return $"{page.PageId} · {name}";
+    }
+
+    private int FindParentSelectorIndex(ResultPresentationPage? selected)
+    {
+        if (selected is null)
+        {
+            return -1;
+        }
+
+        for (int index = 0; index < _resultPages.Count; index++)
+        {
+            if (string.Equals(_resultPages[index].PageId, selected.PageId, StringComparison.Ordinal))
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    private int FindChildSelectorIndex(ResultPresentationSourcePage? selected)
+    {
+        if (selected is null || _selectedResultPage is null)
+        {
+            return -1;
+        }
+
+        for (int index = 0; index < _selectedResultPage.SourcePages.Count; index++)
+        {
+            if (_selectedResultPage.SourcePages[index].Result.Coordinate == selected.Result.Coordinate)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    private string DescribeResultState(AnalysisResult result)
+    {
         string state = result.State.Kind switch
         {
             ResultStateKind.Static => Localization["ResultStateStatic"],
@@ -648,8 +1167,39 @@ public sealed class ProjectDocumentContent : ShellDockContent
             _ => throw new ArgumentOutOfRangeException(nameof(result)),
         };
         return result.State.Kind == ResultStateKind.Static
-            ? $"{result.CaseId} · {state}"
-            : $"{result.CaseId} · {state} {result.State.Index + 1}";
+            ? state
+            : $"{state} {result.State.Index + 1}";
+    }
+
+    private void RefreshResultTableItems()
+    {
+        int selected = Math.Max(0, _resultTableSelector.SelectedIndex);
+        bool wasUpdating = _updatingControls;
+        _updatingControls = true;
+        try
+        {
+            _resultTableSelector.Items.Clear();
+            _resultTableSelector.Items.Add(Localization["ResultDisplacements"]);
+            if (_currentResultTables is { IsModal: false })
+            {
+                _resultTableSelector.Items.Add(Localization["ResultReactions"]);
+                _resultTableSelector.Items.Add(Localization["ResultMemberForces"]);
+            }
+
+            if (SelectedMovingLoadEnvelope is not null)
+            {
+                _resultTableSelector.Items.Add(Localization["ResultMovingEnvelope"]);
+            }
+
+            _resultTableSelector.Enabled = _currentResultTables is not null;
+            _resultTableSelector.SelectedIndex = _resultTableSelector.Items.Count == 0
+                ? -1
+                : Math.Min(selected, _resultTableSelector.Items.Count - 1);
+        }
+        finally
+        {
+            _updatingControls = wasUpdating;
+        }
     }
 
     private void RebuildResultTable()
@@ -665,7 +1215,7 @@ public sealed class ProjectDocumentContent : ShellDockContent
             {
                 AddColumns("EditorNode", "EditorX", "EditorY", "EditorZ", "EditorRx", "EditorRy", "EditorRz");
                 foreach (NodeDisplacement row in ViewportResultExtrema.SelectDisplacements(
-                             _resultNavigator.Current,
+                             _currentResultTables,
                              _presentation.ExtremaMode))
                 {
                     if (!TryReserveResultRows(1)) break;
@@ -679,7 +1229,7 @@ public sealed class ProjectDocumentContent : ShellDockContent
             {
                 AddColumns("EditorNode", "EditorFx", "EditorFy", "EditorFz", "EditorMx", "EditorMy", "EditorMz");
                 foreach (SupportReaction row in ViewportResultExtrema.SelectReactions(
-                             _resultNavigator.Current,
+                             _currentResultTables,
                              _presentation.ExtremaMode))
                 {
                     if (!TryReserveResultRows(1)) break;
@@ -689,13 +1239,13 @@ public sealed class ProjectDocumentContent : ShellDockContent
                         Format(row.Components.Mx), Format(row.Components.My), Format(row.Components.Mz));
                 }
             }
-            else
+            else if (table == 2)
             {
                 AddColumns(
                     "EditorMember", "ResultStation", "ResultEnd", "EditorFx", "EditorFy",
                     "EditorFz", "EditorMx", "EditorMy", "EditorMz");
                 IReadOnlyList<ViewportSectionForceValue> values = ViewportResultExtrema.SelectSectionForces(
-                    _resultNavigator.Current,
+                    _currentResultTables,
                     _presentation.ExtremaMode);
                 if (_presentation.ExtremaMode == SceneExtremaMode.Values)
                 {
@@ -718,6 +1268,10 @@ public sealed class ProjectDocumentContent : ShellDockContent
                     AddMemberForceRow(values[0]);
                 }
             }
+            else if (SelectedMovingLoadEnvelope is MovingLoadEnvelope envelope)
+            {
+                AddMovingLoadEnvelopeRows(envelope);
+            }
             if (ResultTableTruncated) _resultGrid.Rows.Add(Localization["ResultTruncated"]);
         }
         finally
@@ -733,6 +1287,163 @@ public sealed class ProjectDocumentContent : ShellDockContent
             value.MemberId, value.StationId, value.EndLabel,
             Format(value.Components.Fx), Format(value.Components.Fy), Format(value.Components.Fz),
             Format(value.Components.Mx), Format(value.Components.My), Format(value.Components.Mz));
+
+    private void AddMovingLoadEnvelopeRows(MovingLoadEnvelope envelope)
+    {
+        AddColumns(
+            "ResultCategory", "ResultEntity", "ResultLocation", "ResultComponent",
+            "ResultMaximumValue", "ResultMaximumCase", "ResultMinimumValue", "ResultMinimumCase",
+            "ResultAbsoluteMaximumValue", "ResultAbsoluteMaximumCase");
+        foreach (NodeDisplacementEnvelope node in envelope.NodeDisplacements)
+        {
+            foreach ((string component, ScalarEnvelope value) in DisplacementEnvelopes(node.Components))
+            {
+                if (!AddEnvelopeRow(Localization["ResultDisplacements"], node.NodeId, string.Empty, component, value))
+                {
+                    return;
+                }
+            }
+        }
+
+        foreach (SupportReactionEnvelope reaction in envelope.SupportReactions)
+        {
+            SupportReactionAbsoluteMaximum? absolute = envelope.AbsoluteSupportReactions
+                .FirstOrDefault(value => string.Equals(value.NodeId, reaction.NodeId, StringComparison.Ordinal));
+            foreach ((string component, ScalarEnvelope value) in ForceEnvelopes(reaction.Components))
+            {
+                EnvelopeExtreme? absoluteMaximum = absolute is null
+                    ? null
+                    : AbsoluteReactionExtreme(absolute, component);
+                if (!AddEnvelopeRow(
+                    Localization["ResultReactions"],
+                    reaction.NodeId,
+                    string.Empty,
+                    component,
+                    value,
+                    absoluteMaximum))
+                {
+                    return;
+                }
+            }
+        }
+
+        foreach (MemberSectionForceEnvelope member in envelope.MemberSectionForces)
+        {
+            foreach (MemberSegmentEnvelope segment in member.Segments)
+            {
+                foreach ((string component, ScalarEnvelope value) in ForceEnvelopes(segment.IEnd))
+                {
+                    if (!AddEnvelopeRow(
+                        Localization["ResultMemberForces"], member.MemberId, $"{segment.SegmentId}/I", component, value))
+                    {
+                        return;
+                    }
+                }
+
+                foreach ((string component, ScalarEnvelope value) in ForceEnvelopes(segment.JEnd))
+                {
+                    if (!AddEnvelopeRow(
+                        Localization["ResultMemberForces"], member.MemberId, $"{segment.SegmentId}/J", component, value))
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+
+        if (envelope.MemberForceExtrema is { HasValues: true } extrema)
+        {
+            foreach ((string component, MemberForceScalarExtrema value) in MemberForceExtrema(extrema))
+            {
+                if (!value.HasValue)
+                {
+                    continue;
+                }
+
+                if (!TryReserveResultRows(1))
+                {
+                    return;
+                }
+
+                _resultGrid.Rows.Add(
+                    Localization["ResultMemberForceExtrema"],
+                    value.AbsoluteMaximum.MemberId,
+                    $"{value.AbsoluteMaximum.SegmentId}/{value.AbsoluteMaximum.End}",
+                    component,
+                    Format(value.Maximum.Value), value.Maximum.CaseId,
+                    Format(value.Minimum.Value), value.Minimum.CaseId,
+                    Format(value.AbsoluteMaximum.Value), value.AbsoluteMaximum.CaseId);
+            }
+        }
+    }
+
+    private bool AddEnvelopeRow(
+        string category,
+        string entity,
+        string location,
+        string component,
+        ScalarEnvelope value,
+        EnvelopeExtreme? absoluteMaximum = null)
+    {
+        if (!TryReserveResultRows(1))
+        {
+            return false;
+        }
+
+        _resultGrid.Rows.Add(
+            category, entity, location, component,
+            Format(value.Maximum.Value), value.Maximum.CaseId,
+            Format(value.Minimum.Value), value.Minimum.CaseId,
+            Format((absoluteMaximum ?? value.AbsoluteMaximum).Value),
+            (absoluteMaximum ?? value.AbsoluteMaximum).CaseId);
+        return true;
+    }
+
+    private static EnvelopeExtreme AbsoluteReactionExtreme(
+        SupportReactionAbsoluteMaximum reaction,
+        string component) => component switch
+        {
+            "Fx" => new EnvelopeExtreme(reaction.Components.Fx, reaction.SourceCaseIds.Fx),
+            "Fy" => new EnvelopeExtreme(reaction.Components.Fy, reaction.SourceCaseIds.Fy),
+            "Fz" => new EnvelopeExtreme(reaction.Components.Fz, reaction.SourceCaseIds.Fz),
+            "Mx" => new EnvelopeExtreme(reaction.Components.Mx, reaction.SourceCaseIds.Mx),
+            "My" => new EnvelopeExtreme(reaction.Components.My, reaction.SourceCaseIds.My),
+            "Mz" => new EnvelopeExtreme(reaction.Components.Mz, reaction.SourceCaseIds.Mz),
+            _ => throw new ArgumentOutOfRangeException(nameof(component), component, null),
+        };
+
+    private static IEnumerable<(string Component, ScalarEnvelope Value)> DisplacementEnvelopes(
+        DisplacementEnvelopeComponents values)
+    {
+        yield return ("Dx", values.Dx);
+        yield return ("Dy", values.Dy);
+        yield return ("Dz", values.Dz);
+        yield return ("Rx", values.Rx);
+        yield return ("Ry", values.Ry);
+        yield return ("Rz", values.Rz);
+    }
+
+    private static IEnumerable<(string Component, ScalarEnvelope Value)> ForceEnvelopes(
+        ForceEnvelopeComponents values)
+    {
+        yield return ("Fx", values.Fx);
+        yield return ("Fy", values.Fy);
+        yield return ("Fz", values.Fz);
+        yield return ("Mx", values.Mx);
+        yield return ("My", values.My);
+        yield return ("Mz", values.Mz);
+    }
+
+    private static IEnumerable<(string Component, MemberForceScalarExtrema Value)> MemberForceExtrema(
+        MemberForceExtremaComponents values)
+    {
+        yield return ("Fx", values.Fx);
+        yield return ("Fy", values.Fy);
+        yield return ("Fz", values.Fz);
+        yield return ("Mx", values.Mx);
+        yield return ("My", values.My);
+        yield return ("Mz", values.Mz);
+    }
 
     private void AddTaggedRow(SceneEntityKey key, params object?[] values)
     {
@@ -805,6 +1516,59 @@ public sealed class ProjectDocumentContent : ShellDockContent
         }
     }
 
+    private void OnResultCsvClick(object? sender, EventArgs eventArgs) =>
+        ExportResultWithDialog(ExportSelectedResultCsv);
+
+    private void OnPickupCsvClick(object? sender, EventArgs eventArgs) =>
+        ExportResultWithDialog(ExportSelectedPickupCsv);
+
+    private void ExportResultWithDialog(Func<ResultCsvExportLimits?, ResultExportArtifact> createExport)
+    {
+        try
+        {
+            ResultExportArtifact export = createExport(null);
+            bool isPickup2D = string.Equals(
+                Path.GetExtension(export.SuggestedFileName),
+                ".pik",
+                StringComparison.OrdinalIgnoreCase);
+            using SaveFileDialog dialog = new()
+            {
+                AddExtension = true,
+                DefaultExt = isPickup2D ? "pik" : "csv",
+                FileName = export.SuggestedFileName,
+                Filter = Localization[isPickup2D ? "ResultPickupPikFileFilter" : "ResultCsvFileFilter"],
+            };
+            if (dialog.ShowDialog(this) != DialogResult.OK)
+            {
+                return;
+            }
+
+            SaveResultExport(dialog.FileName, export);
+        }
+        catch (ResultPresentationException exception)
+        {
+            SetResultPresentationError(exception);
+        }
+        catch (ResultExportOperationException exception)
+        {
+            SetResultPresentationError(exception);
+        }
+    }
+
+    private static void SaveResultExport(string path, ResultExportArtifact export)
+    {
+        try
+        {
+            AtomicResultExportWriter.Write(path, export);
+        }
+        catch (Exception exception) when (
+            exception is IOException or UnauthorizedAccessException or ArgumentException or
+            NotSupportedException or System.Security.SecurityException)
+        {
+            throw new ResultExportOperationException(exception);
+        }
+    }
+
     private void OnDecorationChanged(object? sender, EventArgs eventArgs)
     {
         if (!_updatingControls) SetDecorations(_grid.Checked, _axes.Checked, _labels.Checked, _legends.Checked);
@@ -827,8 +1591,96 @@ public sealed class ProjectDocumentContent : ShellDockContent
             SetResultCoordinate(item.Coordinate);
     }
 
+    private void OnCaseChanged(object? sender, EventArgs eventArgs)
+    {
+        if (_updatingControls || _caseSelector.SelectedItem is not ResultCaseItem item)
+        {
+            return;
+        }
+
+        if (_resultNavigator.SelectCase(item.CaseId))
+        {
+            SelectBaseResult();
+            SynchronizePresentationPageFromCoordinate();
+            RefreshCurrentResultTables();
+            RefreshResultCoordinateItems();
+            RebuildResultTable();
+            QueueSceneUpdate(ViewportUpdateReason.Result);
+        }
+    }
+
+    private void OnStateChanged(object? sender, EventArgs eventArgs)
+    {
+        if (_updatingControls || _stateSelector.SelectedIndex < 0)
+        {
+            return;
+        }
+
+        if (_resultNavigator.SelectState(_stateSelector.SelectedIndex))
+        {
+            SelectBaseResult();
+            SynchronizePresentationPageFromCoordinate();
+            RefreshCurrentResultTables();
+            RefreshResultCoordinateItems();
+            RebuildResultTable();
+            QueueSceneUpdate(ViewportUpdateReason.Result);
+        }
+    }
+
     private void OnPreviousResultClick(object? sender, EventArgs eventArgs) => MoveToPreviousResult();
     private void OnNextResultClick(object? sender, EventArgs eventArgs) => MoveToNextResult();
+
+    private void OnDerivedChanged(object? sender, EventArgs eventArgs)
+    {
+        if (_updatingControls || _derivedSelector.SelectedItem is not DerivedResultItem item)
+        {
+            return;
+        }
+
+        _selectedDerivedResult = item.Result;
+        RefreshCurrentResultTables();
+        RefreshResultCoordinateItems();
+        RebuildResultTable();
+        QueueSceneUpdate(ViewportUpdateReason.Result);
+    }
+
+    private void OnParentChanged(object? sender, EventArgs eventArgs)
+    {
+        if (_updatingControls || _parentSelector.SelectedItem is not ResultParentItem item)
+        {
+            return;
+        }
+
+        SelectPresentationResult(
+            item.Page,
+            item.Page.SourcePages.FirstOrDefault(source => source.IsParent) ?? item.Page.SourcePages[0]);
+    }
+
+    private void OnChildChanged(object? sender, EventArgs eventArgs)
+    {
+        if (_updatingControls ||
+            _selectedResultPage is null ||
+            _childSelector.SelectedItem is not ResultChildItem item)
+        {
+            return;
+        }
+
+        SelectPresentationResult(_selectedResultPage, item.Source);
+    }
+
+    private void SelectPresentationResult(
+        ResultPresentationPage page,
+        ResultPresentationSourcePage source)
+    {
+        SelectBaseResult();
+        _resultNavigator.Select(source.Result.Coordinate);
+        _selectedResultPage = page;
+        _selectedSourcePage = source;
+        RefreshCurrentResultTables();
+        RefreshResultCoordinateItems();
+        RebuildResultTable();
+        QueueSceneUpdate(ViewportUpdateReason.Result);
+    }
 
     private void OnExtremaChanged(object? sender, EventArgs eventArgs)
     {
@@ -853,13 +1705,13 @@ public sealed class ProjectDocumentContent : ShellDockContent
         bool retained = selection.Kind switch
         {
             SceneEntityKind.Displacement => ViewportResultExtrema
-                .SelectDisplacements(_resultNavigator.Current, extrema)
+                .SelectDisplacements(_currentResultTables, extrema)
                 .Any(value => string.Equals(value.NodeId, selection.Id, StringComparison.Ordinal)),
             SceneEntityKind.Reaction => ViewportResultExtrema
-                .SelectReactions(_resultNavigator.Current, extrema)
+                .SelectReactions(_currentResultTables, extrema)
                 .Any(value => string.Equals(value.NodeId, selection.Id, StringComparison.Ordinal)),
             SceneEntityKind.SectionForce => ViewportResultExtrema
-                .SelectSectionForces(_resultNavigator.Current, extrema)
+                .SelectSectionForces(_currentResultTables, extrema)
                 .Any(value => string.Equals(value.Id, selection.Id, StringComparison.Ordinal)),
             _ => true,
         };
@@ -884,7 +1736,13 @@ public sealed class ProjectDocumentContent : ShellDockContent
         ViewportFailed?.Invoke(this, new EditorValidationEventArgs(failure.SafeMessage));
     }
 
-    private void OnResultTableChanged(object? sender, EventArgs eventArgs) => RebuildResultTable();
+    private void OnResultTableChanged(object? sender, EventArgs eventArgs)
+    {
+        if (!_updatingControls)
+        {
+            RebuildResultTable();
+        }
+    }
 
     private void OnResultGridSelectionChanged(object? sender, EventArgs eventArgs)
     {
@@ -924,5 +1782,49 @@ public sealed class ProjectDocumentContent : ShellDockContent
     {
         public ResultCoordinate Coordinate { get; } = coordinate;
         public override string ToString() => display;
+    }
+
+    private sealed class ResultCaseItem(string caseId, string display)
+    {
+        public string CaseId { get; } = caseId;
+        public override string ToString() => display;
+    }
+
+    private sealed class ResultStateItem(ResultCoordinate coordinate, string display)
+    {
+        public ResultCoordinate Coordinate { get; } = coordinate;
+        public override string ToString() => display;
+    }
+
+    private sealed class DerivedResultItem(PresentedStaticResult? result, string display)
+    {
+        public PresentedStaticResult? Result { get; } = result;
+        public override string ToString() => display;
+    }
+
+    private sealed class ResultParentItem(ResultPresentationPage page, string display)
+    {
+        public ResultPresentationPage Page { get; } = page;
+        public override string ToString() => display;
+    }
+
+    private sealed class ResultChildItem(ResultPresentationSourcePage source, string display)
+    {
+        public ResultPresentationSourcePage Source { get; } = source;
+        public override string ToString() => display;
+    }
+
+    private sealed record ResultPresentationCandidate(
+        IReadOnlyList<PresentedStaticResult> DerivedResults,
+        IReadOnlyList<ResultPresentationPage> Pages,
+        IReadOnlyDictionary<string, MovingLoadEnvelope> MovingLoadEnvelopes,
+        ResultPresentationException? Error)
+    {
+        public static ResultPresentationCandidate Empty { get; } = new(
+            [],
+            [],
+            new ReadOnlyDictionary<string, MovingLoadEnvelope>(
+                new Dictionary<string, MovingLoadEnvelope>()),
+            null);
     }
 }

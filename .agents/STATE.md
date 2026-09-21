@@ -282,3 +282,40 @@ Rolling progress summary (latest 5 checkpoints): [PROGRESS.md](../PROGRESS.md)
 - Keep screen and PNG decorations on one bounded OpenGL overlay path; do not introduce a separate GDI export path.
 - Preserve camera on ordinary document edits, reset it only after replacement scene installation, and avoid creating a GL context for an empty workspace.
 - Step 6 is complete; next is Step 7 calculation and result presentation. Legacy-host publication and completed-app redistribution remain NO-GO.
+
+---
+
+## Current Feature: C# FrameWeb Desktop Client Step 7
+<!-- orchestra:block-id: c-frameweb-desktop-client-step-7 -->
+
+### Context
+
+- Goal: Complete calculation result navigation, presentation, derived/moving semantics, and deterministic exports from the canonical AnalysisResultSet v1 boundary.
+- Key files: FramePrintPDF/PDF_Manager.Core/Results/**, PDF_Manager/Shell/Contents/ProjectDocumentContent.cs, PDF_Manager/Shell/Viewport/**, and Step7 Core/UI tests.
+- Dependencies: Step 6 typed scene/result layers, ProjectDocument derived definitions, AnalysisResultSet v1, and the private FrameWeb.LocalRuntime HTTP boundary.
+- Complexity: COMPLEX
+
+### Architecture
+
+- Ordered static, nonlinear-step, modal-mode, and moving parent/child pages are materialized into an immutable candidate before any shell state is committed.
+- DEFINE and COMBINE use weighted static operands; generic PICKUP display keeps signed greatest-absolute values, while a distinct engineering envelope retains per-focus maximum/minimum provenance and correlated force vectors for 3D CSV and 2D fixed-width export.
+- Moving signed extrema use all sources, while reaction absolute projection uses child cases when present and falls back to the parent only when no child exists.
+- One checked ResultPresentationBudget bounds pages, derived and moving definitions, operands, output entities, and scalar work before UI publication.
+
+### Codex Validation
+
+- Both Release solutions build with 0 warnings/errors and both solution test runs pass 501/501: Core 272, composition/Printing 17, Rendering 56, LocalRuntime 14, UI 142.
+- Angular-derived moving ordering/reaction semantics, Ct 11-case first/last access, nonlinear/modal scenes, static-only rejection, formula-safe CSV, 3D PICKUP CSV, 2D .pik, presentation limits, invalid-state preservation, and atomic export are covered.
+- Ownership reconcile reports overlap 0, unowned 0, and idle 0; AgentOnly reports overall=pass. Final security, quality, and test reviews have no Critical, High, or Medium Step 7 findings. Coverage percentage remains unmeasured.
+
+### Integration Points
+
+- Step 8 consumes typed result tables, engineering PICKUP envelopes, and live viewport capture through the typed Printing boundary; it must not reintroduce legacy dictionaries or alternate calculation schemas.
+- Python remains the FEM implementation and the desktop continues to call it through the existing private loopback HTTP runtime; changing transport is a separate architecture task.
+- Full Python/Angular validation was not rebaselined; retain the known 3,273 PASS / 6 FAIL / 4 ERROR baseline.
+
+### Decisions
+
+- Neutralize only untrusted text cells in spreadsheet-oriented CSV so negative engineering numbers remain numeric.
+- Preserve the original exception as InnerException on export failures and keep a cleanup failure secondary to the primary operation failure.
+- Step 7 is complete; next is Step 8 typed printing. Legacy-host publication and completed-app redistribution remain NO-GO.

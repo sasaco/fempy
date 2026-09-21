@@ -26,7 +26,8 @@ public sealed class ProjectDocumentSceneProjector
         int pageCount,
         ViewportPresentationState presentation,
         ViewportSceneProjectionText text,
-        ViewportSceneModel? previous = null)
+        ViewportSceneModel? previous = null,
+        IReadOnlyList<SupportReaction>? reactionProjection = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(stableId);
         ArgumentNullException.ThrowIfNull(document);
@@ -68,8 +69,9 @@ public sealed class ProjectDocumentSceneProjector
 
         IReadOnlyList<NodeDisplacement> displacementValues =
             ViewportResultExtrema.SelectDisplacements(result, presentation.ExtremaMode);
-        IReadOnlyList<SupportReaction> reactionValues =
-            ViewportResultExtrema.SelectReactions(result, presentation.ExtremaMode);
+        IReadOnlyList<SupportReaction> reactionValues = reactionProjection is null
+            ? ViewportResultExtrema.SelectReactions(result, presentation.ExtremaMode)
+            : ViewportResultExtrema.SelectReactions(reactionProjection, presentation.ExtremaMode);
         IReadOnlyList<ViewportSectionForceValue> sectionForceValues =
             ViewportResultExtrema.SelectSectionForces(result, presentation.ExtremaMode);
         IReadOnlyList<SceneNodeDisplacement> displacements = CreateDisplacements(displacementValues);

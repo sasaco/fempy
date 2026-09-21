@@ -1,189 +1,177 @@
-# Test Coverage and Acceptance Re-review: C# FrameWeb Desktop Step 6
+# Test Coverage and Acceptance Re-review: C# FrameWeb Desktop Step 7
 
 ## Verdict
 
-**PASS WITH LOW FOLLOW-UPS** — Critical: 0, High: 0, Medium: 0, Low: 4.
+**PASS WITH LOW FOLLOW-UPS** — Critical: 0, High: 0, Medium: 0, Low: 2.
 
-The accepted High dependency-invalidation defect and all four original Medium
-test gaps are remediated. Post-fix full runs pass Rendering 56/56 and UI
-133/133, with no failures or skips. The focused Step 6 UI set passes 33/33.
-Both .NET solutions build Release with 0 warnings and 0 errors when run
-sequentially.
+All prior High and Medium test-review findings are remediated. The final suite
+now exercises the Angular-derived moving-load semantics, the real Ct 11-case
+boundaries, formula-safe and fully ordered exports, production-derived PICKUP
+formats, typed scenes, complete invalid-state controls, shared presentation
+budgets, and atomic persistence. No product or test files were changed by this
+re-review.
 
-**Coverage: not measured.** The supplied collection evidence remains
-`coverage=null`; no percentage is estimated from test counts.
+**Coverage: not measured.** The current evidence remains `coverage=null`; no
+percentage is estimated from test counts.
 
 ## Scope and Method
 
-This re-review compared the original Step 6 review against the current
-Rendering scene model/compiler, Shell projector/content/MainForm paths, all
-Step 6 Rendering/UI tests, RendererProbe verification, the security remediation,
-and the new H1/H2/H3/M1/M3 regressions. Step 5 dirty tests remain outside the
-Step 6 finding count.
+- Re-read the final Step 7 Core/UI acceptance tests and the production result
+  presentation, PICKUP engineering envelope, CSV, Shell candidate, projection,
+  budget, and atomic-writer paths they exercise.
+- Compared the C# moving fixture with the Angular fixture and regressions.
+- Parsed the Ct Angular asset and the new C# fixture independently: all 11
+  `(case_id, symbol, name)` tuples match in order.
+- Rechecked the normalized Step 6 integration fixtures and active-project
+  boundary for weakened assertions, skips, or a legacy result adapter.
 
-The same acceptance matrix was rechecked: independent layers and all load
-shapes; 2D/3D cameras and decorations; hit/hover/selection; case/state paging;
-signed extrema; invalidation/coalescing; PNG boundaries; lifecycle; result and
-compiler work budgets; preset/10,000-node performance; malformed input;
-determinism; and skipped tests.
+## Resolved Findings and Acceptance Evidence
 
-## Resolved Findings and Exact Evidence
+### Angular moving-load parent/later-child semantics — resolved
 
-### Resolved High — coordinate-dependent cache invalidation
+- `AngularMovingFixture_GroupsLaterChildrenWithoutMovingTheOrdinarySecondPage`
+  at `Step7ResultPresentationAcceptanceTests.cs:91` uses result order
+  `1, 2, 1.1, 1.2`, asserts pages `[MOVING, 2]`, source order
+  `[1, 1.1, 1.2]`, original case indices `[0, 2, 3]`, and both later children.
+- `AngularMovingFixture_ReactionSignedEnvelopeUsesAllSourcesButAbsoluteUsesChildrenOnly`
+  at line 281 asserts all six reaction components, child-only absolute values
+  and provenance, stable first-child ties, immutable scene projection, and the
+  parent-only fallback.
+- `MovingParentSceneUsesChildOnlyAggregateWhileChildSelectionUsesThatChild` at
+  `Step7ReviewRemediationTests.cs:97` proves the parent scene uses the child
+  aggregate while selecting `1.2` displays that child's own force and moment.
 
-- `ViewportSceneModel.NodeCoordinateDependencies` and
-  `MemberTopologyDependencies` at
-  `FramePrintPDF/PDF_Manager.Rendering/Scene/ViewportSceneModel.cs:427-451`
-  define explicit closures. `GetChangedLayers` applies them at lines 561-595
-  while distinguishing visibility-only changes and retaining layer-specific
-  presentation masks.
-- `Step6RenderingContractTests.SceneDiffAppliesExplicitCoordinateDependencyClosureWithoutExpandingVisibilityChanges`
-  at `Step6RenderingContractTests.cs:72` pins node, member-topology, and
-  visibility-only masks.
-- The displacement compiler builds deformed lines from `scene.Members` at
-  `ViewportSceneCompiler.cs:333-347`; `MemberTopologyDependencies` therefore
-  includes `SceneLayerMask.Displacements`. The actual cache regression
-  `Step6RendererLifecycleTests.MemberTopologyEditRecompilesCachedDisplacementsWithUpdatedCoordinates`
-  at `Step6RendererLifecycleTests.cs:83` keeps displacement results unchanged,
-  edits a member endpoint, and proves the cached displacement layer is replaced
-  with different projected vertices.
-- `Step6ViewportIntegrationTests.NodeEditInvalidatesAndRecompilesEveryCoordinateDependentLayer`
-  at `Step6ViewportIntegrationTests.cs:195` compiles before/after an ordinary
-  node edit, asserts the exact closure, preserves the camera, and proves changed
-  vertices for connected members, supports, springs, panels, notice points,
-  and loads.
+### Ct first/last and all 11 ordered cases — resolved
 
-### Resolved Medium — signed extrema are visible and deterministic
+- `ct-analysis-result-set-v1.fixture` is a strict `AnalysisResultSet v1` fixture
+  with 11 results. Independent parsing confirms its 11 case IDs, symbols, and
+  Japanese names exactly match `サンプル（Ct桁）.json` in asset order.
+- `CtV1Fixture_PreservesAllElevenAssetCasesAndExactBoundaryPages` at
+  `Step7ResultPresentationAcceptanceTests.cs:110` pins the complete ordered
+  tuple list and first `1/D1/固定死荷重` through last `11/W/風荷重` pages.
+- `CtFixtureNavigatesExactFirstAndLastCasesAcrossSelectorsTablesAndScene` at
+  `Step7ReviewRemediationTests.cs:15` proves 11 selector items, first/last
+  navigation, exact table values, result coordinates, and typed scenes.
 
-- `ViewportResultExtrema` defines one shared policy for scene and tables: a
-  row's representative is its signed greatest-absolute component; equal
-  components and equal row extrema retain contract order. `Values`, `Minimum`,
-  `Maximum`, and `AbsoluteMaximum` select the same entities in the scene,
-  signed legend, and result grid.
-- `ProjectorAppliesSignedExtremaToSceneAndLegendWithStableTies` at
-  `Step6ViewportBehaviorTests.cs:151` covers all four modes with signed
-  multi-value data and an absolute-value tie.
-- `ExtremaChangesSceneLegendAndEveryResultTableAndClearsExcludedSelection` at
-  `Step6ViewportIntegrationTests.cs:255` covers displacement, reaction, and
-  section-force rows, legend signs, coordinate stability, and selection
-  reconciliation. `ProjectDocumentContent.ReconcileResultSelection` at
-  `ProjectDocumentContent.cs:846` clears an excluded result key before the
-  asynchronous scene replacement.
+### Formula-safe deterministic export — resolved
 
-### Resolved Medium — complete load projection and case isolation
+- `BaseStaticCsv_NeutralizesSpreadsheetTextButKeepsNegativeNumbersNumeric` at
+  `Step7ResultExportAcceptanceTests.cs:78` covers `=`, `+`, textual `-`, `@`,
+  TAB, CR, LF, and leading whitespace while retaining negative doubles as
+  numeric cells.
+- `PickupCsv_NeutralizesEveryUntrustedTextColumnBeforeRfc4180Escaping` at line
+  307 covers PICKUP/member/source/station text fields. The exporter classifies
+  text, constants, and numbers separately at `ResultCsvExporter.cs:740-747`
+  and neutralizes only untrusted text at lines 791-870.
+- `MixedBaseAndMovingCsv_AreExactOrderedGoldensWithNonLexicalIdsAndBoundaryLimits`
+  at line 264 pins complete base rows across displacement, reaction, member I/J,
+  shell, and solid data, plus moving displacement/reaction/member/global
+  extrema provenance. Both golden shapes exercise exact and +1 row/byte/work
+  limits without sorting non-lexical IDs.
 
-- `ProjectDocumentSceneProjector` filters nodal loads, member loads, and
-  prescribed displacements by the active result `CaseId` at lines 92-133.
-- `ProjectorNeverMixesLoadsFromDifferentActiveResultCases` at
-  `Step6ViewportBehaviorTests.cs:196` proves two cases do not blend.
-- `ProjectorMapsEveryPointMomentDirectionWithExactStationsAndVectors` at line
-  241 covers local X/Y/Z on a rotated member and global X/Y/Z, including
-  `SceneLoadVectorKind.Moment`, both normalized stations, and signed vectors.
-- `ProjectorPreservesPointForceDistributedAndThermalMemberLoadSemantics` at
-  line 274 pins point-force pairing, distributed positive-L2 extent, and
-  thermal top/bottom values.
+### Real PICKUP 3D/2D semantics and Shell export — resolved
 
-### Resolved Medium — one bounded result-table policy
+- `PickupEngineeringExports_AreBuiltFromServiceWithExactProvenanceVectorsAndStableTies`
+  at `Step7ResultExportAcceptanceTests.cs:103` obtains PICKUP through
+  `BuildDerivedResults`, then pins component-focused winners, correlated full
+  force vectors, source provenance, station/end/distance, stable ties, exact
+  21-column 3D CSV bytes, exact M/S/N fixed-width 2D bytes, and limits.
+- `ProductionPickupSelectionExportsAndAtomicallySavesExactDimensionSpecificBytes`
+  at `Step7ResultExportUiTests.cs:15` selects the actual derived PICKUP in
+  `ProjectDocumentContent`, verifies command enablement, exports exact 3D CSV,
+  switches the document to 2D, exports exact `.pik`, and saves both artifacts.
 
-- `ProjectDocumentContent.MaximumResultTableRows` and
-  `TryReserveResultRows` at `ProjectDocumentContent.cs:18,743-757` bound
-  displacement, reaction, and atomic I/J section-force rows with a localized
-  truncation marker.
-- `AllResultTablesUseOneDeterministicRowLimitAndExposeTruncation` at
-  `Step6ViewportIntegrationTests.cs:400` exercises limit+1 input for all three
-  table modes and pins the retained last key.
+### Typed nonlinear/modal/static scenes — resolved
 
-### Resolved Medium — aggregate and derived rendering work budgets
+`ValidNonlinearModalAndStaticVariantsProjectTypedSceneGeometryAndValues` at
+`Step7ReviewRemediationTests.cs:50` walks both accepted nonlinear steps and both
+modal modes and asserts scene case/state/index plus displacement vectors. It
+also asserts static reaction context/value and member-force I/J positions and
+vectors. This valid-fixture coverage replaces the cross-variant scene intent
+lost when the invalid Step 6 combined fixture was normalized.
 
-- The current scene/compiler enforce aggregate scene and derived command
-  budgets, including `ViewportSceneCompiler.MaximumVertexCount` at
-  `ViewportSceneCompiler.cs:151` and pre-append checks around lines 1207-1240.
-- `Step6SceneSnapshotTests.AggregateEntityBudgetRejectsTheFirstItemFromTheNextLayerBeforeLayerCopies`
-  (line 228), `DerivedGeometryBudgetRejectsGlyphExpansionBeforeTheVertexLimitIsExceeded`
-  (line 249), decoration exact-limit/limit+1 tests (lines 271 and 297), and
-  color-legend entry bounds (line 329) provide boundary evidence.
+### Invalid/partial result atomicity and controls — resolved
 
-## Additional Acceptance Corrections
+`InvalidPartialResultCannotEnableEmptyPresentationOrReplacePriorValidDisplay`
+at `Step7ResultPresentationTests.cs:102` checks every empty selector, table,
+extrema, export ability/button, navigation method, and grid. It then establishes
+a rich moving-child/PICKUP/table/scene/export state, rejects a partial set, and
+proves the result, coordinate, derived selection, parent/child objects, moving
+envelope, scene, rows, selector states, and export bytes remain unchanged.
 
-- 2D grid/camera parity: `ProjectDocumentSceneProjector.CreatePresentation`
-  selects XZ for 2D and XY for 3D; `ProjectorUsesCameraAlignedGridPlanesForTwoAndThreeDimensionalDocuments`
-  at `Step6ViewportBehaviorTests.cs:131` pins the policy.
-- Camera replacement: `ProjectDocumentContent.SetDocument(document,
-  resetCamera)` defers policy/home until after installing the new scene;
-  `MainForm.SetCurrentDocument` and content reopen pass `true`, while
-  `OnDocumentEdited` passes `false`. The same- and cross-dimension regression is
-  `DocumentReplacementHomesNewSceneWhileOrdinaryEditPreservesCamera` at
-  `Step6ViewportIntegrationTests.cs:300`.
-- Failure provenance: `ViewportOperationException` retains operation, safe
-  localized message, expected/unexpected classification, and original inner
-  exception. MainForm routes unexpected failures through `UserExceptionBoundary`.
-  `TypedViewportFailurePreservesOperationOriginalExceptionAndLocalizedSafeMessage`
-  at `Step6ViewportIntegrationTests.cs:355` covers the typed and compatibility
-  events.
+### Shared presentation budgets — resolved
 
-## Remaining Low Gaps
+- `SharedBudget_AcceptsExactCompositePagesDerivedPickupAndMovingCosts` at
+  `Step7ResultPresentationBudgetTests.cs:9` pins the exact aggregate use of one
+  budget across pages, DEFINE/PICKUP, operands, output entities, scalar work,
+  and a moving envelope.
+- `EveryPresentationLimit_RejectsExactPlusOneWithTypedStableDetails` at line 44
+  covers all six runtime limit kinds with typed code/resource key/limit/actual
+  details.
+- `ProjectDocumentContent.BuildResultPresentationCandidate` at
+  `ProjectDocumentContent.cs:696-777` shares one budget across all candidate
+  work and completes it before `SetResult` publishes state at lines 348-368.
 
-### [Low] Real PNG limit and file-save behavior are not exercised
+### Atomic result persistence — resolved
 
-The real probe verifies successful in-memory PNG signatures and normal size,
-while the UI regression checks invalid arguments before creating a GL context.
-No test generates an actual PNG that crosses a caller byte/dimension limit or
-executes `SaveViewportPng` to a temporary file. Add process-isolated over-budget,
-decode/pixel, successful save, and I/O-failure tests.
+`ProductionPickupSelectionExportsAndAtomicallySavesExactDimensionSpecificBytes`
+overwrites a stale target, verifies exact bytes for 3D and 2D, proves no `.tmp`
+residue, forces a locked-target failure, checks typed failure provenance, and
+proves the previous destination remains intact. `AtomicResultExportWriter.Write`
+at `AtomicResultExportWriter.cs:7-55` uses same-directory `CreateNew`, durable
+flush, overwrite-on-move, and failure cleanup.
 
-### [Low] Scene snapshots remain mostly deterministic self-comparisons
+### Step 6 normalization and legacy boundary — resolved
 
-The snapshot suite proves repeatability and now has strong targeted projector
-oracles, but still lacks reviewed per-layer command hashes or complete pinned
-vertices/batches/colors for both camera policies. Add compact canonical hashes
-plus readable assertions for high-risk glyph layers.
+The normalized signed, overflow, failure, paging, and oversized fixtures retain
+their behavioral assertions while satisfying strict topology/result identity
+validation. The removed invalid cross-kind scene use is now replaced by the
+valid Step 7 typed-scene test. No `Skip`/`Ignore` additions or weakened
+assertions were found. Active new code consumes typed `AnalysisResultSet` /
+presentation models directly; no `disg`/`reac`/`fsec` adapter was introduced.
 
-### [Low] Empty-workspace no-context behavior is still indirect
+## Remaining Low Follow-ups
 
-Repeated empty MainForm smoke proves no crash, but does not assert per-cycle
-renderer handle/context/subscription counters at the empty-workspace boundary.
-Add a process-isolated diagnostic-counter regression proving no GL context is
-created before a document exists.
+### [Low] Presentation-limit constructor hard caps lack direct +1 tests
 
-### [Low] Malformed/exact-boundary matrices remain incomplete
+`ResultPresentationLimits` defines six hard caps and validates them in its
+constructor at `ResultPresentationLimits.cs:15-85`. Runtime exact/+1 behavior
+for all six kinds is covered, but the constructor itself has no matrix proving
+each hard cap is accepted and hard-cap+1 is rejected.
 
-Aggregate budgets and selected invalid constructors are covered, but the new
-rigid-zone, spring, joint, panel, notice-point, prescribed-displacement,
-reaction, section-force, label, and legend contracts do not each have a compact
-NaN/infinity/empty-ID/invalid-enum/reference/exact-limit matrix. Add data-driven
-constructor tests without duplicating Core validation tests.
+**Remediation:** add a data-driven constructor test for the six hard caps,
+mirroring `ExportLimitConfiguration_AcceptsHardCapsAndRejectsEveryHardCapPlusOne`.
+
+### [Low] Secondary atomic-cleanup failure attachment is not directly injectable
+
+The primary write/replace failure, target preservation, and normal cleanup are
+covered. The branch at `AtomicResultExportWriter.cs:51-53` that attaches a
+secondary temp-file deletion failure to `Exception.Data` has no deterministic
+test seam, so its non-masking guarantee remains code-reviewed rather than
+regression-tested.
+
+**Remediation:** isolate filesystem operations behind an internal injectable
+boundary and force both a primary replace failure and cleanup failure; assert
+the primary exception remains authoritative and the cleanup exception is
+attached under `CleanupFailureDataKey`.
 
 ## Test Execution Results
 
-- Rendering full: PASS, 56/56, failed 0, skipped 0; 457 ms reported.
-- Focused Rendering contract/lifecycle: PASS, 15/15, failed 0, skipped 0;
-  127 ms reported.
-- UI full: PASS, 133/133, failed 0, skipped 0; 22 s reported.
-- Focused Step 6 UI: PASS, 33/33, failed 0, skipped 0; 2 s reported.
-- Focused `Step6ViewportBehaviorTests`: PASS, 23/23, failed 0.
-- Focused remediation selection/projector set: PASS, 17/17, failed 0.
-- `FrameWeb.sln` Release build: PASS, 0 warnings / 0 errors.
-- `FramePrintPDF/FramePrintPDF.sln` Release build: PASS, 0 warnings / 0 errors.
-  An initial concurrent build attempt hit a shared Azure WorkerExtensions file
-  lock; both canonical builds passed when rerun sequentially, so this was a
-  test-runner collision rather than a product failure.
-- Targeted whitespace format verification over every owned product/test file:
-  PASS. `git diff --check`: PASS (line-ending notices only).
-- Step 6 source scan: no `Skip`/`Ignore` additions.
-- Retained real-context evidence: PASS, 100 contexts, 1,400 frames, 500
-  captures, 100 2D and 100 3D captures, 200 PNG encodes, and all final live
-  counters zero.
-- Retained performance evidence: four presets × 40 frames under 10 seconds;
-  10,000 nodes/9,999 members compiled in 111.967 ms and diffed in 10.036 ms.
-- AgentOnly `.agents/logs/check-20260920T171340965Z-48448.log`: `overall=pass`,
-  passed 10 / failed 0 / skipped 1.
-- Coverage: not measured (`coverage=null`).
+- Independent focused Core Step 7: PASS, 29/29, failed 0, skipped 0.
+- Independent focused UI Step 7: PASS, 9/9, failed 0, skipped 0.
+- Final full-suite evidence supplied by the lead: PASS, 501/501 — Core 272,
+  Printing/composition 17, Rendering 56, LocalRuntime 14, UI 142; failed 0,
+  skipped 0.
+- Independent AgentOnly: PASS, `overall=pass`, warnings 0; product gates were
+  intentionally skipped. Log:
+  `.agents/logs/check-20260921T002520985Z-39092.log`.
+- Coverage: **not measured** (`coverage=null`).
 
 ## Priority Summary
 
 | Severity | Count | Disposition |
 |---|---:|---|
 | Critical | 0 | None. |
-| High | 0 | Dependency-aware invalidation is implemented and regression-tested. |
-| Medium | 0 | Extrema, load projection, result rows, and renderer budgets are covered. |
-| Low | 4 | PNG save/real limits, semantic snapshots, empty-workspace counters, and broader malformed matrices remain follow-ups. |
+| High | 0 | All prior High findings resolved. |
+| Medium | 0 | All prior Medium findings resolved. |
+| Low | 2 | Constructor hard-cap matrix and secondary cleanup-failure injection. |

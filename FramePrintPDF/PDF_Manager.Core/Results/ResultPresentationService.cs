@@ -8,10 +8,17 @@ public sealed class ResultPresentationService
     public IReadOnlyList<PresentedStaticResult> BuildDerivedResults(
         AnalysisResultSet resultSet,
         IEnumerable<DerivedResultDefinition> definitions)
+        => BuildDerivedResults(resultSet, definitions, new ResultPresentationBudget());
+
+    public IReadOnlyList<PresentedStaticResult> BuildDerivedResults(
+        AnalysisResultSet resultSet,
+        IEnumerable<DerivedResultDefinition> definitions,
+        ResultPresentationBudget budget)
     {
         ArgumentNullException.ThrowIfNull(resultSet);
         ArgumentNullException.ThrowIfNull(definitions);
-        AnalysisResultSetValidator.Validate(resultSet);
+        ArgumentNullException.ThrowIfNull(budget);
+        budget.EnsureValidated(resultSet);
 
         Dictionary<string, SourceSnapshot> available = new(StringComparer.Ordinal);
         Dictionary<string, AnalysisCase> cases = resultSet.Cases.ToDictionary(value => value.CaseId, StringComparer.Ordinal);
@@ -50,8 +57,10 @@ public sealed class ResultPresentationService
                     if (cases.TryGetValue(term.SourceId, out AnalysisCase? resultCase) &&
                         resultCase.AnalysisType != AnalysisType.Static)
                     {
-                        throw new ResultPresentationException(
-                            $"Derived result '{definition.Id}' references non-static case '{term.SourceId}'.");
+                        throw new NonStaticDerivedOperandException(
+                            definition.Id,
+                            term.SourceId,
+                            resultCase.AnalysisType);
                     }
 
                     throw new ResultPresentationException(
@@ -62,6 +71,17 @@ public sealed class ResultPresentationService
             }
 
             EnsureCompatible(operands, definition.Id);
+            SourceSnapshot template = operands[0].Snapshot;
+            long pickupMemberScalars = definition.Kind == DerivedResultKind.Pickup
+                ? CountMemberForceScalarValues(template)
+                : 0;
+            long pickupOutputEntities = definition.Kind == DerivedResultKind.Pickup
+                ? checked(CountMemberSegments(template) * 14)
+                : 0;
+            budget.ConsumeDerived(
+                operands.Count,
+                checked(CountOutputEntities(template) + pickupOutputEntities),
+                checked((CountScalarValues(template) + pickupMemberScalars) * operands.Count));
             PresentedStaticResult presented = Combine(definition, operands);
             output.Add(presented);
             available.Add(definition.Id, SourceSnapshot.From(presented));
@@ -70,13 +90,78 @@ public sealed class ResultPresentationService
         return Array.AsReadOnly(output.ToArray());
     }
 
+    public ResultTableSet BuildTables(AnalysisResultSet resultSet, ResultCoordinate coordinate)
+    {
+        ArgumentNullException.ThrowIfNull(resultSet);
+        AnalysisResultSetValidator.Validate(resultSet);
+
+        AnalysisResult? result = resultSet.Results.FirstOrDefault(value => value.Coordinate == coordinate);
+        if (result is null)
+        {
+            throw new ResultPresentationException(
+                $"Result coordinate '{coordinate}' is not available.");
+        }
+
+        AnalysisCase resultCase = resultSet.Cases.First(value => value.CaseId == result.CaseId);
+        return result switch
+        {
+            ForceAnalysisResult force => new ResultTableSet(
+                result.CaseId,
+                resultCase.Name,
+                result.Coordinate,
+                null,
+                false,
+                force.NodeDisplacements,
+                force.SupportReactions,
+                force.MemberSectionForces,
+                force.ShellResults,
+                force.SolidResults),
+            ModalAnalysisResult modal => new ResultTableSet(
+                result.CaseId,
+                resultCase.Name,
+                result.Coordinate,
+                null,
+                true,
+                modal.NodeModeShapes,
+                [],
+                [],
+                [],
+                []),
+            _ => throw new ResultPresentationException(
+                $"Result coordinate '{coordinate}' has an unsupported result type."),
+        };
+    }
+
+    public ResultTableSet BuildTables(PresentedStaticResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        return new ResultTableSet(
+            result.Id,
+            result.Name,
+            null,
+            result.Kind,
+            false,
+            result.NodeDisplacements,
+            result.SupportReactions,
+            result.MemberSectionForces,
+            result.ShellResults,
+            result.SolidResults);
+    }
+
     public IReadOnlyList<ResultPresentationPage> BuildPages(
         AnalysisResultSet resultSet,
         IEnumerable<MovingLoadDefinition> movingLoads)
+        => BuildPages(resultSet, movingLoads, new ResultPresentationBudget());
+
+    public IReadOnlyList<ResultPresentationPage> BuildPages(
+        AnalysisResultSet resultSet,
+        IEnumerable<MovingLoadDefinition> movingLoads,
+        ResultPresentationBudget budget)
     {
         ArgumentNullException.ThrowIfNull(resultSet);
         ArgumentNullException.ThrowIfNull(movingLoads);
-        AnalysisResultSetValidator.Validate(resultSet);
+        ArgumentNullException.ThrowIfNull(budget);
+        budget.EnsureValidated(resultSet);
 
         Dictionary<string, AnalysisCase> cases = resultSet.Cases.ToDictionary(value => value.CaseId, StringComparer.Ordinal);
         Dictionary<string, int> caseOrder = resultSet.Cases
@@ -89,9 +174,16 @@ public sealed class ResultPresentationService
             StringComparer.Ordinal);
         Dictionary<string, MovingLoadDefinition> movingByFirstCase = new(StringComparer.Ordinal);
         HashSet<string> groupedCases = new(StringComparer.Ordinal);
+        HashSet<string> movingIds = new(StringComparer.Ordinal);
 
         foreach (MovingLoadDefinition definition in movingLoads)
         {
+            if (!movingIds.Add(definition.Id))
+            {
+                throw new ResultPresentationException(
+                    $"Moving load ID '{definition.Id}' is duplicated.");
+            }
+
             if (definition.CaseIds.Count == 0)
             {
                 throw new ResultPresentationException($"Moving load '{definition.Id}' has no cases.");
@@ -131,7 +223,24 @@ public sealed class ResultPresentationService
             {
                 throw new ResultPresentationException("Moving-load definitions have the same first case.");
             }
+
+            budget.RegisterMovingLoad(definition.Id);
         }
+
+        long pageCount = 0;
+        foreach (AnalysisCase resultCase in resultSet.Cases)
+        {
+            if (movingByFirstCase.TryGetValue(resultCase.CaseId, out MovingLoadDefinition? movingLoad))
+            {
+                pageCount = checked(pageCount + movingLoad.CaseIds.Count);
+            }
+            else if (!groupedCases.Contains(resultCase.CaseId))
+            {
+                pageCount = checked(pageCount + resultsByCase[resultCase.CaseId].Count);
+            }
+        }
+
+        budget.ConsumePages(pageCount, pageCount, pageCount);
 
         List<ResultPresentationPage> pages = [];
         HashSet<string> consumed = new(StringComparer.Ordinal);
@@ -157,7 +266,13 @@ public sealed class ResultPresentationService
                     resultCase,
                     sourceResults[0],
                     sourceResults,
-                    isMovingLoad: true));
+                    isMovingLoad: true,
+                    movingLoad.CaseIds.Select((caseId, sourceIndex) =>
+                        new ResultPresentationSourcePage(
+                            caseOrder[caseId],
+                            cases[caseId],
+                            resultsByCase[caseId][0],
+                            sourceIndex == 0))));
                 continue;
             }
 
@@ -169,7 +284,12 @@ public sealed class ResultPresentationService
                     resultCase,
                     result,
                     [result],
-                    isMovingLoad: false));
+                    isMovingLoad: false,
+                    [new ResultPresentationSourcePage(
+                        caseOrder[result.CaseId],
+                        resultCase,
+                        result,
+                        true)]));
             }
         }
 
@@ -179,10 +299,17 @@ public sealed class ResultPresentationService
     public MovingLoadEnvelope BuildMovingLoadEnvelope(
         AnalysisResultSet resultSet,
         MovingLoadDefinition definition)
+        => BuildMovingLoadEnvelope(resultSet, definition, new ResultPresentationBudget());
+
+    public MovingLoadEnvelope BuildMovingLoadEnvelope(
+        AnalysisResultSet resultSet,
+        MovingLoadDefinition definition,
+        ResultPresentationBudget budget)
     {
         ArgumentNullException.ThrowIfNull(resultSet);
         ArgumentNullException.ThrowIfNull(definition);
-        AnalysisResultSetValidator.Validate(resultSet);
+        ArgumentNullException.ThrowIfNull(budget);
+        budget.EnsureValidated(resultSet);
 
         Dictionary<string, AnalysisResult[]> results = resultSet.Results
             .GroupBy(result => result.CaseId, StringComparer.Ordinal)
@@ -242,6 +369,14 @@ public sealed class ResultPresentationService
             sources.Select(source => new WeightedSource(source.CaseId, SourceSnapshot.From(source.Result), 1)).ToList(),
             definition.Id);
         StaticAnalysisResult template = sources[0].Result;
+        SourceSnapshot templateSnapshot = SourceSnapshot.From(template);
+        budget.ConsumeMovingLoad(
+            definition.Id,
+            checked(CountOutputEntities(templateSnapshot) + template.SupportReactions.Count),
+            checked(CountScalarValues(templateSnapshot) * sources.Count +
+                CountMemberForceScalarValues(templateSnapshot) * sources.Count +
+                (long)template.SupportReactions.Count * 12 *
+                    (sources.Count > 1 ? sources.Count - 1 : 1)));
 
         NodeDisplacementEnvelope[] nodes = template.NodeDisplacements.Select((node, index) =>
             new NodeDisplacementEnvelope(
@@ -255,10 +390,24 @@ public sealed class ResultPresentationService
                     Envelope(sources, value => value.NodeDisplacements[index].Components.Rz))))
             .ToArray();
 
+        IReadOnlyList<(string CaseId, StaticAnalysisResult Result)> absoluteReactionSources =
+            sources.Count > 1
+                ? Array.AsReadOnly(sources.Skip(1).ToArray())
+                : sources;
         SupportReactionEnvelope[] reactions = template.SupportReactions.Select((reaction, index) =>
             new SupportReactionEnvelope(
                 reaction.NodeId,
-                EnvelopeForces(sources, value => value.SupportReactions[index].Components)))
+                EnvelopeForces(
+                    sources,
+                    absoluteReactionSources,
+                    value => value.SupportReactions[index].Components)))
+            .ToArray();
+
+        SupportReactionAbsoluteMaximum[] absoluteReactions = template.SupportReactions
+            .Select((reaction, index) => BuildAbsoluteReaction(
+                reaction.NodeId,
+                absoluteReactionSources,
+                value => value.SupportReactions[index].Components))
             .ToArray();
 
         MemberSectionForceEnvelope[] members = template.MemberSectionForces.Select((member, memberIndex) =>
@@ -275,7 +424,14 @@ public sealed class ResultPresentationService
                         value.MemberSectionForces[memberIndex].Segments[segmentIndex].JEnd)))))
             .ToArray();
 
-        return new MovingLoadEnvelope(definition.Id, definition.CaseIds, nodes, reactions, members);
+        return new MovingLoadEnvelope(
+            definition.Id,
+            definition.CaseIds,
+            nodes,
+            reactions,
+            members,
+            BuildMemberForceExtrema(sources),
+            absoluteReactions);
     }
 
     private static PresentedStaticResult Combine(
@@ -367,7 +523,15 @@ public sealed class ResultPresentationService
             reactions,
             members,
             shells,
-            solids);
+            solids,
+            definition.Kind == DerivedResultKind.Pickup
+                ? PickupEngineeringEnvelopeBuilder.Build(
+                    definition.Id,
+                    sources.Select(source => new PickupEngineeringSource(
+                        source.Id,
+                        source.Factor,
+                        source.Snapshot.MemberSectionForces)).ToArray())
+                : null);
     }
 
     private static ForceComponents CombineForces(
@@ -402,7 +566,9 @@ public sealed class ResultPresentationService
 
         if (!double.IsFinite(result))
         {
-            throw new ResultPresentationException("Derived result arithmetic produced a non-finite value.");
+            throw new ResultPresentationException(
+                ResultPresentationErrorCode.ArithmeticOverflow,
+                "Derived result arithmetic produced a non-finite value.");
         }
 
         return result;
@@ -419,12 +585,71 @@ public sealed class ResultPresentationService
             Envelope(sources, value => selector(value).My),
             Envelope(sources, value => selector(value).Mz));
 
+    private static ForceEnvelopeComponents EnvelopeForces(
+        IReadOnlyList<(string CaseId, StaticAnalysisResult Result)> signedSources,
+        IReadOnlyList<(string CaseId, StaticAnalysisResult Result)> absoluteSources,
+        Func<StaticAnalysisResult, ForceComponents> selector)
+        => new(
+            Envelope(signedSources, absoluteSources, value => selector(value).Fx),
+            Envelope(signedSources, absoluteSources, value => selector(value).Fy),
+            Envelope(signedSources, absoluteSources, value => selector(value).Fz),
+            Envelope(signedSources, absoluteSources, value => selector(value).Mx),
+            Envelope(signedSources, absoluteSources, value => selector(value).My),
+            Envelope(signedSources, absoluteSources, value => selector(value).Mz));
+
+    private static ScalarEnvelope Envelope(
+        IReadOnlyList<(string CaseId, StaticAnalysisResult Result)> signedSources,
+        IReadOnlyList<(string CaseId, StaticAnalysisResult Result)> absoluteSources,
+        Func<StaticAnalysisResult, double> selector)
+    {
+        ScalarEnvelope signed = Envelope(signedSources, selector);
+        return new ScalarEnvelope(
+            signed.Maximum,
+            signed.Minimum,
+            AbsoluteExtreme(absoluteSources, selector));
+    }
+
+    private static SupportReactionAbsoluteMaximum BuildAbsoluteReaction(
+        string nodeId,
+        IReadOnlyList<(string CaseId, StaticAnalysisResult Result)> sources,
+        Func<StaticAnalysisResult, ForceComponents> selector)
+    {
+        EnvelopeExtreme fx = AbsoluteExtreme(sources, value => selector(value).Fx);
+        EnvelopeExtreme fy = AbsoluteExtreme(sources, value => selector(value).Fy);
+        EnvelopeExtreme fz = AbsoluteExtreme(sources, value => selector(value).Fz);
+        EnvelopeExtreme mx = AbsoluteExtreme(sources, value => selector(value).Mx);
+        EnvelopeExtreme my = AbsoluteExtreme(sources, value => selector(value).My);
+        EnvelopeExtreme mz = AbsoluteExtreme(sources, value => selector(value).Mz);
+        return new SupportReactionAbsoluteMaximum(
+            nodeId,
+            new ForceComponents(fx.Value, fy.Value, fz.Value, mx.Value, my.Value, mz.Value),
+            new ForceSourceCaseIds(fx.CaseId, fy.CaseId, fz.CaseId, mx.CaseId, my.CaseId, mz.CaseId));
+    }
+
+    private static EnvelopeExtreme AbsoluteExtreme(
+        IReadOnlyList<(string CaseId, StaticAnalysisResult Result)> sources,
+        Func<StaticAnalysisResult, double> selector)
+    {
+        EnvelopeExtreme selected = new(selector(sources[0].Result), sources[0].CaseId);
+        foreach ((string caseId, StaticAnalysisResult result) in sources.Skip(1))
+        {
+            double value = selector(result);
+            if (Math.Abs(value) > Math.Abs(selected.Value))
+            {
+                selected = new EnvelopeExtreme(value, caseId);
+            }
+        }
+
+        return selected;
+    }
+
     private static ScalarEnvelope Envelope(
         IReadOnlyList<(string CaseId, StaticAnalysisResult Result)> sources,
         Func<StaticAnalysisResult, double> selector)
     {
         (string CaseId, double Value) maximum = (sources[0].CaseId, selector(sources[0].Result));
         (string CaseId, double Value) minimum = maximum;
+        (string CaseId, double Value) absoluteMaximum = maximum;
         foreach ((string caseId, StaticAnalysisResult result) in sources.Skip(1))
         {
             double value = selector(result);
@@ -437,11 +662,85 @@ public sealed class ResultPresentationService
             {
                 minimum = (caseId, value);
             }
+
+            if (Math.Abs(value) > Math.Abs(absoluteMaximum.Value))
+            {
+                absoluteMaximum = (caseId, value);
+            }
         }
 
         return new ScalarEnvelope(
             new EnvelopeExtreme(maximum.Value, maximum.CaseId),
-            new EnvelopeExtreme(minimum.Value, minimum.CaseId));
+            new EnvelopeExtreme(minimum.Value, minimum.CaseId),
+            new EnvelopeExtreme(absoluteMaximum.Value, absoluteMaximum.CaseId));
+    }
+
+    private static MemberForceExtremaComponents BuildMemberForceExtrema(
+        IReadOnlyList<(string CaseId, StaticAnalysisResult Result)> sources)
+    {
+        if (!sources.Any(source => source.Result.MemberSectionForces.Any(member => member.Segments.Count > 0)))
+        {
+            return MemberForceExtremaComponents.Empty;
+        }
+
+        return new MemberForceExtremaComponents(
+            MemberExtrema(sources, value => value.Fx),
+            MemberExtrema(sources, value => value.Fy),
+            MemberExtrema(sources, value => value.Fz),
+            MemberExtrema(sources, value => value.Mx),
+            MemberExtrema(sources, value => value.My),
+            MemberExtrema(sources, value => value.Mz));
+    }
+
+    private static MemberForceScalarExtrema MemberExtrema(
+        IReadOnlyList<(string CaseId, StaticAnalysisResult Result)> sources,
+        Func<ForceComponents, double> selector)
+    {
+        MemberForceExtreme? maximum = null;
+        MemberForceExtreme? minimum = null;
+        MemberForceExtreme? absoluteMaximum = null;
+
+        foreach ((string caseId, StaticAnalysisResult result) in sources)
+        {
+            foreach (MemberSectionForces member in result.MemberSectionForces)
+            {
+                foreach (MemberSegmentResult segment in member.Segments)
+                {
+                    Consider(new MemberForceExtreme(
+                        selector(segment.IEnd),
+                        caseId,
+                        member.MemberId,
+                        segment.SegmentId,
+                        MemberForceEnd.I));
+                    Consider(new MemberForceExtreme(
+                        selector(segment.JEnd),
+                        caseId,
+                        member.MemberId,
+                        segment.SegmentId,
+                        MemberForceEnd.J));
+                }
+            }
+        }
+
+        return new MemberForceScalarExtrema(maximum!, minimum!, absoluteMaximum!);
+
+        void Consider(MemberForceExtreme candidate)
+        {
+            if (maximum is null || candidate.Value > maximum.Value)
+            {
+                maximum = candidate;
+            }
+
+            if (minimum is null || candidate.Value < minimum.Value)
+            {
+                minimum = candidate;
+            }
+
+            if (absoluteMaximum is null || Math.Abs(candidate.Value) > Math.Abs(absoluteMaximum.Value))
+            {
+                absoluteMaximum = candidate;
+            }
+        }
     }
 
     private static void EnsureCompatible(IReadOnlyList<WeightedSource> sources, string ownerId)
@@ -494,6 +793,56 @@ public sealed class ResultPresentationService
         }
     }
 
+    private static long CountOutputEntities(SourceSnapshot snapshot)
+    {
+        long count = checked(snapshot.NodeDisplacements.Count + snapshot.SupportReactions.Count +
+            snapshot.MemberSectionForces.Count + snapshot.ShellResults.Count + snapshot.SolidResults.Count);
+        foreach (MemberSectionForces member in snapshot.MemberSectionForces)
+        {
+            count = checked(count + member.Segments.Count);
+        }
+
+        foreach (ShellResult shell in snapshot.ShellResults)
+        {
+            count = checked(count + shell.Locations.Count);
+        }
+
+        foreach (SolidResult solid in snapshot.SolidResults)
+        {
+            count = checked(count + solid.Locations.Count);
+        }
+
+        return count;
+    }
+
+    private static long CountScalarValues(SourceSnapshot snapshot)
+    {
+        long count = checked((long)snapshot.NodeDisplacements.Count * 6 +
+            (long)snapshot.SupportReactions.Count * 6);
+        foreach (MemberSectionForces member in snapshot.MemberSectionForces)
+        {
+            count = checked(count + (long)member.Segments.Count * 12);
+        }
+
+        foreach (ShellResult shell in snapshot.ShellResults)
+        {
+            count = checked(count + (long)shell.Locations.Count * 14);
+        }
+
+        foreach (SolidResult solid in snapshot.SolidResults)
+        {
+            count = checked(count + (long)solid.Locations.Count * 12);
+        }
+
+        return count;
+    }
+
+    private static long CountMemberForceScalarValues(SourceSnapshot snapshot)
+        => checked(CountMemberSegments(snapshot) * 12);
+
+    private static long CountMemberSegments(SourceSnapshot snapshot)
+        => snapshot.MemberSectionForces.Sum(member => (long)member.Segments.Count);
+
     private static void RequireSameIds(
         IEnumerable<string> expected,
         IEnumerable<string> actual,
@@ -503,6 +852,7 @@ public sealed class ResultPresentationService
         if (!expected.SequenceEqual(actual, StringComparer.Ordinal))
         {
             throw new ResultPresentationException(
+                ResultPresentationErrorCode.IncompatibleSources,
                 $"'{ownerId}' has incompatible {description} across its sources.");
         }
     }
