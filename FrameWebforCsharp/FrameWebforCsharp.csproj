@@ -10,12 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Printing\**\*.cs;PrintInput.cs;PrintData.cs;IPrintable.cs;PrintableBase*.cs" />
+    <Compile Remove="PrintInput.cs;PrintData.cs;IPrintable.cs;PrintableBase*.cs" />
     <Compile Remove="tests\**" />
-    <EmbeddedResource Remove="Printing\**;PrintInput.cs;PrintData.cs;IPrintable.cs;PrintableBase*.cs;fonts\**" />
+    <EmbeddedResource Remove="PrintInput.cs;PrintData.cs;IPrintable.cs;PrintableBase*.cs;fonts\**" />
     <EmbeddedResource Remove="tests\**" />
-    <Content Remove="Printing\**;PrintInput.cs;PrintData.cs;IPrintable.cs;PrintableBase*.cs;fonts\**" />
-    <None Remove="Printing\**;PrintInput.cs;PrintData.cs;IPrintable.cs;PrintableBase*.cs;fonts\**" />
+    <Content Remove="PrintInput.cs;PrintData.cs;IPrintable.cs;PrintableBase*.cs;fonts\**" />
+    <None Remove="PrintInput.cs;PrintData.cs;IPrintable.cs;PrintableBase*.cs;fonts\**" />
     <None Remove="tests\**" />
   </ItemGroup>
 
