@@ -1,177 +1,229 @@
-# Test Coverage and Acceptance Re-review: C# FrameWeb Desktop Step 7
+# SECOND-FINAL Test Coverage Review: C# FrameWeb Desktop Step 8
 
 ## Verdict
 
-**PASS WITH LOW FOLLOW-UPS** — Critical: 0, High: 0, Medium: 0, Low: 2.
+**PASS WITH LOW FOLLOW-UPS** — Critical: 0, High: 0, Medium: 0, Low: 4.
 
-All prior High and Medium test-review findings are remediated. The final suite
-now exercises the Angular-derived moving-load semantics, the real Ct 11-case
-boundaries, formula-safe and fully ordered exports, production-derived PICKUP
-formats, typed scenes, complete invalid-state controls, shared presentation
-budgets, and atomic persistence. No product or test files were changed by this
-re-review.
+The last two Medium findings are closed by executable evidence through the
+production writer/exporter and the real WinForms preview dialog. Whole-document
+preview now validates once, spends one aggregate work budget, and preflights exact
+and +1 boundaries before rendering. Text layout is owned by the immutable plan and
+is consumed by both PDF and preview renderers; the real dialog exposes the complete
+unabridged page text independently of fitted/ellipsized display text.
 
-**Coverage: not measured.** The current evidence remains `coverage=null`; no
-percentage is estimated from test counts.
+**Coverage percentage was not measured.** The 567/567 totals are test counts, not
+a coverage percentage. CJK glyph appearance in a real GUI/PDF viewer remains
+unavailable and is explicitly not reported as passing evidence.
 
 ## Scope and Method
 
-- Re-read the final Step 7 Core/UI acceptance tests and the production result
-  presentation, PICKUP engineering envelope, CSV, Shell candidate, projection,
-  budget, and atomic-writer paths they exercise.
-- Compared the C# moving fixture with the Angular fixture and regressions.
-- Parsed the Ct Angular asset and the new C# fixture independently: all 11
-  `(case_id, symbol, name)` tuples match in order.
-- Rechecked the normalized Step 6 integration fixtures and active-project
-  boundary for weakened assertions, skips, or a legacy result adapter.
+- Re-read the regenerated final patch from base `452528b` and the final production
+  and test sources.
+- Re-reviewed all earlier findings plus the two last Mediums: whole-document shared
+  budgeting and horizontal text fidelity.
+- Inspected single validation, exact/+1 preflight, 22-page auto-fit, 13-column
+  25%/400% layout, authoritative `TextRuns`, full selectable preview text, bounded
+  golden rasterizer clipping, and golden approval rationale.
+- Checked for deleted/weakened assertions, skipped tests, helper-only confidence,
+  platform-sensitive evidence, and untested fail-closed branches.
+- Independently ran the focused new Printing/golden and UI acceptance filters. Full
+  solution totals below are lead-provided evidence.
 
-## Resolved Findings and Acceptance Evidence
+## Last Two Medium Findings
 
-### Angular moving-load parent/later-child semantics — resolved
+### Closed: whole-document preview uses one validation and one aggregate budget
 
-- `AngularMovingFixture_GroupsLaterChildrenWithoutMovingTheOrdinarySecondPage`
-  at `Step7ResultPresentationAcceptanceTests.cs:91` uses result order
-  `1, 2, 1.1, 1.2`, asserts pages `[MOVING, 2]`, source order
-  `[1, 1.1, 1.2]`, original case indices `[0, 2, 3]`, and both later children.
-- `AngularMovingFixture_ReactionSignedEnvelopeUsesAllSourcesButAbsoluteUsesChildrenOnly`
-  at line 281 asserts all six reaction components, child-only absolute values
-  and provenance, stable first-child ties, immutable scene projection, and the
-  parent-only fallback.
-- `MovingParentSceneUsesChildOnlyAggregateWhileChildSelectionUsesThatChild` at
-  `Step7ReviewRemediationTests.cs:97` proves the parent scene uses the child
-  aggregate while selecting `1.2` displays that child's own force and moment.
+Production `RenderPreviewAsync` builds one ordered page set and enters
+`RenderPreviewPagesAsync` once (`PdfSharpPrintWriter.cs:123-159`). That method owns
+one `PrintWorkBudget`, validates the complete job/plan once, reserves every page's
+text/render work, preflights all raster images and pixels, and only then renders
+the pages (`PdfSharpPrintWriter.cs:161-196`). The desktop exporter uses this
+whole-document API with explicit document-budget auto-fit
+(`DesktopPdfExporter.cs:212-223`) rather than looping the single-page API.
 
-### Ct first/last and all 11 ordered cases — resolved
+`Step8WholePreviewBudgetAndTextTests.cs:70-140` proves:
 
-- `ct-analysis-result-set-v1.fixture` is a strict `AnalysisResultSet v1` fixture
-  with 11 results. Independent parsing confirms its 11 case IDs, symbols, and
-  Japanese names exactly match `サンプル（Ct桁）.json` in asset order.
-- `CtV1Fixture_PreservesAllElevenAssetCasesAndExactBoundaryPages` at
-  `Step7ResultPresentationAcceptanceTests.cs:110` pins the complete ordered
-  tuple list and first `1/D1/固定死荷重` through last `11/W/風荷重` pages.
-- `CtFixtureNavigatesExactFirstAndLastCasesAcrossSelectorsTablesAndScene` at
-  `Step7ReviewRemediationTests.cs:15` proves 11 selector items, first/last
-  navigation, exact table values, result coordinates, and typed scenes.
+- session start and plan validation each occur exactly once;
+- the baseline snapshot aggregates all pages, text, images, and layout work;
+- an exact limit profile succeeds with the identical snapshot;
+- image, text-character, and layout-work +1 cases fail before any page is rendered;
+- the original typed `PrintLimitExceededException` resource and failed snapshot are
+  retained.
 
-### Formula-safe deterministic export — resolved
+`Step8WholePreviewBudgetAndTextTests.cs:11-67` then exercises the production writer
+with 22 page-specific result diagrams. Auto-fit selects dimensions below the
+maximum while staying within the shared limits, returns all 22 ordered identities,
+and produces 22 distinct capture hashes. The test uses deliberately distinct RGB
+payloads, so the page-identity assertion is not dependent on synthetic text strokes.
 
-- `BaseStaticCsv_NeutralizesSpreadsheetTextButKeepsNegativeNumbersNumeric` at
-  `Step7ResultExportAcceptanceTests.cs:78` covers `=`, `+`, textual `-`, `@`,
-  TAB, CR, LF, and leading whitespace while retaining negative doubles as
-  numeric cells.
-- `PickupCsv_NeutralizesEveryUntrustedTextColumnBeforeRfc4180Escaping` at line
-  307 covers PICKUP/member/source/station text fields. The exporter classifies
-  text, constants, and numbers separately at `ResultCsvExporter.cs:740-747`
-  and neutralizes only untrusted text at lines 791-870.
-- `MixedBaseAndMovingCsv_AreExactOrderedGoldensWithNonLexicalIdsAndBoundaryLimits`
-  at line 264 pins complete base rows across displacement, reaction, member I/J,
-  shell, and solid data, plus moving displacement/reaction/member/global
-  extrema provenance. Both golden shapes exercise exact and +1 row/byte/work
-  limits without sorting non-lexical IDs.
+This closes the prior integrated-budget Low residual as well as the final
+per-page-budget Medium.
 
-### Real PICKUP 3D/2D semantics and Shell export — resolved
+### Closed: fitted/clipped table text is authoritative and the dialog retains full text
 
-- `PickupEngineeringExports_AreBuiltFromServiceWithExactProvenanceVectorsAndStableTies`
-  at `Step7ResultExportAcceptanceTests.cs:103` obtains PICKUP through
-  `BuildDerivedResults`, then pins component-focused winners, correlated full
-  force vectors, source provenance, station/end/distance, stable ties, exact
-  21-column 3D CSV bytes, exact M/S/N fixed-width 2D bytes, and limits.
-- `ProductionPickupSelectionExportsAndAtomicallySavesExactDimensionSpecificBytes`
-  at `Step7ResultExportUiTests.cs:15` selects the actual derived PICKUP in
-  `ProjectDocumentContent`, verifies command enablement, exports exact 3D CSV,
-  switches the document to 2D, exports exact `.pik`, and saves both artifacts.
+The planner creates each page's render content once and stores it in the
+`PrintPagePlan` (`PrintPlanning.cs:489-507`). `PrintPageContentExtractor` generates
+the title, headings, table cells, result context, diagrams, and footer from the
+same planned geometry (`PrintPageContent.cs:44-139,142-333`).
+`PrintTextLayoutPolicy` normalizes single-line display text, deterministically fits
+font size, falls back to grapheme-safe ellipsis, and records full `Text`, fitted
+`DisplayText`, bounds, measured width, alignment, bold, and truncation state
+(`PrintPageContent.cs:364-458`; `PrintModels.cs:744-802`).
 
-### Typed nonlinear/modal/static scenes — resolved
+Both renderers consume the plan-owned objects: the bounded RGB preview uses
+`page.TextRuns` and a per-run pixel clip (`PrintPreviewRenderer.cs:144-220,326-343`),
+while PDF export uses the same `pagePlan.TextRuns` and an `IntersectClip` around
+each table run (`PdfSharpPrintWriter.cs:319-380`).
 
-`ValidNonlinearModalAndStaticVariantsProjectTypedSceneGeometryAndValues` at
-`Step7ReviewRemediationTests.cs:50` walks both accepted nonlinear steps and both
-modal modes and asserts scene case/state/index plus displacement vectors. It
-also asserts static reaction context/value and member-force I/J positions and
-vectors. This valid-fixture coverage replaces the cross-variant scene intent
-lost when the invalid Step 6 combined fixture was normalized.
+`Step8WholePreviewBudgetAndTextTests.cs:146-210` covers a 13-column table at 25%
+and 400%. It proves 26 header/cell runs, positive/non-overlapping bounds, fitted
+width within every cell, no embedded line breaks, no truncation at 25%, explicit
+ellipsis/truncation at 400%, deterministic repeated planning, the same authoritative
+`TextRuns` in preview/export, and a PDF clip operator for every table run.
 
-### Invalid/partial result atomicity and controls — resolved
+The production UI acceptance at
+`Step8FinalPreviewTextAcceptanceTests.cs:19-137` goes further: it uses the real
+13-column input projection, production exporter, and real `PrintPreviewDialog` at
+both scales. It asserts every complete header/cell value is retained in exact CRLF
+page text, a deliberately long section name remains unabridged, the read-only
+multiline text box is selectable, and both text and bitmap change in sync during
+real page navigation. Thus fitted raster/PDF text cannot cross cell boundaries,
+while users can still inspect and copy the complete source text.
 
-`InvalidPartialResultCannotEnableEmptyPresentationOrReplacePriorValidDisplay`
-at `Step7ResultPresentationTests.cs:102` checks every empty selector, table,
-extrema, export ability/button, navigation method, and grid. It then establishes
-a rich moving-child/PICKUP/table/scene/export state, rejects a partial set, and
-proves the result, coordinate, derived selection, parent/child objects, moving
-envelope, scene, rows, selector states, and export bytes remain unchanged.
+This closes the last text-layout Medium without claiming that the synthetic preview
+strokes are real font glyphs.
 
-### Shared presentation budgets — resolved
+## Rasterizer and Golden Assessment
 
-- `SharedBudget_AcceptsExactCompositePagesDerivedPickupAndMovingCosts` at
-  `Step7ResultPresentationBudgetTests.cs:9` pins the exact aggregate use of one
-  budget across pages, DEFINE/PICKUP, operands, output entities, scalar work,
-  and a moving envelope.
-- `EveryPresentationLimit_RejectsExactPlusOneWithTypedStableDetails` at line 44
-  covers all six runtime limit kinds with typed code/resource key/limit/actual
-  details.
-- `ProjectDocumentContent.BuildResultPresentationCandidate` at
-  `ProjectDocumentContent.cs:696-777` shares one budget across all candidate
-  work and completes it before `SetResult` publishes state at lines 348-368.
+- The bounded rasterizer limits page dimensions and operator count, rejects
+  unsupported or unbalanced state, parses PDFsharp's rectangular `W`/`W*` clip
+  paths, carries clip state across `q`/`Q`, and clips text coverage
+  (`PdfSharpSubsetPageRasterizer.cs:17-44,49-191,255-307,439-457`).
+- The A4 golden executes the real writer's clip operators through that independent
+  parser and exact checked-in raster (`Step8RenderedPdfGoldenTests.cs:9-29`).
+  Missing/mismatched fixtures emit candidates and fail rather than auto-approving
+  (`Step8RenderedPdfGoldenTests.cs:74-102`). The A3 test separately proves corrupt
+  image streams fail closed (`Step8RenderedPdfGoldenTests.cs:32-65`).
+- `Goldens/README.md:54-61` records the second-final owner approval: only the A4
+  fixture changed; A3 stayed byte-identical. The A4 delta is 88/500,990 pixels
+  (0.017565%), absolute-difference sum 19,624, maximum delta 223, bounded to
+  x=30..389/y=99..787. Original-resolution inspection retained margins, the full
+  grid, repeated header, every row, title, and centered footer.
 
-### Atomic result persistence — resolved
+The valid clip path is executable evidence. Malformed clip-path branches are
+fail-closed in source but lack a dedicated negative mutation test; that narrow
+test-harness gap remains Low below.
 
-`ProductionPickupSelectionExportsAndAtomicallySavesExactDimensionSpecificBytes`
-overwrites a stale target, verifies exact bytes for 3D and 2D, proves no `.tmp`
-residue, forces a locked-target failure, checks typed failure provenance, and
-proves the previous destination remains intact. `AtomicResultExportWriter.Write`
-at `AtomicResultExportWriter.cs:7-55` uses same-directory `CreateNew`, durable
-flush, overwrite-on-move, and failure cleanup.
+## Remaining Findings
 
-### Step 6 normalization and legacy boundary — resolved
+### [Low] Independent CJK glyph visual evidence is still unavailable
 
-The normalized signed, overflow, failure, paging, and oversized fixtures retain
-their behavioral assertions while satisfying strict topology/result identity
-validation. The removed invalid cross-kind scene use is now replaced by the
-valid Step 7 typed-scene test. No `Skip`/`Ignore` additions or weakened
-assertions were found. Active new code consumes typed `AnalysisResultSet` /
-presentation models directly; no `disg`/`reac`/`fsec` adapter was introduced.
+**Evidence:** installed-font, `/FontFile2`, `/ToUnicode`, Unicode mapping, lazy
+language lookup, and malformed TTC tests are green. The repository rasterizers
+intentionally paint deterministic coverage strokes instead of installed glyph
+outlines. CUA/browser and Chrome-headless attempts were blank or unavailable.
 
-## Remaining Low Follow-ups
+**Impact:** a viewer-specific Japanese or Simplified Chinese missing-glyph/shape
+problem could remain despite correct structural embedding.
 
-### [Low] Presentation-limit constructor hard caps lack direct +1 tests
+**Remediation:** add a repeatable independent PDF renderer and text extractor on
+the approved Windows font matrix, with Japanese/Chinese image evidence and exact
+extracted text. Do not replace the current fast structural gates.
 
-`ResultPresentationLimits` defines six hard caps and validates them in its
-constructor at `ResultPresentationLimits.cs:15-85`. Runtime exact/+1 behavior
-for all six kinds is covered, but the constructor itself has no matrix proving
-each hard cap is accepted and hard-cap+1 is rejected.
+### [Low] Multi-page `PrintTextSection` still lacks a direct no-loss boundary test
 
-**Remediation:** add a data-driven constructor test for the six hard caps,
-mirroring `ExportLimitConfiguration_AcceptsHardCapsAndRejectsEveryHardCapPlusOne`.
+**Evidence:** planning and authoritative `TextRuns` implement ordered
+`TextLineStart`/`TextLineCount` chunks, and the new selectable dialog proves exact
+unabridged text for the production 13-column table. No test supplies a text section
+long enough to span multiple pages and reconstructs every line across all page
+ranges.
 
-### [Low] Secondary atomic-cleanup failure attachment is not directly injectable
+**Impact:** a future line-wrap/page-transition regression could duplicate or omit
+body text while the table-focused final tests remain green.
 
-The primary write/replace failure, target preservation, and normal cleanup are
-covered. The branch at `AtomicResultExportWriter.cs:51-53` that attaches a
-secondary temp-file deletion failure to `Exception.Data` has no deterministic
-test seam, so its non-masking guarantee remains code-reviewed rather than
-regression-tested.
+**Remediation:** add exact one-page, +1-line, and multi-page text cases, including a
+long unbroken token and CJK text; assert contiguous ranges and reconstructed full
+text in plan, PDF extraction, and selectable page content.
 
-**Remediation:** isolate filesystem operations behind an internal injectable
-boundary and force both a primary replace failure and cleanup failure; assert
-the primary exception remains authoritative and the cleanup exception is
-attached under `CleanupFailureDataKey`.
+### [Low] Malformed clip-path fail-closed branches are source-backed but not mutation-tested
+
+**Evidence:** `PdfSharpSubsetPageRasterizer.cs:588-648` rejects too many/few
+vertices, incomplete/non-rectangular/empty paths, and non-axis-aligned edges. The
+A4 golden proves valid generated clips, but no test corrupts `m/l/h/W/n` ordering
+or geometry and asserts the corresponding `InvalidDataException`.
+
+**Impact:** a regression in the test harness's strict rejection behavior could
+weaken golden independence without affecting ordinary valid-golden runs.
+
+**Remediation:** add bounded synthetic or generated-PDF mutations for missing `h`,
+missing/duplicate `W`, missing `n`, diagonal edges, extra vertices, and empty
+rectangles; assert fail-closed exceptions and no candidate approval.
+
+### [Low] A test name still overstates byte determinism
+
+**Evidence:** `Step8PdfExportAcceptanceTests.cs:92-110` remains named
+`RepeatedAndParallelExports_AreByteDeterministicAndUseDeclaredSerializationPolicy`,
+but compares `PdfSemanticSnapshot` values instead of raw output bytes. Separate
+tests correctly prove cross-instance serialization and queued cancellation.
+
+**Impact:** maintainers may cite it as byte-for-byte reproducibility evidence when
+the supported invariant is semantic determinism.
+
+**Remediation:** rename it to say semantic determinism, or add raw-byte equality
+only if byte determinism becomes an explicit product contract.
+
+## Prior Finding Disposition
+
+| Finding | SECOND-FINAL disposition |
+|---|---|
+| Raw viewport shown for every preview page | Closed by real page-specific dialog navigation and plan identity tests. |
+| Production result-selection/input matrix absent | Closed for static/nonlinear/modal/derived/moving plus all 21 input surfaces and Moving Loads. |
+| Exact Shell RGB/member I/J assertions weakened | Closed by exact embedded RGB/hash and ToUnicode-aware result assertions. |
+| Eager fonts and malformed TTC gaps | Closed by injectable lazy font and malformed collection matrices. |
+| Per-page preview validation/budget reset | Closed by one whole-document session, exact/+1 preflight, and 22-page auto-fit. |
+| Preview/PDF horizontal text fidelity | Closed by authoritative fitted/clipped `TextRuns` and exact selectable page text. |
+| Integrated shared-budget residual | Closed by full preview exact/+1 execution before page rendering. |
+| CJK independent visual proof | Open Low; unavailable, not represented as PASS. |
+| Multi-page body-text no-loss proof | Open Low. |
+| Semantic test labeled byte-deterministic | Open Low. |
+
+## Assertion-Strength Assessment
+
+- No new skipped/ignored tests were found.
+- The two new engine suites use the actual production writer, plan, PDF stream, and
+  observer. The observer makes validation/render counts observable but does not
+  replace the production work.
+- The UI suite uses the real factory, exporter, dialog, navigation buttons,
+  bitmap, and selectable text box rather than a fake dialog/exporter.
+- Earlier Step 4 broad assertions remain replaced by exact RGB/hash and mapped
+  member/result checks. Removed legacy interface/package assertions correspond to
+  intentional typed API and official PDFsharp changes, not weakened behavior.
+- Golden comparison remains independent and fail-closed on absence or mismatch;
+  refresh rationale is specific and reviewable.
+
+## Prioritized Missing-Test List
+
+1. Independent Japanese and Simplified Chinese glyph rendering and extraction.
+2. Multi-page body-text exact no-loss/no-duplication reconstruction.
+3. Negative malformed clip-path mutations for the bounded golden rasterizer.
+4. Rename the semantic-determinism test or explicitly establish a byte contract.
 
 ## Test Execution Results
 
-- Independent focused Core Step 7: PASS, 29/29, failed 0, skipped 0.
-- Independent focused UI Step 7: PASS, 9/9, failed 0, skipped 0.
-- Final full-suite evidence supplied by the lead: PASS, 501/501 — Core 272,
-  Printing/composition 17, Rendering 56, LocalRuntime 14, UI 142; failed 0,
+- Independently run whole-preview/text/golden filter: PASS, 6/6, failed 0,
   skipped 0.
-- Independent AgentOnly: PASS, `overall=pass`, warnings 0; product gates were
-  intentionally skipped. Log:
-  `.agents/logs/check-20260921T002520985Z-39092.log`.
-- Coverage: **not measured** (`coverage=null`).
+- Independently run real final preview-text UI filter: PASS, 2/2, failed 0,
+  skipped 0.
+- Lead-provided both-solution evidence: PASS, 567/567 — Core 272, Printing 73,
+  Rendering 56, LocalRuntime 14, UI 152.
+- Lead-provided ownership: overlap 0 / unowned 0 / idle 0. AgentOnly: pass.
+- Coverage percentage: **not measured**.
 
-## Priority Summary
+## Severity Summary
 
 | Severity | Count | Disposition |
 |---|---:|---|
 | Critical | 0 | None. |
-| High | 0 | All prior High findings resolved. |
-| Medium | 0 | All prior Medium findings resolved. |
-| Low | 2 | Constructor hard-cap matrix and secondary cleanup-failure injection. |
+| High | 0 | None. |
+| Medium | 0 | Both final Mediums and all earlier Mediums are closed. |
+| Low | 4 | CJK visual, multi-page text, clip mutation, and evidence naming. |

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
+using PDF_Manager.Core.Abstractions;
 using PDF_Manager.Core.Analysis;
 using PDF_Manager.Core.Documents;
 using PDF_Manager.Core.Results;
@@ -308,6 +309,29 @@ public sealed class ProjectDocumentContent : ShellDockContent
     public RendererDiagnosticSnapshot RendererDiagnosticsSnapshot => RendererDiagnostics.Snapshot();
     public bool ResultTableTruncated { get; private set; }
     public ViewportOperationException? LastViewportFailure { get; private set; }
+
+    public ResultTableSet? CurrentResultTables => _currentResultTables;
+
+    public PrintResultSelection? CreatePrintResultSelection()
+    {
+        if (_currentResultTables is null)
+        {
+            return null;
+        }
+
+        string? provenance = _selectedDerivedResult is not null
+            ? $"{_selectedDerivedResult.Kind}: {_selectedDerivedResult.Id}; " +
+                $"sources={string.Join(",", _selectedDerivedResult.SourceIds)}"
+            : _selectedResultPage is { IsMovingLoad: true } page && _selectedSourcePage is not null
+                ? $"moving={page.PageId}; source={_selectedSourcePage.Result.CaseId}; " +
+                    $"role={(_selectedSourcePage.IsParent ? "parent" : "child")}"
+                : _resultNavigator.CurrentCoordinate?.ToString();
+        return new PrintResultSelection(
+            _currentResultTables,
+            _selectedDerivedResult is null ? _resultNavigator.CurrentCoordinate : null,
+            provenance,
+            _selectedResultPage?.IsMovingLoad == true);
+    }
 
     public ViewportSceneModel? CurrentScene
     {

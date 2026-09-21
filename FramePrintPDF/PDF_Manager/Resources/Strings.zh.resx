@@ -204,6 +204,8 @@
   <data name="EditorMemberSpringSet" xml:space="preserve"><value>构件弹簧集合</value></data>
   <data name="EditorJointSet" xml:space="preserve"><value>连接集合</value></data>
   <data name="EditorMovingPitch" xml:space="preserve"><value>移动步距</value></data>
+  <data name="EditorMovingLoads" xml:space="preserve"><value>移动荷载定义</value></data>
+  <data name="EditorCases" xml:space="preserve"><value>工况</value></data>
   <data name="EditorLoadKind" xml:space="preserve"><value>荷载类型</value></data>
   <data name="EditorDirection" xml:space="preserve"><value>方向</value></data>
   <data name="EditorL1" xml:space="preserve"><value>L1</value></data>
@@ -231,4 +233,50 @@
   <data name="EditorAx" xml:space="preserve"><value>Ax</value></data>
   <data name="EditorAy" xml:space="preserve"><value>Ay</value></data>
   <data name="EditorAz" xml:space="preserve"><value>Az</value></data>
+  <data name="MenuPageSetup" xml:space="preserve"><value>页面设置...</value></data>
+  <data name="MenuPrintPreview" xml:space="preserve"><value>打印预览...</value></data>
+  <data name="PrintPageSetupTitle" xml:space="preserve"><value>页面设置</value></data>
+  <data name="PrintPreviewTitle" xml:space="preserve"><value>打印预览</value></data>
+  <data name="PrintPreviewContent" xml:space="preserve"><value>页面完整内容</value></data>
+  <data name="PrintPaperSize" xml:space="preserve"><value>纸张大小</value></data>
+  <data name="PrintOrientation" xml:space="preserve"><value>方向</value></data>
+  <data name="PrintScale" xml:space="preserve"><value>缩放 (%)</value></data>
+  <data name="PrintLayout" xml:space="preserve"><value>布局</value></data>
+  <data name="PrintPageNumbers" xml:space="preserve"><value>显示页码</value></data>
+  <data name="PrintSections" xml:space="preserve"><value>打印内容</value></data>
+  <data name="PrintApply" xml:space="preserve"><value>应用</value></data>
+  <data name="PrintCancel" xml:space="preserve"><value>取消</value></data>
+  <data name="PrintPaperA4" xml:space="preserve"><value>A4</value></data>
+  <data name="PrintPaperA3" xml:space="preserve"><value>A3</value></data>
+  <data name="PrintPortrait" xml:space="preserve"><value>纵向</value></data>
+  <data name="PrintLandscape" xml:space="preserve"><value>横向</value></data>
+  <data name="PrintLayoutContinuous" xml:space="preserve"><value>连续排列</value></data>
+  <data name="PrintLayoutSectionPerPage" xml:space="preserve"><value>每项另起一页</value></data>
+  <data name="PrintSectionRequired" xml:space="preserve"><value>请至少选择一个打印内容。</value></data>
+  <data name="PrintSectionProjectSummary" xml:space="preserve"><value>项目摘要</value></data>
+  <data name="PrintSectionInputTables" xml:space="preserve"><value>输入表</value></data>
+  <data name="PrintSectionModelDiagram" xml:space="preserve"><value>模型图</value></data>
+  <data name="PrintSectionLoadDiagram" xml:space="preserve"><value>荷载图</value></data>
+  <data name="PrintSectionDisplacements" xml:space="preserve"><value>位移结果</value></data>
+  <data name="PrintSectionReactions" xml:space="preserve"><value>反力结果</value></data>
+  <data name="PrintSectionMemberForces" xml:space="preserve"><value>杆件内力结果</value></data>
+  <data name="PrintSectionResultDiagram" xml:space="preserve"><value>结果图</value></data>
+  <data name="PrintPreviewPageCount" xml:space="preserve"><value>第 {0} 页，共 {1} 页</value></data>
+  <data name="StatusPrintSettingsUpdated" xml:space="preserve"><value>打印设置已更新。</value></data>
+  <data name="StatusPrintPreviewReady" xml:space="preserve"><value>打印预览已生成（{0} 页）。</value></data>
+  <data name="PrintSummaryDescription" xml:space="preserve"><value>说明: {0}</value></data>
+  <data name="PrintSummaryAuthor" xml:space="preserve"><value>作者: {0}</value></data>
+  <data name="PrintSummaryUnits" xml:space="preserve"><value>单位: {0}</value></data>
+  <data name="PrintSummaryDimension" xml:space="preserve"><value>维度: {0}</value></data>
+  <data name="PrintSummaryNodes" xml:space="preserve"><value>节点数: {0}</value></data>
+  <data name="PrintSummaryMembers" xml:space="preserve"><value>杆件数: {0}</value></data>
+  <data name="PrintSummarySupports" xml:space="preserve"><value>支座数: {0}</value></data>
+  <data name="PrintSummaryLoadCases" xml:space="preserve"><value>荷载工况数: {0}</value></data>
+  <data name="PrintPreviewFailed" xml:space="preserve"><value>无法生成打印预览。</value></data>
+  <data name="PrintPreviewOutOfDate" xml:space="preserve"><value>预览后打印内容已更改。请刷新预览后再导出。</value></data>
+  <data name="PrintResultUnavailable" xml:space="preserve"><value>所选打印内容需要当前计算结果。</value></data>
+  <data name="PrintExportFailed" xml:space="preserve"><value>无法生成PDF报告。</value></data>
+  <data name="PrintFontUnavailableEnglish" xml:space="preserve"><value>此计算机上没有可用的英文打印字体。</value></data>
+  <data name="PrintFontUnavailableJapanese" xml:space="preserve"><value>此计算机上没有可用的日文打印字体。</value></data>
+  <data name="PrintFontUnavailableChinese" xml:space="preserve"><value>此计算机上没有可用的简体中文打印字体。</value></data>
 </root>

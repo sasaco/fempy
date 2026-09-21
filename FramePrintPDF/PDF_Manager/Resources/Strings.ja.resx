@@ -204,6 +204,8 @@
   <data name="EditorMemberSpringSet" xml:space="preserve"><value>部材ばねセット</value></data>
   <data name="EditorJointSet" xml:space="preserve"><value>結合セット</value></data>
   <data name="EditorMovingPitch" xml:space="preserve"><value>移動ピッチ</value></data>
+  <data name="EditorMovingLoads" xml:space="preserve"><value>移動荷重定義</value></data>
+  <data name="EditorCases" xml:space="preserve"><value>ケース</value></data>
   <data name="EditorLoadKind" xml:space="preserve"><value>荷重種別</value></data>
   <data name="EditorDirection" xml:space="preserve"><value>方向</value></data>
   <data name="EditorL1" xml:space="preserve"><value>L1</value></data>
@@ -231,4 +233,50 @@
   <data name="EditorAx" xml:space="preserve"><value>Ax</value></data>
   <data name="EditorAy" xml:space="preserve"><value>Ay</value></data>
   <data name="EditorAz" xml:space="preserve"><value>Az</value></data>
+  <data name="MenuPageSetup" xml:space="preserve"><value>ページ設定...</value></data>
+  <data name="MenuPrintPreview" xml:space="preserve"><value>印刷プレビュー...</value></data>
+  <data name="PrintPageSetupTitle" xml:space="preserve"><value>ページ設定</value></data>
+  <data name="PrintPreviewTitle" xml:space="preserve"><value>印刷プレビュー</value></data>
+  <data name="PrintPreviewContent" xml:space="preserve"><value>ページの完全な内容</value></data>
+  <data name="PrintPaperSize" xml:space="preserve"><value>用紙サイズ</value></data>
+  <data name="PrintOrientation" xml:space="preserve"><value>印刷方向</value></data>
+  <data name="PrintScale" xml:space="preserve"><value>倍率 (%)</value></data>
+  <data name="PrintLayout" xml:space="preserve"><value>レイアウト</value></data>
+  <data name="PrintPageNumbers" xml:space="preserve"><value>ページ番号を表示</value></data>
+  <data name="PrintSections" xml:space="preserve"><value>印刷項目</value></data>
+  <data name="PrintApply" xml:space="preserve"><value>適用</value></data>
+  <data name="PrintCancel" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="PrintPaperA4" xml:space="preserve"><value>A4</value></data>
+  <data name="PrintPaperA3" xml:space="preserve"><value>A3</value></data>
+  <data name="PrintPortrait" xml:space="preserve"><value>縦</value></data>
+  <data name="PrintLandscape" xml:space="preserve"><value>横</value></data>
+  <data name="PrintLayoutContinuous" xml:space="preserve"><value>連続配置</value></data>
+  <data name="PrintLayoutSectionPerPage" xml:space="preserve"><value>項目ごとに改ページ</value></data>
+  <data name="PrintSectionRequired" xml:space="preserve"><value>印刷項目を1つ以上選択してください。</value></data>
+  <data name="PrintSectionProjectSummary" xml:space="preserve"><value>プロジェクト概要</value></data>
+  <data name="PrintSectionInputTables" xml:space="preserve"><value>入力表</value></data>
+  <data name="PrintSectionModelDiagram" xml:space="preserve"><value>モデル図</value></data>
+  <data name="PrintSectionLoadDiagram" xml:space="preserve"><value>荷重図</value></data>
+  <data name="PrintSectionDisplacements" xml:space="preserve"><value>変位結果</value></data>
+  <data name="PrintSectionReactions" xml:space="preserve"><value>反力結果</value></data>
+  <data name="PrintSectionMemberForces" xml:space="preserve"><value>断面力結果</value></data>
+  <data name="PrintSectionResultDiagram" xml:space="preserve"><value>結果図</value></data>
+  <data name="PrintPreviewPageCount" xml:space="preserve"><value>{0} / {1} ページ</value></data>
+  <data name="StatusPrintSettingsUpdated" xml:space="preserve"><value>印刷設定を更新しました。</value></data>
+  <data name="StatusPrintPreviewReady" xml:space="preserve"><value>印刷プレビューを作成しました（{0} ページ）。</value></data>
+  <data name="PrintSummaryDescription" xml:space="preserve"><value>説明: {0}</value></data>
+  <data name="PrintSummaryAuthor" xml:space="preserve"><value>作成者: {0}</value></data>
+  <data name="PrintSummaryUnits" xml:space="preserve"><value>単位: {0}</value></data>
+  <data name="PrintSummaryDimension" xml:space="preserve"><value>次元: {0}</value></data>
+  <data name="PrintSummaryNodes" xml:space="preserve"><value>節点数: {0}</value></data>
+  <data name="PrintSummaryMembers" xml:space="preserve"><value>部材数: {0}</value></data>
+  <data name="PrintSummarySupports" xml:space="preserve"><value>支点数: {0}</value></data>
+  <data name="PrintSummaryLoadCases" xml:space="preserve"><value>荷重ケース数: {0}</value></data>
+  <data name="PrintPreviewFailed" xml:space="preserve"><value>印刷プレビューを作成できませんでした。</value></data>
+  <data name="PrintPreviewOutOfDate" xml:space="preserve"><value>プレビュー後に印刷内容が変更されました。プレビューを更新してから出力してください。</value></data>
+  <data name="PrintResultUnavailable" xml:space="preserve"><value>選択した印刷項目には現在の計算結果が必要です。</value></data>
+  <data name="PrintExportFailed" xml:space="preserve"><value>PDFレポートを作成できませんでした。</value></data>
+  <data name="PrintFontUnavailableEnglish" xml:space="preserve"><value>英語印刷用フォントをこのコンピューターで利用できません。</value></data>
+  <data name="PrintFontUnavailableJapanese" xml:space="preserve"><value>日本語印刷用フォントをこのコンピューターで利用できません。</value></data>
+  <data name="PrintFontUnavailableChinese" xml:space="preserve"><value>簡体字中国語印刷用フォントをこのコンピューターで利用できません。</value></data>
 </root>

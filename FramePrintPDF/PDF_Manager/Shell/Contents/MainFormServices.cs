@@ -112,7 +112,8 @@ public sealed class MainFormServices : IDisposable
         IShellLayoutStore? layoutStore = null,
         IViewportCaptureProvider? viewportCaptureProvider = null,
         IDisposable? ownedResource = null,
-        TimeSpan? operationShutdownTimeout = null)
+        TimeSpan? operationShutdownTimeout = null,
+        IPrintDialogService? printDialogs = null)
     {
         TimeSpan shutdownTimeout = operationShutdownTimeout ?? DefaultOperationShutdownTimeout;
         if (shutdownTimeout <= TimeSpan.Zero || shutdownTimeout > TimeSpan.FromSeconds(30))
@@ -125,9 +126,12 @@ public sealed class MainFormServices : IDisposable
 
         ProjectStore = projectStore ?? new JsonProjectStore();
         AnalysisClient = analysisClient;
-        PrintExporter = printExporter ?? new DesktopPdfExporter();
         Localization = localization ?? new LocalizationService();
+        PrintExporter = printExporter ?? new DesktopPdfExporter(
+            jobFactory: new DesktopPrintJobFactory(Localization),
+            localization: Localization);
         Dialogs = dialogs ?? new WinFormsShellDialogService();
+        PrintDialogs = printDialogs ?? new WinFormsPrintDialogService();
         CancellationOwner = cancellationOwner ?? new OperationCancellationOwner();
         ReportDiagnostic = reportDiagnostic;
         LayoutStore = layoutStore ?? new LocalShellLayoutStore();
@@ -145,6 +149,8 @@ public sealed class MainFormServices : IDisposable
     public LocalizationService Localization { get; }
 
     public IShellDialogService Dialogs { get; }
+
+    public IPrintDialogService PrintDialogs { get; }
 
     public OperationCancellationOwner CancellationOwner { get; }
 

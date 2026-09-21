@@ -204,6 +204,8 @@
   <data name="EditorMemberSpringSet" xml:space="preserve"><value>Member spring set</value></data>
   <data name="EditorJointSet" xml:space="preserve"><value>Joint set</value></data>
   <data name="EditorMovingPitch" xml:space="preserve"><value>Moving pitch</value></data>
+  <data name="EditorMovingLoads" xml:space="preserve"><value>Moving loads</value></data>
+  <data name="EditorCases" xml:space="preserve"><value>Cases</value></data>
   <data name="EditorLoadKind" xml:space="preserve"><value>Load kind</value></data>
   <data name="EditorDirection" xml:space="preserve"><value>Direction</value></data>
   <data name="EditorL1" xml:space="preserve"><value>L1</value></data>
@@ -231,4 +233,50 @@
   <data name="EditorAx" xml:space="preserve"><value>Ax</value></data>
   <data name="EditorAy" xml:space="preserve"><value>Ay</value></data>
   <data name="EditorAz" xml:space="preserve"><value>Az</value></data>
+  <data name="MenuPageSetup" xml:space="preserve"><value>Page setup...</value></data>
+  <data name="MenuPrintPreview" xml:space="preserve"><value>Print preview...</value></data>
+  <data name="PrintPageSetupTitle" xml:space="preserve"><value>Page setup</value></data>
+  <data name="PrintPreviewTitle" xml:space="preserve"><value>Print preview</value></data>
+  <data name="PrintPreviewContent" xml:space="preserve"><value>Exact page content</value></data>
+  <data name="PrintPaperSize" xml:space="preserve"><value>Paper size</value></data>
+  <data name="PrintOrientation" xml:space="preserve"><value>Orientation</value></data>
+  <data name="PrintScale" xml:space="preserve"><value>Scale (%)</value></data>
+  <data name="PrintLayout" xml:space="preserve"><value>Layout</value></data>
+  <data name="PrintPageNumbers" xml:space="preserve"><value>Show page numbers</value></data>
+  <data name="PrintSections" xml:space="preserve"><value>Sections</value></data>
+  <data name="PrintApply" xml:space="preserve"><value>Apply</value></data>
+  <data name="PrintCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="PrintPaperA4" xml:space="preserve"><value>A4</value></data>
+  <data name="PrintPaperA3" xml:space="preserve"><value>A3</value></data>
+  <data name="PrintPortrait" xml:space="preserve"><value>Portrait</value></data>
+  <data name="PrintLandscape" xml:space="preserve"><value>Landscape</value></data>
+  <data name="PrintLayoutContinuous" xml:space="preserve"><value>Continuous flow</value></data>
+  <data name="PrintLayoutSectionPerPage" xml:space="preserve"><value>Start each section on a new page</value></data>
+  <data name="PrintSectionRequired" xml:space="preserve"><value>Select at least one print section.</value></data>
+  <data name="PrintSectionProjectSummary" xml:space="preserve"><value>Project summary</value></data>
+  <data name="PrintSectionInputTables" xml:space="preserve"><value>Input tables</value></data>
+  <data name="PrintSectionModelDiagram" xml:space="preserve"><value>Model diagram</value></data>
+  <data name="PrintSectionLoadDiagram" xml:space="preserve"><value>Load diagram</value></data>
+  <data name="PrintSectionDisplacements" xml:space="preserve"><value>Displacement results</value></data>
+  <data name="PrintSectionReactions" xml:space="preserve"><value>Reaction results</value></data>
+  <data name="PrintSectionMemberForces" xml:space="preserve"><value>Member-force results</value></data>
+  <data name="PrintSectionResultDiagram" xml:space="preserve"><value>Result diagram</value></data>
+  <data name="PrintPreviewPageCount" xml:space="preserve"><value>Page {0} of {1}</value></data>
+  <data name="StatusPrintSettingsUpdated" xml:space="preserve"><value>Print settings updated.</value></data>
+  <data name="StatusPrintPreviewReady" xml:space="preserve"><value>Print preview ready: {0} page(s).</value></data>
+  <data name="PrintSummaryDescription" xml:space="preserve"><value>Description: {0}</value></data>
+  <data name="PrintSummaryAuthor" xml:space="preserve"><value>Author: {0}</value></data>
+  <data name="PrintSummaryUnits" xml:space="preserve"><value>Units: {0}</value></data>
+  <data name="PrintSummaryDimension" xml:space="preserve"><value>Dimension: {0}</value></data>
+  <data name="PrintSummaryNodes" xml:space="preserve"><value>Nodes: {0}</value></data>
+  <data name="PrintSummaryMembers" xml:space="preserve"><value>Members: {0}</value></data>
+  <data name="PrintSummarySupports" xml:space="preserve"><value>Supports: {0}</value></data>
+  <data name="PrintSummaryLoadCases" xml:space="preserve"><value>Load cases: {0}</value></data>
+  <data name="PrintPreviewFailed" xml:space="preserve"><value>The print preview could not be created.</value></data>
+  <data name="PrintPreviewOutOfDate" xml:space="preserve"><value>The print content changed after preview. Refresh the preview before exporting.</value></data>
+  <data name="PrintResultUnavailable" xml:space="preserve"><value>The selected print sections require a current calculation result.</value></data>
+  <data name="PrintExportFailed" xml:space="preserve"><value>The PDF report could not be created.</value></data>
+  <data name="PrintFontUnavailableEnglish" xml:space="preserve"><value>The English print font is not available on this computer.</value></data>
+  <data name="PrintFontUnavailableJapanese" xml:space="preserve"><value>The Japanese print font is not available on this computer.</value></data>
+  <data name="PrintFontUnavailableChinese" xml:space="preserve"><value>The Simplified Chinese print font is not available on this computer.</value></data>
 </root>

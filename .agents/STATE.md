@@ -319,3 +319,41 @@ Rolling progress summary (latest 5 checkpoints): [PROGRESS.md](../PROGRESS.md)
 - Neutralize only untrusted text cells in spreadsheet-oriented CSV so negative engineering numbers remain numeric.
 - Preserve the original exception as InnerException on export failures and keep a cleanup failure secondary to the primary operation failure.
 - Step 7 is complete; next is Step 8 typed printing. Legacy-host publication and completed-app redistribution remain NO-GO.
+
+---
+
+## Current Feature: C# FrameWeb Desktop Client Step 8
+<!-- orchestra:block-id: c-frameweb-desktop-client-step-8 -->
+
+### Context
+
+- Goal: Replace the legacy print path with bounded typed printing whose preview and PDF export share one authoritative immutable plan.
+- Key files: FramePrintPDF/PDF_Manager.Printing/**, PDF_Manager/Shell/Printing/**, PDF_Manager/Shell/Contents/**, and Printing/UI acceptance tests.
+- Dependencies: Step 7 presentation models, deterministic viewport capture, ProjectDocument v1, and AnalysisResultSet v1.
+- Complexity: COMPLEX
+
+### Architecture
+
+- Official PDFsharp 6.2.4 sits only behind PDF_Manager.Printing; the typed desktop graph does not depend on legacy PdfSharpCore/ImageSharp or embedded restricted fonts.
+- Preview and export consume the same immutable page plan, including authoritative full/display text runs, clip bounds, font metrics, diagram geometry, and shared whole-document work budgets.
+- PDF/font work is process-wide serialized; installed Windows fonts are resolved lazily per requested language and rejected before allocation when the source exceeds the configured bound.
+- The shell captures 21 editor tables plus Moving Loads, distinct model/load/result diagrams, and the selected static/nonlinear/modal/derived/moving result set before publishing any new preview state.
+
+### Codex Validation
+
+- Both Release solutions build with 0 warnings/errors and both solution test runs pass 567/567: Core 272, Printing 73, Rendering 56, LocalRuntime 14, UI 152.
+- A3/A4 portrait/landscape geometry, margins, scale, page numbers, grapheme-safe table pagination/clipping, full selectable preview text, golden rendering, exact/+1 budgets, parallel serialization, atomic save, exception provenance, and failed-candidate state preservation are covered.
+- Ownership reconcile reports overlap 0, unowned 0, and idle 0; AgentOnly reports overall=pass. Final reviews report Security 0/0/0/Low 1, Quality 0/0/0/Low 0, and Tests 0/0/0/Low 4. Coverage remains unmeasured, and GUI-viewer CJK glyph evidence could not be captured in the available environment.
+
+### Integration Points
+
+- Step 9 must complete authentication, packaging/signing/update policy, endpoint discovery, clean-machine parity, Startup cutover, and publish SBOM/forbidden-content checks.
+- FramePrintAzure and the isolated legacy local print bridge remain redistribution NO-GO and are to be retired during Step 9 rather than rebuilt.
+- Python remains the FEM implementation behind the private loopback HTTP/Job boundary and AnalysisResultSet v1; full Python/Angular validation retains the known 3,273 PASS / 6 FAIL / 4 ERROR baseline.
+
+### Decisions
+
+- Use installed per-language Windows fonts without bundling font binaries; English output does not require CJK font availability.
+- Serialize process-global PDFsharp work and share one budget across whole-document preview/export.
+- Retire FramePrintAzure at the Step 9 cutover instead of preserving a second printing transport and presentation contract.
+- Step 8 is complete; completed-app redistribution remains NO-GO until Step 9 production gates pass.

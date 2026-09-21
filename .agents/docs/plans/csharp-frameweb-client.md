@@ -18,7 +18,7 @@
 - Step 1 は作業ツリーで完了した。`PDF_Manager` は `net8.0-windows` WinExeとなり、Core/Rendering/typed Printingを参照する空WinForms shell、4つの自動test project、両solutionへの登録が実装済みである。Step 2以降は未着手である。
 - Step 2 は作業ツリーで完了した。Coreへtyped `ProjectDocument v1`、厳格かつ決定的なJSON/atomic store、完全な`AnalysisResultSet v1` DTO/validator/index/commit boundary、static-only derived presentation、moving-load paging/envelope、およびtyped service boundaryを実装した。
 - Step 3 は作業ツリーで完了した。localized WinForms shell、stable-key docking registry、bounded/atomic/transactional layout、serialized document transition、coalesced activation、dirty-close/cancellation/exception boundaryを実装した。
-- Step 7 は作業ツリーで完了した。ordered static/nonlinear/modal navigation、result table/diagram、static-only DEFINE/COMBINE/PICKUP、moving parent/child paging/envelope、3D CSV／2D `.pik` export、presentation budget、atomic exportを実装した。次はStep 8のtyped printing移行である。
+- Step 8 は作業ツリーで完了した。公式PDFsharp 6.2.4上のtyped printing、同一immutable planによるpreview/export、22入力表、model/load/result diagram、結果選択matrix、共有work budget、CJK installed-font解決、原子的PDF保存を実装した。次はStep 9のproduction integration、parity sign-off、cutoverである。
 - Step 1完了後にリポジトリ正規の全体検査 `& .agents/check.ps1 -AllowProductPath 'FramePrintPDF'` を再実行した。Agent系、scope isolation、`git diff --check`、`.NET build` はPASSしたが、全体は `overall=fail` である。Pythonは3,273件PASS・6件FAIL・4件ERROR（1:55:37）、Angular test/buildはTypeScript compilation、FontAwesome path、`environment.prod.ts` 不在でFAILした。詳細は `.agents/logs/check-20260920T035935489Z-32252.log` を参照する。いずれも既知のC#変更範囲外failureだが、リポジトリ全体をgreenとは報告しない。
 - 独立レビューは品質PASS（Critical/Highなし）、テストPASS（Critical/Highなし）、セキュリティChanges requested（旧Azure/local print hostにHigh 2件）である。新desktop境界には旧印刷資産・制限font・既知脆弱packageは入っていない。一方、legacy hostの匿名endpointは脆弱なImageSharp 1.0.4へ到達でき、request/decompression/image/PDF workも無制限なので、公開・配布はNO-GOである。詳細は `.agents/docs/research/review-{quality,tests,security}-csharp-frameweb-client.md` を参照する。
 
@@ -47,7 +47,7 @@ PDF_Manager (net8.0-windows WinForms executable / composition root)
   │    ├─ model/load/result scene layers
   │    └─ deterministic viewport capture
   ├─ PDF_Manager.Printing
-  │    └─ typed PdfSharpCore document/layout/export pipeline
+  │    └─ typed official PDFsharp document/layout/export pipeline
   └─ FrameWeb.LocalRuntime
        └─ Python process startup, readiness, cancellation, Job Object cleanup
 
@@ -208,13 +208,15 @@ PDF_Manager.Core --HTTP--> FrameWeb (Python FEM)
 
 #### Step 8: Replace the legacy print path with typed printing
 
-- [ ] Characterize the useful existing PDF behavior first: A3/A4, portrait/landscape, page numbers, Japanese/Chinese fonts, table pagination, diagram layouts, and representative existing fixtures.
-- [ ] Replace `PrintInput` / `PrintData` dictionaries with typed `PrintJob`, page-section, table, diagram, result, and viewport-capture models.
-- [ ] Replace the vulnerable legacy PdfSharpCore/ImageSharp graph, initialize the selected font resolver once, make export concurrency explicit, preserve original exception types/causes, and enforce encoded/decompressed/image-dimension/page/work limits before allocation.
-- [ ] Implement preview, page count, input tables, displacement/reaction/section-force tables, load/model/result diagrams, scale/layout options, and file export from the desktop app.
-- [ ] Decide whether `FramePrintAzure` is removed or rebuilt against `PDF_Manager.Printing`; do not let the desktop executable become an Azure dependency.
+- [x] Characterize the useful existing PDF behavior first: A3/A4, portrait/landscape, page numbers, Japanese/Chinese fonts, table pagination, diagram layouts, and representative existing fixtures.
+- [x] Replace `PrintInput` / `PrintData` dictionaries with typed `PrintJob`, page-section, table, diagram, result, and viewport-capture models.
+- [x] Replace the vulnerable legacy PdfSharpCore/ImageSharp graph, initialize the selected font resolver once, make export concurrency explicit, preserve original exception types/causes, and enforce encoded/decompressed/image-dimension/page/work limits before allocation.
+- [x] Implement preview, page count, input tables, displacement/reaction/section-force tables, load/model/result diagrams, scale/layout options, and file export from the desktop app.
+- [x] Decide whether `FramePrintAzure` is removed or rebuilt against `PDF_Manager.Printing`; do not let the desktop executable become an Azure dependency. Decision: retire it during the Step 9 cutover instead of rebuilding a second print API.
 
 **Verification**: pure layout tests cover pagination and page geometry; generated PDFs pass parse/text/page assertions; representative rendered pages match approved goldens; repeated/parallel export follows the chosen concurrency policy; oversized/compression-amplified/image-bomb inputs fail before expensive work; shippable project graphs have no known High/Critical package advisory; no old base64/comma-byte print endpoint is required by the desktop app.
+
+**Verification result**: immutable `PrintJob`/page/table/diagram/result/capture models produce one authoritative page plan consumed by preview and export. The desktop captures all 21 editor tables plus Moving Loads in stable order, separates model/load/result diagrams, and supports static/nonlinear/modal/derived/moving result selections. Official PDFsharp 6.2.4 replaces the typed product graph's legacy PdfSharpCore/ImageSharp path; process-wide export is serialized, installed Windows fonts are resolved lazily per language under bounded source-size checks, and no restricted font binary is bundled. A3/A4、portrait/landscape、margins、scale、page numbers、table pagination、grapheme-safe clipping、full selectable preview text、shared whole-document budgets、atomic save、exception provenanceを検証した。両Release solution buildは0 warnings/errors、両solution testsは567/567 PASS（Core 272、Printing 73、Rendering 56、LocalRuntime 14、UI 152）。ownershipはoverlap 0 / unowned 0 / idle 0、AgentOnlyは`overall=pass`。最終reviewはSecurity Critical 0 / High 0 / Medium 0 / Low 1、Quality 0 / 0 / 0 / Low 0、Tests 0 / 0 / 0 / Low 4。coverage率は未計測で、CJKの構造・抽出検証はPASSしたがGUI viewerによる実glyph目視証跡は環境制約で未取得である。legacy hostは既知High 2 / Medium 2と再配布NO-GOを維持し、Step 9で廃止する。
 
 #### Step 9: Production integration, parity sign-off, and cutover
 
@@ -236,18 +238,16 @@ PDF_Manager.Core --HTTP--> FrameWeb (Python FEM)
 - **Contract drift**: C# must consume shared `AnalysisResultSet` schema/fixtures directly. Do not fork DTO semantics or create a UI-specific backend response.
 - **Input contract**: this plan creates a new persisted C# document but keeps the Python calculation input meaning. Request serialization needs golden tests against Python before UI breadth expands.
 - **Printing model**: current PDF code mixes input, results, screenshots, and presentation in untyped dictionaries. Characterize useful layout behavior before deletion, but do not preserve the old public API.
-- **Global PDF state**: current font resolver changes process-global state. Initialize once and define whether export is serialized or proven thread-safe.
+- **Global PDF state**: official PDFsharpのprocess-global font stateは一度だけ構成し、typed export/preview PDF workはprocess-wide semaphoreで直列化する。言語別fontは必要時だけboundedに解決する。
 - **Startup ownership**: desktop, startup host, Azure print, and Python service currently overlap. Give the desktop path exactly one owner for process lifetime and leave cloud hosting behind explicit interfaces.
 - **Canonical gate debt**: the post-Step-1 full repository check in `.agents/logs/check-20260920T035935489Z-32252.log` completed with Python and Angular failures outside the C# diff. Keep those failures separate from task-scoped validation, but do not claim repository-wide green until they are fixed or explicitly baselined.
 - **Solution coverage**: Step 0/1のdesktop product、Core、Rendering、typed Printing、LegacyPrinting、probe、4 test projectsは両solutionへ登録済みである。以後はsolution-level build/testを受入証拠にする。
-- **Temporary legacy print bridge**: `FramePrintAzure` とlocal print hostの現行挙動を維持するため、旧untyped printing sourceと制限fontは非packableな `PDF_Manager.LegacyPrinting` に隔離した。desktop shellはこのprojectを参照しない。ただし `IsPackable=false` はpublish/copy-localを防がず、Startup出力のbridge DLLには制限fontが埋め込まれる。さらに匿名endpointからHigh advisoryを持つImageSharp 1.0.4と無制限のbase64/gzip/image/PDF処理へ到達できる。Step 8/9でtyped migration、patched dependency、resource limits、authentication、font licensing、golden、Azure継続判断を完了するまで、このhostを公開・配布しない。
+- **Temporary legacy print bridge**: desktopのtyped printing移行はStep 8で完了し、新製品graphは公式PDFsharp 6.2.4のみを使う。`PDF_Manager.LegacyPrinting` は既存Startup/Azure経路の隔離物としてだけ残り、desktop shellは参照しない。bridge DLLには制限fontと脆弱なImageSharp 1.0.4が残り、匿名かつ無制限のlegacy処理も未解消なので公開・配布は引き続きNO-GOである。Step 9 cutoverで `FramePrintAzure`、legacy local print surface、manual harness/APIとともに廃止する。
 - **Review availability**: two bounded nested Codex decomposition attempts were unusable: the first returned only already-resolved questions, and the allowed retry timed out with an unrelated plan mixed into its partial response. This document therefore relies on direct repository evidence and three completed read-only collaborator audits; it must not be reported as nested-Codex PASS.
 
 ### Open Questions
 
 - Which production authentication provider should the C# app use: Microsoft Entra/B2C, Keycloak, another provider, or no login for the first release? This does not block Steps 0-8 but blocks production sign-off in Step 9.
-- Should `FramePrintAzure` remain as a cloud printing surface, be rebuilt over the typed printing library, or be retired in favor of local desktop PDF export?
-- Should CJK PDF output use installed system fonts or one exact redistributable upstream font artifact? The answer must be proven by PDF goldens and a publish-content scan before distribution; the three current embedded font binaries may not ship.
 - Should the final distribution use MSIX, a traditional installer, or another signed packaging/update channel?
 - After parity sign-off, should `FrameWebforJS` remain as a reference implementation, be archived outside the supported solution, or be deleted?
 - Are chat, Help/MyPage links, cloud document storage, and automatic update required for the first production release, or may they follow the engineering-analysis MVP?

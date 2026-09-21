@@ -13,14 +13,20 @@ public sealed class CoreOperationBoundaryTests
     public void AnalysisAndPrintInterfaces_AreTypedAsyncAndCancellationAware()
     {
         MethodInfo analysis = Assert.Single(typeof(IAnalysisClient).GetMethods());
-        MethodInfo print = Assert.Single(typeof(IPrintExporter).GetMethods());
+        IReadOnlyDictionary<string, MethodInfo> print = typeof(IPrintExporter).GetMethods()
+            .ToDictionary(method => method.Name, StringComparer.Ordinal);
 
         Assert.Equal(typeof(Task<AnalysisResultSet>), analysis.ReturnType);
         Assert.Equal([typeof(ProjectDocument), typeof(CancellationToken)],
             analysis.GetParameters().Select(parameter => parameter.ParameterType));
-        Assert.Equal(typeof(Task), print.ReturnType);
+        MethodInfo preview = print["PreviewAsync"];
+        Assert.Equal(typeof(Task<PrintPreviewResult>), preview.ReturnType);
+        Assert.Equal([typeof(PrintExportRequest), typeof(CancellationToken)],
+            preview.GetParameters().Select(parameter => parameter.ParameterType));
+        MethodInfo export = print["ExportAsync"];
+        Assert.Equal(typeof(Task), export.ReturnType);
         Assert.Equal([typeof(PrintExportRequest), typeof(Stream), typeof(CancellationToken)],
-            print.GetParameters().Select(parameter => parameter.ParameterType));
+            export.GetParameters().Select(parameter => parameter.ParameterType));
     }
 
     [Fact]

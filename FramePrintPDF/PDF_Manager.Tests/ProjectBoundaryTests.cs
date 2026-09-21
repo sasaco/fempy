@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using PDF_Manager.Printing;
 
 namespace PDF_Manager.Tests;
 
@@ -10,7 +11,7 @@ public sealed class ProjectBoundaryTests
         "Function1",
         "Function2",
         "Newtonsoft.Json",
-        "PdfSharp",
+        "PdfSharpCore",
         "PrintData",
         "PrintInput",
     ];
@@ -92,13 +93,36 @@ public sealed class ProjectBoundaryTests
     }
 
     [Fact]
-    public void PrintingProject_TargetsPortableNet8WithoutExternalDependencies()
+    public void ShippableDesktopOutput_CopiesNoFontBinaryOrRestrictedLegacyFontResource()
+    {
+        string outputDirectory = Path.GetDirectoryName(typeof(PDF_Manager.Shell.MainForm).Assembly.Location)
+            ?? throw new InvalidOperationException("Could not locate the desktop build output.");
+        string[] copiedFonts = Directory.EnumerateFiles(outputDirectory, "*", SearchOption.AllDirectories)
+            .Where(path => Path.GetExtension(path) is ".ttf" or ".otf" or ".ttc")
+            .Select(path => Path.GetRelativePath(outputDirectory, path))
+            .ToArray();
+
+        Assert.Empty(copiedFonts);
+        string[] embeddedResources = typeof(TypedPdfDocumentWriter).Assembly.GetManifestResourceNames();
+        Assert.DoesNotContain(embeddedResources, name =>
+            name.Contains("MS Mincho", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("MS Gothic", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("simsun", StringComparison.OrdinalIgnoreCase) ||
+            name.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase) ||
+            name.EndsWith(".otf", StringComparison.OrdinalIgnoreCase) ||
+            name.EndsWith(".ttc", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void PrintingProject_TargetsPortableNet8WithOnlyPatchedOfficialPdfSharp()
     {
         XDocument project = LoadProject("PDF_Manager.Printing", "PDF_Manager.Printing.csproj");
 
         Assert.Equal("net8.0", SingleProperty(project, "TargetFramework"));
         Assert.Empty(project.Descendants("ProjectReference"));
-        Assert.Empty(project.Descendants("PackageReference"));
+        XElement package = Assert.Single(project.Descendants("PackageReference"));
+        Assert.Equal("PDFsharp", package.Attribute("Include")?.Value);
+        Assert.Equal("6.2.4", package.Attribute("Version")?.Value);
         Assert.Empty(project.Descendants("FrameworkReference"));
         Assert.Empty(project.Descendants("Reference"));
         Assert.Empty(project.Descendants("UseWindowsForms"));

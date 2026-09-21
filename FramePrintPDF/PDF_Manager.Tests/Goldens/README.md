@@ -28,3 +28,34 @@ guard. It mutates the emitted PDF without changing xref offsets and proves that 
 changing the `cm` layout or supplying different valid image pixels produces a different raster.
 
 The current golden was approved for the Step 4 remediation representative portal-frame report.
+
+## Step 8 PDFsharp rendered pages
+
+`step8-a4-table-page.gray8.deflate-base64` and
+`step8-a3-diagram-page.gray8.deflate-base64` are the approved 595 x 842 A4 table page and
+1191 x 842 A3 landscape diagram page. `PdfSharpSubsetPageRasterizer` resolves each emitted page
+and decoded content stream, independently interprets the bounded PDFsharp operator subset, and
+paints decoded RGB image samples. Unsupported operators, unbalanced state, absent images,
+malformed dimensions, and corrupt image streams fail closed.
+
+The raster intentionally uses deterministic text-coverage strokes instead of the installed font's
+glyph outline. Unicode renderability is covered separately by embedded-font and ToUnicode tests;
+these goldens cover page composition, repeated table rows/header geometry, diagram pixels and
+placement, margins, and footer placement. On mismatch, inspect the emitted candidate PGM at its
+original size. Replacing either Base64 fixture requires explicit print/UI-owner approval.
+
+The 2026-09-21 remediation refresh was approved after original-resolution inspection. The shared
+scaled layout metrics moved only the centered footer rectangle from the former hard-coded 12-point
+height to `PageFooterHeightPoints` (16 points at 100% scale). Each raster changed exactly 88 pixels:
+the A4 delta is confined to x=277..320, y=805..809 and the A3 delta to x=575..618, y=791..795.
+Table headers/rows, diagram pixels and placement, page margins, and all non-footer pixels remained
+byte-identical to the prior approved images.
+
+The second-final 2026-09-21 text-layout remediation changed only the A4 fixture; the A3 diagram
+fixture remained byte-identical and was not regenerated. Original-resolution inspection approved
+the A4 candidate after the PDF and preview renderers began consuming the same fitted `TextRuns`
+with explicit per-run rectangular clipping. The delta was 88 / 500,990 pixels (0.017565%),
+absolute-difference sum 19,624, maximum delta 223, bounding box x=30..389 and y=99..787. The
+changes are sparse one-pixel text-coverage baseline differences across the title, table rows, and
+footer. Margins, the complete grid, repeated header, every row, title, and centered footer remain
+intact.

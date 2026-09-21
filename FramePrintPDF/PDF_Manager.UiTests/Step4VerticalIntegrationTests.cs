@@ -1,7 +1,10 @@
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using PdfSharp.Pdf;
+using PdfSharp.Pdf.IO;
 using PDF_Manager.Core.Abstractions;
 using PDF_Manager.Core.Analysis;
 using PDF_Manager.Core.Documents;
@@ -94,13 +97,30 @@ public sealed class Step4VerticalIntegrationTests
                 Assert.Equal(1, captureProvider.CaptureCalls);
                 byte[] pdf = File.ReadAllBytes(pdfPath);
                 Assert.True(pdf.Length > 1_000);
-                Assert.Equal("%PDF-1.4", Encoding.ASCII.GetString(pdf, 0, 8));
+                Assert.StartsWith("%PDF-1.", Encoding.ASCII.GetString(pdf, 0, 8), StringComparison.Ordinal);
                 string pdfText = Encoding.Latin1.GetString(pdf);
-                Assert.Contains("/Count 1", pdfText, StringComparison.Ordinal);
-                Assert.Contains("FrameWeb Model Report", pdfText, StringComparison.Ordinal);
-                Assert.Contains("M-I M1", pdfText, StringComparison.Ordinal);
-                Assert.Contains("M-J M1", pdfText, StringComparison.Ordinal);
-                Assert.Equal(expectedCapture.Rgb24.ToArray(), ExtractViewportRgb(pdf));
+                using PdfDocument parsed = PdfReader.Open(
+                    new MemoryStream(pdf, writable: false),
+                    PdfDocumentOpenMode.Import);
+                Assert.True(parsed.PageCount >= 2);
+                Assert.Equal(form.CurrentDocument.Metadata.Name, parsed.Info.Title);
+                Assert.All(parsed.Pages.Cast<PdfPage>(), page => Assert.NotEmpty(page.Contents.Elements));
+                Assert.Contains("/Subtype/Image", pdfText.Replace(" ", string.Empty), StringComparison.Ordinal);
+                Assert.Contains("/ToUnicode", pdfText, StringComparison.Ordinal);
+                Assert.Contains($"/Width {expectedCapture.Width}", pdfText, StringComparison.Ordinal);
+                Assert.Contains($"/Height {expectedCapture.Height}", pdfText, StringComparison.Ordinal);
+                byte[] expectedRgb = expectedCapture.Rgb24.ToArray();
+                byte[] embeddedRgb = Assert.Single(
+                    Step8DesktopProjectionRemediationTests.ReadDecodedImageStreams(pdf),
+                    candidate => candidate.AsSpan().SequenceEqual(expectedRgb));
+                Assert.Equal(
+                    Convert.ToHexString(SHA256.HashData(expectedRgb)),
+                    Convert.ToHexString(SHA256.HashData(embeddedRgb)));
+                string selectedResultText = Step8DesktopProjectionRemediationTests.ExtractMappedPdfText(pdf);
+                Assert.Contains("I", selectedResultText, StringComparison.Ordinal);
+                Assert.Contains("J", selectedResultText, StringComparison.Ordinal);
+                Assert.Contains("10", selectedResultText, StringComparison.Ordinal);
+                Assert.Contains("20", selectedResultText, StringComparison.Ordinal);
             }
             finally
             {

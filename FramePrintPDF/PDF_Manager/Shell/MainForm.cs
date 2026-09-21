@@ -15,11 +15,20 @@ using PDF_Manager.Shell.Printing;
 using PDF_Manager.Shell.Viewport;
 using WeifenLuo.WinFormsUI.Docking;
 using CoreDockState = PDF_Manager.Core.Shell.DockState;
+using CorePrintPageSettings = PDF_Manager.Core.Abstractions.PrintPageSettings;
 
 namespace PDF_Manager.Shell;
 
 public sealed class MainForm : Form
 {
+    private static readonly PrintContentSection[] DefaultPrintSections =
+    [
+        PrintContentSection.ProjectSummary,
+        PrintContentSection.InputTables,
+        PrintContentSection.ModelDiagram,
+        PrintContentSection.LoadDiagram,
+    ];
+
     public static DocumentKey NavigationContentKey { get; } = DocumentKey.Tool("project-navigation");
     public static DocumentKey EditorContentKey { get; } = DocumentKey.Tool("property-editor");
     public static DocumentKey DiagnosticsContentKey { get; } = DocumentKey.Tool("diagnostics-progress");
@@ -45,6 +54,8 @@ public sealed class MainForm : Form
     private readonly ToolStripMenuItem _runAnalysisMenuItem = new() { Name = "RunAnalysisMenuItem" };
     private readonly ToolStripMenuItem _cancelMenuItem = new() { Name = "CancelMenuItem" };
     private readonly ToolStripMenuItem _printMenu = new() { Name = "PrintMenu" };
+    private readonly ToolStripMenuItem _pageSetupMenuItem = new() { Name = "PageSetupMenuItem" };
+    private readonly ToolStripMenuItem _printPreviewMenuItem = new() { Name = "PrintPreviewMenuItem" };
     private readonly ToolStripMenuItem _exportPdfMenuItem = new() { Name = "ExportPdfMenuItem" };
     private readonly ToolStripMenuItem _viewMenu = new() { Name = "ViewMenu" };
     private readonly ToolStripMenuItem _navigationMenuItem = new() { Name = "NavigationMenuItem" };
@@ -63,6 +74,10 @@ public sealed class MainForm : Form
     private Task _layoutRestoreTask = Task.CompletedTask;
     private long _documentRevision;
     private long _operationRevision;
+    private PrintPageSetupSelection _printSelection = new(
+        CorePrintPageSettings.Default,
+        DefaultPrintSections);
+    private PrintPreviewState? _printPreviewState;
     private int _pendingShellTransitions;
     private bool _isOperationRunning;
     private bool _closeCheckRunning;
@@ -154,6 +169,14 @@ public sealed class MainForm : Form
     public ToolStripMenuItem CancelMenuItem => _cancelMenuItem;
 
     public ToolStripMenuItem ExportPdfMenuItem => _exportPdfMenuItem;
+
+    public ToolStripMenuItem PageSetupMenuItem => _pageSetupMenuItem;
+
+    public ToolStripMenuItem PrintPreviewMenuItem => _printPreviewMenuItem;
+
+    public PrintPageSetupSelection PrintSelection => _printSelection;
+
+    public PrintPreviewState? CurrentPrintPreview => _printPreviewState;
 
     public ProjectDocument? CurrentDocument => _currentDocument;
 
@@ -290,14 +313,111 @@ public sealed class MainForm : Form
 
             _analysisState.Commit(result);
             DocumentHost.SetResult(result);
+            if (_printSelection.Sections.SequenceEqual(DefaultPrintSections))
+            {
+                _printSelection = new PrintPageSetupSelection(
+                    _printSelection.PageSettings,
+                    Enum.GetValues<PrintContentSection>());
+            }
+
+            _printPreviewState = null;
             DiagnosticsPane.SetStatusResource("StatusAnalysisCompleted");
             UpdateCommandState();
         });
     }
 
+    public bool ConfigurePrintPage()
+    {
+        if (_disposed || _isClosing || _isOperationRunning)
+        {
+            return false;
+        }
+
+        PrintPageSetupSelection? candidate = _services.PrintDialogs.ShowPageSetup(
+            this,
+            _services.Localization,
+            _printSelection);
+        if (candidate is null)
+        {
+            return false;
+        }
+
+        _printSelection = candidate;
+        _printPreviewState = null;
+        DiagnosticsPane.SetStatusResource("StatusPrintSettingsUpdated");
+        return true;
+    }
+
+    public async Task RefreshPrintPreviewAsync(bool showDialog = false)
+    {
+        if (_isOperationRunning || _isClosing || _disposed)
+        {
+            return;
+        }
+
+        if (_currentDocument is null || _services.PrintExporter is null)
+        {
+            DiagnosticsPane.SetStatusResource("StatusNotConfigured");
+            return;
+        }
+
+        DocumentSnapshot snapshot = CaptureDocument();
+        PrintPreviewState? candidate = null;
+        bool succeeded = await RunOperationAsync(async cancellationToken =>
+        {
+            await SwitchToUiThread();
+            cancellationToken.ThrowIfCancellationRequested();
+            PrintExportRequest request = CreatePrintRequest(snapshot.Document!);
+            PrintPreviewResult preview;
+            if (_services.PrintExporter is ILiveViewportPrintExporter liveExporter)
+            {
+                PrintDiagramCaptureSet captures = _services.ViewportCaptureProvider.CaptureSet(
+                    DocumentHost,
+                    DesktopPrintJobFactory.RequiredDiagramKinds(request));
+                cancellationToken.ThrowIfCancellationRequested();
+                preview = await liveExporter.PreviewAsync(request, captures, cancellationToken);
+            }
+            else
+            {
+                preview = await _services.PrintExporter.PreviewAsync(request, cancellationToken);
+            }
+
+            candidate = new PrintPreviewState(preview);
+            await SwitchToUiThread();
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!CanPublish(snapshot, allowWhileClosing: false))
+            {
+                return;
+            }
+
+            _printPreviewState = candidate;
+            DiagnosticsPane.Report(Format("StatusPrintPreviewReady", preview.PageCount));
+        });
+        if (succeeded && showDialog && candidate is not null && ReferenceEquals(candidate, _printPreviewState))
+        {
+            _services.PrintDialogs.ShowPreview(this, _services.Localization, candidate);
+        }
+    }
+
+    public bool SelectPrintPreviewPage(int pageIndex)
+    {
+        if (_printPreviewState is null || pageIndex < 0 || pageIndex >= _printPreviewState.PageCount)
+        {
+            return false;
+        }
+
+        _printPreviewState = _printPreviewState.SelectPage(pageIndex);
+        return true;
+    }
+
     public async Task ExportPdfAsync()
     {
-        if (_currentDocument is null || _analysisState.Current is null || _services.PrintExporter is null)
+        if (_isOperationRunning || _isClosing || _disposed)
+        {
+            return;
+        }
+
+        if (_currentDocument is null || _services.PrintExporter is null)
         {
             DiagnosticsPane.SetStatusResource("StatusNotConfigured");
             return;
@@ -313,14 +433,27 @@ public sealed class MainForm : Form
         }
 
         DocumentSnapshot snapshot = CaptureDocument();
-        PrintExportRequest request = new(snapshot.Document!, _analysisState.Current);
+        string? expectedPlanIdentity = _printPreviewState?.Preview.PlanIdentity;
         await RunOperationAsync(async cancellationToken =>
         {
             await SwitchToUiThread();
             cancellationToken.ThrowIfCancellationRequested();
-            ViewportCapture viewportCapture = _services.ViewportCaptureProvider.Capture(DocumentHost);
-            cancellationToken.ThrowIfCancellationRequested();
-            await ExportPdfAtomicallyAsync(request, viewportCapture, path, cancellationToken);
+            PrintExportRequest request = CreatePrintRequest(snapshot.Document!);
+            PrintDiagramCaptureSet? captures = null;
+            if (_services.PrintExporter is ILiveViewportPrintExporter)
+            {
+                captures = _services.ViewportCaptureProvider.CaptureSet(
+                    DocumentHost,
+                    DesktopPrintJobFactory.RequiredDiagramKinds(request));
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
+            await ExportPdfAtomicallyAsync(
+                request,
+                captures,
+                expectedPlanIdentity,
+                path,
+                cancellationToken);
             await SwitchToUiThread();
             cancellationToken.ThrowIfCancellationRequested();
             if (CanPublish(snapshot, allowWhileClosing: false))
@@ -376,7 +509,12 @@ public sealed class MainForm : Form
             _exitMenuItem,
         ]);
         _analysisMenu.DropDownItems.AddRange([_runAnalysisMenuItem, _cancelMenuItem]);
-        _printMenu.DropDownItems.Add(_exportPdfMenuItem);
+        _printMenu.DropDownItems.AddRange([
+            _pageSetupMenuItem,
+            _printPreviewMenuItem,
+            new ToolStripSeparator(),
+            _exportPdfMenuItem,
+        ]);
         _viewMenu.DropDownItems.AddRange([
             _navigationMenuItem,
             _editorMenuItem,
@@ -416,6 +554,8 @@ public sealed class MainForm : Form
         _exitMenuItem.Click += OnExitClick;
         _runAnalysisMenuItem.Click += OnRunAnalysisClick;
         _cancelMenuItem.Click += OnCancelClick;
+        _pageSetupMenuItem.Click += OnPageSetupClick;
+        _printPreviewMenuItem.Click += OnPrintPreviewClick;
         _exportPdfMenuItem.Click += OnExportPdfClick;
         _navigationMenuItem.Click += OnNavigationClick;
         _editorMenuItem.Click += OnEditorClick;
@@ -444,6 +584,8 @@ public sealed class MainForm : Form
         _exitMenuItem.Click -= OnExitClick;
         _runAnalysisMenuItem.Click -= OnRunAnalysisClick;
         _cancelMenuItem.Click -= OnCancelClick;
+        _pageSetupMenuItem.Click -= OnPageSetupClick;
+        _printPreviewMenuItem.Click -= OnPrintPreviewClick;
         _exportPdfMenuItem.Click -= OnExportPdfClick;
         _navigationMenuItem.Click -= OnNavigationClick;
         _editorMenuItem.Click -= OnEditorClick;
@@ -475,6 +617,8 @@ public sealed class MainForm : Form
         _runAnalysisMenuItem.Text = _services.Localization["MenuRunAnalysis"];
         _cancelMenuItem.Text = _services.Localization["MenuCancel"];
         _printMenu.Text = _services.Localization["MenuPrint"];
+        _pageSetupMenuItem.Text = _services.Localization["MenuPageSetup"];
+        _printPreviewMenuItem.Text = _services.Localization["MenuPrintPreview"];
         _exportPdfMenuItem.Text = _services.Localization["MenuExportPdf"];
         _viewMenu.Text = _services.Localization["MenuView"];
         _navigationMenuItem.Text = _services.Localization["MenuNavigation"];
@@ -507,6 +651,12 @@ public sealed class MainForm : Form
         if (clearResults)
         {
             _analysisState = new AnalysisResultState();
+        }
+
+        _printPreviewState = null;
+        if (clearResults)
+        {
+            RemoveUnavailableResultPrintSections();
         }
 
         NavigationPane.SetDocument(document);
@@ -562,6 +712,9 @@ public sealed class MainForm : Form
         _saveMenuItem.Enabled = state.CanSave;
         _saveAsMenuItem.Enabled = state.CanSaveAs;
         _runAnalysisMenuItem.Enabled = state.CanAnalyze && _services.AnalysisClient is not null;
+        bool canPrint = _currentDocument is not null && !shellBusy && _services.PrintExporter is not null;
+        _pageSetupMenuItem.Enabled = canPrint;
+        _printPreviewMenuItem.Enabled = canPrint;
         _exportPdfMenuItem.Enabled = state.CanPrint && _services.PrintExporter is not null;
         _cancelMenuItem.Enabled = _isOperationRunning && !_isClosing;
     }
@@ -610,6 +763,62 @@ public sealed class MainForm : Form
 
     private DocumentSnapshot CaptureDocument() =>
         new(_currentDocument, _documentPath, _documentRevision);
+
+    private PrintExportRequest CreatePrintRequest(ProjectDocument document)
+    {
+        HashSet<PrintDiagramKind> supportedDiagramKinds =
+            _services.ViewportCaptureProvider.SupportedDiagramKinds.ToHashSet();
+        PrintContentSection[] supportedSections = _printSelection.Sections
+            .Where(section => section switch
+            {
+                PrintContentSection.ModelDiagram => supportedDiagramKinds.Contains(PrintDiagramKind.Model),
+                PrintContentSection.LoadDiagram => supportedDiagramKinds.Contains(PrintDiagramKind.Load),
+                PrintContentSection.ResultDiagram => supportedDiagramKinds.Contains(PrintDiagramKind.Result),
+                _ => true,
+            })
+            .ToArray();
+        PrintResultSelection? selectedResult = DocumentHost.CreatePrintResultSelection();
+        if (selectedResult is null && supportedSections.Any(IsResultPrintSection))
+        {
+            throw new PrintExportException(
+                OperationFailureKind.Validation,
+                _services.Localization["PrintResultUnavailable"]);
+        }
+
+        ResultCoordinate[] selectedCoordinates = selectedResult?.Coordinate is ResultCoordinate coordinate
+            ? [coordinate]
+            : [];
+        PrintContentLanguage language = _services.Localization.Language switch
+        {
+            UiLanguage.Japanese => PrintContentLanguage.Japanese,
+            UiLanguage.Chinese => PrintContentLanguage.SimplifiedChinese,
+            _ => PrintContentLanguage.English,
+        };
+        return new PrintExportRequest(
+            document,
+            _analysisState.Current,
+            selectedCoordinates,
+            _printSelection.PageSettings,
+            supportedSections,
+            selectedResult,
+            language);
+    }
+
+    private static bool IsResultPrintSection(PrintContentSection section) => section is
+        PrintContentSection.DisplacementResults or
+        PrintContentSection.ReactionResults or
+        PrintContentSection.MemberForceResults or
+        PrintContentSection.ResultDiagram;
+
+    private void RemoveUnavailableResultPrintSections()
+    {
+        PrintContentSection[] available = _printSelection.Sections
+            .Where(section => !IsResultPrintSection(section))
+            .ToArray();
+        _printSelection = new PrintPageSetupSelection(
+            _printSelection.PageSettings,
+            available.Length == 0 ? DefaultPrintSections : available);
+    }
 
     private UiThreadSwitch SwitchToUiThread() => new(this);
 
@@ -781,7 +990,8 @@ public sealed class MainForm : Form
 
     private async Task ExportPdfAtomicallyAsync(
         PrintExportRequest request,
-        ViewportCapture viewportCapture,
+        PrintDiagramCaptureSet? diagramCaptures,
+        string? expectedPlanIdentity,
         string path,
         CancellationToken cancellationToken)
     {
@@ -805,11 +1015,19 @@ public sealed class MainForm : Form
             {
                 if (_services.PrintExporter is ILiveViewportPrintExporter liveViewportExporter)
                 {
-                    await liveViewportExporter.ExportAsync(
+                    PrintExportReceipt receipt = await liveViewportExporter.ExportWithResultAsync(
                         request,
-                        viewportCapture,
+                        diagramCaptures ?? throw new InvalidOperationException(
+                            "Live desktop PDF export requires semantic diagram captures."),
                         stream,
                         cancellationToken);
+                    if (expectedPlanIdentity is not null &&
+                        !string.Equals(expectedPlanIdentity, receipt.PlanIdentity, StringComparison.Ordinal))
+                    {
+                        throw new PrintExportException(
+                            OperationFailureKind.Protocol,
+                            _services.Localization["PrintPreviewOutOfDate"]);
+                    }
                 }
                 else
                 {
@@ -829,6 +1047,23 @@ public sealed class MainForm : Form
                 File.Move(temporaryPath, fullPath);
             }
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (PrintExportException)
+        {
+            throw;
+        }
+        catch (Exception exception) when (
+            exception is IOException or UnauthorizedAccessException or ArgumentException or
+            NotSupportedException or System.Security.SecurityException)
+        {
+            throw new PrintExportException(
+                OperationFailureKind.Internal,
+                _services.Localization["PrintExportFailed"],
+                exception);
+        }
         finally
         {
             try
@@ -840,7 +1075,14 @@ public sealed class MainForm : Form
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
-                _services.ReportDiagnostic?.Invoke(exception);
+                try
+                {
+                    _services.ReportDiagnostic?.Invoke(exception);
+                }
+                catch (Exception diagnosticException)
+                {
+                    System.Diagnostics.Debug.WriteLine(diagnosticException);
+                }
             }
         }
     }
@@ -1018,6 +1260,8 @@ public sealed class MainForm : Form
         _currentDocument = eventArgs.Document;
         _documentRevision = checked(_documentRevision + 1);
         _analysisState = new AnalysisResultState();
+        _printPreviewState = null;
+        RemoveUnavailableResultPrintSections();
         NavigationPane.SetDocument(_currentDocument);
         DocumentHost.SetDocument(_currentDocument, resetCamera: false);
         DocumentHost.SetResult(null);
@@ -1331,6 +1575,12 @@ public sealed class MainForm : Form
     private async void OnRunAnalysisClick(object? sender, EventArgs eventArgs) => await ExecuteAnalysisAsync();
 
     private void OnCancelClick(object? sender, EventArgs eventArgs) => CancelOperation();
+
+    private void OnPageSetupClick(object? sender, EventArgs eventArgs) =>
+        _exceptionBoundary.Execute(() => _ = ConfigurePrintPage());
+
+    private async void OnPrintPreviewClick(object? sender, EventArgs eventArgs) =>
+        await RefreshPrintPreviewAsync(showDialog: true);
 
     private async void OnExportPdfClick(object? sender, EventArgs eventArgs) => await ExportPdfAsync();
 

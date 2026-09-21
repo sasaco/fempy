@@ -12,7 +12,7 @@ public sealed record PdfResultRow(string Kind, string Id, double X, double Y, do
 
 public sealed record ViewportCapture
 {
-    public const int MaximumDimension = 2048;
+    public const int MaximumDimension = PrintEngineLimits.MaximumImageDimension;
     public const int MaximumBytes = 12 * 1024 * 1024;
 
     public ViewportCapture(int width, int height, ReadOnlyMemory<byte> rgb24)
@@ -377,7 +377,7 @@ public static class ModelViewportCapture
     private readonly record struct PixelPoint(int X, int Y);
 }
 
-public sealed class TypedPdfDocumentWriter
+public sealed partial class TypedPdfDocumentWriter
 {
     private static readonly Encoding PdfEncoding = Encoding.Latin1;
 
