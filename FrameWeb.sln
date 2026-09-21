@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.10.12210.168
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FrameWebforCsharp", "FrameWebforCsharp\FrameWebforCsharp.csproj", "{77607410-4861-4357-952F-E76A0CACD5C2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FrameWebforCS", "FrameWebforCS\FrameWebforCS.csproj", "{77607410-4861-4357-952F-E76A0CACD5C2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FrameWeb (Python)", "FrameWeb (Python)", "{E9B45591-894B-43FC-890F-8C9BD81F9571}"
 	ProjectSection(SolutionItems) = preProject
@@ -12,7 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FrameWeb (Python)", "FrameW
 		FrameWeb\README.md = FrameWeb\README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrameWebforCsharp.Tests", "FrameWebforCsharp\tests\FrameWebforCsharp.Tests.csproj", "{597C4232-B4DC-8CE3-9363-203324FB2DF8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrameWebforCS.Tests", "FrameWebforCS\tests\FrameWebforCS.Tests.csproj", "{597C4232-B4DC-8CE3-9363-203324FB2DF8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
