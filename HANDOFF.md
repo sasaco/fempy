@@ -1,47 +1,46 @@
-# Handoff — C# FrameWeb Desktop Client（Step 9開始）
+# Handoff — FrameWebforJS画面構成の完全parity調査・修正計画
 
 ## Goal
 
-`FramePrintPDF/PDF_Manager` を .NET 8 / WinForms の完成デスクトップ製品へ移行する。Python FEM、private loopback HTTP、Windows Job管理、唯一の成功応答 `AnalysisResultSet v1` は承認済み境界として維持する。Step 8のtyped printingは完了したため、次はproduction integration、parity sign-off、supported entrypointのcutoverを行う。
+次セッションでは製品コードを直ちに変更せず、`FramePrintPDF/PDF_Manager` の現行WinForms UIと、実際に動く `FrameWebforJS` の画面構成を画面・状態ごとに比較調査し、C# desktopを `FrameWebforJS` と全く同じ画面構成へ修正するための実装計画を策定する。
+
+ユーザーの確定した意図は、`.agents/docs/plans/csharp-frameweb-client.md` の「同じ主要業務シナリオ」が単なる機能・入力意味の同等性ではなく、shell hierarchy、navigation、各入力・結果・印刷画面、表示field/control、配置・順序・grouping、default visibility、viewport/table split、overlay、画面遷移を含む **screen-composition parity** を意味する、というものである。現行の汎用Docking UIをWinForms流の別解として維持することは受入不可。
 
 ## Current Progress
 
-- Branchは `sasa/csharp`、現在のbase/HEADは `452528b`。Step 8のproduct、tests、review、plan、DESIGN、STATE、HANDOFFは未commitの作業ツリーにある。commit、push、stageは行っていない。
-- 公式PDFsharp 6.2.4を `PDF_Manager.Printing` の背後に導入し、typed desktop graphからlegacy PdfSharpCore/ImageSharpと制限fontを排除した。
-- immutable `PrintJob`、page、table、diagram、result、viewport-capture modelを実装し、previewとexportは同じauthoritative plan、text runs、clip bounds、layout geometryを使う。
-- A3/A4、portrait/landscape、margins、scale、page numbers、table pagination、grapheme-safe clipping、full selectable preview text、atomic PDF save、例外原因保持を実装した。
-- desktopは21 editor tablesとMoving Loadsの計22表、model/load/result diagrams、static/nonlinear/modal/derived/moving result selectionをUI thread上でcaptureし、失敗・取消時は既存previewを維持する。
-- whole-document preview/exportは一つの共有work budgetでpreflightし、PDF/font workはprocess-wideに直列化する。installed Windows fontsは言語別にlazyかつboundedに解決し、font binaryは同梱しない。
-- `FramePrintAzure` はtyped APIへ再構築せず、Step 9 cutoverでlegacy local print surface、manual harness/APIとともに廃止する方針を決定した。
-- 両Release solution buildは0 warnings / 0 errors。両solution testsは567/567 PASS（Core 272、Printing 73、Rendering 56、LocalRuntime 14、UI 152）。coverage率は未計測。
-- ownership reconcileはoverlap 0 / unowned 0 / idle 0。AgentOnlyは `overall=pass`（`.agents/logs/check-20260921T031543091Z-1108.log`）。`git diff --check` もPASS。
-- 最終reviewはSecurity Critical 0 / High 0 / Medium 0 / Low 1、Quality 0 / 0 / 0 / Low 0、Tests 0 / 0 / 0 / Low 4。報告書は `.agents/docs/research/review-{security,quality,tests}-csharp-frameweb-client.md`。
-- full Python/Angular gateは再baseline化していない。既知baseline 3,273 PASS / 6 FAIL / 4 ERRORを維持する。legacy hostの既知High 2 / Medium 2と完成アプリ再配布NO-GOも未変更。
+- Branchは `sasa/csharp`、現在のHEADは `778c243`（Step 8 typed printing完了）。commit、stage、pushはこのhandoff作業では行っていない。
+- Step 0〜8のtyped domain、ProjectDocument、AnalysisResultSet v1、21入力表、OpenGL scene、結果presentation、公式PDFsharp印刷、private loopback Python runtimeは実装済みで、直近の記録は両Release build 0 warnings/errors、両solution tests 567/567 PASS。
+- 添付された現行C#画面 `C:\Users\sasai\Pictures\Screenshots\スクリーンショット 2026-09-21 125546.png` を確認した。左のproject navigation、中央のdocked model viewport/result grid、右のgeneric editor tabs、下のdiagnosticsという独自構成であり、`FrameWebforJS` の画面構成再現ではない。
+- 根本原因は現行計画にある。Purposeは同じ主要業務シナリオを要求する一方、Feature-Parity Boundaryは「Angularの画面構造ではなく入力意味とvalidationを一致」、ShellはDockPanelSuite中心と明記しており、実装はその解釈に従った。
+- `.agents/docs/DESIGN.md` には今回、`FR-CS-DESKTOP-UI-PARITY-1` と「FrameWebforJS screen compositionをgolden acceptance targetとする」設計決定をtyped writerで追加済み。`result=applied`、requirement 1件、decision 1件、duplicate 0件。
+- DESIGNにはこのhandoff以前から未commitの「初回releaseはuser loginなし、private loopback process securityは維持」という変更がある。次セッションはこれをユーザー所有の既存変更として保持し、resetや上書きをしない。
+- このhandoff以外の製品コードは変更していない。UI修正案はまだ未調査・未承認である。
 
 ## What Worked
 
-- layoutを一度だけmaterializeし、preview image、selectable text、PDF exportが同じpage planを消費する構造にしたことで、表示と保存の乖離を排除できた。
-- `PrintPagePlan.TextRuns` にfull textとactual display text、clip、font、width、alignment、truncationを保持し、13列表と25%〜400% scaleでもcell境界を越えないことをgoldenとacceptance testsで固定した。
-- 全ページpreviewを一つのsemaphore、validation/hash、shared budgetで処理し、exact/+1境界とproduction auto-fitをテストできた。
-- languageごとのfont解決をlazyにしたため、English outputはCJK fontの有無に依存しない。CJKは埋込みfontを使わず、source-size boundとTTC face検査を通す。
-- final remediationで初回reviewのHigh 3 / Medium 2をすべて解消し、Qualityはfinding 0、SecurityはLow 1のみまで収束した。
+- Core、Rendering、Printing、LocalRuntimeをUI shellから分離したため、計算契約、validation、scene生成、結果導出、PDF生成の大部分は残したまま表示層を組み替えられる。
+- `FrameWebforJS/src/app/app-routing.module.ts` は入力、結果、print routeの一覧を持ち、`app.component.*`、`components/doc-layout/**`、`menu/**`、`optional-header/**`、`three/**`、各 `input-*`、`result-*`、`print/**` が画面構成の一次資料になる。
+- C#側の主な比較対象は `FramePrintPDF/PDF_Manager/Shell/MainForm.cs`、`Contents/EditorContent.cs`、`Contents/ProjectDocumentContent.cs`、Docking配下、Resources配下である。
+- typed editor descriptors、stable IDs、revision/cancellation boundaries、shared clipboard/undo、rendering/printingのbudgetはUI parity後も再利用すべき基盤である。
 
 ## What Didn't Work
 
-- 利用可能なcomputer-use surfaceにbrowser/appがなく、Edge/Chrome headless screenshotもblankだったため、GUI viewerによるCJK実glyph目視証跡は取得できなかった。構造、ToUnicode、抽出、font provenanceはPASSし、手動確認用 `tmp/pdfs/step8-cjk-browser-proof.pdf` は生成済み。
-- test reviewのLow follow-upは、CJK実glyph表示、複数ページ本文no-loss、不正clip負例、semantic determinismを明示するテスト名の4件。coverage率も未計測。
-- Security Low 1として、atomic save時のparent-directory/reparse identity swap raceが残る。通常の原子的置換は実装済みだが、敵対的な同時filesystem操作まで閉じていない。
-- 両solution buildを並列実行すると共有 `FramePrintAzure/obj/.../WorkerExtensions/buildout` の一時file lockが起きるため、solution buildは直列実行する。
-- legacy hostはtyped desktop境界から隔離されているだけで、安全化されていない。匿名endpoint、無制限work、脆弱dependency、制限fontを持つため公開・再配布しない。
+- 「業務シナリオの同等性」を「意味・validationの同等性」と狭く解釈し、見た目と情報設計を別物にした。ユーザーの要求は最初からFrameWebforJSと同じ画面構成だった。
+- Step 3のdocking shell、Step 5のdescriptor-driven generic editor、Step 9のscenario matrixは、routeごとの外観・field配置・visibility・transitionをgoldenとして固定していない。
+- 567件のgreen testsはdomain、lifecycle、rendering、printingの正しさを示すが、FrameWebforJSとの視覚・構成parityを示さない。今後この件でtest件数だけをparity根拠にしない。
+- 現行計画のStep 9 packaging/cutoverへそのまま進むと、誤ったUIを製品化してしまう。UI parity調査、計画修正、ユーザー承認が終わるまでcutover・legacy削除・Angular archiveを開始しない。
+- generic DockPanel配置の微調整だけでは不足する。FrameWebforJSのrunning UI、HTML、SCSS、route/stateを一次資料として、screen-by-screenで再構成する必要がある。
 
 ## Next Steps
 
-1. production authentication provider、token保管、HTTP境界へのauthorization injectionを確定する。
-2. installer/update、per-user settings、crash/diagnostics、backend endpoint discovery、offline/local mode、署名付きrelease packagingを実装する。
-3. `FrameWebforJS` とのscenario parity matrixを三言語、全editor、全viewport、計算、first/last case、nonlinear/modal、derived、print、cancel/error recoveryまで実行する。
-4. clean-machine gate、SBOM、forbidden-file/font scan、package vulnerability scan、signed artifact検証を追加する。
-5. parity sign-off後に `FrameWeb.Startup` をC# desktop supported entrypointへ切替え、Angular redirectを停止する。
-6. `FramePrintAzure`、`PDF_Manager.LegacyPrinting`、legacy local print endpoint、`PDF_Test` / `PDF_Test_CLI`、obsolete manual print APIを廃止する。
-7. Angular/Electronをreferenceとして残すかarchive/deleteするかを決定し、release documentationを更新する。
+1. `context-loader`、`linksee-memory`、`plan` skillを使用する。最初に `git status` と既存diffを確認し、DESIGNの未commit変更を保全する。調査・計画セッションでは、ユーザーの別承認なしに製品コードを変更しない。
+2. `FrameWebforJS` を実際に起動し、固定viewport・DPIで基準screenを撮影する。少なくともstart/preset、全input route、2D/3D model/load表示、static/nonlinear/modal、DEFINE/COMBINE/PICKUP、moving、print/preview、dialog/overlay、ja/en/zh、empty/populated/error/cancel stateを対象にする。現在のC#画面も同条件で撮影する。
+3. `app.component.html/.scss`、`doc-layout`、`menu`、`optional-header`、`start-menu`、`three`、全 `input-*`、全 `result-*`、`print/**` を読み、各screenについてroute/state、親子layout、navigation、control/field、label、順序、group、default visibility/read-only、scroll/paging、modal/overlay、resize/DPI behaviorをinventory化する。
+4. source inventoryとrunning screenshotを正本に、FrameWebforJS ↔ C#のscreen parity matrixを作る。各rowにreference screenshot、Angular source、現在のC# surface、差分、再利用可能service/model、必要な新WinForms control、interaction/visual acceptanceを記録する。
+5. 現行 `MainForm` / `EditorContent` / `ProjectDocumentContent` / DockPanel構成を監査し、何を保持・非表示・置換・削除するか決める。内部のstable `DocumentKey`やlifecycleは再利用可能だが、FrameWebforJSにないuser-visible docking/navigationを既定UIとして残さない。
+6. `.agents/docs/plans/csharp-frameweb-client.md` を修正する計画を作る。少なくともPurpose、Feature-Parity BoundaryのInput/Shell行、Step 3/5/6/7のUI受入条件、Step 9 parity/cutover順序を今回の決定へ整合させる。必要ならStep 9前に専用のUI parity remediation phaseを追加し、既完了stepを無条件にgreenのまま扱わない。
+7. 実装はvertical slicesで計画する。推奨順は共通shell/navigation → start/preset → representative input screen → remaining inputs → model/load viewport integration → results/derived/moving → print/preview → languages/dialog/error states。最初のrepresentative sliceを同寸side-by-sideでユーザー承認してから横展開する。
+8. acceptance gateには、source-derived field/control matrix、UI automation、固定viewport/DPI screenshot比較、resize/scroll、三言語、keyboard/clipboard、empty/populated/error/cancel state、および既存567 testsの非退行を含める。自己生成したC# screenshotだけをgoldenにせず、FrameWebforJS referenceとの比較とユーザー目視承認を必須にする。
+9. 調査結果と修正版実装計画をユーザーへ提示し、承認を得てから実装用のfeature/team-executeへ進む。Step 9 packaging、Startup切替え、FramePrintAzure/LegacyPrinting削除、Angular archiveはUI parity sign-off後に行う。
 
-Step 9のproduction gatesが完了するまで、legacy hostの公開と完成アプリの再配布はNO-GOのままとする。
+次セッションの成果物は「調査報告」「screen parity matrix」「修正後の段階的実装計画」「受入基準」であり、未承認のUI実装ではない。

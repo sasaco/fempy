@@ -9,12 +9,11 @@ using PDF_Manager.Printing;
 using PDF_Manager.Rendering.Scene;
 using PDF_Manager.Resources;
 using PDF_Manager.Shell.Contents;
-using PDF_Manager.Shell.Docking;
 using PDF_Manager.Shell.Lifecycle;
 using PDF_Manager.Shell.Printing;
+using PDF_Manager.Shell.ScreenComposition.Core;
+using PDF_Manager.Shell.ScreenComposition.Surfaces;
 using PDF_Manager.Shell.Viewport;
-using WeifenLuo.WinFormsUI.Docking;
-using CoreDockState = PDF_Manager.Core.Shell.DockState;
 using CorePrintPageSettings = PDF_Manager.Core.Abstractions.PrintPageSettings;
 
 namespace PDF_Manager.Shell;
@@ -29,49 +28,24 @@ public sealed class MainForm : Form
         PrintContentSection.LoadDiagram,
     ];
 
-    public static DocumentKey NavigationContentKey { get; } = DocumentKey.Tool("project-navigation");
-    public static DocumentKey EditorContentKey { get; } = DocumentKey.Tool("property-editor");
-    public static DocumentKey DiagnosticsContentKey { get; } = DocumentKey.Tool("diagnostics-progress");
+    private static DocumentKey EditorContentKey { get; } = DocumentKey.Tool("property-editor");
     public static DocumentKey WorkspaceDocumentKey { get; } = DocumentKey.Document("project.workspace");
 
     private readonly MainFormServices _services;
     private readonly int _uiThreadId;
-    private readonly DockPanel _dockPanel;
-    private readonly VS2015LightTheme _theme;
-    private readonly DockContentRegistry _contentRegistry;
-    private readonly DockLayoutAdapter _layoutAdapter;
-    private readonly ActivationCoordinator _activationCoordinator;
     private readonly UserExceptionBoundary _exceptionBoundary;
+    private readonly IFrameWebSurfaceFactory _surfaceFactory;
+    private readonly EditorContent _editor;
+    private readonly WorkspaceControl _workspace;
+    private readonly FrameWebShellControl _screenShell;
     private readonly SemaphoreSlim _shellTransitionGate = new(1, 1);
-    private readonly MenuStrip _menuStrip = new() { Name = "MainMenu" };
-    private readonly ToolStripMenuItem _fileMenu = new() { Name = "FileMenu" };
-    private readonly ToolStripMenuItem _newMenuItem = new() { Name = "NewMenuItem" };
-    private readonly ToolStripMenuItem _openMenuItem = new() { Name = "OpenMenuItem" };
-    private readonly ToolStripMenuItem _saveMenuItem = new() { Name = "SaveMenuItem" };
-    private readonly ToolStripMenuItem _saveAsMenuItem = new() { Name = "SaveAsMenuItem" };
-    private readonly ToolStripMenuItem _exitMenuItem = new() { Name = "ExitMenuItem" };
-    private readonly ToolStripMenuItem _analysisMenu = new() { Name = "AnalysisMenu" };
-    private readonly ToolStripMenuItem _runAnalysisMenuItem = new() { Name = "RunAnalysisMenuItem" };
-    private readonly ToolStripMenuItem _cancelMenuItem = new() { Name = "CancelMenuItem" };
-    private readonly ToolStripMenuItem _printMenu = new() { Name = "PrintMenu" };
-    private readonly ToolStripMenuItem _pageSetupMenuItem = new() { Name = "PageSetupMenuItem" };
-    private readonly ToolStripMenuItem _printPreviewMenuItem = new() { Name = "PrintPreviewMenuItem" };
-    private readonly ToolStripMenuItem _exportPdfMenuItem = new() { Name = "ExportPdfMenuItem" };
-    private readonly ToolStripMenuItem _viewMenu = new() { Name = "ViewMenu" };
-    private readonly ToolStripMenuItem _navigationMenuItem = new() { Name = "NavigationMenuItem" };
-    private readonly ToolStripMenuItem _editorMenuItem = new() { Name = "EditorMenuItem" };
-    private readonly ToolStripMenuItem _diagnosticsMenuItem = new() { Name = "DiagnosticsMenuItem" };
-    private readonly ToolStripMenuItem _languageMenu = new() { Name = "LanguageMenu" };
-    private readonly ToolStripMenuItem _japaneseMenuItem = new() { Name = "JapaneseMenuItem" };
-    private readonly ToolStripMenuItem _englishMenuItem = new() { Name = "EnglishMenuItem" };
-    private readonly ToolStripMenuItem _chineseMenuItem = new() { Name = "ChineseMenuItem" };
 
     private AnalysisResultState _analysisState = new();
     private ProjectDocument? _currentDocument;
     private string? _documentPath;
     private Task _currentOperationTask = Task.CompletedTask;
     private Task _currentShellTransitionTask = Task.CompletedTask;
-    private Task _layoutRestoreTask = Task.CompletedTask;
+    private string _statusMessage = string.Empty;
     private long _documentRevision;
     private long _operationRevision;
     private PrintPageSetupSelection _printSelection = new(
@@ -83,7 +57,6 @@ public sealed class MainForm : Form
     private bool _closeCheckRunning;
     private bool _isClosing;
     private bool _allowClose;
-    private bool _layoutRestoreStarted;
     private bool _disposed;
 
     public MainForm()
@@ -99,80 +72,32 @@ public sealed class MainForm : Form
         MinimumSize = new Size(640, 480);
         StartPosition = FormStartPosition.CenterScreen;
 
-        _theme = new VS2015LightTheme();
-        _dockPanel = new DockPanel
-        {
-            Dock = DockStyle.Fill,
-            DocumentStyle = DocumentStyle.DockingWindow,
-            Name = "DocumentDockPanel",
-            Theme = _theme,
-        };
-        _contentRegistry = new DockContentRegistry(_dockPanel);
-        _layoutAdapter = new DockLayoutAdapter(_dockPanel, _contentRegistry);
         _exceptionBoundary = new UserExceptionBoundary(
             NotifyUser,
             _services.ReportDiagnostic,
             MapException);
-        _activationCoordinator = new ActivationCoordinator(
-            ApplyActiveDocumentAsync,
-            reportDiagnostic: _services.ReportDiagnostic);
 
-        BuildMenu();
-        Controls.Add(_dockPanel);
-        Controls.Add(_menuStrip);
-        MainMenuStrip = _menuStrip;
-
-        RegisterContents();
-        NavigationPane = (NavigationContent)_contentRegistry.Open(
-            NavigationContentKey,
-            CoreDockState.DockLeft);
-        EditorPane = (EditorContent)_contentRegistry.Open(
-            EditorContentKey,
-            CoreDockState.DockRight);
-        DiagnosticsPane = (DiagnosticsContent)_contentRegistry.Open(
-            DiagnosticsContentKey,
-            CoreDockState.DockBottom);
-        DocumentHost = (ProjectDocumentContent)_contentRegistry.Open(
-            WorkspaceDocumentKey,
-            CoreDockState.Document);
-        ActiveDocumentKey = WorkspaceDocumentKey;
-
+        LocalizationService localization = _services.Localization;
+        _editor = new EditorContent(EditorContentKey, localization);
+        DocumentHost = new ProjectDocumentContent(WorkspaceDocumentKey, localization);
+        _surfaceFactory = _services.ScreenSurfaceFactory?.Invoke(localization, _editor, DocumentHost)
+            ?? new FrameWebSurfaceFactory(localization, _editor, DocumentHost);
+        _workspace = new WorkspaceControl(DocumentHost);
+        _screenShell = new FrameWebShellControl(localization, _workspace, _surfaceFactory);
+        Controls.Add(_screenShell);
         SubscribeEvents();
         ApplyLocalization();
+        SetStatusResource("StatusReady");
         UpdateCommandState();
     }
 
-    public DockPanel DockSurface => _dockPanel;
+    public FrameWebShellControl ScreenShell => _screenShell;
 
-    public DockContentRegistry ContentRegistry => _contentRegistry;
+    public WorkspaceControl Workspace => _workspace;
 
-    public DockLayoutAdapter LayoutAdapter => _layoutAdapter;
-
-    public NavigationContent NavigationPane { get; private set; }
+    public ScreenRouteController RouteController => _screenShell.RouteController;
 
     public ProjectDocumentContent DocumentHost { get; private set; }
-
-    public ProjectDocumentContent Viewport => DocumentHost;
-
-    public EditorContent EditorPane { get; private set; }
-
-    public DiagnosticsContent DiagnosticsPane { get; private set; }
-
-    public ToolStripMenuItem FileMenu => _fileMenu;
-
-    public ToolStripMenuItem OpenMenuItem => _openMenuItem;
-
-    public ToolStripMenuItem SaveMenuItem => _saveMenuItem;
-
-    public ToolStripMenuItem AnalyzeMenuItem => _runAnalysisMenuItem;
-
-    public ToolStripMenuItem CancelMenuItem => _cancelMenuItem;
-
-    public ToolStripMenuItem ExportPdfMenuItem => _exportPdfMenuItem;
-
-    public ToolStripMenuItem PageSetupMenuItem => _pageSetupMenuItem;
-
-    public ToolStripMenuItem PrintPreviewMenuItem => _printPreviewMenuItem;
 
     public PrintPageSetupSelection PrintSelection => _printSelection;
 
@@ -182,19 +107,15 @@ public sealed class MainForm : Form
 
     public AnalysisResultSet? CurrentResult => _analysisState.Current;
 
-    public DocumentKey? ActiveDocumentKey { get; private set; }
-
     public CultureInfo CurrentCulture => _services.Localization.Culture;
 
-    public bool IsOperationRunning => _isOperationRunning;
+    public string CurrentStatusMessage => _statusMessage;
 
-    public Task WhenActivationIdleAsync() => _activationCoordinator.WhenIdleAsync();
+    public bool IsOperationRunning => _isOperationRunning;
 
     public Task WhenCurrentOperationIdleAsync() => _currentOperationTask;
 
     public Task WhenShellTransitionIdleAsync() => _currentShellTransitionTask;
-
-    public Task WhenLayoutRestoredAsync() => _layoutRestoreTask;
 
     public void SetLanguage(UiLanguage language) => _services.Localization.SetLanguage(language);
 
@@ -221,6 +142,24 @@ public sealed class MainForm : Form
         if (authorized is DocumentSnapshot current && CanPublish(current, allowWhileClosing: false))
         {
             SetCurrentDocument(CreateNewDocument(), null, clearResults: true);
+        }
+    });
+
+    public Task OpenPresetAsync(BuiltInProjectPreset preset) => RunShellTransitionAsync(async () =>
+    {
+        if (_isClosing || _disposed)
+        {
+            return;
+        }
+
+        DocumentSnapshot snapshot = CaptureDocument();
+        DocumentSnapshot? authorized = await AuthorizeDocumentReplacementAsync(
+            snapshot,
+            allowWhileClosing: false);
+        await SwitchToUiThread();
+        if (authorized is DocumentSnapshot current && CanPublish(current, allowWhileClosing: false))
+        {
+            SetCurrentDocument(ProjectDocumentPresets.Create(preset).MarkDirty(), null, clearResults: true);
         }
     });
 
@@ -260,7 +199,7 @@ public sealed class MainForm : Form
             }
 
             SetCurrentDocument(opened, path, clearResults: true);
-            DiagnosticsPane.Report(Format("StatusProjectOpened", path));
+            ReportStatus(Format("StatusProjectOpened", path));
         });
     });
 
@@ -295,7 +234,7 @@ public sealed class MainForm : Form
     {
         if (_currentDocument is null || _services.AnalysisClient is null)
         {
-            DiagnosticsPane.SetStatusResource("StatusNotConfigured");
+            SetStatusResource("StatusNotConfigured");
             return;
         }
 
@@ -321,34 +260,12 @@ public sealed class MainForm : Form
             }
 
             _printPreviewState = null;
-            DiagnosticsPane.SetStatusResource("StatusAnalysisCompleted");
+            SetStatusResource("StatusAnalysisCompleted");
             UpdateCommandState();
         });
     }
 
-    public bool ConfigurePrintPage()
-    {
-        if (_disposed || _isClosing || _isOperationRunning)
-        {
-            return false;
-        }
-
-        PrintPageSetupSelection? candidate = _services.PrintDialogs.ShowPageSetup(
-            this,
-            _services.Localization,
-            _printSelection);
-        if (candidate is null)
-        {
-            return false;
-        }
-
-        _printSelection = candidate;
-        _printPreviewState = null;
-        DiagnosticsPane.SetStatusResource("StatusPrintSettingsUpdated");
-        return true;
-    }
-
-    public async Task RefreshPrintPreviewAsync(bool showDialog = false)
+    public async Task RefreshPrintPreviewAsync()
     {
         if (_isOperationRunning || _isClosing || _disposed)
         {
@@ -357,13 +274,13 @@ public sealed class MainForm : Form
 
         if (_currentDocument is null || _services.PrintExporter is null)
         {
-            DiagnosticsPane.SetStatusResource("StatusNotConfigured");
+            SetStatusResource("StatusNotConfigured");
             return;
         }
 
         DocumentSnapshot snapshot = CaptureDocument();
         PrintPreviewState? candidate = null;
-        bool succeeded = await RunOperationAsync(async cancellationToken =>
+        await RunOperationAsync(async cancellationToken =>
         {
             await SwitchToUiThread();
             cancellationToken.ThrowIfCancellationRequested();
@@ -391,12 +308,9 @@ public sealed class MainForm : Form
             }
 
             _printPreviewState = candidate;
-            DiagnosticsPane.Report(Format("StatusPrintPreviewReady", preview.PageCount));
+            SyncPrintOverlay();
+            ReportStatus(Format("StatusPrintPreviewReady", preview.PageCount));
         });
-        if (succeeded && showDialog && candidate is not null && ReferenceEquals(candidate, _printPreviewState))
-        {
-            _services.PrintDialogs.ShowPreview(this, _services.Localization, candidate);
-        }
     }
 
     public bool SelectPrintPreviewPage(int pageIndex)
@@ -407,6 +321,7 @@ public sealed class MainForm : Form
         }
 
         _printPreviewState = _printPreviewState.SelectPage(pageIndex);
+        SyncPrintOverlay();
         return true;
     }
 
@@ -419,7 +334,7 @@ public sealed class MainForm : Form
 
         if (_currentDocument is null || _services.PrintExporter is null)
         {
-            DiagnosticsPane.SetStatusResource("StatusNotConfigured");
+            SetStatusResource("StatusNotConfigured");
             return;
         }
 
@@ -458,7 +373,7 @@ public sealed class MainForm : Form
             cancellationToken.ThrowIfCancellationRequested();
             if (CanPublish(snapshot, allowWhileClosing: false))
             {
-                DiagnosticsPane.Report(Format("StatusPdfExported", path));
+                ReportStatus(Format("StatusPdfExported", path));
             }
         });
     }
@@ -467,15 +382,9 @@ public sealed class MainForm : Form
     {
         if (_services.CancellationOwner.CancelCurrent())
         {
-            DiagnosticsPane.SetStatusResource("StatusCanceled");
+            SetStatusResource("StatusCanceled");
         }
     }
-
-    public void ShowNavigationPane() => ShowContent(NavigationContentKey);
-
-    public void ShowEditorPane() => ShowContent(EditorContentKey);
-
-    public void ShowDiagnosticsPane() => ShowContent(DiagnosticsContentKey);
 
     protected override void Dispose(bool disposing)
     {
@@ -483,162 +392,103 @@ public sealed class MainForm : Form
         {
             _disposed = true;
             UnsubscribeEvents();
-            _activationCoordinator.Cancel();
-            _activationCoordinator.Dispose();
             _services.CancellationOwner.CancelCurrent();
             _services.CancellationOwner.Dispose();
-            _layoutAdapter.Dispose();
-            _contentRegistry.Dispose();
-            _dockPanel.Dispose();
-            _theme.Dispose();
+            _screenShell.Dispose();
+            if (_surfaceFactory is IDisposable disposableFactory)
+            {
+                disposableFactory.Dispose();
+            }
+
+            DocumentHost.Dispose();
+            _editor.Dispose();
             _services.Dispose();
         }
 
         base.Dispose(disposing);
     }
 
-    private void BuildMenu()
-    {
-        _fileMenu.DropDownItems.AddRange([
-            _newMenuItem,
-            _openMenuItem,
-            new ToolStripSeparator(),
-            _saveMenuItem,
-            _saveAsMenuItem,
-            new ToolStripSeparator(),
-            _exitMenuItem,
-        ]);
-        _analysisMenu.DropDownItems.AddRange([_runAnalysisMenuItem, _cancelMenuItem]);
-        _printMenu.DropDownItems.AddRange([
-            _pageSetupMenuItem,
-            _printPreviewMenuItem,
-            new ToolStripSeparator(),
-            _exportPdfMenuItem,
-        ]);
-        _viewMenu.DropDownItems.AddRange([
-            _navigationMenuItem,
-            _editorMenuItem,
-            _diagnosticsMenuItem,
-        ]);
-        _languageMenu.DropDownItems.AddRange([
-            _japaneseMenuItem,
-            _englishMenuItem,
-            _chineseMenuItem,
-        ]);
-        _menuStrip.Items.AddRange([_fileMenu, _analysisMenu, _printMenu, _viewMenu, _languageMenu]);
-    }
-
-    private void RegisterContents()
-    {
-        LocalizationService localization = _services.Localization;
-        _contentRegistry.Register(
-            NavigationContentKey,
-            () => new NavigationContent(NavigationContentKey, localization));
-        _contentRegistry.Register(
-            EditorContentKey,
-            () => new EditorContent(EditorContentKey, localization));
-        _contentRegistry.Register(
-            DiagnosticsContentKey,
-            () => new DiagnosticsContent(DiagnosticsContentKey, localization));
-        _contentRegistry.Register(
-            WorkspaceDocumentKey,
-            () => new ProjectDocumentContent(WorkspaceDocumentKey, localization));
-    }
-
     private void SubscribeEvents()
     {
-        _newMenuItem.Click += OnNewClick;
-        _openMenuItem.Click += OnOpenClick;
-        _saveMenuItem.Click += OnSaveClick;
-        _saveAsMenuItem.Click += OnSaveAsClick;
-        _exitMenuItem.Click += OnExitClick;
-        _runAnalysisMenuItem.Click += OnRunAnalysisClick;
-        _cancelMenuItem.Click += OnCancelClick;
-        _pageSetupMenuItem.Click += OnPageSetupClick;
-        _printPreviewMenuItem.Click += OnPrintPreviewClick;
-        _exportPdfMenuItem.Click += OnExportPdfClick;
-        _navigationMenuItem.Click += OnNavigationClick;
-        _editorMenuItem.Click += OnEditorClick;
-        _diagnosticsMenuItem.Click += OnDiagnosticsClick;
-        _japaneseMenuItem.Click += OnJapaneseClick;
-        _englishMenuItem.Click += OnEnglishClick;
-        _chineseMenuItem.Click += OnChineseClick;
-        _dockPanel.ActiveDocumentChanged += OnActiveDocumentChanged;
-        _contentRegistry.ContentCreated += OnContentCreated;
         _services.Localization.CultureChanged += OnCultureChanged;
-        EditorPane.DocumentEdited += OnDocumentEdited;
-        EditorPane.SelectionChanged += OnEditorSelectionChanged;
-        EditorPane.ValidationFailed += OnEditorValidationFailed;
+        _screenShell.CommandRequested += OnScreenCommandRequested;
+        _screenShell.LanguageRequested += OnScreenLanguageRequested;
+        RouteController.StateChanged += OnScreenRouteStateChanged;
+        _editor.DocumentEdited += OnDocumentEdited;
+        _editor.SelectionChanged += OnEditorSelectionChanged;
+        _editor.ValidationFailed += OnEditorValidationFailed;
         DocumentHost.SelectionChanged += OnViewportSelectionChanged;
         DocumentHost.ViewportOperationFailed += OnViewportOperationFailed;
-        Shown += OnShown;
+        DocumentHost.ResultPageChanged += OnResultPageChanged;
         FormClosing += OnFormClosing;
     }
 
     private void UnsubscribeEvents()
     {
-        _newMenuItem.Click -= OnNewClick;
-        _openMenuItem.Click -= OnOpenClick;
-        _saveMenuItem.Click -= OnSaveClick;
-        _saveAsMenuItem.Click -= OnSaveAsClick;
-        _exitMenuItem.Click -= OnExitClick;
-        _runAnalysisMenuItem.Click -= OnRunAnalysisClick;
-        _cancelMenuItem.Click -= OnCancelClick;
-        _pageSetupMenuItem.Click -= OnPageSetupClick;
-        _printPreviewMenuItem.Click -= OnPrintPreviewClick;
-        _exportPdfMenuItem.Click -= OnExportPdfClick;
-        _navigationMenuItem.Click -= OnNavigationClick;
-        _editorMenuItem.Click -= OnEditorClick;
-        _diagnosticsMenuItem.Click -= OnDiagnosticsClick;
-        _japaneseMenuItem.Click -= OnJapaneseClick;
-        _englishMenuItem.Click -= OnEnglishClick;
-        _chineseMenuItem.Click -= OnChineseClick;
-        _dockPanel.ActiveDocumentChanged -= OnActiveDocumentChanged;
-        _contentRegistry.ContentCreated -= OnContentCreated;
         _services.Localization.CultureChanged -= OnCultureChanged;
-        EditorPane.DocumentEdited -= OnDocumentEdited;
-        EditorPane.SelectionChanged -= OnEditorSelectionChanged;
-        EditorPane.ValidationFailed -= OnEditorValidationFailed;
+        _screenShell.CommandRequested -= OnScreenCommandRequested;
+        _screenShell.LanguageRequested -= OnScreenLanguageRequested;
+        RouteController.StateChanged -= OnScreenRouteStateChanged;
+        _editor.DocumentEdited -= OnDocumentEdited;
+        _editor.SelectionChanged -= OnEditorSelectionChanged;
+        _editor.ValidationFailed -= OnEditorValidationFailed;
         DocumentHost.SelectionChanged -= OnViewportSelectionChanged;
         DocumentHost.ViewportOperationFailed -= OnViewportOperationFailed;
-        Shown -= OnShown;
+        DocumentHost.ResultPageChanged -= OnResultPageChanged;
         FormClosing -= OnFormClosing;
+    }
+
+    private void OnScreenRouteStateChanged(object? sender, ScreenRouteStateChangedEventArgs eventArgs)
+    {
+        if (_disposed ||
+            eventArgs.Current.Route is not ScreenRouteId route ||
+            !AngularScreenManifest.IsResultRoute(route))
+        {
+            return;
+        }
+
+        ScreenPageState actual = GetResultPageState();
+        bool routeChanged = eventArgs.Previous.Route != eventArgs.Current.Route;
+        if (!routeChanged && eventArgs.Current.Page != actual)
+        {
+            bool validPageRequest = DocumentHost.ResultPageCount > 0 &&
+                eventArgs.Current.Page.Count == DocumentHost.ResultPageCount &&
+                eventArgs.Current.Page.Index < DocumentHost.ResultPageCount;
+            if (validPageRequest)
+            {
+                DocumentHost.SelectResultPage(eventArgs.Current.Page.Index);
+            }
+        }
+
+        SynchronizeResultPage();
+    }
+
+    private void OnResultPageChanged(object? sender, ResultPageChangedEventArgs eventArgs)
+    {
+        if (!_disposed && RouteController.State.Route is ScreenRouteId route &&
+            AngularScreenManifest.IsResultRoute(route))
+        {
+            SynchronizeResultPage();
+        }
+    }
+
+    private ScreenPageState GetResultPageState() => DocumentHost.ResultPageCount > 0
+        ? new ScreenPageState(DocumentHost.ResultPageIndex, DocumentHost.ResultPageCount)
+        : ScreenPageState.Single;
+
+    private void SynchronizeResultPage()
+    {
+        ScreenPageState page = GetResultPageState();
+        if (RouteController.State.Page != page)
+        {
+            RouteController.SetPage(page.Index, page.Count);
+        }
     }
 
     private void ApplyLocalization()
     {
-        _fileMenu.Text = _services.Localization["MenuFile"];
-        _newMenuItem.Text = _services.Localization["MenuNew"];
-        _openMenuItem.Text = _services.Localization["MenuOpen"];
-        _saveMenuItem.Text = _services.Localization["MenuSave"];
-        _saveAsMenuItem.Text = _services.Localization["MenuSaveAs"];
-        _exitMenuItem.Text = _services.Localization["MenuExit"];
-        _analysisMenu.Text = _services.Localization["MenuAnalysis"];
-        _runAnalysisMenuItem.Text = _services.Localization["MenuRunAnalysis"];
-        _cancelMenuItem.Text = _services.Localization["MenuCancel"];
-        _printMenu.Text = _services.Localization["MenuPrint"];
-        _pageSetupMenuItem.Text = _services.Localization["MenuPageSetup"];
-        _printPreviewMenuItem.Text = _services.Localization["MenuPrintPreview"];
-        _exportPdfMenuItem.Text = _services.Localization["MenuExportPdf"];
-        _viewMenu.Text = _services.Localization["MenuView"];
-        _navigationMenuItem.Text = _services.Localization["MenuNavigation"];
-        _editorMenuItem.Text = _services.Localization["MenuEditor"];
-        _diagnosticsMenuItem.Text = _services.Localization["MenuDiagnostics"];
-        _languageMenu.Text = _services.Localization["MenuLanguage"];
-        _japaneseMenuItem.Text = _services.Localization["LanguageJapanese"];
-        _englishMenuItem.Text = _services.Localization["LanguageEnglish"];
-        _chineseMenuItem.Text = _services.Localization["LanguageChinese"];
-        _japaneseMenuItem.Checked = _services.Localization.Language == UiLanguage.Japanese;
-        _englishMenuItem.Checked = _services.Localization.Language == UiLanguage.English;
-        _chineseMenuItem.Checked = _services.Localization.Language == UiLanguage.Chinese;
-
-        foreach ((_, DockContent content) in _contentRegistry.Contents)
-        {
-            if (content is ILocalizedShellContent localizable)
-            {
-                localizable.ApplyLocalization();
-            }
-        }
+        _editor.ApplyLocalization();
+        DocumentHost.ApplyLocalization();
 
         UpdateWindowTitle();
     }
@@ -659,27 +509,12 @@ public sealed class MainForm : Form
             RemoveUnavailableResultPrintSections();
         }
 
-        NavigationPane.SetDocument(document);
-        EditorPane.SetDocument(document);
-        ProjectDocumentContent viewport = EnsureDocumentHost();
-        viewport.SetDocument(document, resetCamera: true);
-        viewport.SetResult(_analysisState.Current);
+        _editor.SetDocument(document);
+        DocumentHost.SetDocument(document, resetCamera: true);
+        DocumentHost.SetResult(_analysisState.Current);
+        _screenShell.RouteController.SetResultsEnabled(_analysisState.Current is not null);
         UpdateWindowTitle();
         UpdateCommandState();
-    }
-
-    private ProjectDocumentContent EnsureDocumentHost()
-    {
-        if (_contentRegistry.TryGet(WorkspaceDocumentKey, out DockContent? existing))
-        {
-            DocumentHost = (ProjectDocumentContent)existing!;
-            return DocumentHost;
-        }
-
-        DocumentHost = (ProjectDocumentContent)_contentRegistry.Open(
-            WorkspaceDocumentKey,
-            CoreDockState.Document);
-        return DocumentHost;
     }
 
     private void UpdateWindowTitle()
@@ -707,16 +542,13 @@ public sealed class MainForm : Form
             _analysisState.Current is not null,
             shellBusy);
         ShellCommandState state = ShellCommandStateReducer.Reduce(context);
-        _newMenuItem.Enabled = state.CanCreate;
-        _openMenuItem.Enabled = state.CanOpen;
-        _saveMenuItem.Enabled = state.CanSave;
-        _saveAsMenuItem.Enabled = state.CanSaveAs;
-        _runAnalysisMenuItem.Enabled = state.CanAnalyze && _services.AnalysisClient is not null;
         bool canPrint = _currentDocument is not null && !shellBusy && _services.PrintExporter is not null;
-        _pageSetupMenuItem.Enabled = canPrint;
-        _printPreviewMenuItem.Enabled = canPrint;
-        _exportPdfMenuItem.Enabled = state.CanPrint && _services.PrintExporter is not null;
-        _cancelMenuItem.Enabled = _isOperationRunning && !_isClosing;
+        _screenShell.ApplyCommandState(
+            state.CanCreate,
+            state.CanOpen,
+            state.CanSave,
+            canPrint);
+        _screenShell.RouteController.SetResultsEnabled(_analysisState.Current is not null);
     }
 
     private Task RunShellTransitionAsync(Func<Task> transition)
@@ -844,10 +676,12 @@ public sealed class MainForm : Form
         CancellationToken cancellationToken)
     {
         long revision = checked(++_operationRevision);
+        ScreenOverlayKind previousOverlay = RouteController.State.Overlay;
         using OperationCancellationOwner.OperationCancellationLease lease =
             _services.CancellationOwner.Begin(cancellationToken);
         _isOperationRunning = true;
-        DiagnosticsPane.SetBusy(true);
+        RouteController.ShowOverlay(ScreenOverlayKind.Wait);
+        SetStatusResource("StatusWorking");
         UpdateCommandState();
         try
         {
@@ -871,7 +705,7 @@ public sealed class MainForm : Form
             await SwitchToUiThread();
             if (!succeeded && lease.Token.IsCancellationRequested && !_disposed && !_isClosing)
             {
-                DiagnosticsPane.SetStatusResource("StatusCanceled");
+                SetStatusResource("StatusCanceled");
             }
 
             return succeeded;
@@ -881,7 +715,19 @@ public sealed class MainForm : Form
             if (revision == _operationRevision && !_disposed)
             {
                 _isOperationRunning = false;
-                DiagnosticsPane.SetBusy(false);
+                if (RouteController.State.Overlay == ScreenOverlayKind.Wait)
+                {
+                    if (previousOverlay == ScreenOverlayKind.None)
+                    {
+                        RouteController.CloseOverlay();
+                    }
+                    else
+                    {
+                        RouteController.ShowOverlay(previousOverlay);
+                    }
+                }
+
+                SyncPrintOverlay();
                 UpdateCommandState();
             }
         }
@@ -914,7 +760,7 @@ public sealed class MainForm : Form
 
             SetCurrentDocument(saved, path, clearResults: false);
             savedSnapshot = CaptureDocument();
-            DiagnosticsPane.Report(Format("StatusProjectSaved", path));
+            ReportStatus(Format("StatusProjectSaved", path));
         }, cancellationToken);
         return succeeded ? savedSnapshot : null;
     }
@@ -1088,66 +934,7 @@ public sealed class MainForm : Form
     }
 
     private static ProjectDocument CreateNewDocument() =>
-        ProjectDocumentPresets.CreateRepresentativeFrame().MarkDirty();
-
-    private void ShowContent(DocumentKey key) =>
-        _exceptionBoundary.Execute(() => _contentRegistry.Open(key));
-
-    private async Task RestoreLayoutAsync()
-    {
-        try
-        {
-            string? json = await _services.LayoutStore.LoadAsync();
-            await SwitchToUiThread();
-            if (json is null || _disposed || _isClosing)
-            {
-                return;
-            }
-
-            _layoutAdapter.RestoreJson(json);
-            DocumentKey? restoredActiveDocument = _layoutAdapter.ActiveDocumentKey;
-            if (restoredActiveDocument is DocumentKey active)
-            {
-                await _activationCoordinator.ActivateAsync(active);
-                await SwitchToUiThread();
-            }
-            else
-            {
-                ActiveDocumentKey = null;
-                _activationCoordinator.ClearActive();
-            }
-        }
-        catch (Exception exception)
-        {
-            await SwitchToUiThread();
-            ReportBackgroundFailure(exception);
-        }
-    }
-
-    private async Task PersistLayoutAsync(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            string json = _layoutAdapter.CaptureJson();
-            await _services.LayoutStore.SaveAsync(json, cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-        }
-        catch (Exception exception)
-        {
-            await SwitchToUiThread();
-            ReportBackgroundFailure(exception);
-        }
-    }
-
-    private Task ApplyActiveDocumentAsync(DocumentKey key, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        ActiveDocumentKey = key;
-        return Task.CompletedTask;
-    }
+        ProjectDocumentPresets.CreateBlank().MarkDirty();
 
     private UserSafeExceptionInfo MapException(Exception exception)
     {
@@ -1171,11 +958,9 @@ public sealed class MainForm : Form
             return;
         }
 
-        DiagnosticsPane.Report(information.Message);
-        _services.Dialogs.ShowError(
-            this,
-            _services.Localization["ErrorTitle"],
-            information.Message);
+        ReportStatus(information.Message);
+        RouteController.ShowOverlay(ScreenOverlayKind.Alert);
+        SyncOperationOverlay();
     }
 
     private void ReportBackgroundFailure(Exception exception)
@@ -1191,7 +976,7 @@ public sealed class MainForm : Form
 
         if (!_disposed)
         {
-            DiagnosticsPane.Report(_services.Localization["UnexpectedError"]);
+            ReportStatus(_services.Localization["UnexpectedError"]);
         }
     }
 
@@ -1209,47 +994,6 @@ public sealed class MainForm : Form
     private string Format(string resourceKey, object value) =>
         string.Format(_services.Localization.Culture, _services.Localization[resourceKey], value);
 
-    private void OnContentCreated(
-        object? sender,
-        PDF_Manager.Shell.Docking.DockContentEventArgs eventArgs)
-    {
-        if (eventArgs.Key == WorkspaceDocumentKey)
-        {
-            DocumentHost = (ProjectDocumentContent)eventArgs.Content;
-            DocumentHost.SelectionChanged += OnViewportSelectionChanged;
-            DocumentHost.ViewportOperationFailed += OnViewportOperationFailed;
-            DocumentHost.SetDocument(_currentDocument, resetCamera: true);
-            DocumentHost.SetResult(_analysisState.Current);
-        }
-    }
-
-    private async void OnActiveDocumentChanged(object? sender, EventArgs eventArgs)
-    {
-        if (_dockPanel.ActiveDocument is not DockContent active ||
-            !_contentRegistry.TryGetKey(active, out DocumentKey key))
-        {
-            _layoutAdapter.ActiveDocumentKey = null;
-            ActiveDocumentKey = null;
-            _activationCoordinator.ClearActive();
-            return;
-        }
-
-        try
-        {
-            await _activationCoordinator.ActivateAsync(key);
-            await SwitchToUiThread();
-        }
-        catch (OperationCanceledException exception)
-            when (exception.CancellationToken.IsCancellationRequested)
-        {
-        }
-        catch (Exception exception)
-        {
-            await SwitchToUiThread();
-            ReportException(exception);
-        }
-    }
-
     private void OnDocumentEdited(object? sender, DocumentEditedEventArgs eventArgs)
     {
         if (_disposed || _isClosing)
@@ -1262,7 +1006,7 @@ public sealed class MainForm : Form
         _analysisState = new AnalysisResultState();
         _printPreviewState = null;
         RemoveUnavailableResultPrintSections();
-        NavigationPane.SetDocument(_currentDocument);
+        _editor.SetDocument(_currentDocument);
         DocumentHost.SetDocument(_currentDocument, resetCamera: false);
         DocumentHost.SetResult(null);
         UpdateWindowTitle();
@@ -1281,7 +1025,7 @@ public sealed class MainForm : Form
     {
         if (!_disposed)
         {
-            EditorPane.SetSelection(eventArgs.Selection);
+            _editor.SetSelection(eventArgs.Selection);
         }
     }
 
@@ -1289,7 +1033,7 @@ public sealed class MainForm : Form
     {
         if (!_disposed)
         {
-            DiagnosticsPane.Report(eventArgs.Message);
+            ReportStatus(eventArgs.Message);
         }
     }
 
@@ -1315,20 +1059,163 @@ public sealed class MainForm : Form
             System.Diagnostics.Debug.WriteLine(diagnosticException);
         }
 
-        DiagnosticsPane.Report(eventArgs.Failure.SafeMessage);
+        ReportStatus(eventArgs.Failure.SafeMessage);
     }
 
     private void OnCultureChanged(object? sender, EventArgs eventArgs) => ApplyLocalization();
 
-    private void OnShown(object? sender, EventArgs eventArgs)
+    private async void OnScreenCommandRequested(
+        object? sender,
+        ScreenCommandRequestedEventArgs eventArgs)
     {
-        if (_layoutRestoreStarted || _disposed || _isClosing)
+        try
+        {
+            switch (eventArgs.Command)
+            {
+                case ScreenCommandKind.NewProject:
+                    await NewProjectAsync();
+                    if (_currentDocument is not null)
+                    {
+                        RouteController.CloseOverlay();
+                    }
+
+                    break;
+                case ScreenCommandKind.OpenProject:
+                    await OpenProjectAsync();
+                    if (_currentDocument is not null)
+                    {
+                        RouteController.CloseOverlay();
+                    }
+
+                    break;
+                case ScreenCommandKind.SaveProject:
+                    await SaveProjectAsync();
+                    break;
+                case ScreenCommandKind.SaveProjectAs:
+                    await SaveProjectAsync(saveAs: true);
+                    break;
+                case ScreenCommandKind.ShowPreset:
+                    RouteController.ShowOverlay(ScreenOverlayKind.Preset);
+                    break;
+                case ScreenCommandKind.OpenPreset:
+                    if (sender is IPresetOverlaySurface { SelectedPreset: BuiltInProjectPreset preset })
+                    {
+                        await OpenPresetAsync(preset);
+                        if (_currentDocument is not null)
+                        {
+                            RouteController.CloseOverlay();
+                        }
+                    }
+
+                    break;
+                case ScreenCommandKind.RunAnalysis:
+                    await ExecuteAnalysisAsync();
+                    break;
+                case ScreenCommandKind.CancelOperation:
+                    CancelOperation();
+                    break;
+                case ScreenCommandKind.ShowPrint:
+                    RouteController.ShowOverlay(ScreenOverlayKind.Print);
+                    SyncPrintOverlay();
+                    await RefreshPrintPreviewAsync();
+                    break;
+                case ScreenCommandKind.ConfigurePrint:
+                    ApplyPrintOverlaySelection(sender);
+                    await RefreshPrintPreviewAsync();
+                    break;
+                case ScreenCommandKind.RefreshPrintPreview:
+                    await RefreshPrintPreviewAsync();
+                    break;
+                case ScreenCommandKind.ExportPdf:
+                    await ExportPdfAsync();
+                    break;
+                case ScreenCommandKind.CloseOverlay:
+                    RouteController.CloseOverlay();
+                    break;
+                case ScreenCommandKind.CloseRoute:
+                    RouteController.CloseRoute();
+                    break;
+                case ScreenCommandKind.ShowHelp:
+                    OpenExternalUri("https://help-frameweb.malme.app/");
+                    break;
+                case ScreenCommandKind.ShowContact:
+                    ReportStatus("Contact support is available from the FrameWeb support site.");
+                    RouteController.ShowOverlay(ScreenOverlayKind.Alert);
+                    SyncOperationOverlay();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(
+                        nameof(eventArgs),
+                        eventArgs.Command,
+                        "Unknown screen command.");
+            }
+        }
+        catch (Exception exception)
+        {
+            ReportException(exception);
+        }
+    }
+
+    private void OnScreenLanguageRequested(object? sender, UiLanguageRequestedEventArgs eventArgs) =>
+        SetLanguage(eventArgs.Language);
+
+    private void ApplyPrintOverlaySelection(object? sender)
+    {
+        IPrintOverlaySurface? printSurface = sender as IPrintOverlaySurface
+            ?? _screenShell.OverlayHost.ActiveSurface as IPrintOverlaySurface;
+        if (printSurface is null)
+        {
+            throw new InvalidOperationException("The print command requires the active print overlay.");
+        }
+
+        _printSelection = printSurface.Selection;
+        _printPreviewState = null;
+        SyncPrintOverlay();
+        UpdateCommandState();
+    }
+
+    private void SyncPrintOverlay()
+    {
+        if (_screenShell.OverlayHost.ActiveSurface is not IPrintOverlaySurface printSurface)
         {
             return;
         }
 
-        _layoutRestoreStarted = true;
-        _layoutRestoreTask = RunShellTransitionAsync(RestoreLayoutAsync);
+        printSurface.SetSelection(_printSelection);
+        printSurface.SetPreview(_printPreviewState);
+    }
+
+    private void SetStatusResource(string resourceKey) =>
+        ReportStatus(_services.Localization[resourceKey]);
+
+    private void ReportStatus(string message)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
+        _statusMessage = message;
+        SyncOperationOverlay();
+    }
+
+    private void SyncOperationOverlay()
+    {
+        if (_screenShell.OverlayHost.ActiveSurface is IOperationOverlaySurface operationSurface)
+        {
+            operationSurface.SetMessage(_statusMessage);
+        }
+    }
+
+    private void OpenExternalUri(string uri)
+    {
+        Uri validated = new(uri, UriKind.Absolute);
+        if (validated.Scheme != Uri.UriSchemeHttps)
+        {
+            throw new InvalidOperationException("Only HTTPS support links may be opened.");
+        }
+
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = validated.AbsoluteUri,
+            UseShellExecute = true,
+        });
     }
 
     private void OnFormClosing(object? sender, FormClosingEventArgs eventArgs)
@@ -1393,18 +1280,6 @@ public sealed class MainForm : Form
             await SwitchToUiThread();
             if (authorized is not DocumentSnapshot current ||
                 !CanPublish(current, allowWhileClosing: true))
-            {
-                return;
-            }
-
-            using CancellationTokenSource layoutSaveCancellation = new();
-            Task layoutSaveTask = PersistLayoutAsync(layoutSaveCancellation.Token);
-            await WaitForClosePhaseAsync(
-                layoutSaveTask,
-                layoutSaveCancellation,
-                "layout persistence");
-            await SwitchToUiThread();
-            if (!CanPublish(current, allowWhileClosing: true))
             {
                 return;
             }
@@ -1561,40 +1436,6 @@ public sealed class MainForm : Form
             ReportBackgroundFailure(exception);
         }
     }
-
-    private async void OnNewClick(object? sender, EventArgs eventArgs) => await NewProjectAsync();
-
-    private async void OnOpenClick(object? sender, EventArgs eventArgs) => await OpenProjectAsync();
-
-    private async void OnSaveClick(object? sender, EventArgs eventArgs) => await SaveProjectAsync();
-
-    private async void OnSaveAsClick(object? sender, EventArgs eventArgs) => await SaveProjectAsync(saveAs: true);
-
-    private void OnExitClick(object? sender, EventArgs eventArgs) => Close();
-
-    private async void OnRunAnalysisClick(object? sender, EventArgs eventArgs) => await ExecuteAnalysisAsync();
-
-    private void OnCancelClick(object? sender, EventArgs eventArgs) => CancelOperation();
-
-    private void OnPageSetupClick(object? sender, EventArgs eventArgs) =>
-        _exceptionBoundary.Execute(() => _ = ConfigurePrintPage());
-
-    private async void OnPrintPreviewClick(object? sender, EventArgs eventArgs) =>
-        await RefreshPrintPreviewAsync(showDialog: true);
-
-    private async void OnExportPdfClick(object? sender, EventArgs eventArgs) => await ExportPdfAsync();
-
-    private void OnNavigationClick(object? sender, EventArgs eventArgs) => ShowNavigationPane();
-
-    private void OnEditorClick(object? sender, EventArgs eventArgs) => ShowEditorPane();
-
-    private void OnDiagnosticsClick(object? sender, EventArgs eventArgs) => ShowDiagnosticsPane();
-
-    private void OnJapaneseClick(object? sender, EventArgs eventArgs) => SetLanguage(UiLanguage.Japanese);
-
-    private void OnEnglishClick(object? sender, EventArgs eventArgs) => SetLanguage(UiLanguage.English);
-
-    private void OnChineseClick(object? sender, EventArgs eventArgs) => SetLanguage(UiLanguage.Chinese);
 
     private readonly record struct DocumentSnapshot(
         ProjectDocument? Document,

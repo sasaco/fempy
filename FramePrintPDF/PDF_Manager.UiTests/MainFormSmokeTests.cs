@@ -17,8 +17,7 @@ public sealed class MainFormSmokeTests
                 MainFormServices services = new(
                     projectStore: new FakeProjectStore(),
                     localization: localization,
-                    dialogs: new FakeShellDialogs(),
-                    layoutStore: new NoOpLayoutStore());
+                    dialogs: new FakeShellDialogs());
                 using MainForm form = new(services);
                 form.Show();
                 Assert.True(form.Visible);
@@ -46,14 +45,5 @@ public sealed class MainFormSmokeTests
             Application.DoEvents();
             Thread.Sleep(1);
         }
-    }
-
-    private sealed class NoOpLayoutStore : IShellLayoutStore
-    {
-        public Task<string?> LoadAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult<string?>(null);
-
-        public Task SaveAsync(string json, CancellationToken cancellationToken = default) =>
-            Task.CompletedTask;
     }
 }

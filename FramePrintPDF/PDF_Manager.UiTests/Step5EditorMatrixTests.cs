@@ -5,151 +5,225 @@ using PDF_Manager.Resources;
 using PDF_Manager.Shell;
 using PDF_Manager.Shell.Contents;
 using PDF_Manager.Shell.Editing;
-using PDF_Manager.Shell.Lifecycle;
+using PDF_Manager.Shell.ScreenComposition.Core;
+using PDF_Manager.Shell.ScreenComposition.Surfaces;
 
 namespace PDF_Manager.UiTests;
 
 public sealed class Step5EditorMatrixTests
 {
     [Fact]
-    public void FullTypedMatrixIsReachableInOneEditorPane()
+    public void AngularRoutesExposeExactTableGroupsInsteadOfOneTwentyOneTabPane()
+    {
+        (ScreenRouteId Route, InputTableKey[] Tables)[] expected =
+        [
+            (ScreenRouteId.InputElements, [InputTableKey.Sections, InputTableKey.ElementPropertySets, InputTableKey.ModelSettings]),
+            (ScreenRouteId.InputNodes, [InputTableKey.Nodes]),
+            (ScreenRouteId.InputSupports, [InputTableKey.Supports, InputTableKey.SupportSets]),
+            (ScreenRouteId.InputMembers, [InputTableKey.Members]),
+            (ScreenRouteId.InputRigidZone, [InputTableKey.RigidZones]),
+            (ScreenRouteId.InputPanel, [InputTableKey.Panels]),
+            (ScreenRouteId.InputJoints, [InputTableKey.Joints, InputTableKey.JointReleaseSets]),
+            (ScreenRouteId.InputNoticePoints, [InputTableKey.NoticePoints]),
+            (ScreenRouteId.InputMemberSprings, [InputTableKey.MemberSprings, InputTableKey.MemberSpringSets]),
+            (ScreenRouteId.InputLoadNames, [InputTableKey.LoadCases]),
+            (ScreenRouteId.InputLoads, [InputTableKey.NodalLoads, InputTableKey.MemberLoads, InputTableKey.PrescribedDisplacements]),
+            (ScreenRouteId.InputDefine, [InputTableKey.Define]),
+            (ScreenRouteId.InputCombine, [InputTableKey.Combine]),
+            (ScreenRouteId.InputPickup, [InputTableKey.Pickup]),
+        ];
+
+        Assert.Equal(expected.Length, FrameWebSurfaceCatalog.InputRoutes.Count);
+        Assert.Equal(
+            expected.Select(item => item.Route),
+            FrameWebSurfaceCatalog.InputRoutes.Select(item => item.Route));
+        foreach ((ScreenRouteId route, InputTableKey[] tables) in expected)
+        {
+            Assert.Equal(tables, FrameWebSurfaceCatalog.GetInput(route).Tables);
+        }
+
+        InputTableKey[] mapped = FrameWebSurfaceCatalog.InputRoutes.SelectMany(route => route.Tables).ToArray();
+        Assert.Equal(Enum.GetValues<InputTableKey>().Order(), mapped.Order());
+        Assert.Equal(mapped.Length, mapped.Distinct().Count());
+    }
+
+    [Fact]
+    public void RouteSurfaceAttachesOnlyItsOrderedTablesAndFields()
     {
         StaTestRunner.Run(() =>
         {
             using EditorContent editor = CreateEditor();
             editor.SetDocument(CreateFullDocument());
 
-            InputTableKey[] expected = Enum.GetValues<InputTableKey>();
-            Assert.Equal(21, expected.Length);
-            Assert.Equal(expected.Order(), editor.Tables.Keys.Order());
-            Assert.Equal(expected.Length, editor.Tabs.TabPages.Count);
-            Assert.All(editor.Tables.Values, grid => Assert.True(grid.Rows.Count > 0, grid.Name));
-            Assert.Same(editor.NodeGrid, editor.Tables[InputTableKey.Nodes]);
-            Assert.Same(editor.MemberGrid, editor.Tables[InputTableKey.Members]);
-            Assert.Same(editor.ModelSettingsGrid, editor.Tables[InputTableKey.ModelSettings]);
-            Assert.Same(editor.ElementPropertySetGrid, editor.Tables[InputTableKey.ElementPropertySets]);
-            Assert.Same(editor.SupportGrid, editor.Tables[InputTableKey.Supports]);
-            Assert.Same(editor.SupportSetGrid, editor.Tables[InputTableKey.SupportSets]);
-            Assert.Same(editor.JointReleaseSetGrid, editor.Tables[InputTableKey.JointReleaseSets]);
-            Assert.Same(editor.MemberSpringSetGrid, editor.Tables[InputTableKey.MemberSpringSets]);
-            Assert.Same(editor.LoadCaseGrid, editor.Tables[InputTableKey.LoadCases]);
-            Assert.Same(editor.NodalLoadGrid, editor.Tables[InputTableKey.NodalLoads]);
-            Assert.Same(editor.PrescribedDisplacementGrid, editor.Tables[InputTableKey.PrescribedDisplacements]);
-
-            foreach (InputTableKey table in expected)
+            foreach (InputRouteSurfaceDefinition definition in FrameWebSurfaceCatalog.InputRoutes)
             {
-                editor.ActivateTable(table);
-                Assert.Same(editor.Tables[table].Parent, editor.Tabs.SelectedTab);
+                using InputRouteSurfaceControl surface = new(
+                    new LocalizationService(UiLanguage.English),
+                    editor);
+                surface.ApplyState(CreateState(definition.Route, ViewDimension.ThreeDimensional));
+
+                Assert.Equal(definition.Route, surface.RouteKey);
+                Assert.Equal(definition.Tables, surface.VisibleTableKeys);
+                Assert.Equal(definition.Tables[0], surface.ActiveTableKey);
+                Assert.Same(editor.Tables[definition.Tables[0]], surface.PrimaryGrid);
+                Assert.NotEmpty(surface.VisibleFieldIds);
+                foreach (InputTableKey table in definition.Tables)
+                {
+                    surface.ShowTable(table);
+                    Assert.Equal(table, surface.ActiveTableKey);
+                    Assert.Same(editor.Tables[table], surface.PrimaryGrid);
+                    Assert.NotNull(surface.PrimaryGrid.Parent);
+                }
             }
-        }, "Step 5 full editor matrix");
+        }, "Step 5 route table matrix");
     }
 
     [Fact]
-    public void RuntimeLocalizationUpdatesEveryTabAndHeader()
+    public void RepresentativeElementsNodesAndSupportsExposeSourceOrderedFields()
+    {
+        StaTestRunner.Run(() =>
+        {
+            using EditorContent editor = CreateEditor();
+            editor.SetDocument(CreateFullDocument());
+
+            AssertFields(editor, ScreenRouteId.InputElements, InputTableKey.Sections,
+                "e", "g", "xp", "area", "j", "iy", "iz", "nu");
+            AssertFields(editor, ScreenRouteId.InputNodes, InputTableKey.Nodes, "x", "y", "z");
+            AssertFields(editor, ScreenRouteId.InputSupports, InputTableKey.Supports,
+                "node", "tx", "ty", "tz", "rx", "ry", "rz");
+        }, "Step 5 representative route fields");
+    }
+
+    [Fact]
+    public void RouteSurfaceSwitchesBetweenTwoAndThreeDimensionalFields()
+    {
+        StaTestRunner.Run(() =>
+        {
+            using EditorContent editor = CreateEditor();
+            editor.SetDocument(CreateFullDocument());
+            using InputRouteSurfaceControl nodes = new(new LocalizationService(UiLanguage.English), editor);
+
+            nodes.ApplyState(CreateState(ScreenRouteId.InputNodes, ViewDimension.ThreeDimensional));
+            Assert.True(nodes.IsThreeDimensional);
+            Assert.Contains("z", nodes.VisibleFieldIds);
+
+            nodes.ApplyState(CreateState(ScreenRouteId.InputNodes, ViewDimension.TwoDimensional));
+            Assert.False(nodes.IsThreeDimensional);
+            Assert.DoesNotContain("z", nodes.VisibleFieldIds);
+            Assert.Contains("x", nodes.VisibleFieldIds);
+            Assert.Contains("y", nodes.VisibleFieldIds);
+
+            using InputRouteSurfaceControl supports = new(new LocalizationService(UiLanguage.English), editor);
+            supports.ApplyState(CreateState(ScreenRouteId.InputSupports, ViewDimension.TwoDimensional));
+            Assert.DoesNotContain("tz", supports.VisibleFieldIds);
+            Assert.DoesNotContain("rx", supports.VisibleFieldIds);
+            Assert.DoesNotContain("ry", supports.VisibleFieldIds);
+            Assert.Contains("tx", supports.VisibleFieldIds);
+            Assert.Contains("ty", supports.VisibleFieldIds);
+            Assert.Contains("rz", supports.VisibleFieldIds);
+
+            using InputRouteSurfaceControl panel = new(new LocalizationService(UiLanguage.English), editor);
+            Assert.Throws<ArgumentException>(() =>
+                panel.ApplyState(CreateState(ScreenRouteId.InputPanel, ViewDimension.TwoDimensional)));
+        }, "Step 5 2D and 3D field visibility");
+    }
+
+    [Fact]
+    public void RuntimeLocalizationUpdatesEveryRouteGridHeader()
     {
         StaTestRunner.Run(() =>
         {
             LocalizationService localization = new(UiLanguage.English);
             using EditorContent editor = new(DocumentKey.Tool("step5-editor"), localization, new MemoryClipboard());
             editor.SetDocument(CreateFullDocument());
-            string english = editor.Tabs.TabPages.Cast<TabPage>().Single(page => page.Controls.Contains(editor.RigidZoneGrid)).Text;
+            using InputRouteSurfaceControl surface = new(localization, editor);
+            surface.ApplyState(CreateState(ScreenRouteId.InputJoints, ViewDimension.ThreeDimensional));
+            string[] englishHeaders = surface.PrimaryGrid.Columns.Cast<DataGridViewColumn>()
+                .Select(column => column.HeaderText)
+                .ToArray();
 
             localization.SetLanguage(UiLanguage.Japanese);
             editor.ApplyLocalization();
-            string japanese = editor.Tabs.TabPages.Cast<TabPage>().Single(page => page.Controls.Contains(editor.RigidZoneGrid)).Text;
-            Assert.Equal("Rigid zones", english);
-            Assert.Equal("剛域", japanese);
-            Assert.Equal("断面", editor.MemberGrid.Columns[3].HeaderText);
+            string[] japaneseHeaders = surface.PrimaryGrid.Columns.Cast<DataGridViewColumn>()
+                .Select(column => column.HeaderText)
+                .ToArray();
+            Assert.Equal(englishHeaders.Length, japaneseHeaders.Length);
+            Assert.True(
+                englishHeaders.Zip(japaneseHeaders).Any(pair => pair.First != pair.Second),
+                "At least one route grid header must change with the runtime language.");
+            Assert.All(surface.PrimaryGrid.Columns.Cast<DataGridViewColumn>(),
+                column => Assert.False(string.IsNullOrWhiteSpace(column.HeaderText)));
 
             localization.SetLanguage(UiLanguage.Chinese);
             editor.ApplyLocalization();
-            Assert.Equal("刚域", editor.Tabs.TabPages.Cast<TabPage>()
-                .Single(page => page.Controls.Contains(editor.RigidZoneGrid)).Text);
-            Assert.All(editor.Tables.Values.SelectMany(grid => grid.Columns.Cast<DataGridViewColumn>()),
-                column => Assert.False(string.IsNullOrWhiteSpace(column.HeaderText)));
-        }, "Step 5 editor localization");
+            foreach (InputTableKey table in surface.VisibleTableKeys)
+            {
+                surface.ShowTable(table);
+                Assert.All(surface.PrimaryGrid.Columns.Cast<DataGridViewColumn>(),
+                    column => Assert.False(string.IsNullOrWhiteSpace(column.HeaderText)));
+            }
+        }, "Step 5 route localization");
     }
 
     [Fact]
-    public void RepeatedLifecycleIsIdempotentAndCreatingThreadOnly()
+    public void RepeatedRouteSurfaceLifecycleIsIdempotentAndCreatingThreadOnly()
     {
         StaTestRunner.Run(() =>
         {
             for (int iteration = 0; iteration < 5; iteration++)
             {
-                EditorContent editor = CreateEditor();
+                using EditorContent editor = CreateEditor();
                 editor.SetDocument(CreateFullDocument());
+                InputRouteSurfaceControl surface = new(new LocalizationService(UiLanguage.English), editor);
+                surface.ApplyState(CreateState(ScreenRouteId.InputElements, ViewDimension.ThreeDimensional));
                 InvalidOperationException error = Assert.Throws<InvalidOperationException>(() =>
-                    Task.Run(() => editor.ActivateTable(InputTableKey.Nodes)).GetAwaiter().GetResult());
+                    Task.Run(() => surface.ShowTable(InputTableKey.ModelSettings)).GetAwaiter().GetResult());
                 Assert.Contains("creating thread", error.Message, StringComparison.Ordinal);
-                editor.Dispose();
-                editor.Dispose();
+                surface.Dispose();
+                surface.Dispose();
             }
-        }, "Step 5 repeated editor lifecycle");
+        }, "Step 5 route lifecycle");
     }
 
     [Fact]
-    public void FullMatrixRemainsInOneRegisteredEditorPaneAcrossHideAndReuse()
+    public void EveryRenderableInputUsesBidirectionalStableSelectionKeysThroughRoutes()
     {
         StaTestRunner.Run(() =>
         {
-            using MainForm form = new(new MainFormServices(
-                localization: new LocalizationService(UiLanguage.English),
-                layoutStore: new NoOpLayoutStore()));
-            form.SetDocument(CreateFullDocument());
-            EditorContent original = form.EditorPane;
-
-            foreach (InputTableKey table in Enum.GetValues<InputTableKey>())
-            {
-                form.ShowEditorPane();
-                form.EditorPane.ActivateTable(table);
-                Assert.Same(original, form.EditorPane);
-                Assert.Single(form.ContentRegistry.Contents, pair => pair.Key == MainForm.EditorContentKey);
-            }
-
-            Assert.True(form.ContentRegistry.Close(MainForm.EditorContentKey));
-            form.ShowEditorPane();
-            Assert.Same(original, form.EditorPane);
-            Assert.Single(form.ContentRegistry.Contents, pair => pair.Key == MainForm.EditorContentKey);
-        }, "Step 5 single editor dock pane lifecycle");
-    }
-
-    [Fact]
-    public void EveryRenderableInputUsesBidirectionalStableSelectionKeys()
-    {
-        StaTestRunner.Run(() =>
-        {
-            using MainForm form = new(new MainFormServices(
-                localization: new LocalizationService(UiLanguage.English),
-                layoutStore: new NoOpLayoutStore()));
-            form.SetDocument(CreateFullDocument());
-            (InputTableKey Table, SceneEntityKey Key)[] cases =
+            using EditorContent editor = CreateEditor();
+            editor.SetDocument(CreateFullDocument());
+            SceneEntityKey? tableSelection = null;
+            editor.SelectionChanged += (_, eventArgs) => tableSelection = eventArgs.Selection;
+            (ScreenRouteId Route, InputTableKey Table, SceneEntityKey Key)[] cases =
             [
-                (InputTableKey.Nodes, new SceneEntityKey(SceneEntityKind.Node, "2")),
-                (InputTableKey.Members, new SceneEntityKey(SceneEntityKind.Member, "1")),
-                (InputTableKey.Supports, new SceneEntityKey(SceneEntityKind.Support, "S1")),
-                (InputTableKey.NodalLoads, new SceneEntityKey(SceneEntityKind.NodalLoad, "P1")),
-                (InputTableKey.MemberLoads, new SceneEntityKey(SceneEntityKind.MemberLoad, "ML1")),
+                (ScreenRouteId.InputNodes, InputTableKey.Nodes, new SceneEntityKey(SceneEntityKind.Node, "2")),
+                (ScreenRouteId.InputMembers, InputTableKey.Members, new SceneEntityKey(SceneEntityKind.Member, "1")),
+                (ScreenRouteId.InputSupports, InputTableKey.Supports, new SceneEntityKey(SceneEntityKind.Support, "S1")),
+                (ScreenRouteId.InputLoads, InputTableKey.NodalLoads, new SceneEntityKey(SceneEntityKind.NodalLoad, "P1")),
+                (ScreenRouteId.InputLoads, InputTableKey.MemberLoads, new SceneEntityKey(SceneEntityKind.MemberLoad, "ML1")),
             ];
 
-            foreach ((InputTableKey table, SceneEntityKey key) in cases)
+            foreach ((ScreenRouteId route, InputTableKey table, SceneEntityKey key) in cases)
             {
-                DataGridView grid = form.EditorPane.Tables[table];
+                using InputRouteSurfaceControl surface = new(new LocalizationService(UiLanguage.English), editor);
+                surface.ApplyState(CreateState(route, ViewDimension.ThreeDimensional));
+                surface.ShowTable(table);
+                DataGridView grid = surface.PrimaryGrid;
                 DataGridViewRow row = grid.Rows.Cast<DataGridViewRow>()
                     .Single(candidate => candidate.Tag is SceneEntityKey candidateKey && candidateKey == key);
                 grid.ClearSelection();
-                grid.CurrentCell = row.Cells[0];
+                grid.CurrentCell = row.Cells.Cast<DataGridViewCell>().First(cell => cell.Visible);
                 row.Selected = true;
                 Application.DoEvents();
-                Assert.Equal(key, form.DocumentHost.Selection);
+                Assert.Equal(key, tableSelection);
 
                 grid.ClearSelection();
-                form.DocumentHost.SetSelection(null, ViewportSelectionOrigin.Viewport);
-                form.DocumentHost.SetSelection(key, ViewportSelectionOrigin.Viewport);
+                editor.SetSelection(null);
+                editor.SetSelection(key);
                 Application.DoEvents();
                 Assert.Equal(key, Assert.IsType<SceneEntityKey>(Assert.Single(grid.SelectedRows.Cast<DataGridViewRow>()).Tag));
             }
-        }, "Step 5 bidirectional input selection");
+        }, "Step 5 bidirectional route selection");
     }
 
     internal static EditorContent CreateEditor(MemoryClipboard? clipboard = null) =>
@@ -205,10 +279,23 @@ public sealed class Step5EditorMatrixTests
         public void SetText(string text) => Text = text;
     }
 
-    private sealed class NoOpLayoutStore : IShellLayoutStore
+    private static void AssertFields(
+        EditorContent editor,
+        ScreenRouteId route,
+        InputTableKey table,
+        params string[] expected)
     {
-        public Task<string?> LoadAsync(CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
-
-        public Task SaveAsync(string json, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        using InputRouteSurfaceControl surface = new(new LocalizationService(UiLanguage.English), editor);
+        surface.ApplyState(CreateState(route, ViewDimension.ThreeDimensional));
+        surface.ShowTable(table);
+        Assert.Equal(expected, surface.VisibleFieldIds);
     }
+
+    private static ScreenRouteState CreateState(ScreenRouteId route, ViewDimension dimension) => new(
+        route,
+        AngularScreenManifest.GetContext(route),
+        dimension,
+        ScreenPageState.Single,
+        resultsEnabled: false,
+        ScreenOverlayKind.None);
 }

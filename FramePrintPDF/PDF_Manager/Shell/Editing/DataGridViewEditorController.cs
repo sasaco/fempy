@@ -62,7 +62,7 @@ public sealed class DataGridViewEditorController : IDisposable
         ArgumentNullException.ThrowIfNull(rows);
 
         string? currentRowId = _grid.CurrentCell is null ? null : GetRowId(_grid.Rows[_grid.CurrentCell.RowIndex]);
-        int currentColumn = _grid.CurrentCell?.ColumnIndex ?? 0;
+        int? currentColumn = _grid.CurrentCell?.ColumnIndex;
         int firstDisplayedRow = _grid.FirstDisplayedScrollingRowIndex;
 
         using (BeginUpdate())
@@ -88,8 +88,20 @@ public sealed class DataGridViewEditorController : IDisposable
                     : _grid.Rows.Cast<DataGridViewRow>()
                         .FirstOrDefault(row => StringComparer.Ordinal.Equals(GetRowId(row), currentRowId));
                 int rowIndex = restored?.Index ?? Math.Min(Math.Max(firstDisplayedRow, 0), _grid.Rows.Count - 1);
-                int columnIndex = Math.Min(Math.Max(currentColumn, 0), _grid.Columns.Count - 1);
-                _grid.CurrentCell = _grid.Rows[rowIndex].Cells[columnIndex];
+                DataGridViewColumn? column = currentColumn is int columnIndex &&
+                    columnIndex >= 0 &&
+                    columnIndex < _grid.Columns.Count &&
+                    _grid.Columns[columnIndex].Visible
+                        ? _grid.Columns[columnIndex]
+                        : _grid.Columns.Cast<DataGridViewColumn>()
+                            .Where(candidate => candidate.Visible)
+                            .OrderBy(candidate => candidate.DisplayIndex)
+                            .FirstOrDefault();
+                if (column is not null)
+                {
+                    _grid.CurrentCell = _grid.Rows[rowIndex].Cells[column.Index];
+                }
+
                 if (firstDisplayedRow >= 0 && firstDisplayedRow < _grid.Rows.Count)
                 {
                     _grid.FirstDisplayedScrollingRowIndex = firstDisplayedRow;

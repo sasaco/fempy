@@ -2,12 +2,9 @@ using System.Diagnostics;
 using PDF_Manager.Core.Abstractions;
 using PDF_Manager.Core.Analysis;
 using PDF_Manager.Core.Documents;
-using PDF_Manager.Core.Shell;
 using PDF_Manager.Resources;
 using PDF_Manager.Shell;
-using PDF_Manager.Shell.Docking;
 using PDF_Manager.Shell.Lifecycle;
-using CoreDockState = PDF_Manager.Core.Shell.DockState;
 
 namespace PDF_Manager.UiTests;
 
@@ -26,25 +23,19 @@ public sealed class Step3MainFormRemediationTests
             {
                 ProjectToSave = "delayed-a.frameweb.json",
             };
-            InMemoryLayoutStore layoutStore = new();
-            MainForm form = new(CreateServices(
-                projectStore: store,
-                dialogs: dialogs,
-                layoutStore: layoutStore));
+            MainForm form = new(CreateServices(projectStore: store, dialogs: dialogs));
             form.Show();
-            WaitFor(form.WhenLayoutRestoredAsync());
             ProjectDocument documentA = CreateDocument("Document A", isDirty: true);
             ProjectDocument documentB = CreateDocument("Document B", isDirty: true);
             form.SetDocument(documentA);
 
             Task firstNew = form.NewProjectAsync();
             PumpUntil(() => store.SaveStarted.Task.IsCompleted);
-            Assert.False(GetMenuItem(form, "NewMenuItem").Enabled);
-            Assert.False(form.OpenMenuItem.Enabled);
-            Assert.False(form.SaveMenuItem.Enabled);
-            Assert.False(GetMenuItem(form, "SaveAsMenuItem").Enabled);
-            Assert.False(form.AnalyzeMenuItem.Enabled);
-            Assert.False(form.ExportPdfMenuItem.Enabled);
+            Assert.False(HeaderItem(form, "HeaderNewItem").Enabled);
+            Assert.False(HeaderItem(form, "HeaderOpenItem").Enabled);
+            Assert.False(HeaderItem(form, "HeaderSaveItem").Enabled);
+            Assert.False(HeaderItem(form, "HeaderSaveAsItem").Enabled);
+            Assert.False(form.ScreenShell.HeaderBar.PrintButton.Enabled);
 
             form.SetDocument(documentB);
             Task queuedNew = form.NewProjectAsync();
@@ -53,16 +44,14 @@ public sealed class Step3MainFormRemediationTests
             WaitFor(Task.WhenAll(firstNew, queuedNew));
 
             Assert.Same(documentB, form.CurrentDocument);
-            Assert.Equal(new[] { "Document A", "Document B" }, dialogs.ConfirmedDocumentNames);
+            Assert.Equal(["Document A", "Document B"], dialogs.ConfirmedDocumentNames);
             Assert.Equal(1, store.SaveCalls);
 
             form.Close();
             PumpUntil(() => dialogs.ConfirmCloseCalls == 3 && form.WhenShellTransitionIdleAsync().IsCompleted);
-
             Assert.True(form.Visible);
             Assert.False(form.IsDisposed);
             Assert.Same(documentB, form.CurrentDocument);
-            Assert.Equal(new[] { "Document A", "Document B", "Document B" }, dialogs.ConfirmedDocumentNames);
 
             form.SetDocument(documentB.MarkSaved());
             form.Close();
@@ -71,18 +60,15 @@ public sealed class Step3MainFormRemediationTests
     }
 
     [Fact]
-    public void FormClosing_CancelsAndAwaitsCooperativeTerminalCleanupBeforePersistingAndDisposing()
+    public void FormClosing_CancelsAndAwaitsCooperativeTerminalCleanupBeforeDisposing()
     {
         StaTestRunner.Run(() =>
         {
             CooperativeCleanupAnalysisClient analysis = new();
-            InMemoryLayoutStore layoutStore = new();
             MainForm form = new(CreateServices(
                 analysisClient: analysis,
-                layoutStore: layoutStore,
                 operationShutdownTimeout: TimeSpan.FromSeconds(2)));
             form.Show();
-            WaitFor(form.WhenLayoutRestoredAsync());
             form.SetDocument(CreateDocument("Cooperative", isDirty: false));
             Task operation = form.ExecuteAnalysisAsync();
             PumpUntil(() => analysis.Started.Task.IsCompleted);
@@ -93,14 +79,12 @@ public sealed class Step3MainFormRemediationTests
             Assert.False(form.IsDisposed);
             Assert.True(form.Visible);
             Assert.False(operation.IsCompleted);
-            Assert.Equal(0, layoutStore.SaveCalls);
 
             analysis.AllowCleanupToFinish();
             PumpUntil(() => form.IsDisposed);
             WaitFor(operation);
 
             Assert.True(analysis.CleanupCompleted);
-            Assert.Equal(1, layoutStore.SaveCalls);
         }, "Form close awaits cooperative cleanup");
     }
 
@@ -110,15 +94,12 @@ public sealed class Step3MainFormRemediationTests
         StaTestRunner.Run(() =>
         {
             NonCooperativeAnalysisClient analysis = new();
-            InMemoryLayoutStore layoutStore = new();
             List<Exception> diagnostics = [];
             MainForm form = new(CreateServices(
                 analysisClient: analysis,
-                layoutStore: layoutStore,
                 reportDiagnostic: diagnostics.Add,
                 operationShutdownTimeout: TimeSpan.FromMilliseconds(80)));
             form.Show();
-            WaitFor(form.WhenLayoutRestoredAsync());
             ProjectDocument document = CreateDocument("Non-cooperative", isDirty: false);
             form.SetDocument(document);
             Task operation = form.ExecuteAnalysisAsync();
@@ -131,96 +112,16 @@ public sealed class Step3MainFormRemediationTests
 
             Assert.InRange(elapsed.Elapsed, TimeSpan.FromMilliseconds(40), TimeSpan.FromSeconds(3));
             Assert.Contains(diagnostics, static failure => failure is TimeoutException);
-            Assert.Equal(1, layoutStore.SaveCalls);
             analysis.CompleteAfterClose();
             WaitFor(operation);
             Assert.True(form.IsDisposed);
         }, "Form close bounded non-cooperative timeout", TimeSpan.FromSeconds(10));
     }
 
-    [Fact]
-    public void MainForm_InjectedLayoutStoreRoundTripsFinalValidatedLayoutAcrossRestart()
-    {
-        StaTestRunner.Run(() =>
-        {
-            InMemoryLayoutStore layoutStore = new();
-            string expected;
-            MainForm first = new(CreateServices(layoutStore: layoutStore));
-            first.Show();
-            WaitFor(first.WhenLayoutRestoredAsync());
-            first.ContentRegistry.Open(MainForm.NavigationContentKey, CoreDockState.DockRight);
-            first.ContentRegistry.Open(
-                MainForm.EditorContentKey,
-                CoreDockState.Float,
-                new WindowBounds(140, 160, 420, 280));
-            first.ContentRegistry.Open(MainForm.DiagnosticsContentKey, CoreDockState.Hidden);
-            first.ContentRegistry.Activate(MainForm.WorkspaceDocumentKey);
-            Application.DoEvents();
-            expected = first.LayoutAdapter.CaptureJson();
-
-            first.Close();
-            PumpUntil(() => first.IsDisposed);
-
-            Assert.Equal(1, layoutStore.LoadCalls);
-            Assert.Equal(1, layoutStore.SaveCalls);
-            Assert.Equal(expected, layoutStore.Json);
-
-            MainForm second = new(CreateServices(layoutStore: layoutStore));
-            second.Show();
-            WaitFor(second.WhenLayoutRestoredAsync());
-
-            Assert.Equal(2, layoutStore.LoadCalls);
-            Assert.Equal(expected, second.LayoutAdapter.CaptureJson());
-            Assert.Equal(CoreDockState.DockRight, GetState(second, MainForm.NavigationContentKey).DockState);
-            LayoutContentState editor = GetState(second, MainForm.EditorContentKey);
-            Assert.Equal(CoreDockState.Float, editor.DockState);
-            Assert.NotNull(editor.Bounds);
-            Assert.Equal(new WindowBounds(140, 160, 420, 280), editor.Bounds.Value);
-            Assert.Equal(CoreDockState.Hidden, GetState(second, MainForm.DiagnosticsContentKey).DockState);
-            Assert.Equal(MainForm.WorkspaceDocumentKey, second.LayoutAdapter.Capture().ActiveDocument);
-
-            second.Close();
-            PumpUntil(() => second.IsDisposed);
-            Assert.Equal(2, layoutStore.SaveCalls);
-        }, "MainForm layout-store restart");
-    }
-
-    [Fact]
-    public void MainForm_AbsentInvalidAndOversizedLayoutsFallBackToDefaultPanesWithSafeDiagnostics()
-    {
-        StaTestRunner.Run(() =>
-        {
-            AssertFallback(new InMemoryLayoutStore(), expectedDiagnostics: 0);
-            AssertFallback(new InMemoryLayoutStore("{not valid json"), expectedDiagnostics: 1);
-            AssertFallback(
-                new InMemoryLayoutStore(new string('x', DockLayoutAdapter.MaximumJsonCharacters + 1)),
-                expectedDiagnostics: 1);
-        }, "MainForm safe layout fallback");
-    }
-
-    [Fact]
-    public void MainForm_ClosingLastDocumentClearsPublicActiveDocumentKey()
-    {
-        StaTestRunner.Run(() =>
-        {
-            using MainForm form = new(CreateServices());
-            form.Show();
-            WaitFor(form.WhenLayoutRestoredAsync());
-            Assert.Equal(MainForm.WorkspaceDocumentKey, form.ActiveDocumentKey);
-
-            form.DocumentHost.DockHandler.Close();
-            Application.DoEvents();
-            WaitFor(form.WhenActivationIdleAsync());
-
-            Assert.Null(form.ActiveDocumentKey);
-        }, "MainForm null active document");
-    }
-
     private static MainFormServices CreateServices(
         IProjectStore? projectStore = null,
         IAnalysisClient? analysisClient = null,
         IShellDialogService? dialogs = null,
-        IShellLayoutStore? layoutStore = null,
         Action<Exception>? reportDiagnostic = null,
         TimeSpan? operationShutdownTimeout = null) => new(
             projectStore: projectStore ?? new ImmediateProjectStore(),
@@ -229,44 +130,10 @@ public sealed class Step3MainFormRemediationTests
             localization: new LocalizationService(UiLanguage.English),
             dialogs: dialogs ?? new SequencedShellDialogs(),
             reportDiagnostic: reportDiagnostic,
-            layoutStore: layoutStore ?? new InMemoryLayoutStore(),
             operationShutdownTimeout: operationShutdownTimeout);
 
-    private static void AssertFallback(IShellLayoutStore layoutStore, int expectedDiagnostics)
-    {
-        List<Exception> diagnostics = [];
-        MainForm form = new(CreateServices(layoutStore: layoutStore, reportDiagnostic: diagnostics.Add));
-        form.Show();
-        WaitFor(form.WhenLayoutRestoredAsync());
-
-        Assert.Equal(expectedDiagnostics, diagnostics.Count);
-        Assert.Equal(4, form.ContentRegistry.Contents.Count);
-        Assert.Equal(CoreDockState.DockLeft, GetState(form, MainForm.NavigationContentKey).DockState);
-        Assert.Equal(CoreDockState.DockRight, GetState(form, MainForm.EditorContentKey).DockState);
-        Assert.Equal(CoreDockState.DockBottom, GetState(form, MainForm.DiagnosticsContentKey).DockState);
-        Assert.Equal(CoreDockState.Document, GetState(form, MainForm.WorkspaceDocumentKey).DockState);
-
-        form.Close();
-        PumpUntil(() => form.IsDisposed);
-    }
-
-    private static LayoutContentState GetState(MainForm form, DocumentKey key) =>
-        Assert.Single(form.LayoutAdapter.Capture().Contents, state => state.Key == key);
-
-    private static ToolStripMenuItem GetMenuItem(MainForm form, string name) =>
-        Assert.Single(EnumerateMenuItems(form.MainMenuStrip!.Items), item => item.Name == name);
-
-    private static IEnumerable<ToolStripMenuItem> EnumerateMenuItems(ToolStripItemCollection items)
-    {
-        foreach (ToolStripMenuItem item in items.OfType<ToolStripMenuItem>())
-        {
-            yield return item;
-            foreach (ToolStripMenuItem child in EnumerateMenuItems(item.DropDownItems))
-            {
-                yield return child;
-            }
-        }
-    }
+    private static ToolStripItem HeaderItem(MainForm form, string name) =>
+        Assert.Single(form.ScreenShell.HeaderBar.FileMenu.DropDownItems.Cast<ToolStripItem>(), item => item.Name == name);
 
     private static ProjectDocument CreateDocument(string name, bool isDirty) => new(
         ProjectDocument.CurrentVersion,
@@ -360,10 +227,7 @@ public sealed class Step3MainFormRemediationTests
 
         public string? SelectPdfToExport(IWin32Window owner, string title, string filter) => null;
 
-        public DirtyDocumentCloseDecision ConfirmDirtyDocument(
-            IWin32Window owner,
-            string title,
-            string message)
+        public DirtyDocumentCloseDecision ConfirmDirtyDocument(IWin32Window owner, string title, string message)
         {
             ConfirmedDocumentNames.Add(ExtractDocumentName(message));
             return decisions.Count == 0 ? DirtyDocumentCloseDecision.Cancel : decisions.Dequeue();
@@ -377,37 +241,10 @@ public sealed class Step3MainFormRemediationTests
         {
             foreach (string candidate in new[] { "Document A", "Document B" })
             {
-                if (message.Contains(candidate, StringComparison.Ordinal))
-                {
-                    return candidate;
-                }
+                if (message.Contains(candidate, StringComparison.Ordinal)) return candidate;
             }
 
             return message;
-        }
-    }
-
-    private sealed class InMemoryLayoutStore(string? json = null) : IShellLayoutStore
-    {
-        internal string? Json { get; private set; } = json;
-
-        internal int LoadCalls { get; private set; }
-
-        internal int SaveCalls { get; private set; }
-
-        public Task<string?> LoadAsync(CancellationToken cancellationToken = default)
-        {
-            LoadCalls++;
-            cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult(Json);
-        }
-
-        public Task SaveAsync(string json, CancellationToken cancellationToken = default)
-        {
-            SaveCalls++;
-            cancellationToken.ThrowIfCancellationRequested();
-            Json = json;
-            return Task.CompletedTask;
         }
     }
 

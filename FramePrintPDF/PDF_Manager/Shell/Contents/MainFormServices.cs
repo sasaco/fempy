@@ -1,8 +1,10 @@
 using PDF_Manager.Core.Abstractions;
 using PDF_Manager.Core.Documents;
 using PDF_Manager.Resources;
+using PDF_Manager.Shell.Contents;
 using PDF_Manager.Shell.Lifecycle;
 using PDF_Manager.Shell.Printing;
+using PDF_Manager.Shell.ScreenComposition.Core;
 
 namespace PDF_Manager.Shell;
 
@@ -15,8 +17,6 @@ public interface IShellDialogService
     string? SelectPdfToExport(IWin32Window owner, string title, string filter);
 
     DirtyDocumentCloseDecision ConfirmDirtyDocument(IWin32Window owner, string title, string message);
-
-    void ShowError(IWin32Window owner, string title, string message);
 }
 
 public sealed class WinFormsShellDialogService : IShellDialogService
@@ -87,8 +87,6 @@ public sealed class WinFormsShellDialogService : IShellDialogService
         };
     }
 
-    public void ShowError(IWin32Window owner, string title, string message) =>
-        MessageBox.Show(owner, message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
 }
 
 public sealed class MainFormServices : IDisposable
@@ -109,11 +107,11 @@ public sealed class MainFormServices : IDisposable
         IShellDialogService? dialogs = null,
         OperationCancellationOwner? cancellationOwner = null,
         Action<Exception>? reportDiagnostic = null,
-        IShellLayoutStore? layoutStore = null,
         IViewportCaptureProvider? viewportCaptureProvider = null,
         IDisposable? ownedResource = null,
         TimeSpan? operationShutdownTimeout = null,
-        IPrintDialogService? printDialogs = null)
+        Func<LocalizationService, EditorContent, ProjectDocumentContent, IFrameWebSurfaceFactory>?
+            screenSurfaceFactory = null)
     {
         TimeSpan shutdownTimeout = operationShutdownTimeout ?? DefaultOperationShutdownTimeout;
         if (shutdownTimeout <= TimeSpan.Zero || shutdownTimeout > TimeSpan.FromSeconds(30))
@@ -131,11 +129,10 @@ public sealed class MainFormServices : IDisposable
             jobFactory: new DesktopPrintJobFactory(Localization),
             localization: Localization);
         Dialogs = dialogs ?? new WinFormsShellDialogService();
-        PrintDialogs = printDialogs ?? new WinFormsPrintDialogService();
         CancellationOwner = cancellationOwner ?? new OperationCancellationOwner();
         ReportDiagnostic = reportDiagnostic;
-        LayoutStore = layoutStore ?? new LocalShellLayoutStore();
         ViewportCaptureProvider = viewportCaptureProvider ?? new LiveViewportCaptureProvider();
+        ScreenSurfaceFactory = screenSurfaceFactory;
         _ownedResource = ownedResource;
         OperationShutdownTimeout = shutdownTimeout;
     }
@@ -150,15 +147,17 @@ public sealed class MainFormServices : IDisposable
 
     public IShellDialogService Dialogs { get; }
 
-    public IPrintDialogService PrintDialogs { get; }
-
     public OperationCancellationOwner CancellationOwner { get; }
 
     public Action<Exception>? ReportDiagnostic { get; }
 
-    public IShellLayoutStore LayoutStore { get; }
-
     public IViewportCaptureProvider ViewportCaptureProvider { get; }
+
+    /// <summary>
+    /// Creates route and overlay surfaces after their shared editor and viewport coordinators exist.
+    /// </summary>
+    public Func<LocalizationService, EditorContent, ProjectDocumentContent, IFrameWebSurfaceFactory>?
+        ScreenSurfaceFactory { get; }
 
     /// <summary>
     /// Gets the close-time budget used both for current-operation cleanup and transition ownership.

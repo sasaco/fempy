@@ -16,6 +16,8 @@ using PDF_Manager.Shell.Composition;
 using PDF_Manager.Shell.Contents;
 using PDF_Manager.Shell.Lifecycle;
 using PDF_Manager.Shell.Printing;
+using PDF_Manager.Shell.ScreenComposition.Core;
+using PDF_Manager.Shell.ScreenComposition.Surfaces;
 using WeifenLuo.WinFormsUI.Docking;
 
 namespace PDF_Manager.UiTests;
@@ -23,7 +25,7 @@ namespace PDF_Manager.UiTests;
 public sealed class Step4VerticalIntegrationTests
 {
     [Fact]
-    public void RepresentativePreset_EditUndoRedoSaveReopenAnalyzeInspectAndExportPdf()
+    public void RepresentativePreset_EditSaveReopenAnalyzeInspectAndExportPdf()
     {
         StaTestRunner.Run(() =>
         {
@@ -41,42 +43,56 @@ public sealed class Step4VerticalIntegrationTests
                     PdfToExport = pdfPath,
                 };
                 ExplicitHeadlessViewportCaptureProvider captureProvider = new();
+                List<Exception> diagnostics = [];
                 using MainForm form = new(new MainFormServices(
                     projectStore: new JsonProjectStore(),
                     analysisClient: new ResultAnalysisClient(result),
                     localization: new LocalizationService(UiLanguage.English),
                     dialogs: dialogs,
-                    layoutStore: new NoOpLayoutStore(),
-                    viewportCaptureProvider: captureProvider));
-                Pump(form.NewProjectAsync());
+                    viewportCaptureProvider: captureProvider,
+                    reportDiagnostic: diagnostics.Add));
+                _ = form.Handle;
+                Assert.True(form.IsHandleCreated);
+                form.SetDocument(ProjectDocumentPresets.CreateRepresentativeFrame());
                 Assert.Equal(2, form.CurrentDocument!.Nodes.Count);
                 Assert.Single(form.CurrentDocument.Members);
-                Assert.Equal(2, form.EditorPane.NodeGrid.Rows.Count);
+                form.RouteController.CloseOverlay();
+                form.RouteController.Navigate(ScreenRouteId.InputNodes);
+                InputRouteSurfaceControl nodes = Assert.IsType<InputRouteSurfaceControl>(
+                    form.ScreenShell.RoutePanelHost.ActiveSurface);
+                Assert.Equal(2, nodes.PrimaryGrid.Rows.Count);
 
-                EditTextCell(form.EditorPane.NodeGrid, rowIndex: 1, columnIndex: 1, "5");
+                EditTextCell(nodes.PrimaryGrid, rowIndex: 1, columnIndex: 1, "5");
                 Assert.Equal(5, form.CurrentDocument!.Nodes.Single(node => node.Id == "2").X);
                 Assert.True(form.CurrentDocument.IsDirty);
-                Assert.True(form.EditorPane.Undo());
-                Assert.Equal(4, form.CurrentDocument!.Nodes.Single(node => node.Id == "2").X);
-                Assert.True(form.EditorPane.Redo());
-                Assert.Equal(5, form.CurrentDocument!.Nodes.Single(node => node.Id == "2").X);
 
-                int diagnosticsBeforeInvalidEdit = form.DiagnosticsPane.Messages.Items.Count;
-                EditTextCell(form.EditorPane.NodeGrid, rowIndex: 1, columnIndex: 1, "not-a-number");
+                string statusBeforeInvalidEdit = form.CurrentStatusMessage;
+                EditTextCell(nodes.PrimaryGrid, rowIndex: 1, columnIndex: 1, "not-a-number");
                 Assert.Equal(5, form.CurrentDocument!.Nodes.Single(node => node.Id == "2").X);
-                Assert.Equal("5", Convert.ToString(form.EditorPane.NodeGrid.Rows[1].Cells[1].Value));
-                Assert.Equal(diagnosticsBeforeInvalidEdit + 1, form.DiagnosticsPane.Messages.Items.Count);
+                Assert.Equal("5", Convert.ToString(nodes.PrimaryGrid.Rows[1].Cells[1].Value));
+                Assert.NotEqual(statusBeforeInvalidEdit, form.CurrentStatusMessage);
 
                 Pump(form.SaveProjectAsync(saveAs: true));
                 Assert.True(File.Exists(projectPath));
                 Assert.False(form.CurrentDocument!.IsDirty);
                 form.SetDocument(null);
                 Pump(form.OpenProjectAsync());
+                Assert.True(
+                    diagnostics.Count == 0,
+                    string.Join(Environment.NewLine, diagnostics.Select(exception => exception.ToString())));
                 Assert.Equal(5, form.CurrentDocument!.Nodes.Single(node => node.Id == "2").X);
+                form.RouteController.CloseRoute();
+                form.RouteController.Navigate(ScreenRouteId.InputNodes);
+                nodes = Assert.IsType<InputRouteSurfaceControl>(
+                    form.ScreenShell.RoutePanelHost.ActiveSurface);
+                Assert.True(
+                    nodes.PrimaryGrid.Rows.Count == 2,
+                    $"Reopened Nodes route has {nodes.PrimaryGrid.Rows.Count} rows; " +
+                    $"document={form.CurrentDocument.Nodes.Count}, overlay={form.RouteController.State.Overlay}, " +
+                    $"status='{form.CurrentStatusMessage}'.");
 
-                EditTextCell(form.EditorPane.NodeGrid, rowIndex: 1, columnIndex: 1, "6");
-                form.SaveMenuItem.PerformClick();
-                PumpUntil(() => form.CurrentDocument?.IsDirty == false, "The ordinary Save menu command did not finish.");
+                EditTextCell(nodes.PrimaryGrid, rowIndex: 1, columnIndex: 1, "6");
+                Pump(form.SaveProjectAsync());
                 ProjectDocument saved = new JsonProjectStore().OpenAsync(projectPath).GetAwaiter().GetResult();
                 Assert.Equal(6, saved.Nodes.Single(node => node.Id == "2").X);
 
@@ -148,6 +164,8 @@ public sealed class Step4VerticalIntegrationTests
             "net8.0-windows",
             "LiveCaptureProbe.dll");
         Assert.True(File.Exists(probe), $"Live capture probe was not built: {probe}");
+        string outputDirectory = Path.Combine(Path.GetTempPath(), $"frameweb-shell-capture-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(outputDirectory);
         ProcessStartInfo start = new("dotnet")
         {
             CreateNoWindow = true,
@@ -156,6 +174,7 @@ public sealed class Step4VerticalIntegrationTests
             UseShellExecute = false,
         };
         start.ArgumentList.Add(probe);
+        start.ArgumentList.Add(outputDirectory);
         using Process process = Process.Start(start)
             ?? throw new InvalidOperationException("Could not start the live capture probe.");
         Task<string> outputTask = process.StandardOutput.ReadToEndAsync();
@@ -174,8 +193,25 @@ public sealed class Step4VerticalIntegrationTests
 
         string output = await outputTask;
         string error = await errorTask;
-        Assert.True(process.ExitCode == 0, $"Live capture probe failed: {error}");
-        Assert.Matches(@"^LIVE_CAPTURE_OK \d+ \d+ [0-9A-F]{64}\s*$", output);
+        try
+        {
+            Assert.True(process.ExitCode == 0, $"Live capture probe failed: {error}");
+            string[] lines = output.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            string[] captures = lines.Where(line => line.StartsWith("WINFORMS_CAPTURE_OK ", StringComparison.Ordinal)).ToArray();
+            string[] differences = lines.Where(line => line.StartsWith("WINFORMS_CAPTURE_DIFF ", StringComparison.Ordinal)).ToArray();
+            Assert.Equal(3, captures.Length);
+            Assert.Equal(2, differences.Length);
+            Assert.All(captures, line => Assert.Matches(
+                @"^WINFORMS_CAPTURE_OK \S+ 1200 800 100 [0-9A-F]{64} .+\.png$",
+                line));
+            string[] hashes = captures.Select(line => line.Split(' ', 7)[5]).ToArray();
+            Assert.Equal(hashes.Length, hashes.Distinct(StringComparer.Ordinal).Count());
+            Assert.Equal(3, Directory.GetFiles(outputDirectory, "*.png").Length);
+        }
+        finally
+        {
+            Directory.Delete(outputDirectory, recursive: true);
+        }
     }
 
     [Fact]
@@ -184,21 +220,27 @@ public sealed class Step4VerticalIntegrationTests
         StaTestRunner.Run(() =>
         {
             using MainForm form = new(new MainFormServices(
-                localization: new LocalizationService(UiLanguage.English),
-                layoutStore: new NoOpLayoutStore()));
+                localization: new LocalizationService(UiLanguage.English)));
             form.SetDocument(ProjectDocumentPresets.CreateRepresentativeFrame());
+            form.RouteController.CloseOverlay();
+            form.RouteController.Navigate(ScreenRouteId.InputNodes);
+            InputRouteSurfaceControl nodes = Assert.IsType<InputRouteSurfaceControl>(
+                form.ScreenShell.RoutePanelHost.ActiveSurface);
 
-            form.EditorPane.NodeGrid.ClearSelection();
-            form.EditorPane.NodeGrid.Rows[1].Selected = true;
+            nodes.PrimaryGrid.ClearSelection();
+            nodes.PrimaryGrid.Rows[1].Selected = true;
             Application.DoEvents();
             SceneEntityKey expected = new(SceneEntityKind.Node, "2");
             Assert.Equal(expected, form.DocumentHost.Selection);
 
             SceneEntityKey member = new(SceneEntityKind.Member, "1");
+            form.RouteController.Navigate(ScreenRouteId.InputMembers);
+            InputRouteSurfaceControl members = Assert.IsType<InputRouteSurfaceControl>(
+                form.ScreenShell.RoutePanelHost.ActiveSurface);
             form.DocumentHost.SetSelection(member, ViewportSelectionOrigin.Viewport);
             Application.DoEvents();
             DataGridViewRow selected = Assert.Single(
-                form.EditorPane.MemberGrid.SelectedRows.Cast<DataGridViewRow>());
+                members.PrimaryGrid.SelectedRows.Cast<DataGridViewRow>());
             Assert.Equal(member, Assert.IsType<SceneEntityKey>(selected.Tag));
         }, "Step 4 selection synchronization");
     }
@@ -230,8 +272,7 @@ public sealed class Step4VerticalIntegrationTests
                 6)));
 
             using MainForm form = new(new MainFormServices(
-                localization: new LocalizationService(UiLanguage.English),
-                layoutStore: new NoOpLayoutStore()));
+                localization: new LocalizationService(UiLanguage.English)));
             form.SetDocument(edit.Current);
 
             ViewportSceneModel scene = Assert.IsType<ViewportSceneModel>(form.DocumentHost.CurrentScene);
@@ -262,8 +303,7 @@ public sealed class Step4VerticalIntegrationTests
             List<string> viewportFailures = [];
             using MainForm form = new(new MainFormServices(
                 analysisClient: new ResultAnalysisClient(result),
-                localization: new LocalizationService(UiLanguage.English),
-                layoutStore: new NoOpLayoutStore()));
+                localization: new LocalizationService(UiLanguage.English)));
             form.DocumentHost.ViewportFailed += (_, eventArgs) => viewportFailures.Add(eventArgs.Message);
             form.SetDocument(ProjectDocumentPresets.CreateRepresentativeFrame());
             Pump(form.ExecuteAnalysisAsync());
@@ -308,8 +348,7 @@ public sealed class Step4VerticalIntegrationTests
             using MainForm form = new(new MainFormServices(
                 analysisClient: analysis,
                 localization: new LocalizationService(UiLanguage.English),
-                dialogs: dialogs,
-                layoutStore: new NoOpLayoutStore()));
+                dialogs: dialogs));
             form.SetDocument(ProjectDocumentPresets.CreateRepresentativeFrame());
 
             Pump(form.ExecuteAnalysisAsync());
@@ -319,7 +358,11 @@ public sealed class Step4VerticalIntegrationTests
                 new AnalysisClientException(OperationFailureKind.Unavailable, "Backend unavailable."));
             Pump(form.ExecuteAnalysisAsync());
             Assert.Same(result, form.CurrentResult);
-            Assert.Equal("Backend unavailable.", Assert.Single(dialogs.Errors).Message);
+            Assert.Empty(dialogs.Errors);
+            Assert.Equal(ScreenOverlayKind.Alert, form.RouteController.State.Overlay);
+            OperationOverlayControl backendAlert = Assert.IsType<OperationOverlayControl>(
+                form.ScreenShell.OverlayHost.ActiveSurface);
+            Assert.Equal("Backend unavailable.", backendAlert.Message);
 
             using CancellationTokenSource cancellation = new();
             cancellation.Cancel();
@@ -349,12 +392,11 @@ public sealed class Step4VerticalIntegrationTests
                     analysisClient: new ResultAnalysisClient(result),
                     localization: new LocalizationService(UiLanguage.English),
                     dialogs: dialogs,
-                    layoutStore: new NoOpLayoutStore(),
                     viewportCaptureProvider: captureProvider,
                     reportDiagnostic: diagnostics.Add));
                 form.SetDocument(ProjectDocumentPresets.CreateRepresentativeFrame());
                 Pump(form.ExecuteAnalysisAsync());
-                Assert.True(form.ExportPdfMenuItem.Enabled);
+                Assert.True(form.ScreenShell.HeaderBar.PrintButton.Enabled);
 
                 int uiThreadId = Environment.CurrentManagedThreadId;
                 Exception? escaped = null;
@@ -362,9 +404,7 @@ public sealed class Step4VerticalIntegrationTests
                 Application.ThreadException += handler;
                 try
                 {
-                    form.ExportPdfMenuItem.PerformClick();
-                    PumpUntil(() => dialogs.Errors.Count == 1, "The capture failure was not reported.");
-                    Pump(form.WhenCurrentOperationIdleAsync());
+                    Pump(form.ExportPdfAsync());
                     Application.DoEvents();
                 }
                 finally
@@ -375,7 +415,11 @@ public sealed class Step4VerticalIntegrationTests
                 Assert.Null(escaped);
                 Assert.Equal(uiThreadId, captureProvider.CaptureThreadId);
                 Assert.Same(captureProvider.Failure, Assert.Single(diagnostics));
-                Assert.Equal("An unexpected error occurred.", Assert.Single(dialogs.Errors).Message);
+                Assert.Empty(dialogs.Errors);
+                Assert.Equal(ScreenOverlayKind.Alert, form.RouteController.State.Overlay);
+                OperationOverlayControl alert = Assert.IsType<OperationOverlayControl>(
+                    form.ScreenShell.OverlayHost.ActiveSurface);
+                Assert.Equal("An unexpected error occurred.", alert.Message);
                 Assert.False(form.IsOperationRunning);
                 Assert.False(File.Exists(dialogs.PdfToExport));
             }
@@ -522,6 +566,7 @@ public sealed class Step4VerticalIntegrationTests
     {
         System.Xml.Linq.XDocument document = System.Xml.Linq.XDocument.Load(path);
         return document.Root!.Elements("data")
+            .Where(element => element.Attribute("type") is null)
             .Select(element => (string?)element.Attribute("name"))
             .Where(name => name is not null)
             .Cast<string>()
@@ -553,13 +598,6 @@ public sealed class Step4VerticalIntegrationTests
             _next = Task.FromResult(first);
             return next;
         }
-    }
-
-    private sealed class NoOpLayoutStore : IShellLayoutStore
-    {
-        public Task<string?> LoadAsync(CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
-
-        public Task SaveAsync(string json, CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 
     private sealed class FakeDesktopRuntime : IDesktopRuntime

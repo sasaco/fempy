@@ -1,95 +1,73 @@
-# SECOND-FINAL Step 8 Quality and Correctness Review: Typed Printing
+# Phase 2 Code Quality Review: C# FrameWeb Screen Composition
 
 ## Verdict
 
-**PASS** — Critical: 0, High: 0, Medium: 0, Low: 0.
+**CHANGES REQUESTED** — Critical: 0, High: 3, Medium: 3, Low: 0.
 
-The two Medium findings from the preceding FINAL review are closed. PDF and preview now consume one immutable plan-owned text layout; fitted text is width-measured, grapheme-safe ellipsized, and clipped to the planned cell in both renderers, while the synchronized dialog exposes the complete unabridged page text as selectable content. Whole-document preview now validates the plan once, uses one aggregate work budget, preflights all pages before rendering, preserves strict exact/+1 behavior by default, and lets the production desktop opt explicitly into bounded raster auto-fit.
+The patch is not ready for screen-parity sign-off. Three reachable product defects break result-route ownership, hide required load-editing surfaces, and leave the reference optional-header pager disconnected from the actual result navigator. The remaining Medium findings cover an incorrect Contact transition/localization, retained hidden DockPanel composition debt, and a blocking verification gap. No product code was modified by this review.
 
-No new Critical, High, Medium, or Low quality/correctness finding was identified in the overall Step 8 scan. No product or test file was modified by this review.
+## Scope and Method
 
-## Scope and method
+The review inspected the complete 1,172,822-byte / 20,089-line patch at `.agents/logs/review-diff-csharp-frameweb-client.patch`, the current source behind `MainForm`, `ScreenComposition`, `EditorContent`, `ProjectDocumentContent`, `DataGridViewEditorController`, localization resources, the UI-parity manifest/tests, the Angular source reference, and both Angular/WinForms capture sets. Focus areas were correctness, WinForms ownership/disposal/z-order, shared-grid lifecycle, localization, clean architecture, obsolete UI removal, and exact FrameWebforJS composition.
 
-This independent read-only SECOND-FINAL review re-read the regenerated 532,434-byte patch at `.agents/logs/review-diff-csharp-frameweb-client.patch` (base `452528b`, SHA-256 `07EB9EBE3FD782004EB2AA73939856E5361A3F03916F455B22A34551F77FA522`) and inspected the final source/tests directly. The review re-evaluated every earlier finding and scanned the typed contracts, page geometry, pagination, preview/export plan identity, rendering lifecycle, deterministic semantics, CJK installed-font/TTC path, bounded work, atomic save/error causes, active result context, UI-thread captures, preview preservation, localization, Step 4 compatibility, deletion candidates, and legacy isolation.
+The checked-in capture images were visually inspected. Product defects below are based on reachable source behavior; the final finding is explicitly a verification gap rather than a demonstrated runtime defect.
 
-Lead-supplied full-gate evidence is recorded without presenting it as independently rerun: both Release solution builds are 0 warnings/0 errors; both solution test runs pass 567/567 (Core 272, Printing 73, Rendering 56, LocalRuntime 14, UI 152); ownership is clean; AgentOnly passes; typed vulnerable packages are zero. Coverage percentage was not measured.
+## Findings
 
-## Disposition of the preceding Medium findings
+### [High] H1 — A result-route transition removes the shared result grid from the newly active surface
 
-### M-F1 — preview/PDF table text fidelity: **Resolved**
+- **Evidence:** `RoutePanelHostControl.ApplyState` evaluates `factory.CreateRouteSurface(state)` before entering `ReplaceSurface` (`FramePrintPDF/PDF_Manager/Shell/ScreenComposition/Core/RoutePanelHostControl.cs:34-37`). A new `ResultRouteSurfaceControl` immediately attaches the shared grid to its own `_gridHost` (`FramePrintPDF/PDF_Manager/Shell/ScreenComposition/Surfaces/ResultRouteSurfaceControl.cs:67-95`). `ReplaceSurface` then disposes the old surface (`RoutePanelHostControl.cs:78-95`), and that old result surface unconditionally calls `_documentHost.ParkResultGrid()` (`ResultRouteSurfaceControl.cs:147-156`).
+- **Impact:** Navigating from one calculated result route to another first moves `ResultGrid` into the new card, then the old card's disposal moves it back to the hidden parking host. The newly active route remains visible with an empty grid. This affects transitions among all nine result routes.
+- **Recommended fix:** Dispose or detach the old surface before constructing/attaching the replacement, or make result-surface release conditional on the grid still belonging to that surface. Add an STA regression that navigates across at least basic displacement → reaction → section force and asserts `ResultGrid.Parent` remains inside the active surface after every transition.
 
-- `PrintPagePlan` owns one immutable `PrintPageRenderContent`; the content defensively materializes text runs, rectangles, and images, and exposes the same read-only `TextRuns` to every consumer (`FramePrintPDF/PDF_Manager.Printing/PrintPageContent.cs:18-41`; `PrintModels.cs:610-641`). Each run retains both complete `Text` and deterministic fitted `DisplayText`, its exact bounds, measured display width, alignment, font size, weight, and truncation status (`PrintModels.cs:744-802`).
-- The fitting policy normalizes only the drawn single line, measures Unicode runes, scales down within a bounded minimum, and ellipsizes through `StringInfo.GetTextElementEnumerator`, so it does not split surrogate pairs or grapheme elements (`PrintPageContent.cs:364-493`). The complete input remains in `Text`; only `DisplayText` is abbreviated.
-- PDF export and preview iterate the same plan-owned runs. PDF table text is enclosed in `Save`/`IntersectClip`/`Restore`, so even a wider real installed-font glyph cannot enter an adjacent cell (`PdfSharpPrintWriter.cs:319-380`). The raster preview applies the identical planned bounds and an active per-run pixel clip (`PrintPreviewRenderer.cs:144-150,170-221,326-343`).
-- The concrete 13-column A4 table is covered at both 25% and 400%: run bounds do not overlap, measured display width stays inside each cell, 400% uses explicit ellipsis, repeated planning is identical, preview/export retain the same run instances, and the PDF program contains a clip for every table run (`Step8WholePreviewBudgetAndTextTests.cs:143-211`).
-- User-visible textual fidelity is no longer inferred from the synthetic preview glyph strokes. Desktop preview builds bounded full page text from each run's unabridged `Text` (`DesktopPdfExporter.cs:233-254`), Core makes pages/captures/text defensively immutable and enforces aggregate decoded-byte/text limits (`OperationContracts.cs:222-280,305-398`), and the real dialog presents it in a read-only, multiline, scrollable, selectable `TextBox` synchronized on every navigation (`PrintUiModels.cs:302-326,404-437`). UI acceptance proves the full 13-column content and long section name at 25%/400%, select-all behavior, and simultaneous text/image changes on navigation (`Step8FinalPreviewTextAcceptanceTests.cs:16-137`).
+### [High] H2 — The load-strength route makes required editing tables unreachable
 
-The page bitmap therefore provides exact plan/page geometry, fitted-text occupancy, clipping, diagrams, and navigation identity; the adjacent synchronized text pane provides exact user-readable content. It is not claimed to be a pixel-identical installed-font PDF raster. That distinction no longer loses user-visible text and is not a remaining correctness finding.
+- **Evidence:** The catalog assigns `InputLoads` three tables in the order `NodalLoads`, `MemberLoads`, `PrescribedDisplacements` (`FramePrintPDF/PDF_Manager/Shell/ScreenComposition/Surfaces/FrameWebSurfaceCatalog.cs:56-61`). On route activation, `InputRouteSurfaceControl` calls only `ShowTable(definition.Tables[0])` (`FramePrintPDF/PDF_Manager/Shell/ScreenComposition/Surfaces/InputRouteSurfaceControl.cs:100-120`). The surface contains only `_gridHost` and exposes no table selector or route-state field that can call `ShowTable` (`InputRouteSurfaceControl.cs:47-67,129-145`). The source-derived manifest nevertheless requires both member-load and nodal-load fields on this Angular route (`FramePrintPDF/PDF_Manager.UiTests/UiParity/framewebforjs-screen-manifest.v1.json:233-250`).
+- **Impact:** Users can edit nodal loads but cannot reach member loads through the visible parity shell. Prescribed displacements are likewise unreachable. The same first-table-only design also strands the secondary set-management tables declared for other routes.
+- **Recommended fix:** Model each required Angular field/group explicitly in the visible route surface, or add a typed route substate/control that selects every required backing table. Do not rely on the public `ShowTable` method being invoked by tests or hidden legacy UI.
 
-### M-F2 — per-page fresh preview budgets: **Resolved**
+### [High] H3 — The visible optional-header pager is disconnected from actual result paging
 
-- `RenderPreviewAsync` requests all page numbers in one session. `RenderPreviewPagesAsync` enters the process-wide serialization boundary once, creates one `PrintWorkBudget`, validates/hashes the supplied job/plan once, reserves content work for every page, reserves the aggregate raster count/decoded bytes/pixels, and only then renders pages (`PdfSharpPrintWriter.cs:123-197`).
-- Strict mode remains the default. Production auto-fit is an explicit option; it binary-searches the largest common raster size that fits remaining decoded-byte and layout-work budgets, while image-count exhaustion still fails through the checked counter path (`PrintModels.cs:145-169`; `PrintPreviewRenderer.cs:43-109`). Desktop is the explicit production caller with `fitToDocumentBudget: true` and uses the whole-document API instead of looping the single-page API (`DesktopPdfExporter.cs:212-233`).
-- Tests prove one validation event, one shared budget, exact-limit success, images/text/layout +1 failure before the first rendered page, and a 22-page production-shaped auto-fit whose pages remain distinct and share the authoritative plan identity (`Step8WholePreviewBudgetAndTextTests.cs:10-140`).
+- **Evidence:** `OptionalHeaderControl` renders `state.Page`, enables its buttons from that value, and mutates only `ScreenRouteController.Page` (`FramePrintPDF/PDF_Manager/Shell/ScreenComposition/Core/OptionalHeaderControl.cs:158-182,348-371`). Production code never synchronizes that page state from `ProjectDocumentContent.ResultPageIndex/ResultPageCount`; the only production `SetPage`/`MovePage` callers are the optional-header buttons themselves (`FramePrintPDF/PDF_Manager/Shell/ScreenComposition/Core/ScreenRouteController.cs:105-125`). Meanwhile, `ResultRouteSurfaceControl` creates a second pager inside the route card and drives `_documentHost` directly (`FramePrintPDF/PDF_Manager/Shell/ScreenComposition/Surfaces/ResultRouteSurfaceControl.cs:33-50,82-94,232-250,335-344`).
+- **Impact:** The reference header remains at page 1/1 with disabled controls while result navigation happens in a second, non-reference location. Nonlinear, modal, moving, and derived pages therefore cannot satisfy the exact FrameWebforJS composition contract even when the underlying result navigator works.
+- **Recommended fix:** Establish one page-state owner. Publish the document/result navigator's count and index into `ScreenRouteController`, route header page commands back to the typed navigator, and remove the duplicate card pager.
 
-`RenderPreviewPageAsync` still creates an isolated budget through the shared internal session for its one requested page (`PdfSharpPrintWriter.cs:100-120`). That is the intentional single-page API contract, not the desktop whole-document path, and it no longer permits aggregate counters to reset between pages of one preview operation.
+### [Medium] M1 — Contact does not perform the manifest-defined chat transition and emits English text in every language
 
-## Original-finding disposition
+- **Evidence:** The manifest defines Contact as `toggle contact chat` with transition `chat-open` (`FramePrintPDF/PDF_Manager.UiTests/UiParity/framewebforjs-screen-manifest.v1.json:54`). The header correctly raises `ShowContact` (`FramePrintPDF/PDF_Manager/Shell/ScreenComposition/Core/HeaderMenuControl.cs:338-345`), but `MainForm` handles it by assigning the hard-coded English message `Contact support is available from the FrameWeb support site.` and showing a generic Alert overlay (`FramePrintPDF/PDF_Manager/Shell/MainForm.cs:1087-1093`).
+- **Impact:** The visible control has the wrong behavior, and Japanese/Chinese sessions receive English contact text. This is a concrete composition and localization defect.
+- **Recommended fix:** Implement the manifest-defined chat/contact surface or obtain an explicit approved exception. Put every visible message in `Strings.resx` plus `Strings.en/ja/zh.resx` and test the transition and displayed text in all supported languages.
 
-| Prior finding | SECOND-FINAL disposition | Evidence |
-|---|---|---|
-| H1 raw viewport used as every preview page | **Resolved, including the prior M-F1 textual residual.** Every page has its own planned raster and identity; navigation changes both bitmap and complete selectable text. | `DesktopPdfExporter.cs:212-254`; `PrintUiModels.cs:302-437`; `Step8FinalPreviewTextAcceptanceTests.cs:83-136` |
-| H2 one bitmap mislabeled as model/load/result | **Resolved.** Captures are keyed by semantic kind; UI-thread presentation changes are flushed and transactionally restored, with honest result fallback and original/restore causes retained. | `ViewportCaptureProvider.cs:10-51,83-178`; `DesktopPrintJobFactory.cs:89-123,302-323` |
-| H3 only seven input tables | **Resolved.** All 21 input surfaces plus Moving Loads are projected in stable order and included in checked preflight accounting. | `DesktopInputTableProjection.cs:40-202,288-390`; `Step8DesktopProjectionRemediationTests.cs:121-213` |
-| M1 25%-400% planner/writer drift | **Resolved, including horizontal table fit.** Shared metrics drive pagination and run geometry; deterministic fitting and clips prevent the 13-column/400% overlap case. | `PrintRenderingShared.cs:7-65`; `PrintPageContent.cs:198-298,364-493`; `Step8LayoutRemediationTests.cs:86-160` |
-| M2 all languages' fonts eagerly required | **Resolved.** Only the requested language is loaded, with bounded TTF/TTC reads and preserved causes. | `InstalledWindowsFontResolver.cs:71-176`; `Step8PreviewAndFontAcceptanceTests.cs:61-103` |
-| L1 `RepeatHeader=false` ignored | **Resolved.** Planning and both renderers follow the flag. | `PrintPlanning.cs:333-370`; `PrintPageContent.cs:246-271`; `Step8LayoutRemediationTests.cs:63-84` |
-| L2 untranslated labels / Chinese bold | **Resolved in source and structural tests.** Presentation labels are language-specific and Chinese bold uses explicit simulation. | `PrintModels.cs:90-142`; `InstalledWindowsFontResolver.cs:97-113`; localized `Strings.*.resx` |
+### [Medium] M2 — The new shell still depends on hidden DockPanel UI objects as service containers
 
-## Overall Step 8 scan
+- **Evidence:** `MainForm` constructs hidden `EditorContent` and `ProjectDocumentContent` objects and passes them into the new surface factory/workspace (`FramePrintPDF/PDF_Manager/Shell/MainForm.cs:80-86`). Both remain `ShellDockContent` implementations tied to DockPanelSuite (`FramePrintPDF/PDF_Manager/Shell/Contents/EditorContent.cs:7,21`; `FramePrintPDF/PDF_Manager/Shell/Contents/ProjectDocumentContent.cs:12,16`). The viewport is physically detached from the latter instead of being owned by a UI-neutral coordinator (`FramePrintPDF/PDF_Manager/Shell/ScreenComposition/Core/WorkspaceControl.cs:30-47`).
+- **Impact:** The visible obsolete panes are gone, but their UI inheritance, disposal model, and hidden control ownership remain in the composition root. This makes the shared-grid bug above easier to introduce and leaves the promised obsolete-docking removal incomplete.
+- **Recommended fix:** Extract editor sessions/table controllers and viewport/result coordination into non-visual owned components. Let the parity surfaces own only the controls they display, then remove `ShellDockContent`/DockPanelSuite inheritance from the active composition path.
 
-- Typed jobs, rows, tables, captures, page content, plans, preview pages, and results defensively materialize mutable input. Plan identity covers settings, localized labels, all section values, semantic diagram bytes, pagination, and item ranges; preview and export reject a plan/job mismatch (`PrintRenderingShared.cs:96-250`).
-- A3/A4 portrait/landscape dimensions, finite margins, 25%-400% scale, pagination, page numbering, repeated/non-repeated headers, text continuation, and aspect-preserving diagrams remain consistent with the plan.
-- Static, nonlinear, modal, DEFINE, COMBINE, PICKUP, moving-parent, and moving-child selections still project the current typed table/provenance and semantic result capture; no first-result or hard-coded substitute was introduced.
-- PDFsharp creation/save remains inside one process-wide static semaphore across writer instances. Document, page graphics, and images are disposed; cancellation is honored at the semaphore, page/run loops, raster loops, and staged copy boundaries.
-- Installed-font discovery remains Windows-font-directory allow-listed, lazy per language, size-bounded before allocation, exact-read, TTC-offset/checksum aware, `/FontFile2` embedded, and `/ToUnicode` mapped. Missing/corrupt font causes survive localization wrapping.
-- Desktop whole-preview/export uses the same authoritative plan identity. Export recaptures current semantics and compares the receipt with the retained preview before atomically replacing the target. Invalid, partial, failed, canceled, or revision-stale preview work leaves the last valid preview state intact.
-- Atomic save still uses an exclusive sibling temporary file, durable flush, replace/move, and cleanup that cannot replace the primary cause.
-- The Step 4 `TypedPdfJob` overload remains present and its compatibility tests pass. Typed desktop/Printing projects remain isolated from `PDF_Manager.LegacyPrinting`, `PdfSharpCore`, restricted embedded fonts, and `FramePrintAzure`.
+### [Medium] M3 — Verification gap: the visual gate covers only three Japanese 1200×800 states
 
-All eight earlier deletion candidates remain intentional contract extensions/replacements rather than accidental deletions: Core boundary assertions, preview/result contracts, partial writer composition, official PDFsharp project boundary, Step 4 format assertions, shell composition, MainForm preview/export guards, and desktop projection. No dead product path, weakened contract, hard-coded behavioral substitute, or accidental source deletion was found.
+- **Evidence:** The WinForms metadata contains only `overlay.start`, `shell.empty`, and `route.input-elements`, all in Japanese at 1200×800 / 100% DPI (`FramePrintPDF/PDF_Manager.UiTests/UiParity/References/winforms-v1/winforms-captures.v1.json:7,16-45`). The test explicitly requires exactly those three states (`FramePrintPDF/PDF_Manager.UiTests/UiParity/ReferenceCaptureTests.cs:73-93`). Its automated comparison is limited to the common header/navigation plus one start dialog or one Elements card (`ReferenceCaptureTests.cs:182-198`); it does not compare the remaining 13 input routes, nine result routes, Preset/Print/operation overlays, English/Chinese, 1024×768, or 1440×900 at 150% DPI.
+- **Impact:** This does not prove another product defect by itself, but it prevents the patch from claiming exact screen-composition parity or responsive/localized sign-off. The supplied Angular and WinForms images also visibly differ in the excluded viewport, which the current comparison intentionally does not adjudicate.
+- **Recommended fix:** Produce and validate the complete manifest-driven matrix, including all routes/overlays, ja/en/zh, reference sizes/DPI, clipping/scroll/drag-resize, and recorded human approval. Keep viewport raster equivalence separate from composition, but assert viewport bounds, grid/axis presence, clipping, and surrounding z-order.
 
-## Residual risks and coverage gaps
+## Areas Checked With No Finding
 
-- Coverage percentage remains unmeasured.
-- CUA/browser visual inspection of Japanese/Chinese installed glyph shapes was unavailable. `/ToUnicode`, embedded font, code-point mapping, TTC, and Chinese-bold structural evidence exists, but **CJK GUI/PDF glyph visual is not claimed PASS**.
-- The raster page preview intentionally uses deterministic coverage strokes rather than installed glyph outlines. Geometry/clip/display-run fidelity and synchronized full selectable text are covered; pixel-level preview-versus-PDF font-shape equivalence is not.
-- Font-specific advance can differ from the deterministic plan estimator. The PDF clip guarantees isolation, but a CJK visual run remains useful to detect overly conservative ellipsis or last-glyph clipping.
-- No fault-injection test forces semantic viewport capture and transactional restoration to fail simultaneously, although source retains both causes.
-- PDFsharp's synchronous `document.Save` and installed-font reads cannot be interrupted internally. Work limits bound the call, but cancellation is not instantaneous.
-- Full raw PDF bytes are not the determinism contract for the PDFsharp path; plan identity, parsed semantics, text mapping, image bytes, and rendered layout remain the deterministic boundaries.
+- **Critical:** 0 findings. No data-loss, unsafe cross-process contract, or release-blocking security defect was identified in this quality pass.
+- **Low:** 0 findings. All actionable items were at least Medium because they affect required composition, lifecycle, localization, or architectural ownership.
+- `OverlayHostControl` brings the overlay above the shell and unsubscribes/disposes the replaced overlay surface in a coherent order (`OverlayHostControl.cs:30-51,70-104`).
+- `WorkspaceControl` removes the detached viewport from its own child collection without disposing it, leaving final renderer disposal to `ProjectDocumentContent`; no second visible viewport owner was found (`WorkspaceControl.cs:38-48,61-72`).
+- Input-route disposal parks its active grid before base control disposal, and the added `Paint`/`RowPostPaint` handlers are de-duplicated before reattachment (`InputRouteSurfaceControl.cs:173-191`).
+- The obsolete visible `NavigationContent` and `DiagnosticsContent` source files are removed by the patch; the remaining concern is the hidden DockPanel-derived editor/document infrastructure described in M2.
 
-## Validation
+## Validation and Consultation
 
-Reviewer-run read-only commands:
+- Reviewed `git status --short`, complete patch inventory/diffstat, current source with exact line evidence, Angular templates/styles/manifest, parity tests, and Angular/WinForms capture images.
+- No product tests were rerun in this reviewer task; the test reviewer owns independent execution/coverage assessment.
+- The required read-only nested Codex consultation was attempted twice through the repository wrapper. Both calls exited 0 but returned only generic requests for the objective, despite a complete fixed prompt. Their outputs at `.agents/logs/codex/20260921T073610Z-quality-review.md` and `.agents/logs/codex/20260921T073655Z-quality-review-retry.md` were rejected as non-substantive evidence. No further retry was made under the one-retry rule.
 
-- `dotnet test FramePrintPDF/PDF_Manager.Tests/PDF_Manager.Tests.csproj -c Release --no-build --no-restore --filter "FullyQualifiedName~Step8WholePreviewBudgetAndTextTests"` — PASS 4/4.
-- `dotnet test FramePrintPDF/PDF_Manager.UiTests/PDF_Manager.UiTests.csproj -c Release --no-build --no-restore --filter "FullyQualifiedName~Step8FinalPreviewTextAcceptanceTests"` — PASS 2/2.
-- `dotnet test FramePrintPDF/PDF_Manager.Tests/PDF_Manager.Tests.csproj -c Release --no-build --no-restore --filter "FullyQualifiedName~Step8|FullyQualifiedName~TrueTypeCollectionExtractorTests"` — PASS 50/50.
-- `dotnet test FramePrintPDF/PDF_Manager.UiTests/PDF_Manager.UiTests.csproj -c Release --no-build --no-restore --filter "FullyQualifiedName~Step8"` — PASS 10/10.
-- `dotnet test FramePrintPDF/PDF_Manager.Tests/PDF_Manager.Tests.csproj -c Release --no-build --no-restore --filter "FullyQualifiedName~TypedPdfExporterTests|FullyQualifiedName~ProjectBoundaryTests"` — PASS 15/15.
-- `dotnet test FramePrintPDF/PDF_Manager.UiTests/PDF_Manager.UiTests.csproj -c Release --no-build --no-restore --filter "FullyQualifiedName~Step4VerticalIntegrationTests"` — PASS 9/9.
-- `dotnet test FramePrintPDF/PDF_Manager.Tests/PDF_Manager.Tests.csproj -c Release --no-build --no-restore` — PASS 73/73.
-- `dotnet test FramePrintPDF/PDF_Manager.UiTests/PDF_Manager.UiTests.csproj -c Release --no-build --no-restore` — PASS 152/152.
-- Direct source/regenerated-patch inspection with `rg`, `Get-Content`, `git status --short`, `git diff --name-status 452528b -- FramePrintPDF`, `git diff --stat 452528b -- FramePrintPDF`, and `Get-FileHash`.
-
-## Explicit counts
+## Explicit Counts
 
 - Critical: 0
-- High: 0
-- Medium: 0
+- High: 3
+- Medium: 3
 - Low: 0
-
-## Consultation status
-
-No nested Codex consultation was invoked. This was the explicitly delegated team-execute SECOND-FINAL quality/correctness reviewer pass.

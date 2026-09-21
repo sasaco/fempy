@@ -39,9 +39,13 @@ public sealed class EditorContent : ShellDockContent
     };
     private readonly ToolStripButton _undo = new() { Name = "EditorUndo" };
     private readonly ToolStripButton _redo = new() { Name = "EditorRedo" };
-    private readonly TabControl _tabs = new() { Dock = DockStyle.Fill, Name = "EditorTabs" };
+    private readonly Panel _tableParking = new()
+    {
+        Name = "EditorTableParking",
+        Size = Size.Empty,
+        Visible = false,
+    };
     private readonly IReadOnlyDictionary<InputTableKey, InputTableDescriptor> _descriptors;
-    private readonly Dictionary<InputTableKey, TabPage> _pages = [];
     private readonly Dictionary<InputTableKey, DataGridViewEditorController> _controllers = [];
     private ProjectDocumentEditSession? _session;
     private bool _refreshing;
@@ -59,11 +63,8 @@ public sealed class EditorContent : ShellDockContent
         IClipboardTextService clipboardService = clipboard ?? new SystemClipboardTextService();
         foreach (InputTableDescriptor descriptor in _descriptors.Values)
         {
-            TabPage page = new() { Name = $"{descriptor.Key}Page" };
             EditorDataGridView grid = new() { Name = descriptor.GridName };
-            page.Controls.Add(grid);
-            _tabs.TabPages.Add(page);
-            _pages.Add(descriptor.Key, page);
+            _tableParking.Controls.Add(grid);
             _controllers.Add(descriptor.Key, new DataGridViewEditorController(
                 grid,
                 descriptor,
@@ -76,9 +77,6 @@ public sealed class EditorContent : ShellDockContent
         }
 
         _toolbar.Items.AddRange([_undo, _redo]);
-        Controls.Add(_tabs);
-        Controls.Add(_toolbar);
-        Controls.Add(_selection);
         _undo.Click += OnUndo;
         _redo.Click += OnRedo;
         ApplyLocalization();
@@ -89,9 +87,9 @@ public sealed class EditorContent : ShellDockContent
     public event EventHandler<EditorValidationEventArgs>? ValidationFailed;
 
     public Label SelectionLabel => _selection;
-    public TabControl Tabs => _tabs;
     public IReadOnlyDictionary<InputTableKey, DataGridView> Tables =>
         _controllers.ToDictionary(pair => pair.Key, pair => pair.Value.Grid);
+    public IReadOnlyDictionary<InputTableKey, InputTableDescriptor> Descriptors => _descriptors;
     public DataGridView ModelSettingsGrid => Grid(InputTableKey.ModelSettings);
     public DataGridView NodeGrid => Grid(InputTableKey.Nodes);
     public DataGridView MemberGrid => Grid(InputTableKey.Members);
@@ -141,8 +139,35 @@ public sealed class EditorContent : ShellDockContent
     public void ActivateTable(InputTableKey table)
     {
         VerifyAccess();
-        _tabs.SelectedTab = _pages[table];
         Grid(table).Focus();
+    }
+
+    public void AttachTable(InputTableKey table, Control parent)
+    {
+        ArgumentNullException.ThrowIfNull(parent);
+        VerifyAccess();
+        DataGridView grid = Grid(table);
+        grid.Parent?.Controls.Remove(grid);
+        grid.Dock = DockStyle.Fill;
+        parent.Controls.Add(grid);
+        grid.BringToFront();
+    }
+
+    public void ParkTable(InputTableKey table)
+    {
+        VerifyAccess();
+        DataGridView grid = Grid(table);
+        grid.Parent?.Controls.Remove(grid);
+        _tableParking.Controls.Add(grid);
+    }
+
+    public void ParkAllTables()
+    {
+        VerifyAccess();
+        foreach (InputTableKey table in _controllers.Keys)
+        {
+            ParkTable(table);
+        }
     }
 
     public void SetSelection(SceneEntityKey? selection)
@@ -184,9 +209,15 @@ public sealed class EditorContent : ShellDockContent
                 return;
             }
 
-            _tabs.SelectedTab = _pages[tableKey];
             row.Selected = true;
-            target.CurrentCell = row.Cells[0];
+            DataGridViewCell? visibleCell = row.Cells.Cast<DataGridViewCell>()
+                .FirstOrDefault(cell => cell.OwningColumn.Visible);
+            if (visibleCell is null)
+            {
+                return;
+            }
+
+            target.CurrentCell = visibleCell;
             _selection.Text = $"{key.Kind}: {key.Id}";
         }
         finally
@@ -204,7 +235,6 @@ public sealed class EditorContent : ShellDockContent
         _redo.Text = Localization["EditorRedo"];
         foreach ((InputTableKey key, InputTableDescriptor descriptor) in _descriptors)
         {
-            _pages[key].Text = Localization[descriptor.TitleResourceKey];
             _controllers[key].ApplyLocalization(resourceKey => Localization[resourceKey]);
         }
 
@@ -226,6 +256,10 @@ public sealed class EditorContent : ShellDockContent
             {
                 controller.Dispose();
             }
+
+            _tableParking.Dispose();
+            _toolbar.Dispose();
+            _selection.Dispose();
         }
 
         base.Dispose(disposing);

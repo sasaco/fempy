@@ -2,9 +2,9 @@
 
 ### Purpose
 
-`FramePrintPDF/PDF_Manager` を中心に、`FrameWebforJS` と同じ主要業務シナリオを提供する Windows 専用の .NET 8 / WinForms デスクトップアプリを新規構築する。Angular、RxJS、Web Worker、Electron、旧印刷JSONを逐語移植せず、型付き `ProjectDocument`、単一の `AnalysisResultSet v1`、ドッキングUI、C# THREE/OpenGL描画、型付きPDF出力へ再設計する。
+`FramePrintPDF/PDF_Manager` を中心に、`FrameWebforJS` の画面構成を画面・状態ごとに再現する Windows 専用の .NET 8 / WinForms デスクトップアプリを完成させる。受入対象は機能の意味だけではなく、shell hierarchy、navigationの配置と順序、route別の入力・結果・印刷画面、field/control、grouping、default visibility、viewport/table split、overlay、画面遷移を含む。
 
-既存利用者との後方互換は要件に含めない。Python FEM解析はC#へ移植せず、`FrameWeb` を数値解析サービスとして継続利用する。最初に「モデルを開く → 表示・最小編集 → 計算 → 結果表示 → PDF出力」の縦切りMVPを完成させ、その後に入力・結果・印刷のシナリオ同等性を段階的に閉じる。
+既存利用者、現行C# docking UI、旧印刷UIとの後方互換およびバックアップ作成は要件に含めない。Python FEM解析、型付き `ProjectDocument`、唯一の成功応答 `AnalysisResultSet v1`、private loopback process security、OpenGL描画、型付きPDF基盤は維持し、ユーザーに見える表示層を `FrameWebforJS` 準拠のroute/state shellへ載せ替える。作業ツリーには退避物や互換adapterを残さず、各vertical sliceの検証後に不要な旧UI surfaceを削除する。
 
 ### Scope
 
@@ -12,31 +12,37 @@
 
 #### Implementation Status (2026-09-21)
 
+- Step 0〜8はtyped domain、解析、編集、描画、結果presentation、印刷の**機能基盤**として完了している。ただしStep 3/5/6/7/8のuser-visible構成はscreen-composition parity未達のため再開する。567件のgreen testsは機能非退行baselineであり、UI parityの完了証拠ではない。
+- UI parityの調査、screen matrix、再利用／置換境界は `.agents/docs/research/csharp-frameweb-ui-parity.md` に記録した。現行C#は左Navigation・中央Document・右Editor・下Diagnosticsの4領域、Angularは上部menu/context header・順序付き左navigation・全面viewport・可動route panel・全面overlayであり、DockPanel配置調整では解消できない。
+- `FrameWebforJS` は2026-09-21に `start:local` でcompile成功しHTTP 200を確認したが、利用可能なUI automation surfaceが無かったため新規live screenshotは未取得である。固定viewport/DPIの基準captureをUI remediation最初の必須gateとする。
+
 - Step 0 の実装成果は commit `572a1d1` に保存済みである。`PDF_Manager.Core` と41件の契約テスト、実OpenGLを使う `PDF_Manager.RendererProbe`、依存関係・来歴・再配布可否のinventory、および `.agents/docs/DESIGN.md` の設計決定が含まれる。
 - package-only の開発経路は **GO** である。DockPanelSuite 3.1.1、OpenTK.GLControl 4.0.2、OpenTK 4.9.4、および所有する最小renderer/shaderで Step 1 へ進める。
 - 完成アプリの再配布は **NO-GO** のままである。MS Gothic、MS Mincho、SimSun、旧THREE shader/typeface/LTC textureは製品へコピー・同梱せず、PDF font strategy、PDF golden、publish成果物のforbidden-file/SBOM検査を後続gateで解決する。
-- Step 1 は作業ツリーで完了した。`PDF_Manager` は `net8.0-windows` WinExeとなり、Core/Rendering/typed Printingを参照する空WinForms shell、4つの自動test project、両solutionへの登録が実装済みである。Step 2以降は未着手である。
+- Step 1 は作業ツリーで完了した。`PDF_Manager` は `net8.0-windows` WinExeとなり、Core/Rendering/typed Printingを参照する空WinForms shell、4つの自動test project、両solutionへの登録が実装済みである。この記録以降にStep 2〜8も完了しており、現在の未完了範囲はscreen-composition parityとproduction cutoverである。
 - Step 2 は作業ツリーで完了した。Coreへtyped `ProjectDocument v1`、厳格かつ決定的なJSON/atomic store、完全な`AnalysisResultSet v1` DTO/validator/index/commit boundary、static-only derived presentation、moving-load paging/envelope、およびtyped service boundaryを実装した。
 - Step 3 は作業ツリーで完了した。localized WinForms shell、stable-key docking registry、bounded/atomic/transactional layout、serialized document transition、coalesced activation、dirty-close/cancellation/exception boundaryを実装した。
-- Step 8 は作業ツリーで完了した。公式PDFsharp 6.2.4上のtyped printing、同一immutable planによるpreview/export、22入力表、model/load/result diagram、結果選択matrix、共有work budget、CJK installed-font解決、原子的PDF保存を実装した。次はStep 9のproduction integration、parity sign-off、cutoverである。
+- Step 8 は作業ツリーで完了した。公式PDFsharp 6.2.4上のtyped printing、同一immutable planによるpreview/export、22入力表、model/load/result diagram、結果選択matrix、共有work budget、CJK installed-font解決、原子的PDF保存を実装した。次はStep 9のscreen-composition parity remediationであり、そのsign-off後にStep 10のproduction integration/cutoverへ進む。
 - Step 1完了後にリポジトリ正規の全体検査 `& .agents/check.ps1 -AllowProductPath 'FramePrintPDF'` を再実行した。Agent系、scope isolation、`git diff --check`、`.NET build` はPASSしたが、全体は `overall=fail` である。Pythonは3,273件PASS・6件FAIL・4件ERROR（1:55:37）、Angular test/buildはTypeScript compilation、FontAwesome path、`environment.prod.ts` 不在でFAILした。詳細は `.agents/logs/check-20260920T035935489Z-32252.log` を参照する。いずれも既知のC#変更範囲外failureだが、リポジトリ全体をgreenとは報告しない。
 - 独立レビューは品質PASS（Critical/Highなし）、テストPASS（Critical/Highなし）、セキュリティChanges requested（旧Azure/local print hostにHigh 2件）である。新desktop境界には旧印刷資産・制限font・既知脆弱packageは入っていない。一方、legacy hostの匿名endpointは脆弱なImageSharp 1.0.4へ到達でき、request/decompression/image/PDF workも無制限なので、公開・配布はNO-GOである。詳細は `.agents/docs/research/review-{quality,tests,security}-csharp-frameweb-client.md` を参照する。
 
 #### Current State
 
-- `FramePrintPDF/PDF_Manager/PDF_Manager.csproj` は現在 `netcoreapp3.1` のクラスライブラリで、依存は `Newtonsoft.Json` と `PdfSharpCore` のみである。WinForms、ドッキング、3Dレンダラー、製品エントリポイントはない（`PDF_Manager.csproj:1-5,33-36`）。
-- 実質的な公開入口は生JSONを `Dictionary<string, object>` に変換する `PrintInput` であり、`PrintData` は入力と旧 `disg` / `reac` / `fsec` 結果を同じ非型付きモデルへ集約している（`PrintInput.cs:11-21`、`PrintData.cs:62-143`）。この形は新アプリへ継承しない。
-- `PDF_Test` と `PDF_Test_CLI` は手動ハーネスで、自動assertionを持つテストプロジェクトではない（`PDF_Test/Form2.cs:40-58`、`PDF_Test_CLI/Program.cs:18-64`）。
-- `FrameWeb.Startup` は現在 Python と Angular を起動し、Angularへリダイレクトする一方、Windows Job Object による子プロセス終了管理を既に持つ（`tools/FrameWeb.Startup/LocalServices.cs:16-44,73-88`、`StartupPage.cs:18-28`、`WindowsProcessJob.cs:7-24`）。
-- `FrameWebforJS` の同等性対象は、新規・開く・保存・プリセット、全入力表、2D/3D表示、計算、変位・反力・断面力、DEFINE/COMBINE/PICKUP、移動荷重表示、印刷・PDFである（`app-routing.module.ts:34-64`、`menu.component.html:17-46`）。
-- 成功時の計算結果は既に `AnalysisResultSet v1` に一本化され、static / nonlinear / modalを `(case_id, state.kind, state.index)` で識別し、受信全体の検証後にだけ結果を公開する（`analysis-result-set.ts:229-245,647-705,798-833`、`result-data.service.ts:105-145`）。
-- `isasPrint` は .NET Framework 4.8 / DockPanelSuite 3.1 / OpenTK 3.3.3 / vendored THREE を使う。再利用するのは描画ホストの層分離、composition root、lazy window registry、activation policyの考え方だけとし、旧framework、ComponentOne、`DockingMdi`、常時Idle描画、再Load、破棄不足、CLR型名による復元は採用しない。
+- `PDF_Manager` は `net8.0-windows` WinExeであり、Core、Rendering、Printing、LocalRuntime、および自動test projectsを持つ。Python FEM、`AnalysisResultSet v1`、OpenGL、公式PDFsharp 6.2.4のtyped境界は実装済みである。
+- Angularの基準は14 input routes、9 result routes、Start/Preset/Print named-outlet overlaysである（`FrameWebforJS/src/app/app-routing.module.ts:34-72`）。共通shellはmenu、optional header、ordered left navigation、full viewport、movable/resizable route panel、overlay hostで構成される（`app.component.html:1-18,958-980`）。
+- 現行C# `MainForm` はNavigation=左、Editor=右、Diagnostics=下、Document=中央の4領域を初期表示する（`FramePrintPDF/PDF_Manager/Shell/MainForm.cs:102-138`）。`EditorContent` は21表を一つの`TabControl`へ生成し（`EditorContent.cs:25-81,91-115`）、`ProjectDocumentContent` は多数のselectorと常時viewport/result splitを持つ（`ProjectDocumentContent.cs:137-219`）。
+- 現行UIのfunctional servicesは再利用可能だが、`NavigationContent`、generic `EditorContent`、persistent `DiagnosticsContent`、user-visible docking/layout restore、separate print dialogsはdefault UIから置換・削除する。
+- 初回releaseはuser loginを持たない。private loopback bearerとWindows Job/listener ownershipは認証UIではなくlocal IPC securityとして維持する。
 
 #### Target Architecture
 
 ```text
 PDF_Manager (net8.0-windows WinForms executable / composition root)
-  ├─ Docking shell, commands, resources, document/tool windows
+  ├─ FrameWebforJS-parity screen composition
+  │    ├─ top menu + contextual optional header
+  │    ├─ ordered primary navigation + full workspace viewport
+  │    ├─ route-specific movable/resizable input/result screen
+  │    └─ Start/Preset/Print/operation overlays
   ├─ PDF_Manager.Core
   │    ├─ ProjectDocument + validation + undo/redo
   │    ├─ AnalysisResultSet DTO/validator/index
@@ -55,23 +61,43 @@ PDF_Manager.Core --HTTP--> FrameWeb (Python FEM)
                          <-- AnalysisResultSet v1 only
 ```
 
-依存方向は `Shell -> Core`、`Shell -> Rendering`、`Shell -> Printing` とし、`Core` はWinForms、OpenGL、PdfSharpCoreを参照しない。計算と印刷は別境界にし、旧印刷データを計算成功schemaとして復元しない。
+依存方向は `ScreenComposition -> Core`、`ScreenComposition -> Rendering`、`ScreenComposition -> Printing` とし、`Core` はWinForms、OpenGL、PDFsharpを参照しない。route/state controllerはUI非依存とし、各WinForms controlは既存serviceへtypedに接続する。計算と印刷は別境界にし、旧印刷データを計算成功schemaとして復元しない。
 
 #### Feature-Parity Boundary
 
 | Area | C# implementation | Parity rule |
 |---|---|---|
 | Document | `ProjectDocument`、新規C#文書schema、open/save/save-as、4 presets | 旧保存形式migrationは行わない |
-| Input | node、member、rigid zone、support、element、panel、joint、notice point、member spring、load case/value、DEFINE/COMBINE/PICKUP | Angularの画面構造ではなく入力意味とvalidationを一致させる |
-| Viewport | Z-up、2D orthographic、3D perspective、grid/axis/label、selection sync | scene layer単位の意味的同等性を受入条件にする |
+| Input | 14 Angular input routesへ21 typed tablesを明示配置し、route別field/control/order/group/read-only/default/2D-3D visibilityを再現 | Angular template/optionsとrunning referenceを正本にする。単一generic tab paneは不可 |
+| Viewport | Z-up、2D orthographic、3D perspective、grid/axis/label、selection sync | Angular shell内のfull workspace、overlay、route panelとのsplit/重なり、control placementまで受入条件にする |
 | Analysis | `IAnalysisClient` がPython APIを呼び、`AnalysisResultSet` を一度だけ厳格検証 | alternate success schema、旧worker schema、部分commitを禁止 |
-| Results | static/nonlinear/modal、変位、反力、部材断面力、case/state paging | `ResultCoordinate` と配列順を正本にする |
+| Results | static/nonlinear/modal、変位・反力・断面力、Basic/COMBINE/PICKUP、case/state/direction paging | Angularの3 category × 3 substate shellを再現し、Angularに専用routeがないnonlinear/modal/movingも同じshell内へ拡張する |
 | Derived results | DEFINE/COMBINE/PICKUP、移動荷重page/envelope、max/min | immutable base resultからPresentation層で導出する |
-| Printing | typed print job、preview、save、viewport capture | calculation transportとprint contractを共有しない |
-| Shell | docking documents/tools、layout restore、ja/en/cn resources | captionやCLR型名をidentityに使わない |
-| Peripheral | authentication、help/MyPage、update、cloud integration | core MVP後のrelease gateとする |
+| Printing | typed print job、preview、save、viewport captureを一つのPrint overlayへ投影 | Angularのselection-left / preview-right / actions-bottom構成を再現し、calculation transportとprint contractを共有しない |
+| Shell | top menu、optional header、ordered left navigation、full viewport、movable route panel、overlay host、ja/en/zh | FrameWebforJS screen compositionがgolden。generic DockPanel、persistent diagnostics、21-tab editorをdefault UIに残さない |
+| Peripheral | user login、authenticated MyPage/logout stateは初回release対象外。anonymous stateで見えるHelp、Contact/chat、language、file/action menu、その他のcontrolと遷移はparity対象 | login系だけをuser-approved exceptionとしてmanifestへ記録する。その他の可視controlは実装または追加のユーザー承認が必要で、黙って非表示・placeholder化しない |
 
 #### Files and Projects
+
+UI parity remediationの主要scope:
+
+- New screen-composition files:
+  - `FramePrintPDF/PDF_Manager/Shell/ScreenComposition/FrameWebShellControl.cs`
+  - `HeaderBarControl.cs`, `OptionalHeaderControl.cs`, `PrimaryNavigationControl.cs`, `WorkspaceControl.cs`
+  - `InputScreenHost.cs`, `ResultScreenHost.cs`
+  - `StartOverlayControl.cs`, `PresetOverlayControl.cs`, `PrintOverlayControl.cs`, `OperationOverlayControl.cs`
+  - `ScreenRouteState.cs`, `AngularScreenManifest.cs`
+  - `FramePrintPDF/PDF_Manager.UiTests/UiParity/**`
+- Modified/replaced UI files:
+  - `FramePrintPDF/PDF_Manager/Shell/MainForm.cs`
+  - `Shell/Contents/{NavigationContent,EditorContent,ProjectDocumentContent,DiagnosticsContent}.cs`
+  - `Shell/Printing/PrintUiModels.cs`
+  - `FramePrintPDF/PDF_Manager/Resources/Strings*.resx`
+  - `.agents/docs/plans/csharp-frameweb-client.md`
+  - `.agents/docs/research/csharp-frameweb-ui-parity.md`
+- Reference-only source: `FrameWebforJS/src/app/app-routing.module.ts`, `app.component.*`, `components/{menu,optional-header,doc-layout,start-menu,preset,three,input,result,print}/**`.
+
+The original project list below records the completed Step 0-8 foundations; it is retained as history, not as a list of missing files.
 
 - New files/projects:
   - `FramePrintPDF/PDF_Manager/Program.cs`
@@ -212,42 +238,148 @@ PDF_Manager.Core --HTTP--> FrameWeb (Python FEM)
 - [x] Replace `PrintInput` / `PrintData` dictionaries with typed `PrintJob`, page-section, table, diagram, result, and viewport-capture models.
 - [x] Replace the vulnerable legacy PdfSharpCore/ImageSharp graph, initialize the selected font resolver once, make export concurrency explicit, preserve original exception types/causes, and enforce encoded/decompressed/image-dimension/page/work limits before allocation.
 - [x] Implement preview, page count, input tables, displacement/reaction/section-force tables, load/model/result diagrams, scale/layout options, and file export from the desktop app.
-- [x] Decide whether `FramePrintAzure` is removed or rebuilt against `PDF_Manager.Printing`; do not let the desktop executable become an Azure dependency. Decision: retire it during the Step 9 cutover instead of rebuilding a second print API.
+- [x] Decide whether `FramePrintAzure` is removed or rebuilt against `PDF_Manager.Printing`; do not let the desktop executable become an Azure dependency. Decision: retire it during the Step 10 cutover instead of rebuilding a second print API.
 
 **Verification**: pure layout tests cover pagination and page geometry; generated PDFs pass parse/text/page assertions; representative rendered pages match approved goldens; repeated/parallel export follows the chosen concurrency policy; oversized/compression-amplified/image-bomb inputs fail before expensive work; shippable project graphs have no known High/Critical package advisory; no old base64/comma-byte print endpoint is required by the desktop app.
 
-**Verification result**: immutable `PrintJob`/page/table/diagram/result/capture models produce one authoritative page plan consumed by preview and export. The desktop captures all 21 editor tables plus Moving Loads in stable order, separates model/load/result diagrams, and supports static/nonlinear/modal/derived/moving result selections. Official PDFsharp 6.2.4 replaces the typed product graph's legacy PdfSharpCore/ImageSharp path; process-wide export is serialized, installed Windows fonts are resolved lazily per language under bounded source-size checks, and no restricted font binary is bundled. A3/A4、portrait/landscape、margins、scale、page numbers、table pagination、grapheme-safe clipping、full selectable preview text、shared whole-document budgets、atomic save、exception provenanceを検証した。両Release solution buildは0 warnings/errors、両solution testsは567/567 PASS（Core 272、Printing 73、Rendering 56、LocalRuntime 14、UI 152）。ownershipはoverlap 0 / unowned 0 / idle 0、AgentOnlyは`overall=pass`。最終reviewはSecurity Critical 0 / High 0 / Medium 0 / Low 1、Quality 0 / 0 / 0 / Low 0、Tests 0 / 0 / 0 / Low 4。coverage率は未計測で、CJKの構造・抽出検証はPASSしたがGUI viewerによる実glyph目視証跡は環境制約で未取得である。legacy hostは既知High 2 / Medium 2と再配布NO-GOを維持し、Step 9で廃止する。
+**Verification result**: immutable `PrintJob`/page/table/diagram/result/capture models produce one authoritative page plan consumed by preview and export. The desktop captures all 21 editor tables plus Moving Loads in stable order, separates model/load/result diagrams, and supports static/nonlinear/modal/derived/moving result selections. Official PDFsharp 6.2.4 replaces the typed product graph's legacy PdfSharpCore/ImageSharp path; process-wide export is serialized, installed Windows fonts are resolved lazily per language under bounded source-size checks, and no restricted font binary is bundled. A3/A4、portrait/landscape、margins、scale、page numbers、table pagination、grapheme-safe clipping、full selectable preview text、shared whole-document budgets、atomic save、exception provenanceを検証した。両Release solution buildは0 warnings/errors、両solution testsは567/567 PASS（Core 272、Printing 73、Rendering 56、LocalRuntime 14、UI 152）。ownershipはoverlap 0 / unowned 0 / idle 0、AgentOnlyは`overall=pass`。最終reviewはSecurity Critical 0 / High 0 / Medium 0 / Low 1、Quality 0 / 0 / 0 / Low 0、Tests 0 / 0 / 0 / Low 4。coverage率は未計測で、CJKの構造・抽出検証はPASSしたがGUI viewerによる実glyph目視証跡は環境制約で未取得である。legacy hostは既知High 2 / Medium 2と再配布NO-GOを維持し、Step 10で廃止する。
 
-#### Step 9: Production integration, parity sign-off, and cutover
+#### Step 9: Remediate screen-composition parity before production integration
 
-- [ ] Complete production authentication after selecting one provider; keep tokens out of files/logs and inject authorization only at the HTTP boundary. Any retained Azure print endpoint must be non-anonymous, POST-only, bounded by request/decompression/page/image/time/concurrency limits, and cancellation-aware before it may be deployed.
-- [ ] Choose installer/update strategy, per-user settings location, crash/diagnostic policy, backend endpoint discovery, offline/local-mode behavior, and signed release packaging.
-- [ ] Execute a scenario parity matrix against `FrameWebforJS`: file workflows, every editor, every viewport mode, calculation, first/last case, nonlinear/modal navigation, derived results, print selection, three languages, cancellation, and error recovery.
-- [ ] Only after the matrix passes, change `FrameWeb.Startup` and release documentation to make the C# desktop application the supported entrypoint and stop launching/redirecting to Angular.
-- [ ] Remove or archive Angular/Electron production packaging and the obsolete manual print harness/API only after their accepted behavior has automated C# coverage.
+This step reopens the visible portions of Steps 3/5/6/7/8. Their typed and lifecycle foundations remain complete; their screen-composition acceptance does not.
 
-**Verification**: signed clean-machine install launches without Node/Electron, manages Python lifecycle, completes the representative end-to-end matrix, produces no orphan processes, and passes `dotnet test FrameWeb.sln`, `dotnet build FrameWeb.sln`, relevant Python contract tests, and `& .agents/check.ps1`.
+##### 9.0 Freeze the Angular manifest and reference captures
+
+- [ ] Add the versioned manifest at `FramePrintPDF/PDF_Manager.UiTests/UiParity/Manifest/framewebforjs-screen-manifest.v1.json`, its schema beside it, canonical typed fixtures under `UiParity/Fixtures/`, and Angular references under `UiParity/References/Angular/`. Each scenario ID binds fixture, route/outlet/header state, selection, language, logical client size, DPI, theme/font metadata, and expected capture path.
+- [ ] Cover all 14 input routes, 9 result routes, Start/Preset/Print overlays, shared shell, optional-header substates, nested print states, every visible menu/control, conditional field/control branch, and busy/confirm/error/cancel state. Record control/field order, grouping, default/read-only/conditional visibility, navigation enablement, transitions, actions, and source locations for every item.
+- [ ] Independently extract the source inventory from Angular routing, shell/outlet/header declarations, route templates, shared Sheet and typed column descriptors, menu templates/actions, and nested Print components. Require exact key-set equality from every independently discovered route/state/outlet/header/menu/control/field/conditional branch to either one C# implementation item or one explicitly user-approved exception. Missing, duplicate, extra, and many-to-zero mappings fail; a manifest entry cannot prove its own completeness.
+- [ ] Capture Angular and current C# references at 1200x800 logical client / 100% DPI. Add 1024x768 / 100% DPI and 1440x900 / 150% DPI during responsive closeout. Use Windows light theme and record the actual OS, scale, font, theme, fixture hash, route/state, and capture tool with each image.
+- [ ] Compare client areas only. Exclude OS non-client chrome, pointer, caret blink, and animated timestamps. Require exact hierarchy, z-order, visible/enabled/text/state values and logical control bounds within 1 logical pixel for DPI rounding. For non-GL image regions allow at most 8/255 per-channel delta and 0.5% mismatched pixels after a one-physical-pixel text/edge antialiasing mask. Verify the GL scene with existing renderer goldens while parity captures assert its bounds, clipping, overlays, and surrounding composition; do not require Angular WebGL and OpenGL raster bytes to match.
+
+**Verification**: schema validation, Angular-inventory/manifest bidirectional set equality at route/state and field/control granularity, fixture/hash validation, metadata validation, and reference-image existence all pass. Mutation tests prove that a removed/duplicated/extra route, conditional field, menu action, and nested-print control, an unapproved exclusion, and an over-threshold geometry/pixel change each fail. Missing browser/native capture capability is a failed gate, not a waived gate.
+
+##### 9.1 Implement UI-independent route and screen state
+
+- [ ] Add `ScreenRouteState`, `AngularScreenManifest`, and a deterministic route controller for navigation order, contextual header state, overlay state, calculation enablement, dimension, paging, and invalid transitions.
+- [ ] Keep `ProjectDocument`, result coordinates, edit transactions, and services out of WinForms event handlers except through typed commands/state publication.
+
+**Verification**: unit tests cover navigation order, results-disabled-before-calculation, 2D/3D state, all contextual header transitions, overlay exclusivity/focus, and rejection of invalid route/state combinations.
+
+##### 9.2 Replace the common shell
+
+- [ ] Build `FrameWebShellControl` with top menu, optional header, ordered left navigation, full viewport workspace, route-panel host, and overlay host; connect it from `MainForm`.
+- [ ] Reproduce every control visible in the anonymous Angular menu, including Help, Contact/chat, language, and source-discovered file/action controls. Preserve their visible ordering, enabled state, focus/accessibility names, and transitions; external navigation uses one allow-listed typed launcher and surfaces cancellation/failure safely.
+- [ ] Make `WorkspaceControl` the sole visible viewport and OpenGL-context owner. Refactor `ProjectDocumentContent` into non-visual typed coordination services or delete it; route panels and overlays must never create a second renderer, GL context, selection subscription, or result publisher.
+- [ ] Connect the existing serialized document transition, captured-revision publication, dirty-close confirmation, cancellation, bounded shutdown, and exception mapping at the new composition root. Route changes and overlay open/close reuse the current viewport and cannot publish work for an obsolete document revision.
+- [ ] Stop opening Navigation/Editor/Diagnostics dock panes in the default composition. Retain only non-visible internal lifecycle helpers that still have a matching responsibility.
+
+**Verification**: STA UI tests assert hierarchy, z-order, menu/control order and actions, default visibility, focus/accessibility names, navigation enablement, and route-panel/viewport geometry. Help and Contact/chat success/cancel/failure paths use only allow-listed targets. Repeated route/overlay/document transitions prove one live viewport/context and one subscription/publication path, reject stale revisions, preserve cancellation semantics, and return renderer/subscription/resource counters to zero after close. Replace four-pane assertions with stronger parity assertions.
+
+##### 9.3 Implement document commands plus Start and Preset overlays
+
+- [ ] Reproduce New/Open/Preset tiles, the four typed presets, close/cancel transitions, keyboard focus, and failure preservation using existing document services.
+- [ ] Wire top-menu New, Open, Save, Save As, and Close through the serialized transition boundary. Reproduce dirty confirmation choices, cancel, invalid/open/save failure preservation, atomic save, and close/shutdown behavior without exposing the old docking shell.
+
+**Verification**: overlay structure, focus order, new/open/preset identity, Save/Save As/Close, clean and dirty paths, each confirmation choice, cancel, invalid file, save failure, revision race, and state-preservation tests pass at all reference sizes.
+
+##### 9.4 Approve the representative input slice
+
+- [ ] Implement Elements, Nodes, and Supports as route-specific screens over existing edit transactions, grid controller, clipboard, undo/redo, and selection sync.
+- [ ] Match 2D/3D visibility, field order, group headers, units, defaults/read-only behavior, scroll, resize, drag, and viewport overlap.
+
+**Verification**: structural tests, edit behavior tests, and same-size captures pass. A side-by-side Angular/C# review of this slice is required before propagating the pattern.
+
+##### 9.5 Complete structural input routes
+
+- [ ] Implement Members/Rigid Zone contextual switching plus Panel, Joints, Notice Points, Member Springs, and their set-management surfaces.
+- [ ] Map every existing typed table to one explicit route/state; remove the generic 21-tab user surface when no longer referenced.
+
+**Verification**: route-by-route field/group/visibility/pager tests and manifest coverage prove that no typed surface is orphaned and no extra default tab is exposed.
+
+##### 9.6 Complete load and derived-definition inputs
+
+- [ ] Implement Load Name/Load Strength, nodal/member/prescribed/moving loads, moving pitch, and DEFINE/COMBINE/PICKUP contextual navigation.
+
+**Verification**: contextual transitions, paging, moving-only controls, atomic multi-row edits, validation failure preservation, keyboard, clipboard, and undo/redo pass.
+
+##### 9.7 Implement basic result screen families
+
+- [ ] Implement Displacement, Reaction, and Section Force categories with Basic/COMBINE/PICKUP substates, case/direction paging, result table, extrema, and viewport sync.
+
+**Verification**: calculation precondition, first/last case, category/substate order, field/group order, selection/extrema sync, malformed result rejection, and route captures pass.
+
+##### 9.8 Integrate nonlinear, modal, moving, and derived states
+
+- [ ] Place nonlinear accepted steps, modal modes, moving parent/child pages, and derived results in the same reference result shell. Use the optional-header pager area and explicit state labels; do not introduce a second shell.
+
+**Verification**: every accepted nonlinear/modal state, moving order/provenance/extrema, static-only derived rejection, and failure-state preservation pass against existing result fixtures.
+
+##### 9.9 Replace print dialogs with the Print overlay
+
+- [ ] Project the existing typed print plan into one selection-left / preview-right / actions-bottom overlay and retain the same authoritative preview/export plan, budgets, atomic save, and exception provenance.
+
+**Verification**: selection → preview → page navigation → PDF and cancel/failure preservation pass together with existing PDF structural/text/image goldens.
+
+##### 9.10 Complete operation overlays, localization, and responsive behavior
+
+- [ ] Implement busy, confirm, error, and cancel overlays; close ja/en/zh clipping, keyboard/focus, accessibility names, resize/scroll, DPI, and route-panel drag/resize.
+- [ ] Delete unreachable default docking/layout UI, persistent diagnostics UI, old print dialogs, obsolete resources, and composition-only tests. Do not create backup copies or compatibility shims.
+
+**Verification**: three-language no-clipping captures, focus/keyboard tests, reference-size/DPI captures, invalid/empty/populated/error/cancel states, resource/lifecycle counters, and obsolete-composition non-reachability pass.
+
+##### 9.11 Sign off screen parity
+
+- [ ] Execute the complete source-derived matrix and obtain user visual approval. C# self-generated images alone are not an acceptable golden.
+- [ ] Run the existing typed-domain, rendering, result, printing, local-runtime, and solution gates to prove the UI replacement did not regress the completed foundations.
+
+**Verification**: both solutions build and test serially, the UI parity suite passes, relevant Python contract tests pass, `git diff --check` passes, and `& .agents/check.ps1` passes for the changed scope. Production integration remains blocked until this gate is explicitly signed off.
+
+#### Step 10: Production integration and cutover
+
+##### 10.0 Freeze release decisions
+
+- [ ] Ship the first release without user login or an external identity provider. Retain only the private loopback bearer and Windows Job/listener ownership boundary.
+- [ ] Before packaging changes, decide and record installer/update strategy, per-user settings location, crash/diagnostic policy, backend discovery, offline/local-mode behavior, signing ownership, and whether `FrameWebforJS` remains a read-only reference, is archived, or is deleted.
+
+**Verification**: every release decision has one durable design record, owner, and executable acceptance check; packaging and cutover tasks remain blocked while any required decision is unset.
+
+##### 10.1 Build and verify the release candidate
+
+- [ ] Implement signed packaging and add clean-machine, upgrade/uninstall, SBOM, forbidden-file/font, dependency advisory, signed-artifact, Python lifecycle, offline/error, and orphan-process verification.
+
+**Verification**: a signed clean-machine candidate launches without Node/Electron, manages Python lifecycle, completes the approved end-to-end matrix, contains no forbidden assets or legacy host graph, and leaves no orphan process.
+
+##### 10.2 Switch the supported entrypoint and delete legacy hosts
+
+- [ ] Only after Step 9 sign-off and Step 10.1 clean-machine PASS, change `FrameWeb.Startup` and release documentation to make the C# desktop the supported entrypoint and stop launching/redirecting to Angular.
+- [ ] In the same cutover slice, retire `FramePrintAzure`, `PDF_Manager.LegacyPrinting`, the legacy local print endpoint, `PDF_Test` / `PDF_Test_CLI`, obsolete manual print APIs, and unreachable packaging paths rather than maintaining compatibility.
+
+**Verification**: repository/solution/package scans prove the legacy host graph and forbidden artifacts are absent; Startup reaches only the C# supported path; `dotnet test FrameWeb.sln`, `dotnet build FrameWeb.sln`, relevant Python contract tests, and `& .agents/check.ps1` pass.
 
 ### Risks & Considerations
 
 - **THREE provenance and modernization**: `isasPrint/THREE` records MIT provenance, but shader/font/texture/transitive licenses need separate verification. Gate source import on Step 0; prefer a minimal owned adapter over copying all 289 vendored files.
 - **OpenTK generation gap**: sample code targets OpenTK 3.3.3/.NET Framework 4.8. A modern OpenTK port may change GLControl, context, input, shader, and disposal APIs. Prove it with a real-context spike before architecture lock-in.
 - **Lifecycle leaks**: the sample's `Application.Idle` loop, repeated Load subscription, non-disposable controls, and incomplete teardown can cause duplicate work and GPU leaks. Render on invalidation and test explicit disposal order.
-- **Docking performance and identity**: do not inherit `DockingMdi`, maximized MDI children, menu merge, caption dispatch, or CLR type persistence. Use DockingWindow-style panes and stable `DocumentKey` identities.
-- **Scope size**: full FrameWebforJS parity spans many editors, result modes, and integrations. The Step 4 vertical MVP is a mandatory checkpoint; later phases may proceed only with the parity matrix kept current.
+- **Obsolete layout tests**: current tests explicitly require the four dock regions and one 21-tab editor. Replace those composition assertions with manifest-backed parity assertions while retaining their lifecycle, cancellation, and state-preservation coverage; do not delete tests merely to obtain green results.
+- **Scope size**: full FrameWebforJS parity spans 14 input routes, 9 result routes, overlays, three languages, and responsive states. The representative Elements/Nodes/Supports slice is the mandatory visual checkpoint before breadth expansion.
+- **Reference capture availability**: the planning environment could start Angular but exposed no browser/native-app UI surface. Fixed-size/DPI capture is therefore Step 9.0's hard gate; source inspection cannot substitute for visual acceptance.
+- **Visual determinism**: text rasterization and OpenGL anti-aliasing vary by DPI, font, and GPU. Require exact hierarchy/control geometry/state, source-derived content, bounded region/pixel comparison, and side-by-side human approval rather than a brittle whole-window byte hash.
 - **Contract drift**: C# must consume shared `AnalysisResultSet` schema/fixtures directly. Do not fork DTO semantics or create a UI-specific backend response.
 - **Input contract**: this plan creates a new persisted C# document but keeps the Python calculation input meaning. Request serialization needs golden tests against Python before UI breadth expands.
-- **Printing model**: current PDF code mixes input, results, screenshots, and presentation in untyped dictionaries. Characterize useful layout behavior before deletion, but do not preserve the old public API.
+- **Printing presentation**: the typed PDF model is complete, but its current setup/preview dialogs are not composition-parity surfaces. Reuse the immutable plan and exporter behind one overlay; do not duplicate print state or preserve the old dialogs.
 - **Global PDF state**: official PDFsharpのprocess-global font stateは一度だけ構成し、typed export/preview PDF workはprocess-wide semaphoreで直列化する。言語別fontは必要時だけboundedに解決する。
 - **Startup ownership**: desktop, startup host, Azure print, and Python service currently overlap. Give the desktop path exactly one owner for process lifetime and leave cloud hosting behind explicit interfaces.
 - **Canonical gate debt**: the post-Step-1 full repository check in `.agents/logs/check-20260920T035935489Z-32252.log` completed with Python and Angular failures outside the C# diff. Keep those failures separate from task-scoped validation, but do not claim repository-wide green until they are fixed or explicitly baselined.
 - **Solution coverage**: Step 0/1のdesktop product、Core、Rendering、typed Printing、LegacyPrinting、probe、4 test projectsは両solutionへ登録済みである。以後はsolution-level build/testを受入証拠にする。
-- **Temporary legacy print bridge**: desktopのtyped printing移行はStep 8で完了し、新製品graphは公式PDFsharp 6.2.4のみを使う。`PDF_Manager.LegacyPrinting` は既存Startup/Azure経路の隔離物としてだけ残り、desktop shellは参照しない。bridge DLLには制限fontと脆弱なImageSharp 1.0.4が残り、匿名かつ無制限のlegacy処理も未解消なので公開・配布は引き続きNO-GOである。Step 9 cutoverで `FramePrintAzure`、legacy local print surface、manual harness/APIとともに廃止する。
-- **Review availability**: two bounded nested Codex decomposition attempts were unusable: the first returned only already-resolved questions, and the allowed retry timed out with an unrelated plan mixed into its partial response. This document therefore relies on direct repository evidence and three completed read-only collaborator audits; it must not be reported as nested-Codex PASS.
+- **Temporary legacy print bridge**: desktopのtyped printing移行はStep 8で完了し、新製品graphは公式PDFsharp 6.2.4のみを使う。`PDF_Manager.LegacyPrinting` は既存Startup/Azure経路の隔離物としてだけ残り、desktop shellは参照しない。bridge DLLには制限fontと脆弱なImageSharp 1.0.4が残り、匿名かつ無制限のlegacy処理も未解消なので公開・配布は引き続きNO-GOである。Step 10 cutoverで `FramePrintAzure`、legacy local print surface、manual harness/APIとともに廃止する。
+- **No compatibility or backups**: the user explicitly excludes backward compatibility and backup artifacts. Use version control and focused tests as recovery, delete obsolete UI only after its replacement slice passes, and never create `.bak`, duplicate legacy adapters, or hidden fallback screens.
+- **Plan review**: the 2026-09-21 read-only Codex decomposition supports a manifest-first, shell-first, representative-slice delivery order. After two revision rounds closed visual-comparison, manifest-completeness, document-command, ownership/lifecycle, cutover-order, and visible-menu gaps, final read-only adequacy validation returned PASS with no remaining critical omission or ordering conflict.
 
 ### Open Questions
 
-- Which production authentication provider should the C# app use: Microsoft Entra/B2C, Keycloak, another provider, or no login for the first release? This does not block Steps 0-8 but blocks production sign-off in Step 9.
-- Should the final distribution use MSIX, a traditional installer, or another signed packaging/update channel?
-- After parity sign-off, should `FrameWebforJS` remain as a reference implementation, be archived outside the supported solution, or be deleted?
-- Are chat, Help/MyPage links, cloud document storage, and automatic update required for the first production release, or may they follow the engineering-analysis MVP?
+- Which signed installer/update channel should Step 10 use: MSIX, a traditional installer, or another managed channel? This does not block UI parity remediation.
+- After parity sign-off, should `FrameWebforJS` remain as a read-only reference implementation, be archived outside the supported product, or be deleted? No decision is needed before Step 10.
+- Every control visible in the reference anonymous Angular state, including Help and Contact/chat, is part of the first parity implementation with its visible state and transition. Source discovery decides whether cloud-document or update controls exist; if visible, they remain in scope unless the user explicitly approves a manifest exception. Production login and authenticated MyPage/logout are the only approved visual/behavioral exception for the first release.
+
+Resolved for implementation: no production login; no backward compatibility or backup artifacts; primary comparison at 1200x800 logical client / 100% DPI; responsive checks at 1024x768 / 100% and 1440x900 / 150%; exact hierarchy, control geometry/state, and interaction parity with bounded visual comparison rather than brittle whole-window byte equality. Nonlinear/modal/moving states use the same optional-header/result shell and require approval with the first result slice.

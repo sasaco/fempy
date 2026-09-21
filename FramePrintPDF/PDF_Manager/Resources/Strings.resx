@@ -279,4 +279,29 @@
   <data name="PrintFontUnavailableEnglish" xml:space="preserve"><value>The English print font is not available on this computer.</value></data>
   <data name="PrintFontUnavailableJapanese" xml:space="preserve"><value>The Japanese print font is not available on this computer.</value></data>
   <data name="PrintFontUnavailableChinese" xml:space="preserve"><value>The Simplified Chinese print font is not available on this computer.</value></data>
+  <data name="SurfaceElements" xml:space="preserve"><value>Elements</value></data>
+  <data name="SurfaceLoadNames" xml:space="preserve"><value>Load name</value></data>
+  <data name="SurfaceLoadStrength" xml:space="preserve"><value>Load strength</value></data>
+  <data name="SurfaceGroupTranslation" xml:space="preserve"><value>Translation</value></data>
+  <data name="SurfaceGroupRotation" xml:space="preserve"><value>Rotation</value></data>
+  <data name="SurfaceResultBasic" xml:space="preserve"><value>Basic</value></data>
+  <data name="SurfaceResultCombine" xml:space="preserve"><value>COMBINE</value></data>
+  <data name="SurfaceResultPickup" xml:space="preserve"><value>PICKUP</value></data>
+  <data name="SurfaceStartMenu" xml:space="preserve"><value>Start menu</value></data>
+  <data name="SurfaceStartNewProject" xml:space="preserve"><value>New</value></data>
+  <data name="SurfaceStartOpenProject" xml:space="preserve"><value>Open file</value></data>
+  <data name="SurfaceStartOpenPreset" xml:space="preserve"><value>Open preset</value></data>
+  <data name="SurfacePreset" xml:space="preserve"><value>Preset</value></data>
+  <data name="SurfaceOpenPreset" xml:space="preserve"><value>Open</value></data>
+  <data name="SurfacePresetRamenViaduct" xml:space="preserve"><value>Ramen viaduct</value></data>
+  <data name="SurfacePresetConcreteTBeamBridge" xml:space="preserve"><value>Concrete T-beam bridge</value></data>
+  <data name="SurfacePresetRetainingWall" xml:space="preserve"><value>U-shaped retaining wall</value></data>
+  <data name="SurfacePresetPortalPier" xml:space="preserve"><value>Portal pier</value></data>
+  <data name="SurfacePresetRamenImage" type="System.Resources.ResXFileRef, System.Windows.Forms"><value>..\..\..\FrameWebforJS\src\assets\preset\thumbnail-image\Ramen.png;System.Drawing.Bitmap, System.Drawing.Common</value></data>
+  <data name="SurfacePresetConcreteTBeamImage" type="System.Resources.ResXFileRef, System.Windows.Forms"><value>..\..\..\FrameWebforJS\src\assets\preset\thumbnail-image\ConcreteT-beam.png;System.Drawing.Bitmap, System.Drawing.Common</value></data>
+  <data name="SurfacePresetRetainingWallImage" type="System.Resources.ResXFileRef, System.Windows.Forms"><value>..\..\..\FrameWebforJS\src\assets\preset\thumbnail-image\U-shapedWall.png;System.Drawing.Bitmap, System.Drawing.Common</value></data>
+  <data name="SurfacePresetPortalPierImage" type="System.Resources.ResXFileRef, System.Windows.Forms"><value>..\..\..\FrameWebforJS\src\assets\preset\thumbnail-image\PortalBracing.png;System.Drawing.Bitmap, System.Drawing.Common</value></data>
+  <data name="SurfaceExportPdf" xml:space="preserve"><value>PDF</value></data>
+  <data name="SurfaceConfirmTitle" xml:space="preserve"><value>Confirmation</value></data>
+  <data name="SurfaceOk" xml:space="preserve"><value>OK</value></data>
 </root>

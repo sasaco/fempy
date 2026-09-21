@@ -8,6 +8,8 @@ using PDF_Manager.Resources;
 using PDF_Manager.Shell;
 using PDF_Manager.Shell.Contents;
 using PDF_Manager.Shell.Printing;
+using PDF_Manager.Shell.ScreenComposition.Core;
+using PDF_Manager.Shell.ScreenComposition.Surfaces;
 using ViewportCapture = PDF_Manager.Printing.ViewportCapture;
 
 namespace PDF_Manager.UiTests;
@@ -15,7 +17,7 @@ namespace PDF_Manager.UiTests;
 public sealed class Step8DesktopPrintingAcceptanceTests
 {
     [Fact]
-    public void RealPreviewDialog_NavigatesPageSpecificTableAndDiagramRastersFromTheExportPlan()
+    public void PrintOverlay_NavigatesPageSpecificTableAndDiagramRastersFromTheExportPlan()
     {
         StaTestRunner.Run(() =>
         {
@@ -62,22 +64,21 @@ public sealed class Step8DesktopPrintingAcceptanceTests
                 .ToArray();
             Assert.NotEqual(previewHashes[0], previewHashes[1]);
 
-            using PDF_Manager.Shell.Printing.PrintPreviewDialog dialog = new(
-                new LocalizationService(UiLanguage.English),
-                new PrintPreviewState(preview));
-            dialog.Show();
+            using PrintOverlayControl overlay = new(new LocalizationService(UiLanguage.English));
+            overlay.SetPreview(new PrintPreviewState(preview));
+            overlay.Show();
             Application.DoEvents();
-            Assert.Equal(previewHashes[0], BitmapRgbHash(Assert.IsType<Bitmap>(dialog.PreviewImage.Image)));
-            Assert.Equal(0, dialog.CurrentState.SelectedPageIndex);
+            Assert.Equal(previewHashes[0], BitmapRgbHash(Assert.IsType<Bitmap>(overlay.PreviewImage.Image)));
+            Assert.Equal(0, Assert.IsType<PrintPreviewState>(overlay.CurrentPreview).SelectedPageIndex);
 
-            dialog.NextButton.PerformClick();
+            overlay.NextButton.PerformClick();
             Application.DoEvents();
 
-            Assert.Equal(1, dialog.CurrentState.SelectedPageIndex);
-            Assert.Equal(previewHashes[1], BitmapRgbHash(Assert.IsType<Bitmap>(dialog.PreviewImage.Image)));
-            Assert.Equal(preview.Pages[1].RenderedPageCapture.Width, dialog.PreviewImage.Image!.Width);
-            Assert.Equal(preview.Pages[1].RenderedPageCapture.Height, dialog.PreviewImage.Image.Height);
-            Assert.Contains("2", dialog.PageLabel.Text, StringComparison.Ordinal);
+            Assert.Equal(1, Assert.IsType<PrintPreviewState>(overlay.CurrentPreview).SelectedPageIndex);
+            Assert.Equal(previewHashes[1], BitmapRgbHash(Assert.IsType<Bitmap>(overlay.PreviewImage.Image)));
+            Assert.Equal(preview.Pages[1].RenderedPageCapture.Width, overlay.PreviewImage.Image!.Width);
+            Assert.Equal(preview.Pages[1].RenderedPageCapture.Height, overlay.PreviewImage.Image.Height);
+            Assert.Contains("2", overlay.PageLabel.Text, StringComparison.Ordinal);
             Assert.True(pdf.Length > 1_000);
         }, "Step 8 real page-specific print preview dialog", TimeSpan.FromSeconds(30));
     }
@@ -99,8 +100,7 @@ public sealed class Step8DesktopPrintingAcceptanceTests
                 using MainForm form = new(new MainFormServices(
                     printExporter: exporter,
                     localization: new LocalizationService(UiLanguage.English),
-                    dialogs: dialogs,
-                    layoutStore: new NoOpLayoutStore()));
+                    dialogs: dialogs));
                 form.SetDocument(ProjectDocumentPresets.CreateRepresentativeFrame());
 
                 Task operation = form.ExportPdfAsync();
@@ -140,7 +140,6 @@ public sealed class Step8DesktopPrintingAcceptanceTests
                     localization: new LocalizationService(UiLanguage.English),
                     dialogs: dialogs,
                     reportDiagnostic: diagnostics.Add,
-                    layoutStore: new NoOpLayoutStore(),
                     viewportCaptureProvider: new FixedCaptureProvider()));
                 form.SetDocument(ProjectDocumentPresets.CreateRepresentativeFrame());
 
@@ -150,7 +149,12 @@ public sealed class Step8DesktopPrintingAcceptanceTests
                 Assert.Equal([target], Directory.GetFiles(directory));
                 PrintExportException reported = Assert.IsType<PrintExportException>(Assert.Single(diagnostics));
                 Assert.Same(cause, reported.InnerException);
-                Assert.Single(dialogs.Errors);
+                Assert.Empty(dialogs.Errors);
+                Assert.Equal(ScreenOverlayKind.Alert, form.RouteController.State.Overlay);
+                OperationOverlayControl alert = Assert.IsType<OperationOverlayControl>(
+                    form.ScreenShell.OverlayHost.ActiveSurface);
+                Assert.Equal(ScreenOverlayKind.Alert, alert.Kind);
+                Assert.Equal(reported.UserMessage, alert.Message);
             }
             finally
             {
@@ -184,34 +188,35 @@ public sealed class Step8DesktopPrintingAcceptanceTests
                 PrintContentSection.InputTables,
                 PrintContentSection.ModelDiagram,
             ];
-            FakePrintDialogs printDialogs = new()
-            {
-                PageSetupResult = new PrintPageSetupSelection(settings, sections),
-            };
             RecordingPreviewExporter exporter = new(CreatePreview(sections));
             FakeShellDialogs shellDialogs = new();
             using MainForm form = new(new MainFormServices(
                 printExporter: exporter,
                 localization: new LocalizationService(uiLanguage),
                 dialogs: shellDialogs,
-                printDialogs: printDialogs,
-                layoutStore: new NoOpLayoutStore(),
                 viewportCaptureProvider: new FixedCaptureProvider()));
             form.SetDocument(ProjectDocumentPresets.CreateRepresentativeFrame());
 
-            Assert.True(form.ConfigurePrintPage());
-            Assert.Equal(settings, form.PrintSelection.PageSettings);
-            Assert.Equal(sections, form.PrintSelection.Sections);
-            Pump(form.RefreshPrintPreviewAsync(showDialog: true));
+            form.RouteController.ShowOverlay(ScreenOverlayKind.Print);
+            PrintOverlayControl overlay = Assert.IsType<PrintOverlayControl>(form.ScreenShell.OverlayHost.ActiveSurface);
+            overlay.SetSelection(new PrintPageSetupSelection(settings, sections));
+            NumericUpDown scale = Assert.Single(
+                Descendants(overlay).OfType<NumericUpDown>(),
+                control => control.Name == "PrintOverlayScale");
+            scale.Value = 126;
+            Pump(form.WhenCurrentOperationIdleAsync());
 
             PrintExportRequest request = Assert.Single(exporter.Requests);
             Assert.Equal(expectedLanguage, request.Language);
-            Assert.Equal(settings, request.PageSettings);
+            Assert.Equal(1.26, request.PageSettings.Scale);
             Assert.Equal(sections, request.Sections);
             PrintPreviewState preview = Assert.IsType<PrintPreviewState>(form.CurrentPrintPreview);
             Assert.Equal(3, preview.PageCount);
             Assert.Equal(0, preview.SelectedPageIndex);
-            Assert.Same(preview, Assert.Single(printDialogs.ShownPreviews));
+            PrintOverlayControl refreshedOverlay = Assert.IsType<PrintOverlayControl>(
+                form.ScreenShell.OverlayHost.ActiveSurface);
+            Assert.NotSame(overlay, refreshedOverlay);
+            Assert.Same(preview, refreshedOverlay.CurrentPreview);
             Assert.True(form.SelectPrintPreviewPage(2));
             PrintPreviewState selected = Assert.IsType<PrintPreviewState>(form.CurrentPrintPreview);
             Assert.Equal(2, selected.SelectedPageIndex);
@@ -223,7 +228,11 @@ public sealed class Step8DesktopPrintingAcceptanceTests
             Pump(form.RefreshPrintPreviewAsync());
 
             Assert.Same(selected, form.CurrentPrintPreview);
-            Assert.Equal("preview failed", Assert.Single(shellDialogs.Errors).Message);
+            Assert.Empty(shellDialogs.Errors);
+            OperationOverlayControl previewAlert = Assert.IsType<OperationOverlayControl>(
+                form.ScreenShell.OverlayHost.ActiveSurface);
+            Assert.Equal(ScreenOverlayKind.Alert, previewAlert.Kind);
+            Assert.Equal("preview failed", previewAlert.Message);
         }, $"Step 8 {uiLanguage} desktop printing acceptance");
     }
 
@@ -342,6 +351,18 @@ public sealed class Step8DesktopPrintingAcceptanceTests
         }
     }
 
+    private static IEnumerable<Control> Descendants(Control root)
+    {
+        foreach (Control child in root.Controls)
+        {
+            yield return child;
+            foreach (Control descendant in Descendants(child))
+            {
+                yield return descendant;
+            }
+        }
+    }
+
     private sealed class RecordingPreviewExporter(PrintPreviewResult first) : IPrintExporter
     {
         private Task<PrintPreviewResult> _nextPreview = Task.FromResult(first);
@@ -409,34 +430,10 @@ public sealed class Step8DesktopPrintingAcceptanceTests
         }
     }
 
-    private sealed class FakePrintDialogs : IPrintDialogService
-    {
-        public PrintPageSetupSelection? PageSetupResult { get; init; }
-
-        public List<PrintPreviewState> ShownPreviews { get; } = [];
-
-        public PrintPageSetupSelection? ShowPageSetup(
-            IWin32Window owner,
-            LocalizationService localization,
-            PrintPageSetupSelection current) => PageSetupResult;
-
-        public void ShowPreview(
-            IWin32Window owner,
-            LocalizationService localization,
-            PrintPreviewState preview) => ShownPreviews.Add(preview);
-    }
-
     private sealed class FixedCaptureProvider : IViewportCaptureProvider
     {
         private static readonly ViewportCapture CaptureValue = new(2, 2, new byte[12]);
 
         public ViewportCapture Capture(ProjectDocumentContent documentHost) => CaptureValue;
-    }
-
-    private sealed class NoOpLayoutStore : IShellLayoutStore
-    {
-        public Task<string?> LoadAsync(CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
-
-        public Task SaveAsync(string json, CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 }

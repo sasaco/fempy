@@ -13,6 +13,13 @@ using WeifenLuo.WinFormsUI.Docking;
 
 namespace PDF_Manager.Shell.Contents;
 
+public sealed class ResultPageChangedEventArgs(int pageIndex, int pageCount) : EventArgs
+{
+    public int PageIndex { get; } = pageIndex;
+
+    public int PageCount { get; } = pageCount;
+}
+
 public sealed class ProjectDocumentContent : ShellDockContent
 {
     public const int MaximumPngDimension = 8_192;
@@ -186,6 +193,8 @@ public sealed class ProjectDocumentContent : ShellDockContent
     private bool _updatingResultSelection;
     private bool _flushPosted;
     private bool _resetCameraAfterProjection;
+    private int _publishedResultPageIndex = int.MinValue;
+    private int _publishedResultPageCount = int.MinValue;
     private bool _disposed;
 
     public ProjectDocumentContent(DocumentKey contentKey, LocalizationService localization)
@@ -254,6 +263,7 @@ public sealed class ProjectDocumentContent : ShellDockContent
     public event EventHandler<EditorValidationEventArgs>? ViewportFailed;
     public event EventHandler<ViewportOperationFailedEventArgs>? ViewportOperationFailed;
     public event EventHandler<ViewportHoverChangedEventArgs>? HoverChanged;
+    public event EventHandler<ResultPageChangedEventArgs>? ResultPageChanged;
     public ProjectDocument? Document => _document;
     public AnalysisResultSet? ResultSet => _resultSet;
     public Panel ViewportHost => _viewport;
@@ -270,6 +280,7 @@ public sealed class ProjectDocumentContent : ShellDockContent
     public ToolStripButton ResultCsvExportButton => _resultCsv;
     public ToolStripButton ResultPickupExportButton => _pickupCsv;
     public Label ResultPresentationErrorLabel => _resultPresentationError;
+    public ToolStrip ViewportToolbar => _toolbar;
     public ViewportProjection Projection => _renderer.Projection;
     public ViewportCameraState Camera => _renderer.Camera;
     public ViewportCameraPolicy CameraPolicy => _renderer.CameraPolicy;
@@ -345,6 +356,68 @@ public sealed class ProjectDocumentContent : ShellDockContent
     public IReadOnlyDictionary<SceneLayerKind, long> LayerInvalidationCounts =>
         new ReadOnlyDictionary<SceneLayerKind, long>(new Dictionary<SceneLayerKind, long>(_layerInvalidationCounts));
 
+    public Control DetachViewportHost()
+    {
+        // The FrameWeb shell renders status and failures through its dedicated
+        // overlays. The legacy in-viewport summary/error labels have no Angular
+        // counterpart and must not survive when the viewport changes owner.
+        _viewport.Controls.Remove(_summary);
+        _viewport.Controls.Remove(_renderFailure);
+        _viewport.Parent?.Controls.Remove(_viewport);
+        _viewport.Dock = DockStyle.Fill;
+        return _viewport;
+    }
+
+    public void AttachResultGrid(Control parent)
+    {
+        ArgumentNullException.ThrowIfNull(parent);
+        _resultGrid.Parent?.Controls.Remove(_resultGrid);
+        _resultPresentationError.Parent?.Controls.Remove(_resultPresentationError);
+        _resultGrid.Dock = DockStyle.Fill;
+        _resultPresentationError.Dock = DockStyle.Top;
+        parent.Controls.Add(_resultGrid);
+        parent.Controls.Add(_resultPresentationError);
+        _resultPresentationError.BringToFront();
+    }
+
+    public void ParkResultGrid()
+    {
+        _resultGrid.Parent?.Controls.Remove(_resultGrid);
+        _resultPresentationError.Parent?.Controls.Remove(_resultPresentationError);
+        _layout.Panel2.Controls.Add(_resultGrid);
+        _layout.Panel2.Controls.Add(_resultPresentationError);
+        _resultPresentationError.BringToFront();
+    }
+
+    public bool SelectResultTable(int index)
+    {
+        if (index < 0 || index >= _resultTableSelector.Items.Count)
+        {
+            return false;
+        }
+
+        _resultTableSelector.SelectedIndex = index;
+        return true;
+    }
+
+    public bool SelectDerivedResult(DerivedResultKind? kind)
+    {
+        PresentedStaticResult? selected = kind is null
+            ? null
+            : _derivedResults.FirstOrDefault(result => result.Kind == kind);
+        if (kind is not null && selected is null)
+        {
+            return false;
+        }
+
+        _selectedDerivedResult = selected;
+        RefreshCurrentResultTables();
+        RefreshResultCoordinateItems();
+        RebuildResultTable();
+        QueueSceneUpdate(ViewportUpdateReason.Result);
+        return true;
+    }
+
     public void SetDocument(ProjectDocument? document) => SetDocument(document, resetCamera: false);
 
     public void SetDocument(ProjectDocument? document, bool resetCamera)
@@ -403,6 +476,17 @@ public sealed class ProjectDocumentContent : ShellDockContent
             RebuildResultTable();
             QueueSceneUpdate(ViewportUpdateReason.Result);
         }
+    }
+
+    public bool SelectResultPage(int pageIndex)
+    {
+        if (pageIndex < 0 || pageIndex >= _resultNavigator.PageCount)
+        {
+            return false;
+        }
+
+        ResultCoordinate coordinate = _resultNavigator.Coordinates[pageIndex];
+        return MoveResult(() => _resultNavigator.Select(coordinate));
     }
 
     public bool MoveToPreviousResult() => MoveResult(_resultNavigator.MovePrevious);
@@ -688,6 +772,8 @@ public sealed class ProjectDocumentContent : ShellDockContent
             _updateScheduler.Dispose();
             _renderer.Dispose();
             if (_viewport.Controls.Contains(_renderer.Control)) _viewport.Controls.Remove(_renderer.Control);
+            _summary.Dispose();
+            _renderFailure.Dispose();
         }
         base.Dispose(disposing);
     }
@@ -1125,6 +1211,21 @@ public sealed class ProjectDocumentContent : ShellDockContent
             Localization.Culture, Localization["ResultPage"],
             _resultNavigator.PageCount == 0 ? 0 : _resultNavigator.PageIndex + 1,
             _resultNavigator.PageCount);
+        PublishResultPageChanged();
+    }
+
+    private void PublishResultPageChanged()
+    {
+        int pageCount = _resultNavigator.PageCount;
+        int pageIndex = pageCount == 0 ? 0 : _resultNavigator.PageIndex;
+        if (_publishedResultPageIndex == pageIndex && _publishedResultPageCount == pageCount)
+        {
+            return;
+        }
+
+        _publishedResultPageIndex = pageIndex;
+        _publishedResultPageCount = pageCount;
+        ResultPageChanged?.Invoke(this, new ResultPageChangedEventArgs(pageIndex, pageCount));
     }
 
     private string DescribeResult(AnalysisResult result)

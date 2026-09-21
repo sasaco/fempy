@@ -4,6 +4,8 @@ using PDF_Manager.Core.Analysis;
 using PDF_Manager.Core.Documents;
 using PDF_Manager.Resources;
 using PDF_Manager.Shell;
+using PDF_Manager.Shell.ScreenComposition.Core;
+using PDF_Manager.Shell.ScreenComposition.Surfaces;
 
 namespace PDF_Manager.UiTests;
 
@@ -27,14 +29,17 @@ public sealed class MainFormCancellationClassificationTests
                 dialogs: dialogs,
                 reportDiagnostic: diagnostics.Add);
             form.Show();
-            WaitFor(form.WhenLayoutRestoredAsync());
             form.SetDocument(ShellCommandStateTests.CreateDocument(isDirty: false));
 
             WaitFor(form.ExecuteAnalysisAsync());
 
             Assert.Same(failure, Assert.Single(diagnostics));
-            Assert.Single(dialogs.Errors);
-            Assert.Equal("An unexpected error occurred.", form.DiagnosticsPane.StatusLabel.Text);
+            Assert.Empty(dialogs.Errors);
+            Assert.Equal("An unexpected error occurred.", form.CurrentStatusMessage);
+            Assert.Equal(ScreenOverlayKind.Alert, form.RouteController.State.Overlay);
+            OperationOverlayControl alert = Assert.IsType<OperationOverlayControl>(
+                form.ScreenShell.OverlayHost.ActiveSurface);
+            Assert.Equal(form.CurrentStatusMessage, alert.Message);
             Assert.False(form.IsOperationRunning);
 
             CloseAndWait(form);
@@ -57,13 +62,15 @@ public sealed class MainFormCancellationClassificationTests
                 dialogs: dialogs,
                 reportDiagnostic: diagnostics.Add);
             form.Show();
-            WaitFor(form.WhenLayoutRestoredAsync());
-
             WaitFor(form.OpenProjectAsync());
 
             Assert.Same(failure, Assert.Single(diagnostics));
-            Assert.Single(dialogs.Errors);
-            Assert.Equal("An unexpected error occurred.", form.DiagnosticsPane.StatusLabel.Text);
+            Assert.Empty(dialogs.Errors);
+            Assert.Equal("An unexpected error occurred.", form.CurrentStatusMessage);
+            Assert.Equal(ScreenOverlayKind.Alert, form.RouteController.State.Overlay);
+            OperationOverlayControl alert = Assert.IsType<OperationOverlayControl>(
+                form.ScreenShell.OverlayHost.ActiveSurface);
+            Assert.Equal(form.CurrentStatusMessage, alert.Message);
             Assert.Null(form.CurrentDocument);
 
             CloseAndWait(form);
@@ -83,7 +90,6 @@ public sealed class MainFormCancellationClassificationTests
                 dialogs: dialogs,
                 reportDiagnostic: diagnostics.Add);
             form.Show();
-            WaitFor(form.WhenLayoutRestoredAsync());
             form.SetDocument(ShellCommandStateTests.CreateDocument(isDirty: false));
             Task operation = form.ExecuteAnalysisAsync();
             PumpUntil(() => analysis.ObservedToken.CanBeCanceled);
@@ -94,7 +100,7 @@ public sealed class MainFormCancellationClassificationTests
             Assert.True(analysis.ObservedToken.IsCancellationRequested);
             Assert.Empty(diagnostics);
             Assert.Empty(dialogs.Errors);
-            Assert.Equal("The operation was canceled.", form.DiagnosticsPane.StatusLabel.Text);
+            Assert.Equal("The operation was canceled.", form.CurrentStatusMessage);
             Assert.False(form.IsOperationRunning);
 
             CloseAndWait(form);
@@ -107,7 +113,6 @@ public sealed class MainFormCancellationClassificationTests
         StaTestRunner.Run(() =>
         {
             NonCooperativeSaveProjectStore projectStore = new();
-            ImmediateLayoutStore layoutStore = new();
             FakeShellDialogs dialogs = new()
             {
                 CloseDecision = Shell.Lifecycle.DirtyDocumentCloseDecision.Save,
@@ -117,11 +122,9 @@ public sealed class MainFormCancellationClassificationTests
             MainForm form = CreateForm(
                 projectStore: projectStore,
                 dialogs: dialogs,
-                layoutStore: layoutStore,
                 reportDiagnostic: diagnostics.Add,
                 operationShutdownTimeout: TimeSpan.FromMilliseconds(80));
             form.Show();
-            WaitFor(form.WhenLayoutRestoredAsync());
             ProjectDocument original = ShellCommandStateTests.CreateDocument(isDirty: true);
             form.SetDocument(original);
             Stopwatch elapsed = Stopwatch.StartNew();
@@ -141,7 +144,6 @@ public sealed class MainFormCancellationClassificationTests
             Assert.True(projectStore.ObservedToken.IsCancellationRequested);
             Assert.Equal(1, projectStore.SaveCalls);
             Assert.Contains(diagnostics, static failure => failure is TimeoutException);
-            Assert.Equal(0, layoutStore.SaveCalls);
 
             projectStore.CompleteSave();
             WaitFor(form.WhenCurrentOperationIdleAsync());
@@ -153,41 +155,10 @@ public sealed class MainFormCancellationClassificationTests
         }, "Dirty close-save timeout", TimeSpan.FromSeconds(10));
     }
 
-    [Fact]
-    public void LayoutSaveTimeout_CancelsOwnedTokenDiagnosesAndPermitsClose()
-    {
-        StaTestRunner.Run(() =>
-        {
-            NonCooperativeLayoutStore layoutStore = new();
-            List<Exception> diagnostics = [];
-            MainForm form = CreateForm(
-                layoutStore: layoutStore,
-                reportDiagnostic: diagnostics.Add,
-                operationShutdownTimeout: TimeSpan.FromMilliseconds(80));
-            form.Show();
-            WaitFor(form.WhenLayoutRestoredAsync());
-            form.SetDocument(ShellCommandStateTests.CreateDocument(isDirty: false));
-            Stopwatch elapsed = Stopwatch.StartNew();
-
-            form.Close();
-            PumpUntil(() => form.IsDisposed, TimeSpan.FromSeconds(3));
-            elapsed.Stop();
-
-            Assert.InRange(elapsed.Elapsed, TimeSpan.FromMilliseconds(40), TimeSpan.FromSeconds(3));
-            Assert.Equal(1, layoutStore.SaveCalls);
-            Assert.True(layoutStore.ObservedToken.IsCancellationRequested);
-            Assert.Contains(diagnostics, static failure => failure is TimeoutException);
-
-            layoutStore.CompleteSave();
-            Application.DoEvents();
-        }, "Layout close-save timeout", TimeSpan.FromSeconds(10));
-    }
-
     private static MainForm CreateForm(
         IProjectStore? projectStore = null,
         IAnalysisClient? analysisClient = null,
         IShellDialogService? dialogs = null,
-        IShellLayoutStore? layoutStore = null,
         Action<Exception>? reportDiagnostic = null,
         TimeSpan? operationShutdownTimeout = null) => new(new MainFormServices(
             projectStore: projectStore ?? new FakeProjectStore(),
@@ -196,7 +167,6 @@ public sealed class MainFormCancellationClassificationTests
             localization: new LocalizationService(UiLanguage.English),
             dialogs: dialogs ?? new FakeShellDialogs(),
             reportDiagnostic: reportDiagnostic,
-            layoutStore: layoutStore ?? new ImmediateLayoutStore(),
             operationShutdownTimeout: operationShutdownTimeout));
 
     private static void CloseAndWait(MainForm form)
@@ -272,40 +242,4 @@ public sealed class MainFormCancellationClassificationTests
         internal void CompleteSave() => completion.TrySetResult(pendingDocument!.MarkSaved());
     }
 
-    private sealed class ImmediateLayoutStore : IShellLayoutStore
-    {
-        internal int SaveCalls { get; private set; }
-
-        public Task<string?> LoadAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult<string?>(null);
-
-        public Task SaveAsync(string json, CancellationToken cancellationToken = default)
-        {
-            SaveCalls++;
-            cancellationToken.ThrowIfCancellationRequested();
-            return Task.CompletedTask;
-        }
-    }
-
-    private sealed class NonCooperativeLayoutStore : IShellLayoutStore
-    {
-        private readonly TaskCompletionSource completion =
-            new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        internal CancellationToken ObservedToken { get; private set; }
-
-        internal int SaveCalls { get; private set; }
-
-        public Task<string?> LoadAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult<string?>(null);
-
-        public Task SaveAsync(string json, CancellationToken cancellationToken = default)
-        {
-            SaveCalls++;
-            ObservedToken = cancellationToken;
-            return completion.Task;
-        }
-
-        internal void CompleteSave() => completion.TrySetResult();
-    }
 }

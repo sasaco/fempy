@@ -4,6 +4,7 @@ using PDF_Manager.Core.Documents;
 using PDF_Manager.Printing;
 using PDF_Manager.Resources;
 using PDF_Manager.Shell.Printing;
+using PDF_Manager.Shell.ScreenComposition.Surfaces;
 using CoreLayoutChoice = PDF_Manager.Core.Abstractions.PrintLayoutChoice;
 using CorePageOrientation = PDF_Manager.Core.Abstractions.PrintPageOrientation;
 using CorePageSettings = PDF_Manager.Core.Abstractions.PrintPageSettings;
@@ -101,39 +102,34 @@ public sealed class Step8FinalPreviewTextAcceptanceTests
             Assert.NotEqual(selectedPage.TextContent, preview.Pages[adjacentIndex].TextContent);
             Assert.NotEqual(CaptureHash(selectedPage.RenderedPageCapture), CaptureHash(preview.Pages[adjacentIndex].RenderedPageCapture));
 
-            using PDF_Manager.Shell.Printing.PrintPreviewDialog dialog =
-                new(localization, new PrintPreviewState(preview, pageIndex));
-            dialog.Show();
+            using PrintOverlayControl overlay = new(localization);
+            overlay.SetPreview(new PrintPreviewState(preview, pageIndex));
+            overlay.Show();
             Application.DoEvents();
 
-            Assert.True(dialog.ContentTextBox.Multiline);
-            Assert.True(dialog.ContentTextBox.ReadOnly);
-            Assert.True(dialog.ContentTextBox.TabStop);
-            Assert.False(string.IsNullOrWhiteSpace(dialog.ContentTextBox.AccessibleName));
-            Assert.Equal(selectedPage.TextContent, dialog.ContentTextBox.Text);
-            Assert.Equal(selectedPage.TextContent, dialog.CurrentState.SelectedPageTextContent);
-            dialog.ContentTextBox.SelectAll();
-            Assert.Equal(dialog.ContentTextBox.Text.Length, dialog.ContentTextBox.SelectionLength);
+            PrintPreviewState overlayState = Assert.IsType<PrintPreviewState>(overlay.CurrentPreview);
+            Assert.Equal(selectedPage.TextContent, overlayState.SelectedPageTextContent);
             Assert.Equal(
                 CaptureHash(selectedPage.RenderedPageCapture),
-                BitmapHash(Assert.IsType<Bitmap>(dialog.PreviewImage.Image)));
+                BitmapHash(Assert.IsType<Bitmap>(overlay.PreviewImage.Image)));
 
             if (adjacentIndex > pageIndex)
             {
-                dialog.NextButton.PerformClick();
+                overlay.NextButton.PerformClick();
             }
             else
             {
-                dialog.PreviousButton.PerformClick();
+                overlay.PreviousButton.PerformClick();
             }
 
             Application.DoEvents();
-            Assert.Equal(adjacentIndex, dialog.CurrentState.SelectedPageIndex);
-            Assert.Equal(preview.Pages[adjacentIndex].TextContent, dialog.ContentTextBox.Text);
-            Assert.NotEqual(selectedPage.TextContent, dialog.ContentTextBox.Text);
+            PrintPreviewState adjacentState = Assert.IsType<PrintPreviewState>(overlay.CurrentPreview);
+            Assert.Equal(adjacentIndex, adjacentState.SelectedPageIndex);
+            Assert.Equal(preview.Pages[adjacentIndex].TextContent, adjacentState.SelectedPageTextContent);
+            Assert.NotEqual(selectedPage.TextContent, adjacentState.SelectedPageTextContent);
             Assert.Equal(
                 CaptureHash(preview.Pages[adjacentIndex].RenderedPageCapture),
-                BitmapHash(Assert.IsType<Bitmap>(dialog.PreviewImage.Image)));
+                BitmapHash(Assert.IsType<Bitmap>(overlay.PreviewImage.Image)));
         }, $"Step 8 final 13-column preview text at {scale:P0}", TimeSpan.FromSeconds(45));
     }
 

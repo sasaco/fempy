@@ -1,55 +1,104 @@
 using System.Diagnostics;
+using PDF_Manager.Core.Analysis;
 using PDF_Manager.Core.Abstractions;
 using PDF_Manager.Resources;
 using PDF_Manager.Shell;
 using PDF_Manager.Shell.Lifecycle;
-using WeifenLuo.WinFormsUI.Docking;
+using PDF_Manager.Shell.ScreenComposition.Core;
+using PDF_Manager.Shell.ScreenComposition.Surfaces;
 
 namespace PDF_Manager.UiTests;
 
 public sealed class MainFormIntegrationTests
 {
     [Fact]
-    public void MainForm_ComposesRequiredPanesAndAppliesCommandState()
+    public void MainForm_ComposesFrameWebShellInSourceOrderAndDefaultState()
     {
         StaTestRunner.Run(() =>
         {
-            LocalizationService localization = new(UiLanguage.English);
-            MainFormServices services = CreateServices(localization, analysisClient: new ImmediateAnalysisClient());
-            using MainForm form = new(services);
+            using MainForm form = new(CreateServices(new LocalizationService(UiLanguage.English)));
             form.Show();
             Application.DoEvents();
 
-            Assert.Equal(4, form.ContentRegistry.Contents.Count);
-            Assert.Equal(MainForm.NavigationContentKey, form.NavigationPane.ContentKey);
-            Assert.Equal(MainForm.WorkspaceDocumentKey, form.DocumentHost.ContentKey);
-            Assert.Same(form.DocumentHost, form.Viewport);
-            Assert.Equal(MainForm.EditorContentKey, form.EditorPane.ContentKey);
-            Assert.Equal(MainForm.DiagnosticsContentKey, form.DiagnosticsPane.ContentKey);
-            Assert.Equal(DockState.DockLeft, form.NavigationPane.DockState);
-            Assert.Equal(DockState.Document, form.DocumentHost.DockState);
-            Assert.Equal(DockState.DockRight, form.EditorPane.DockState);
-            Assert.Equal(DockState.DockBottom, form.DiagnosticsPane.DockState);
+            FrameWebShellControl shell = form.ScreenShell;
+            Assert.Same(shell, Assert.Single(form.Controls.Cast<Control>()));
+            Assert.Equal(DockStyle.Fill, shell.Dock);
+            Assert.Equal(new Size(1200, 800), form.ClientSize);
+            Assert.Equal("HeaderMenu", shell.HeaderBar.Name);
+            Assert.Equal(DockStyle.Top, shell.HeaderBar.Dock);
+            Assert.Equal(44, shell.HeaderBar.Height);
+            Assert.Equal("OptionalHeader", shell.OptionalHeader.Name);
+            Assert.Equal(DockStyle.Top, shell.OptionalHeader.Dock);
+            Assert.Equal(40, shell.OptionalHeader.Height);
+            Assert.Equal("PrimaryNavigation", shell.PrimaryNavigation.Name);
+            Assert.Equal(DockStyle.Left, shell.PrimaryNavigation.Dock);
+            Assert.Equal(124, shell.PrimaryNavigation.Width);
+            Assert.True(shell.PrimaryNavigation.IsExpanded);
+            Assert.Equal("Workspace", shell.Workspace.Name);
+            Assert.Equal(DockStyle.Fill, shell.Workspace.Dock);
 
-            Assert.True(form.OpenMenuItem.Enabled);
-            Assert.False(form.SaveMenuItem.Enabled);
-            Assert.False(form.AnalyzeMenuItem.Enabled);
-            Assert.False(form.CancelMenuItem.Enabled);
-            Assert.False(form.ExportPdfMenuItem.Enabled);
+            Control body = Assert.Single(shell.Controls.Cast<Control>(), control => control.Name == "FrameWebBody");
+            Control workspaceLayer = Assert.Single(
+                body.Controls.Cast<Control>(),
+                control => control.Name == "WorkspaceLayer");
+            Assert.Contains(shell.RoutePanelHost, body.Controls.Cast<Control>());
+            Assert.Contains(shell.OverlayHost, shell.Controls.Cast<Control>());
+            Assert.Contains(shell.Workspace, workspaceLayer.Controls.Cast<Control>());
+            Assert.Contains(shell.PrimaryNavigation, workspaceLayer.Controls.Cast<Control>());
+            Assert.Equal(0, shell.Controls.GetChildIndex(shell.OverlayHost));
+            Assert.Equal(shell.ClientRectangle, shell.OverlayHost.Bounds);
+            Assert.Equal(0, body.Controls.GetChildIndex(shell.RoutePanelHost));
+            Assert.Equal(1, body.Controls.GetChildIndex(workspaceLayer));
+            Assert.True(shell.OptionalHeader.Visible);
+            Assert.False(shell.RoutePanelHost.Visible);
+            Assert.Null(shell.RoutePanelHost.ActiveRoute);
+            Assert.Equal(ScreenOverlayKind.Start, shell.State.Overlay);
+            Assert.IsType<StartOverlayControl>(shell.OverlayHost.ActiveSurface);
+            Assert.True(shell.OverlayHost.Visible);
+            Assert.Same(form.DocumentHost, shell.Workspace.DocumentHost);
+            Assert.Same(form.Workspace, shell.Workspace);
+            Assert.DoesNotContain(form.Controls.Cast<Control>(), control => control is TabControl);
 
-            form.SetDocument(ShellCommandStateTests.CreateDocument(isDirty: false));
-            Assert.False(form.SaveMenuItem.Enabled);
-            Assert.True(form.AnalyzeMenuItem.Enabled);
-            Assert.False(form.ExportPdfMenuItem.Enabled);
-
-            form.SetDocument(ShellCommandStateTests.CreateDocument(isDirty: true));
-            Assert.True(form.SaveMenuItem.Enabled);
-            Assert.True(form.AnalyzeMenuItem.Enabled);
-        }, "MainForm composition and commands");
+            PrimaryNavigationId[] expected = Enum.GetValues<PrimaryNavigationId>();
+            Assert.Equal(expected, shell.PrimaryNavigation.Buttons.Keys);
+            Assert.All(
+                AngularScreenManifest.PrimaryNavigation.Where(item => item.RequiresResults),
+                item => Assert.False(shell.PrimaryNavigation.Buttons[item.Id].Enabled));
+        }, "MainForm FrameWeb shell composition");
     }
 
     [Fact]
-    public void MainForm_RuntimeLanguageSwitchUpdatesAllMenuPaneAndVisibleShellCaptions()
+    public void MainForm_HeaderCommandStateTracksDocumentAndAnalysisAvailability()
+    {
+        StaTestRunner.Run(() =>
+        {
+            using MainForm form = new(CreateServices(
+                new LocalizationService(UiLanguage.English),
+                analysisClient: new SuccessfulAnalysisClient()));
+            form.Show();
+
+            HeaderMenuControl header = form.ScreenShell.HeaderBar;
+            Assert.True(HeaderItem(header, "HeaderNewItem").Enabled);
+            Assert.True(HeaderItem(header, "HeaderOpenItem").Enabled);
+            Assert.False(HeaderItem(header, "HeaderSaveItem").Enabled);
+            Assert.False(header.PrintButton.Enabled);
+
+            form.SetDocument(ShellCommandStateTests.CreateDocument(isDirty: true));
+            Assert.True(HeaderItem(header, "HeaderSaveItem").Enabled);
+            Assert.True(header.PrintButton.Enabled);
+            Assert.False(form.RouteController.State.ResultsEnabled);
+
+            form.ExecuteAnalysisAsync().GetAwaiter().GetResult();
+            Assert.True(form.RouteController.State.ResultsEnabled);
+            Assert.True(header.PrintButton.Enabled);
+            Assert.All(
+                AngularScreenManifest.PrimaryNavigation.Where(item => item.RequiresResults),
+                item => Assert.True(form.ScreenShell.PrimaryNavigation.Buttons[item.Id].Enabled));
+        }, "MainForm FrameWeb command state");
+    }
+
+    [Fact]
+    public void MainForm_RuntimeLanguageSwitchUpdatesHeaderAndWindow()
     {
         StaTestRunner.Run(() =>
         {
@@ -58,19 +107,19 @@ public sealed class MainFormIntegrationTests
             form.Show();
             Application.DoEvents();
 
-            AssertLocalizedShell(form, localization);
-            string englishFileCaption = Assert.IsType<string>(form.FileMenu.Text);
+            string englishFile = form.ScreenShell.HeaderBar.FileMenu.Text ?? string.Empty;
+            Assert.Equal(localization["AppTitle"], form.Text);
 
             form.SetLanguage(UiLanguage.Japanese);
             Application.DoEvents();
-            AssertLocalizedShell(form, localization);
-            Assert.NotEqual(englishFileCaption, form.FileMenu.Text);
+            Assert.Equal(localization["AppTitle"], form.Text);
+            Assert.NotEqual(englishFile, form.ScreenShell.HeaderBar.FileMenu.Text);
 
             form.SetLanguage(UiLanguage.Chinese);
             Application.DoEvents();
-            AssertLocalizedShell(form, localization);
             Assert.Equal("zh", form.CurrentCulture.Name);
-        }, "MainForm runtime localization");
+            Assert.Equal("文件", form.ScreenShell.HeaderBar.FileMenu.Text);
+        }, "MainForm FrameWeb runtime localization");
     }
 
     [Fact]
@@ -127,13 +176,11 @@ public sealed class MainFormIntegrationTests
     }
 
     [Fact]
-    public void MainForm_TypedOperationFailureIsReportedWithoutEscapingEventBoundary()
+    public void MainForm_TypedOperationFailureUpdatesStatusWithoutEscapingEventBoundary()
     {
         StaTestRunner.Run(() =>
         {
-            AnalysisClientException failure = new(
-                OperationFailureKind.Protocol,
-                "The analysis response is invalid.");
+            AnalysisClientException failure = new(OperationFailureKind.Protocol, "The analysis response is invalid.");
             ImmediateAnalysisClient analysis = new(failure);
             FakeShellDialogs dialogs = new();
             List<Exception> diagnostics = [];
@@ -149,15 +196,15 @@ public sealed class MainFormIntegrationTests
 
             Assert.Equal(1, analysis.Calls);
             Assert.Same(failure, Assert.Single(diagnostics));
-            (string _, string message) = Assert.Single(dialogs.Errors);
-            Assert.Equal(failure.UserMessage, message);
-            Assert.Contains(failure.UserMessage, form.DiagnosticsPane.Messages.Items.Cast<string>());
+            Assert.Empty(dialogs.Errors);
+            Assert.Equal(failure.UserMessage, form.CurrentStatusMessage);
+            Assert.Equal(ScreenOverlayKind.Alert, form.RouteController.State.Overlay);
             Assert.False(form.IsOperationRunning);
-        }, "MainForm exception boundary");
+        }, "MainForm FrameWeb exception boundary");
     }
 
     [Fact]
-    public void MainForm_CancelCommandCancelsRunningAnalysisAndRestoresCommandState()
+    public void MainForm_CancelCommandCancelsAnalysisAndRestoresNavigationState()
     {
         StaTestRunner.Run(() =>
         {
@@ -170,8 +217,7 @@ public sealed class MainFormIntegrationTests
 
             Task operation = form.ExecuteAnalysisAsync();
             Assert.True(form.IsOperationRunning);
-            Assert.True(form.CancelMenuItem.Enabled);
-            Assert.False(form.AnalyzeMenuItem.Enabled);
+            Assert.Equal(ScreenOverlayKind.Wait, form.RouteController.State.Overlay);
 
             form.CancelOperation();
             PumpUntil(() => operation.IsCompleted);
@@ -179,10 +225,9 @@ public sealed class MainFormIntegrationTests
 
             Assert.True(analysis.ObservedToken.IsCancellationRequested);
             Assert.False(form.IsOperationRunning);
-            Assert.False(form.CancelMenuItem.Enabled);
-            Assert.True(form.AnalyzeMenuItem.Enabled);
-            Assert.Equal("The operation was canceled.", form.DiagnosticsPane.StatusLabel.Text);
-        }, "MainForm operation cancellation");
+            Assert.Equal("The operation was canceled.", form.CurrentStatusMessage);
+            Assert.False(form.RouteController.State.ResultsEnabled);
+        }, "MainForm FrameWeb operation cancellation");
     }
 
     private static MainFormServices CreateServices(
@@ -198,72 +243,8 @@ public sealed class MainFormIntegrationTests
             dialogs: dialogs ?? new FakeShellDialogs(),
             reportDiagnostic: reportDiagnostic);
 
-    private static void AssertLocalizedShell(MainForm form, LocalizationService localization)
-    {
-        Dictionary<string, string> menuResources = new(StringComparer.Ordinal)
-        {
-            ["FileMenu"] = "MenuFile",
-            ["NewMenuItem"] = "MenuNew",
-            ["OpenMenuItem"] = "MenuOpen",
-            ["SaveMenuItem"] = "MenuSave",
-            ["SaveAsMenuItem"] = "MenuSaveAs",
-            ["ExitMenuItem"] = "MenuExit",
-            ["AnalysisMenu"] = "MenuAnalysis",
-            ["RunAnalysisMenuItem"] = "MenuRunAnalysis",
-            ["CancelMenuItem"] = "MenuCancel",
-            ["PrintMenu"] = "MenuPrint",
-            ["ExportPdfMenuItem"] = "MenuExportPdf",
-            ["ViewMenu"] = "MenuView",
-            ["NavigationMenuItem"] = "MenuNavigation",
-            ["EditorMenuItem"] = "MenuEditor",
-            ["DiagnosticsMenuItem"] = "MenuDiagnostics",
-            ["LanguageMenu"] = "MenuLanguage",
-            ["JapaneseMenuItem"] = "LanguageJapanese",
-            ["EnglishMenuItem"] = "LanguageEnglish",
-            ["ChineseMenuItem"] = "LanguageChinese",
-        };
-        Dictionary<string, ToolStripMenuItem> items = EnumerateMenuItems(form.MainMenuStrip!)
-            .ToDictionary(static item => Assert.IsType<string>(item.Name), StringComparer.Ordinal);
-        foreach ((string itemName, string resourceKey) in menuResources)
-        {
-            Assert.Equal(localization[resourceKey], items[itemName].Text);
-        }
-
-        Assert.Equal(localization["AppTitle"], form.Text);
-        Assert.Equal(localization["PaneNavigation"], form.NavigationPane.Text);
-        Assert.Equal(localization["PaneViewport"], form.DocumentHost.Text);
-        Assert.Equal(localization["PaneEditor"], form.EditorPane.Text);
-        Assert.Equal(localization["PaneDiagnostics"], form.DiagnosticsPane.Text);
-        Assert.Equal(localization["NavigationModel"], form.NavigationPane.NavigationTree.Nodes["model"]!.Text);
-        Assert.Equal(localization["EditorNoSelection"], form.EditorPane.SelectionLabel.Text);
-        Assert.Equal(localization["StatusReady"], form.DiagnosticsPane.StatusLabel.Text);
-        Label summary = Assert.IsType<Label>(form.DocumentHost.ViewportHost.Controls["ViewportSummary"]);
-        Assert.Equal(localization["ViewportEmpty"], summary.Text);
-    }
-
-    private static IEnumerable<ToolStripMenuItem> EnumerateMenuItems(MenuStrip menu)
-    {
-        foreach (ToolStripMenuItem item in menu.Items.OfType<ToolStripMenuItem>())
-        {
-            yield return item;
-            foreach (ToolStripMenuItem child in EnumerateMenuItems(item.DropDownItems))
-            {
-                yield return child;
-            }
-        }
-    }
-
-    private static IEnumerable<ToolStripMenuItem> EnumerateMenuItems(ToolStripItemCollection items)
-    {
-        foreach (ToolStripMenuItem item in items.OfType<ToolStripMenuItem>())
-        {
-            yield return item;
-            foreach (ToolStripMenuItem child in EnumerateMenuItems(item.DropDownItems))
-            {
-                yield return child;
-            }
-        }
-    }
+    private static ToolStripItem HeaderItem(HeaderMenuControl header, string name) =>
+        Assert.Single(header.FileMenu.DropDownItems.Cast<ToolStripItem>(), item => item.Name == name);
 
     private static void PumpUntil(Func<bool> completed)
     {
@@ -273,6 +254,25 @@ public sealed class MainFormIntegrationTests
             Assert.True(timeout.Elapsed < TimeSpan.FromSeconds(5), "The UI operation did not complete.");
             Application.DoEvents();
             Thread.Sleep(1);
+        }
+    }
+
+    private sealed class SuccessfulAnalysisClient : IAnalysisClient
+    {
+        public Task<AnalysisResultSet> AnalyzeAsync(
+            PDF_Manager.Core.Documents.ProjectDocument document,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AnalysisResultSet result = new(
+                AnalysisResultSet.ContractKind,
+                AnalysisResultSet.ContractVersion,
+                new AnalysisUnits("SI", "m", "N", "kg", "s"),
+                new CoordinateSystem("global_cartesian", "right", ["x", "y", "z"]),
+                [new AnalysisCase("C1", "Case", "C1", AnalysisType.Static, [])],
+                new AnalysisTopology([], [], [], []),
+                [new StaticAnalysisResult("C1", [], [], [], [], [], new WarningDiagnostics([]))]);
+            return Task.FromResult(result);
         }
     }
 }

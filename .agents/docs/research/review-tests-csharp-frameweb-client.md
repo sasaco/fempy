@@ -1,229 +1,165 @@
-# SECOND-FINAL Test Coverage Review: C# FrameWeb Desktop Step 8
+# Test/Coverage Review: C# FrameWebforJS Screen Composition
 
 ## Verdict
 
-**PASS WITH LOW FOLLOW-UPS** — Critical: 0, High: 0, Medium: 0, Low: 4.
+**CHANGES REQUESTED — Critical: 0, High: 4, Medium: 4, Low: 0.**
 
-The last two Medium findings are closed by executable evidence through the
-production writer/exporter and the real WinForms preview dialog. Whole-document
-preview now validates once, spends one aggregate work budget, and preflights exact
-and +1 boundaries before rendering. Text layout is owned by the immutable plan and
-is consumed by both PDF and preview renderers; the real dialog exposes the complete
-unabridged page text independently of fitted/ellipsized display text.
+The focused UI suite is green, but it does not establish the required screen-composition parity. The most important false-negative paths are the unverified secondary input-table reachability and the complete absence of production `ResultRouteSurfaceControl` transition coverage. Visual evidence is also limited to three Japanese 1200x800/100% states and is not coupled to the committed-reference comparison.
 
-**Coverage percentage was not measured.** The 567/567 totals are test counts, not
-a coverage percentage. CJK glyph appearance in a real GUI/PDF viewer remains
-unavailable and is explicitly not reported as passing evidence.
+Coverage percentage is **not measured**. Test counts and manifest inventory counts are not statement, branch, or UI-state coverage.
 
-## Scope and Method
+## Review Scope
 
-- Re-read the regenerated final patch from base `452528b` and the final production
-  and test sources.
-- Re-reviewed all earlier findings plus the two last Mediums: whole-document shared
-  budgeting and horizontal text fidelity.
-- Inspected single validation, exact/+1 preflight, 22-page auto-fit, 13-column
-  25%/400% layout, authoritative `TextRuns`, full selectable preview text, bounded
-  golden rasterizer clipping, and golden approval rationale.
-- Checked for deleted/weakened assertions, skipped tests, helper-only confidence,
-  platform-sensitive evidence, and untested fail-closed branches.
-- Independently ran the focused new Printing/golden and UI acceptance filters. Full
-  solution totals below are lead-provided evidence.
+- Reviewed the complete patch at `.agents/logs/review-diff-csharp-frameweb-client.patch` and the current parity manifest, schema, captures, capture probe, WinForms UI tests, screen-composition production code, Angular routing/source evidence, implementation plan, and parity tester log.
+- Assessed false positives/negatives and executable coverage of all 14 input routes, all 9 result routes, Start/Preset/Print and operation overlays, responsive sizes, 150% DPI, and ja/en/zh runtime language switching.
+- Re-ran the focused parity, input-matrix, and vertical-integration tests. The green result is recorded below but is not treated as proof of the unexercised states.
 
-## Last Two Medium Findings
+## High Findings
 
-### Closed: whole-document preview uses one validation and one aggregate budget
+### [High] H1 — The manifest completeness gate validates a hand-maintained duplicate, not an independently extracted Angular inventory
 
-Production `RenderPreviewAsync` builds one ordered page set and enters
-`RenderPreviewPagesAsync` once (`PdfSharpPrintWriter.cs:123-159`). That method owns
-one `PrintWorkBudget`, validates the complete job/plan once, reserves every page's
-text/render work, preflights all raster images and pixels, and only then renders
-the pages (`PdfSharpPrintWriter.cs:161-196`). The desktop exporter uses this
-whole-document API with explicit document-budget auto-fit
-(`DesktopPdfExporter.cs:212-223`) rather than looping the single-page API.
+**Evidence**
 
-`Step8WholePreviewBudgetAndTextTests.cs:70-140` proves:
+- `FramePrintPDF/PDF_Manager.UiTests/UiParity/ScreenManifestTests.cs:19-35` is the only source parser and extracts route/component pairs from `app-routing.module.ts`; it does not extract fields, controls, groups, defaults, read-only state, visibility conditions, actions, or transitions.
+- `FramePrintPDF/PDF_Manager.UiTests/UiParity/ScreenManifestTests.cs:69-82` checks only that broad source paths exist and that three top-level schema properties are required.
+- `FramePrintPDF/PDF_Manager.UiTests/UiParity/ScreenManifestContract.cs:12-103` defines the expected field, shell-control, overlay-control, and print-state inventories as constants inside the test project. `ScreenManifestContract.cs:154-197` then validates the manifest against those constants.
+- The approved plan explicitly requires independent source extraction and says that a manifest entry cannot prove its own completeness (`.agents/docs/plans/csharp-frameweb-client.md:253-259`).
 
-- session start and plan validation each occur exactly once;
-- the baseline snapshot aggregates all pages, text, images, and layout work;
-- an exact limit profile succeeds with the identical snapshot;
-- image, text-character, and layout-work +1 cases fail before any page is rendered;
-- the original typed `PrintLimitExceededException` resource and failed snapshot are
-  retained.
+**Why this is a false positive**
 
-`Step8WholePreviewBudgetAndTextTests.cs:11-67` then exercises the production writer
-with 22 page-specific result diagrams. Auto-fit selects dimensions below the
-maximum while staying within the shared limits, returns all 22 ordered identities,
-and produces 22 distinct capture hashes. The test uses deliberately distinct RGB
-payloads, so the page-identity assertion is not dependent on synthetic text strokes.
+An omitted or incorrectly modeled Angular control can be absent from both the manifest and the test constants while every mutation and equality test remains green. The current mutation tests prove that the local validator notices edits to its own data; they do not prove the local inventory matches Angular.
 
-This closes the prior integrated-budget Low residual as well as the final
-per-page-budget Medium.
+**Required tests**
 
-### Closed: fitted/clipped table text is authoritative and the dialog retains full text
+Build an independent extractor over the Angular route templates, menu/optional-header templates, Sheet descriptors, print components, and actions. Assert exact bidirectional key/value equality for fields, controls, grouping, order, defaults, read-only/visibility conditions, actions, and transitions. Add source-side omission/extra/conditional-branch mutations.
 
-The planner creates each page's render content once and stores it in the
-`PrintPagePlan` (`PrintPlanning.cs:489-507`). `PrintPageContentExtractor` generates
-the title, headings, table cells, result context, diagrams, and footer from the
-same planned geometry (`PrintPageContent.cs:44-139,142-333`).
-`PrintTextLayoutPolicy` normalizes single-line display text, deterministically fits
-font size, falls back to grapheme-safe ellipsis, and records full `Text`, fitted
-`DisplayText`, bounds, measured width, alignment, bold, and truncation state
-(`PrintPageContent.cs:364-458`; `PrintModels.cs:744-802`).
+### [High] H2 — The 14-input-route matrix bypasses the user path and therefore misses unreachable secondary tables
 
-Both renderers consume the plan-owned objects: the bounded RGB preview uses
-`page.TextRuns` and a per-run pixel clip (`PrintPreviewRenderer.cs:144-220,326-343`),
-while PDF export uses the same `pagePlan.TextRuns` and an `IntersectClip` around
-each table run (`PdfSharpPrintWriter.cs:319-380`).
+**Evidence**
 
-`Step8WholePreviewBudgetAndTextTests.cs:146-210` covers a 13-column table at 25%
-and 400%. It proves 26 header/cell runs, positive/non-overlapping bounds, fitted
-width within every cell, no embedded line breaks, no truncation at 25%, explicit
-ellipsis/truncation at 400%, deterministic repeated planning, the same authoritative
-`TextRuns` in preview/export, and a PDF clip operator for every table run.
+- `FramePrintPDF/PDF_Manager.UiTests/Step5EditorMatrixTests.cs:16-47` proves only the catalog's 14 route-to-table declarations.
+- `Step5EditorMatrixTests.cs:58-76` constructs each surface directly and calls the public `surface.ShowTable(table)` method for every table. It never locates or operates a visible selector that a user could use.
+- `Step5EditorMatrixTests.cs:82-94` checks exact field order for only Elements, Nodes, and Supports, not all 14 route screens and conditional branches.
+- The shell interaction suite navigates only Elements and Nodes by calling `RouteController` directly (`FramePrintPDF/PDF_Manager.UiTests/UiParity/ShellInteractionTests.cs:15-40,49-66`).
+- Production has only `_gridHost` in the route body (`FramePrintPDF/PDF_Manager/Shell/ScreenComposition/Surfaces/InputRouteSurfaceControl.cs:47-67`), automatically shows only `definition.Tables[0]` (`InputRouteSurfaceControl.cs:100-120`), and exposes table changes only through `ShowTable` (`InputRouteSurfaceControl.cs:129-145`).
 
-The production UI acceptance at
-`Step8FinalPreviewTextAcceptanceTests.cs:19-137` goes further: it uses the real
-13-column input projection, production exporter, and real `PrintPreviewDialog` at
-both scales. It asserts every complete header/cell value is retained in exact CRLF
-page text, a deliberately long section name remains unabridged, the read-only
-multiline text box is selectable, and both text and bitmap change in sync during
-real page navigation. Thus fitted raster/PDF text cannot cross cell boundaries,
-while users can still inspect and copy the complete source text.
+**Why this matters**
 
-This closes the last text-layout Medium without claiming that the synthetic preview
-strokes are real font glyphs.
+The green matrix masks the real UI reachability contract: secondary tables such as Member Loads and Prescribed Displacements can be exercised by the test even when no user-visible control reaches them. The same weakness applies to secondary Elements, Supports, Joints, and Member Springs tables.
 
-## Rasterizer and Golden Assessment
+**Required tests**
 
-- The bounded rasterizer limits page dimensions and operator count, rejects
-  unsupported or unbalanced state, parses PDFsharp's rectangular `W`/`W*` clip
-  paths, carries clip state across `q`/`Q`, and clips text coverage
-  (`PdfSharpSubsetPageRasterizer.cs:17-44,49-191,255-307,439-457`).
-- The A4 golden executes the real writer's clip operators through that independent
-  parser and exact checked-in raster (`Step8RenderedPdfGoldenTests.cs:9-29`).
-  Missing/mismatched fixtures emit candidates and fail rather than auto-approving
-  (`Step8RenderedPdfGoldenTests.cs:74-102`). The A3 test separately proves corrupt
-  image streams fail closed (`Step8RenderedPdfGoldenTests.cs:32-65`).
-- `Goldens/README.md:54-61` records the second-final owner approval: only the A4
-  fixture changed; A3 stayed byte-identical. The A4 delta is 88/500,990 pixels
-  (0.017565%), absolute-difference sum 19,624, maximum delta 223, bounded to
-  x=30..389/y=99..787. Original-resolution inspection retained margins, the full
-  grid, repeated header, every row, title, and centered footer.
+Drive the real MainForm navigation and contextual controls for all 14 routes. For every declared table, assert a visible control can select it, the intended grid becomes parented and editable, all source-ordered fields/defaults/read-only/2D-3D branches are correct, and one representative edit commits through the real UI path.
 
-The valid clip path is executable evidence. Malformed clip-path branches are
-fail-closed in source but lack a dedicated negative mutation test; that narrow
-test-harness gap remains Low below.
+### [High] H3 — None of the 9 production result surfaces is exercised through creation, transition, paging, or disposal
 
-## Remaining Findings
+**Evidence**
 
-### [Low] Independent CJK glyph visual evidence is still unavailable
+- `FramePrintPDF/PDF_Manager.UiTests/UiParity/ScreenRouteStateTests.cs:11-39` asserts counts and catalog order only. Its sole result navigation is one controller-state transition to `ResultBasicDisplacements` (`ScreenRouteStateTests.cs:43-65`).
+- `FramePrintPDF/PDF_Manager.UiTests/UiParity/ShellInteractionTests.cs:71-102` checks only that three navigation buttons become enabled; it does not open a result route.
+- A repository-wide test-source search found no test reference to `ResultRouteSurfaceControl`.
+- The untested transition is materially stateful: the new result surface attaches the shared grid during construction (`FramePrintPDF/PDF_Manager/Shell/ScreenComposition/Surfaces/ResultRouteSurfaceControl.cs:67-95`), `RoutePanelHostControl` creates the replacement before `ReplaceSurface` (`FramePrintPDF/PDF_Manager/Shell/ScreenComposition/Core/RoutePanelHostControl.cs:34-37`), and replacement then disposes the old surface (`RoutePanelHostControl.cs:78-95`), whose disposal parks that shared grid (`ResultRouteSurfaceControl.cs:147-156`).
 
-**Evidence:** installed-font, `/FontFile2`, `/ToUnicode`, Unicode mapping, lazy
-language lookup, and malformed TTC tests are green. The repository rasterizers
-intentionally paint deterministic coverage strokes instead of installed glyph
-outlines. CUA/browser and Chrome-headless attempts were blank or unavailable.
+**Why this matters**
 
-**Impact:** a viewer-specific Japanese or Simplified Chinese missing-glyph/shape
-problem could remain despite correct structural embedding.
+The tests cannot detect shared-grid detachment during result-to-result navigation, selector mirroring errors, category/substate mismatches, duplicate pager behavior, or stale page/provenance state. This is a critical user workflow across all 9 result viewers.
 
-**Remediation:** add a repeatable independent PDF renderer and text extractor on
-the approved Windows font matrix, with Japanese/Chinese image evidence and exact
-extracted text. Do not replace the current fast structural gates.
+**Required tests**
 
-### [Low] Multi-page `PrintTextSection` still lacks a direct no-loss boundary test
+Publish representative static, nonlinear, modal, moving, Combine, and Pickup results into a shown MainForm. Navigate every one of the 9 result routes in sequence and assert surface type/category/context, grid parent, populated columns/rows, case/state/parent/child/extrema selectors, optional-header synchronization, first/last-page boundaries, selection sync, and correct grid ownership after every replacement and final disposal.
 
-**Evidence:** planning and authoritative `TextRuns` implement ordered
-`TextLineStart`/`TextLineCount` chunks, and the new selectable dialog proves exact
-unabridged text for the production 13-column table. No test supplies a text section
-long enough to span multiple pages and reconstructs every line across all page
-ranges.
+### [High] H4 — Live visual evidence is both incomplete and disconnected from the Angular comparison
 
-**Impact:** a future line-wrap/page-transition regression could duplicate or omit
-body text while the table-focused final tests remain green.
+**Evidence**
 
-**Remediation:** add exact one-page, +1-line, and multi-page text cases, including a
-long unbroken token and CJK text; assert contiguous ranges and reconstructed full
-text in plan, PDF extraction, and selectable page content.
+- The live probe hard-codes Japanese, 1200x800, 96 DPI and captures only Start, empty shell, and Elements (`FramePrintPDF/PDF_Manager.UiTests/LiveCaptureProbe/Program.cs:33-85`).
+- The process integration test only requires three generated PNGs with distinct hashes (`FramePrintPDF/PDF_Manager.UiTests/Step4VerticalIntegrationTests.cs:198-209`); it does not compare those fresh images to Angular references.
+- The strict comparator instead reads three committed WinForms PNGs and metadata (`FramePrintPDF/PDF_Manager.UiTests/UiParity/ReferenceCaptureTests.cs:73-93,97-174`). A product change can therefore make the live probe output differ while the stale committed-reference comparison still passes.
+- Angular metadata requires 1024x768/100% and 1440x900/150% references (`ReferenceCaptureTests.cs:18-24`), while the WinForms metadata test explicitly requires every desktop capture to be only 1200x800/100% (`ReferenceCaptureTests.cs:82-92`).
 
-### [Low] Malformed clip-path fail-closed branches are source-backed but not mutation-tested
+**Why this matters**
 
-**Evidence:** `PdfSharpSubsetPageRasterizer.cs:588-648` rejects too many/few
-vertices, incomplete/non-rectangular/empty paths, and non-axis-aligned edges. The
-A4 golden proves valid generated clips, but no test corrupts `m/l/h/W/n` ordering
-or geometry and asserts the corresponding `InvalidDataException`.
+There is no current-product visual gate for the other 13 input routes, any of the 9 result routes, Preset/Print/operation overlays, 1024x768 responsive layout, or 1440x900 at 150% DPI. Fresh WinForms regressions can coexist with green committed-image tests.
 
-**Impact:** a regression in the test harness's strict rejection behavior could
-weaken golden independence without affecting ordinary valid-golden runs.
+**Required tests**
 
-**Remediation:** add bounded synthetic or generated-PDF mutations for missing `h`,
-missing/duplicate `W`, missing `n`, diagonal edges, extra vertices, and empty
-rectangles; assert fail-closed exceptions and no candidate approval.
+Generate fresh WinForms captures inside the comparison run (or bind them by verified build/source identity), then compare them to Angular references for the complete manifest-driven route/overlay matrix at 1200x800/100%, 1024x768/100%, and 1440x900/150%. Assert logical bounds, clipping, z-order, enabled/visible/text state, and non-GL pixel thresholds.
 
-### [Low] A test name still overstates byte determinism
+## Medium Findings
 
-**Evidence:** `Step8PdfExportAcceptanceTests.cs:92-110` remains named
-`RepeatedAndParallelExports_AreByteDeterministicAndUseDeclaredSerializationPolicy`,
-but compares `PdfSemanticSnapshot` values instead of raw output bytes. Separate
-tests correctly prove cross-instance serialization and queued cancellation.
+### [Medium] M1 — Runtime localization tests do not cover the full visible shell or no-clipping behavior
 
-**Impact:** maintainers may cite it as byte-for-byte reproducibility evidence when
-the supported invariant is semantic determinism.
+**Evidence**
 
-**Remediation:** rename it to say semantic determinism, or add raw-byte equality
-only if byte determinism becomes an explicit product contract.
+- `FramePrintPDF/PDF_Manager.UiTests/MainFormIntegrationTests.cs:100-122` switches en -> ja -> zh but asserts only the window title/culture and File menu text.
+- `FramePrintPDF/PDF_Manager.UiTests/Step5EditorMatrixTests.cs:132-165` tests one active InputJoints grid, accepts merely nonblank Chinese headers, and does not assert exact translated controls or geometry.
+- Desktop visual metadata is Japanese-only (`FramePrintPDF/PDF_Manager.UiTests/UiParity/ReferenceCaptureTests.cs:73-88`).
 
-## Prior Finding Disposition
+**Missing cases**
 
-| Finding | SECOND-FINAL disposition |
-|---|---|
-| Raw viewport shown for every preview page | Closed by real page-specific dialog navigation and plan identity tests. |
-| Production result-selection/input matrix absent | Closed for static/nonlinear/modal/derived/moving plus all 21 input surfaces and Moving Loads. |
-| Exact Shell RGB/member I/J assertions weakened | Closed by exact embedded RGB/hash and ToUnicode-aware result assertions. |
-| Eager fonts and malformed TTC gaps | Closed by injectable lazy font and malformed collection matrices. |
-| Per-page preview validation/budget reset | Closed by one whole-document session, exact/+1 preflight, and 22-page auto-fit. |
-| Preview/PDF horizontal text fidelity | Closed by authoritative fitted/clipped `TextRuns` and exact selectable page text. |
-| Integrated shared-budget residual | Closed by full preview exact/+1 execution before page rendering. |
-| CJK independent visual proof | Open Low; unavailable, not represented as PASS. |
-| Multi-page body-text no-loss proof | Open Low. |
-| Semantic test labeled byte-deterministic | Open Low. |
+For ja/en/zh, keep representative input, result, Start/Preset/Print, wait/confirm/alert, optional-header, and navigation surfaces open while switching language. Assert every visible text against resources plus no clipping, overlap, loss of selection/page state, duplicate subscription, or route reordering. Add three-language captures at the responsive/DPI reference sizes.
 
-## Assertion-Strength Assessment
+### [Medium] M2 — Overlay tests assert construction/type replacement, not the required control actions and state transitions
 
-- No new skipped/ignored tests were found.
-- The two new engine suites use the actual production writer, plan, PDF stream, and
-  observer. The observer makes validation/render counts observable but does not
-  replace the production work.
-- The UI suite uses the real factory, exporter, dialog, navigation buttons,
-  bitmap, and selectable text box rather than a fake dialog/exporter.
-- Earlier Step 4 broad assertions remain replaced by exact RGB/hash and mapped
-  member/result checks. Removed legacy interface/package assertions correspond to
-  intentional typed API and official PDFsharp changes, not weakened behavior.
-- Golden comparison remains independent and fail-closed on absence or mismatch;
-  refresh rationale is specific and reviewable.
+**Evidence**
 
-## Prioritized Missing-Test List
+- `FramePrintPDF/PDF_Manager.UiTests/UiParity/ScreenRouteStateTests.cs:96-128` loops overlay enum values and asserts only that the factory returns an `IFrameWebSurface`.
+- `FramePrintPDF/PDF_Manager.UiTests/UiParity/ShellInteractionTests.cs:44-67` asserts only that Preset and Print surface types replace one another while the route is preserved.
+- Existing print acceptance exercises meaningful preview/export behavior, but no equivalent tests click Start New/Open/Preset, Preset choice/open/cancel, wait cancel, confirm cancel/OK, or alert OK through the parity surfaces. Focus order, default button, accessibility name, and enabled/visible defaults are also unasserted.
 
-1. Independent Japanese and Simplified Chinese glyph rendering and extraction.
-2. Multi-page body-text exact no-loss/no-duplication reconstruction.
-3. Negative malformed clip-path mutations for the bounded golden rasterizer.
-4. Rename the semantic-determinism test or explicitly establish a byte contract.
+**Missing cases**
+
+Add manifest-driven STA interaction tests for every overlay control and success/cancel/failure branch, including focus/default action, route preservation, repeated replacement/disposal, and overlay z-order above both route card and viewport.
+
+### [Medium] M3 — The pixel comparator can vacuously pass when its edge mask excludes every compared pixel
+
+**Evidence**
+
+- `FramePrintPDF/PDF_Manager.UiTests/UiParity/ReferenceCaptureTests.cs:201-219` builds the edge mask from both expected and actual images.
+- `ReferenceCaptureTests.cs:224-257` divides by `comparedPixels` without asserting it is positive or that a minimum region percentage remains unmasked.
+- `ReferenceCaptureTests.cs:260-293` dilates all detected edges. A sufficiently high-frequency divergent actual image can mask an entire region; `0 / 0` yields `NaN`, and the only failure comparison at `ReferenceCaptureTests.cs:128-133` does not reject `NaN`.
+
+**Missing cases**
+
+Require finite metrics, `comparedPixels > 0`, and a minimum unmasked fraction per region. Add adversarial mutations for full checkerboard/noise, large geometry shifts, solid-color replacement, and one-pixel-over-threshold changes and prove each fails.
+
+### [Medium] M4 — Human visual approval is a declared flag, not a verified acceptance artifact
+
+**Evidence**
+
+- `FramePrintPDF/PDF_Manager.UiTests/UiParity/ReferenceCaptureTests.cs:47-56` only asserts that metadata says `humanApprovalRequired=true` and self-generated C# goldens are disallowed.
+- The parity tester explicitly records that human approval remains outstanding and that only shell/Start/Elements have paired evidence (`.agents/logs/agent-teams/team-execute-csharp-frameweb-client/parity-tester.md:61-63`).
+- The plan requires complete-matrix user visual approval before sign-off (`.agents/docs/plans/csharp-frameweb-client.md:330-335`).
+
+**Classification**
+
+This is a verification gap, not a newly proven product defect. Automated gates must not report screen parity complete until a dated, immutable approval record binds the exact Angular/WinForms evidence set and source/build identity.
+
+## Explicit Zero-Finding Severities
+
+- **Critical: 0.** No test change directly creates data loss or a security vulnerability.
+- **Low: 0.** All actionable gaps are at least Medium because they affect required parity evidence or permit false-positive acceptance.
+
+## Positive Coverage Observed
+
+- Route/controller defaults, result navigation gating, overlay enum exhaustiveness, base shell hierarchy/z-order, and one Elements route-card geometry path have focused tests.
+- The 21 typed editor tables retain substantial lower-level editing, clipboard, selection, validation, and lifecycle tests.
+- The typed print pipeline has meaningful preview/export, cancellation, atomic-file, page-navigation, language-selection, and text-fidelity coverage.
+- The live capture probe executes on a process-main STA and validates its three supported states without leaving the test process hung.
+
+These strengths do not cover the missing end-user reachability, result-surface lifecycle, complete matrix, language layout, or responsive/DPI acceptance above.
 
 ## Test Execution Results
 
-- Independently run whole-preview/text/golden filter: PASS, 6/6, failed 0,
-  skipped 0.
-- Independently run real final preview-text UI filter: PASS, 2/2, failed 0,
-  skipped 0.
-- Lead-provided both-solution evidence: PASS, 567/567 — Core 272, Printing 73,
-  Rendering 56, LocalRuntime 14, UI 152.
-- Lead-provided ownership: overlap 0 / unowned 0 / idle 0. AgentOnly: pass.
-- Coverage percentage: **not measured**.
+- Command: `dotnet test FramePrintPDF/PDF_Manager.UiTests/PDF_Manager.UiTests.csproj -c Release --no-build --filter "FullyQualifiedName~UiParity|FullyQualifiedName~Step5EditorMatrixTests|FullyQualifiedName~Step4VerticalIntegrationTests"`
+- Result: **PASS — 40 passed, 0 failed, 0 skipped** in approximately 4 seconds.
+- Coverage: **not measured**. No percentage is claimed.
 
 ## Severity Summary
 
 | Severity | Count | Disposition |
 |---|---:|---|
 | Critical | 0 | None. |
-| High | 0 | None. |
-| Medium | 0 | Both final Mediums and all earlier Mediums are closed. |
-| Low | 4 | CJK visual, multi-page text, clip mutation, and evidence naming. |
+| High | 4 | Independent inventory, input reachability, result lifecycle, and live visual matrix must be fixed before parity sign-off. |
+| Medium | 4 | Localization breadth, overlay actions, comparator fail-closed behavior, and approval evidence remain incomplete. |
+| Low | 0 | None. |

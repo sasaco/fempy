@@ -37,6 +37,21 @@ public static class ProjectDocumentPresets
         _ => throw new ArgumentOutOfRangeException(nameof(preset), preset, "Unknown built-in project preset."),
     };
 
+    public static ProjectDocument CreateBlank() => new(
+        ProjectDocument.CurrentVersion,
+        new ProjectMetadata("Untitled", string.Empty, "FrameWeb", "kN-m"),
+        nodes: [],
+        members: [],
+        supports: [],
+        loadCases: [],
+        nodalLoads: [],
+        derivedResults: [],
+        movingLoads: [],
+        selection: ProjectSelection.Empty,
+        isDirty: false,
+        sections: [],
+        dimension: ModelDimension.TwoDimensional);
+
     public static ProjectDocument CreateRepresentativeFrame()
     {
         FrameSectionDefinition section = new(

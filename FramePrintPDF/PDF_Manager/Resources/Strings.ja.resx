@@ -279,4 +279,25 @@
   <data name="PrintFontUnavailableEnglish" xml:space="preserve"><value>英語印刷用フォントをこのコンピューターで利用できません。</value></data>
   <data name="PrintFontUnavailableJapanese" xml:space="preserve"><value>日本語印刷用フォントをこのコンピューターで利用できません。</value></data>
   <data name="PrintFontUnavailableChinese" xml:space="preserve"><value>簡体字中国語印刷用フォントをこのコンピューターで利用できません。</value></data>
+  <data name="SurfaceElements" xml:space="preserve"><value>要素</value></data>
+  <data name="SurfaceLoadNames" xml:space="preserve"><value>荷重名称</value></data>
+  <data name="SurfaceLoadStrength" xml:space="preserve"><value>荷重強度</value></data>
+  <data name="SurfaceGroupTranslation" xml:space="preserve"><value>並進</value></data>
+  <data name="SurfaceGroupRotation" xml:space="preserve"><value>回転</value></data>
+  <data name="SurfaceResultBasic" xml:space="preserve"><value>基本</value></data>
+  <data name="SurfaceResultCombine" xml:space="preserve"><value>組合せ</value></data>
+  <data name="SurfaceResultPickup" xml:space="preserve"><value>抽出</value></data>
+  <data name="SurfaceStartMenu" xml:space="preserve"><value>スタートメニュー</value></data>
+  <data name="SurfaceStartNewProject" xml:space="preserve"><value>新規作成</value></data>
+  <data name="SurfaceStartOpenProject" xml:space="preserve"><value>ファイルを開く</value></data>
+  <data name="SurfaceStartOpenPreset" xml:space="preserve"><value>プリセットを開く</value></data>
+  <data name="SurfacePreset" xml:space="preserve"><value>プリセット</value></data>
+  <data name="SurfaceOpenPreset" xml:space="preserve"><value>開く</value></data>
+  <data name="SurfacePresetRamenViaduct" xml:space="preserve"><value>ラーメン高架橋</value></data>
+  <data name="SurfacePresetConcreteTBeamBridge" xml:space="preserve"><value>コンクリートT桁橋</value></data>
+  <data name="SurfacePresetRetainingWall" xml:space="preserve"><value>U型擁壁</value></data>
+  <data name="SurfacePresetPortalPier" xml:space="preserve"><value>門型橋脚</value></data>
+  <data name="SurfaceExportPdf" xml:space="preserve"><value>PDF出力</value></data>
+  <data name="SurfaceConfirmTitle" xml:space="preserve"><value>確認</value></data>
+  <data name="SurfaceOk" xml:space="preserve"><value>OK</value></data>
 </root>
