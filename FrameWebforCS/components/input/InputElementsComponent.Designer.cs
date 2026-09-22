@@ -28,30 +28,36 @@
         /// </summary>
         private void InitializeComponent()
         {
-            button1 = new Button();
+            fpSpread1 = new FarPoint.Win.Spread.FpSpread(FarPoint.Win.Spread.LegacyBehaviors.None, null);
+            if (fpSpread1.Sheets.Count > 0)
+            {
+                fpSpread1_Sheet4 = fpSpread1.GetSheet(0);
+            }
+            ((System.ComponentModel.ISupportInitialize)fpSpread1).BeginInit();
             SuspendLayout();
             // 
-            // button1
+            // fpSpread1
             // 
-            button1.Location = new Point(14, 18);
-            button1.Name = "button1";
-            button1.Size = new Size(197, 96);
-            button1.TabIndex = 0;
-            button1.Text = "button1";
-            button1.UseVisualStyleBackColor = true;
+            fpSpread1.Font = new Font("ＭＳ Ｐゴシック", 11F);
+            fpSpread1.Location = new Point(115, 137);
+            fpSpread1.Name = "fpSpread1";
+            fpSpread1.Size = new Size(400, 200);
+            fpSpread1.TabIndex = 0;
             // 
             // InputElementsComponent
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ActiveCaption;
-            Controls.Add(button1);
+            Controls.Add(fpSpread1);
             Name = "InputElementsComponent";
+            Size = new Size(658, 473);
+            ((System.ComponentModel.ISupportInitialize)fpSpread1).EndInit();
             ResumeLayout(false);
         }
 
         #endregion
-
-        private Button button1;
+        private FarPoint.Win.Spread.FpSpread fpSpread1;
+        private FarPoint.Win.Spread.SheetView fpSpread1_Sheet4;
     }
 }
