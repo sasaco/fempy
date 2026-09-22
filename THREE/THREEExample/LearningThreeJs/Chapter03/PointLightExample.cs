@@ -50,7 +50,7 @@ namespace THREEExample.Chapter03
             DemoUtils.AddHouseAndTree(scene);            
 
             helper = new PointLightHelper(pointLight);
-            //scene.Add(helper);
+            //scene.Add(input_data);
             shadowHelper = new CameraHelper(pointLight.Shadow.Camera);
             //scene.Add(shadowHelper);
             var sphereLight = new SphereGeometry(0.2f);

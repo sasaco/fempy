@@ -1,74 +1,157 @@
 ﻿using Assimp;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
+using OpenTK.Graphics.ES30;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+using OpenTK.WinForms;
+using SingleFormsDemo;
 using THREE;
+using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
 namespace FrameWebforCS.three
 {
     public partial class ThreeComponent : UserControl
     {
+        public SceneService threeInstance = null;
+
+        private System.Windows.Forms.Timer _timer;
+        private int timeInterval = 10;
+
         public ThreeComponent()
         {
             InitializeComponent();
-        }
-        public override void Load(GLControl glControl)
-        {
-            base.Load(glControl);
-
-            InitRenderer();
-
-            InitCamera();
-
-            InitCameraController();
-
-            scene.Background = Color.Hex(0xffffff);
-
-            var axes = new AxesHelper(20);
-
-            scene.Add(axes);
-
-            var planeGeometry = new PlaneGeometry(60, 20);
-            var planeMaterial = new MeshBasicMaterial() { Color = Color.Hex(0xcccccc) };
-            var plane = new Mesh(planeGeometry, planeMaterial);
-
-            plane.Rotation.X = (float)(-0.5 * Math.PI);
-            plane.Position.Set(15, 0, 0);
-
-            scene.Add(plane);
-
-            // create a cube
-            var cubeGeometry = new BoxGeometry(4, 4, 4);
-            var cubeMaterial = new MeshBasicMaterial() { Color = Color.Hex(0xff0000), Wireframe = true };
-            var cube = new Mesh(cubeGeometry, cubeMaterial);
-
-            // position the cube
-            cube.Position.Set(-4, 3, 0);
-
-            // add the cube to the scene
-
-            scene.Add(cube);
-
-            //      // create a sphere
-            var sphereGeometry = new SphereGeometry(4, 20, 20);
-            var sphereMaterial = new MeshBasicMaterial() { Color = Color.Hex(0x7777ff), Wireframe = true };
-            var sphere = new Mesh(sphereGeometry, sphereMaterial);
-
-            //      // position the sphere
-            sphere.Position.Set(20, 4, 2);
-
-            //      // add the sphere to the scene
-            scene.Add(sphere);
+            glControl.MouseWheel += glControl_MouseWheel;
 
         }
-        public override void Render()
+        private void Run()
         {
-            controls.Update();
-            this.renderer.Render(scene, camera);
+            _timer = new System.Windows.Forms.Timer();
+            _timer.Interval = timeInterval;
+            _timer.Tick += (sender, e) =>
+            {
+                Render();
+            };
+            _timer.Start();
+        }
+
+        private void Render()
+        {
+            this.glControl.MakeCurrent();
+            threeInstance.render();
+            this.glControl.SwapBuffers();
+        }
+
+        private void glControl_MouseWheel(object? sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            (threeInstance.glControl as GLControl).Focus();
+            threeInstance.OnMouseWheel(e.X, e.Y, e.Delta);
+        }
+
+        private void glControl_Load(object sender, EventArgs e)
+        {
+            this.glControl.Profile = OpenTK.Windowing.Common.ContextProfile.Compatability;
+            threeInstance = new SceneService();
+            threeInstance.OnInit(glControl);
+            threeInstance.OnResize(new ResizeEventArgs(glControl.ClientSize.Width, glControl.ClientSize.Height));
+
+            Run();
+        }
+
+        private void glControl_Resize(object sender, EventArgs e)
+        {
+            var control = sender as GLControl;
+
+            if (control.ClientSize.Height == 0)
+                control.ClientSize = new Size(control.ClientSize.Width, 1);
+
+            GL.Viewport(0, 0, control.ClientSize.Width, control.ClientSize.Height);
+            threeInstance?.OnResize(new ResizeEventArgs(control.ClientSize.Width, control.ClientSize.Height));
+        }
+
+        private void glControl_Paint(object sender, PaintEventArgs e)
+        {
+            Render();
+        }
+        private MouseButton GetMouseButton(System.Windows.Forms.MouseEventArgs e)
+        {
+            MouseButton button = MouseButton.Left;
+            switch (e.Button)
+            {
+                case MouseButtons.Middle:
+                    button = MouseButton.Middle;
+                    break;
+                case MouseButtons.Right:
+                    button = MouseButton.Right;
+                    break;
+                case MouseButtons.Left:
+                case MouseButtons.None:
+                default:
+                    break;
+            }
+            return button;
+        }
+
+        private void glControl_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            threeInstance?.OnMouseDown(GetMouseButton(e), e.X, e.Y);
+        }
+
+        private void glControl_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            threeInstance?.OnMouseMove(GetMouseButton(e), e.X, e.Y);
+        }
+
+        private void glControl_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            threeInstance?.OnMouseUp(GetMouseButton(e), e.X, e.Y);
+        }
+
+        private void glControl_KeyUp(object sender, KeyEventArgs e)
+        {
+            Keys key = (Keys)e.KeyCode;
+            switch (e.KeyCode)
+            {
+                case System.Windows.Forms.Keys.Right:
+                    key = Keys.Right;
+                    break;
+                case System.Windows.Forms.Keys.Left:
+                    key = Keys.Left;
+                    break;
+                case System.Windows.Forms.Keys.Down:
+                    key = Keys.Down;
+                    break;
+                case System.Windows.Forms.Keys.Up:
+                    key = Keys.Up;
+                    break;
+
+            }
+            threeInstance?.OnKeyUp(key, e.KeyValue, (KeyModifiers)e.Modifiers);
+        }
+
+        private void glControl_KeyDown(object sender, KeyEventArgs e)
+        {
+            Keys key = (Keys)e.KeyCode;
+            switch (e.KeyCode)
+            {
+                case System.Windows.Forms.Keys.Right:
+                    key = Keys.Right;
+                    break;
+                case System.Windows.Forms.Keys.Left:
+                    key = Keys.Left;
+                    break;
+                case System.Windows.Forms.Keys.Down:
+                    key = Keys.Down;
+                    break;
+                case System.Windows.Forms.Keys.Up:
+                    key = Keys.Up;
+                    break;
+
+            }
+            threeInstance?.OnKeyDown(key, e.KeyValue, (KeyModifiers)e.Modifiers);
+        }
+
+        private void glControl_KeyPress(object sender, System.Windows.Forms.KeyPressEventArgs e)
+        {
+            threeInstance?.OnKeyPress(e.KeyChar.ToString());
         }
     }
 }

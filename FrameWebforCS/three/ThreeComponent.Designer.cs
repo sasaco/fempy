@@ -1,4 +1,6 @@
-﻿namespace FrameWebforCS.three
+﻿using OpenTK.WinForms;
+
+namespace FrameWebforCS.three
 {
     partial class ThreeComponent
     {
@@ -28,30 +30,44 @@
         /// </summary>
         private void InitializeComponent()
         {
-            dockPanel1 = new WeifenLuo.WinFormsUI.Docking.DockPanel();
+            glControl = new GLControl();
             SuspendLayout();
             // 
-            // dockPanel1
+            // glControl
             // 
-            dockPanel1.Dock = DockStyle.Fill;
-            dockPanel1.Location = new Point(0, 0);
-            dockPanel1.Name = "dockPanel1";
-            dockPanel1.Size = new Size(810, 359);
-            dockPanel1.TabIndex = 0;
+            glControl.API = OpenTK.Windowing.Common.ContextAPI.OpenGL;
+            glControl.APIVersion = new Version(3, 3, 0, 0);
+            glControl.Dock = DockStyle.Fill;
+            glControl.Flags = OpenTK.Windowing.Common.ContextFlags.Default;
+            glControl.IsEventDriven = true;
+            glControl.Location = new Point(0, 0);
+            glControl.Name = "glControl";
+            glControl.Profile = OpenTK.Windowing.Common.ContextProfile.Core;
+            glControl.Size = new Size(810, 359);
+            glControl.TabIndex = 0;
+            glControl.Text = "glControl1";
+            glControl.Load += glControl_Load;
+            glControl.Paint += glControl_Paint;
+            glControl.KeyDown += glControl_KeyDown;
+            glControl.KeyPress += glControl_KeyPress;
+            glControl.KeyUp += glControl_KeyUp;
+            glControl.MouseDown += glControl_MouseDown;
+            glControl.MouseMove += glControl_MouseMove;
+            glControl.MouseUp += glControl_MouseUp;
+            glControl.Resize += glControl_Resize;
             // 
             // ThreeComponent
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ControlLightLight;
-            Controls.Add(dockPanel1);
+            Controls.Add(glControl);
             Name = "ThreeComponent";
             Size = new Size(810, 359);
             ResumeLayout(false);
         }
 
         #endregion
-
-        private WeifenLuo.WinFormsUI.Docking.DockPanel dockPanel1;
+        private GLControl glControl;
     }
 }

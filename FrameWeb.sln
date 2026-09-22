@@ -14,6 +14,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrameWebforCS", "FrameWebfo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "THREE", "THREE\THREE\THREE.csproj", "{C6B5A917-D6A0-2071-0198-A84AF6274065}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "THREEExample", "THREE\THREEExample\THREEExample.shproj", "{30D00158-3966-4B7A-8DA5-A0A08A7B61BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "THREE.OpenGL", "THREE\THREE.OpenGL\THREE.OpenGL.csproj", "{89CD6FA9-8DED-BEAA-3906-8F508AE4866E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,11 +52,27 @@ Global
 		{C6B5A917-D6A0-2071-0198-A84AF6274065}.Release|x64.Build.0 = Release|Any CPU
 		{C6B5A917-D6A0-2071-0198-A84AF6274065}.Release|x86.ActiveCfg = Release|Any CPU
 		{C6B5A917-D6A0-2071-0198-A84AF6274065}.Release|x86.Build.0 = Release|Any CPU
+		{89CD6FA9-8DED-BEAA-3906-8F508AE4866E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89CD6FA9-8DED-BEAA-3906-8F508AE4866E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89CD6FA9-8DED-BEAA-3906-8F508AE4866E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{89CD6FA9-8DED-BEAA-3906-8F508AE4866E}.Debug|x64.Build.0 = Debug|Any CPU
+		{89CD6FA9-8DED-BEAA-3906-8F508AE4866E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{89CD6FA9-8DED-BEAA-3906-8F508AE4866E}.Debug|x86.Build.0 = Debug|Any CPU
+		{89CD6FA9-8DED-BEAA-3906-8F508AE4866E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89CD6FA9-8DED-BEAA-3906-8F508AE4866E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89CD6FA9-8DED-BEAA-3906-8F508AE4866E}.Release|x64.ActiveCfg = Release|Any CPU
+		{89CD6FA9-8DED-BEAA-3906-8F508AE4866E}.Release|x64.Build.0 = Release|Any CPU
+		{89CD6FA9-8DED-BEAA-3906-8F508AE4866E}.Release|x86.ActiveCfg = Release|Any CPU
+		{89CD6FA9-8DED-BEAA-3906-8F508AE4866E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {68A3B702-87F2-4DAB-B659-8FC92FBD6473}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		THREE\THREEExample\THREEExample.projitems*{30d00158-3966-4b7a-8da5-a0a08a7b61ba}*SharedItemsImports = 13
+		THREE\THREEExample\THREEExample.projitems*{62426a47-7d9a-4135-a1a7-894d7778d571}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

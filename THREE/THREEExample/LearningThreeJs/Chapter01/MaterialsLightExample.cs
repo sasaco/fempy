@@ -3,6 +3,7 @@ using THREE;
 using OpenTK;
 using OpenTK.Windowing.Common;
 using Color = THREE.Color;
+using OpenTK.WinForms;
 namespace THREEExample.Learning.Chapter01
 {
     [Example("03-Materials-Light", ExampleCategory.LearnThreeJS, "Chapter01")]

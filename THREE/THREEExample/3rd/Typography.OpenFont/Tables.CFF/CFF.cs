@@ -1333,7 +1333,7 @@ namespace Typography.OpenFont.CFF
 
         struct FDRangeProvider
         {
-            //helper class
+            //input_data class
 
             FDRange3[] _ranges;
             ushort _currentGlyphIndex;

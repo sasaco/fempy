@@ -9,6 +9,7 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 using System.Diagnostics;
 using OpenTK.Windowing.Common;
 using Rectangle = THREE.Rectangle;
+using OpenTK.WinForms;
 namespace THREEExample
 {
     [Serializable]

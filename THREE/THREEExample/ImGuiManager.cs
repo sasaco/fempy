@@ -13,6 +13,7 @@ using THREEExample;
 using THREE;
 using System.Windows;
 using System.Windows.Input;
+using OpenTK.WinForms;
 namespace THREEExample.ThreeImGui
 {
     public class ImGuiManager : IDisposable

@@ -81,7 +81,7 @@ namespace Typography.Contours
         public abstract void DrawFromGlyphPlans(GlyphPlanSequence glyphPlanList, int startAt, int len, float left, float top);
 
 
-        //helper methods
+        //input_data methods
         public void DrawString(char[] textBuffer, float left, float top)
         {
             DrawString(textBuffer, 0, textBuffer.Length, left, top);

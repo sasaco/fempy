@@ -70,7 +70,7 @@ namespace THREEExample.Three.Geometries
 
             }
             geometry.SetAttribute("position", new BufferAttribute<float>(vertices, 3));
-            geometry.ComputeFaceNormals(); // needed for helper
+            geometry.ComputeFaceNormals(); // needed for input_data
 
             var texture = GenerateTexture(Data, worldWidth, worldDepth);
             texture.NeedsUpdate = true;

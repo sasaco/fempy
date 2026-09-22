@@ -268,7 +268,7 @@ namespace Typography.OpenFont
 
         readonly struct EntriesReaderHelper
         {
-            //a simple helper class
+            //a simple input_data class
             readonly TableEntryCollection _tables;
             readonly BinaryReader _input;
             public EntriesReaderHelper(TableEntryCollection tables, BinaryReader input)
