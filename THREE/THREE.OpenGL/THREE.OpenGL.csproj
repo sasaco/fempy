@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>10</LangVersion>
+    <Nullable>disable</Nullable>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <Title>three.js ported opengl library to C#</Title>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/hjoykim/THREE/tree/master</RepositoryUrl>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <AssemblyVersion>1.0.0.1</AssemblyVersion>
+    <FileVersion>1.0.0.1</FileVersion>
+    <Description>C# port of Three.js </Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\THREE\THREE.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="OpenTK" Version="4.8.0" />
+  </ItemGroup>
+
+</Project>

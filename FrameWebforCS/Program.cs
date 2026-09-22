@@ -1,45 +1,17 @@
-using FrameWebforCS.Resources;
-using FrameWebforCS.Shell;
-using FrameWebforCS.Shell.Composition;
-
-namespace FrameWebforCS;
-
-internal static class Program
+namespace FrameWebforCS
 {
-    [STAThread]
-    private static void Main()
+    internal static class Program
     {
-        ApplicationConfiguration.Initialize();
-        LocalizationService localization = new();
-        try
+        /// <summary>
+        ///  The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main()
         {
-            string repositoryRoot = FindRepositoryRoot();
-            FrameWebDesktopRuntime runtime = new(repositoryRoot);
-            DesktopApplicationSession.Run(
-                runtime,
-                _ => new MainForm(DesktopApplicationSession.CreateServices(runtime, localization)),
-                Application.Run);
+            // To customize application configuration such as set high DPI settings or default font,
+            // see https://aka.ms/applicationconfiguration.
+            ApplicationConfiguration.Initialize();
+            Application.Run(new AppComponent());
         }
-        catch (Exception exception)
-        {
-            System.Diagnostics.Trace.WriteLine(exception);
-            MessageBox.Show(
-                localization["RuntimeStartError"],
-                localization["ErrorTitle"],
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error);
-        }
-    }
-
-    private static string FindRepositoryRoot()
-    {
-        DirectoryInfo? current = new(AppContext.BaseDirectory);
-        while (current is not null && !File.Exists(Path.Combine(current.FullName, "FrameWeb", "pyproject.toml")))
-        {
-            current = current.Parent;
-        }
-
-        return current?.FullName
-            ?? throw new DirectoryNotFoundException("The FrameWeb repository root could not be located.");
     }
 }
