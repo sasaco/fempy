@@ -6,17 +6,13 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
-namespace FrameWebforCS.components.doc_layout
+namespace FrameWebforCS.components.input
 {
-    public partial class DocLayoutComponent : UserControl
+    public partial class InputNodesComponent : UserControl
     {
-        public DocLayoutComponent()
+        public InputNodesComponent()
         {
             InitializeComponent();
-        }
-        public void ContentsDailogShow()
-        {
-
         }
     }
 }

@@ -1,34 +1,28 @@
-﻿using System;
+﻿using FrameWebforCS.providers;
+using FrameWebforCS.three;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
-using FrameWebforCS.components.doc_layout;
 
 namespace FrameWebforCS
 {
     public partial class AppComponent : Form
     {
+        private ThreeComponent three;
+        private DataHelperModule helper;
         public AppComponent()
         {
             InitializeComponent();
+
+            three = new ThreeComponent(glControl1);
+            helper = DataHelperModule.Instance;
+            helper.FloatingWindow = toolStrip1;
         }
 
-        private void AppComponent_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void 材料ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            //ContentsDailogShow();
-        }
+  
     }
 }

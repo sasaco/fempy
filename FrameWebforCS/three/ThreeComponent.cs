@@ -11,31 +11,19 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
 namespace FrameWebforCS.three
 {
-    public partial class ThreeComponent : UserControl
+    public class ThreeComponent : GLControl
     {
-        private GLControl glControl;
-
         public SceneService threeInstance = null;
 
         private System.Windows.Forms.Timer _timer;
         private int timeInterval = 10;
 
+        private GLControl glControl;
 
-        public ThreeComponent()
+        public ThreeComponent(GLControl control)
         {
-            InitializeComponent();
+            this.glControl = control;
 
-            this.glControl = new GLControl();
-            this.glControl.API = OpenTK.Windowing.Common.ContextAPI.OpenGL;
-            this.glControl.APIVersion = new Version(3, 3, 0, 0);
-            this.glControl.Dock = DockStyle.Fill;
-            this.glControl.Flags = OpenTK.Windowing.Common.ContextFlags.Default;
-            this.glControl.IsEventDriven = true;
-            this.glControl.Location = new Point(0, 0);
-            this.glControl.Name = "glControl";
-            this.glControl.Profile = OpenTK.Windowing.Common.ContextProfile.Core;
-            this.glControl.TabIndex = 0;
-            this.glControl.Text = "glControl1";
             this.glControl.Load += glControl_Load;
             this.glControl.Paint += glControl_Paint;
             this.glControl.KeyDown += glControl_KeyDown;
@@ -46,35 +34,7 @@ namespace FrameWebforCS.three
             this.glControl.MouseUp += glControl_MouseUp;
             this.glControl.Resize += glControl_Resize;
             this.glControl.MouseWheel += glControl_MouseWheel;
-
-            InitializeDocking();
-
         }
-
-
-        private readonly DockContent glDocument = new()
-        {
-            Text = "3D View",
-            DockAreas = DockAreas.Document,
-            CloseButton = false,
-            CloseButtonVisible = false
-        };
-
-        private void InitializeDocking()
-        {
-            dockPanel1.Theme = new VS2015DarkTheme();
-            dockPanel1.BackgroundImage = Properties.Resources.dock_bottom;
-            dockPanel1.DockBackColor = System.Drawing.Color.Transparent;
-            dockPanel1.BackColor = System.Drawing.Color.Transparent;
-
-            if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
-            {
-                return;
-            }
-            //glDocument.Controls.Add(this.glControl);
-            //glDocument.Show(dockPanel1, DockState.Document);
-        }
-
 
 
         private void Run()

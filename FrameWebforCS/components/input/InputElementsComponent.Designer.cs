@@ -1,8 +1,6 @@
-﻿using OpenTK.WinForms;
-
-namespace FrameWebforCS.three
+﻿namespace FrameWebforCS.components.input
 {
-    partial class ThreeComponent
+    partial class InputElementsComponent
     {
         /// <summary> 
         /// 必要なデザイナー変数です。
@@ -30,30 +28,30 @@ namespace FrameWebforCS.three
         /// </summary>
         private void InitializeComponent()
         {
-            dockPanel1 = new WeifenLuo.WinFormsUI.Docking.DockPanel();
+            button1 = new Button();
             SuspendLayout();
             // 
-            // dockPanel1
+            // button1
             // 
-            dockPanel1.Dock = DockStyle.Fill;
-            dockPanel1.Location = new Point(0, 0);
-            dockPanel1.Name = "dockPanel1";
-            dockPanel1.Size = new Size(810, 359);
-            dockPanel1.TabIndex = 1;
+            button1.Location = new Point(14, 18);
+            button1.Name = "button1";
+            button1.Size = new Size(197, 96);
+            button1.TabIndex = 0;
+            button1.Text = "button1";
+            button1.UseVisualStyleBackColor = true;
             // 
-            // ThreeComponent
+            // InputElementsComponent
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = SystemColors.ControlLightLight;
-            Controls.Add(dockPanel1);
-            Name = "ThreeComponent";
-            Size = new Size(810, 359);
+            BackColor = SystemColors.ActiveCaption;
+            Controls.Add(button1);
+            Name = "InputElementsComponent";
             ResumeLayout(false);
         }
 
         #endregion
 
-        private WeifenLuo.WinFormsUI.Docking.DockPanel dockPanel1;
+        private Button button1;
     }
 }

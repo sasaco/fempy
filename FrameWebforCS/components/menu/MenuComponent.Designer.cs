@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             tableLayoutPanel1 = new TableLayoutPanel();
-            pictureBox1 = new PictureBox();
             menuStrip1 = new MenuStrip();
             ファイルToolStripMenuItem = new ToolStripMenuItem();
             新規作成ToolStripMenuItem = new ToolStripMenuItem();
@@ -37,22 +36,23 @@
             ファイルを保存ToolStripMenuItem = new ToolStripMenuItem();
             プリセットを開くToolStripMenuItem = new ToolStripMenuItem();
             印刷ToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem1 = new ToolStripMenuItem();
+            dToolStripMenuItem2 = new ToolStripMenuItem();
+            dToolStripMenuItem3 = new ToolStripMenuItem();
             button1 = new Button();
             tableLayoutPanel1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // tableLayoutPanel1
             // 
-            tableLayoutPanel1.ColumnCount = 4;
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 24F));
+            tableLayoutPanel1.ColumnCount = 3;
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle());
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 100F));
-            tableLayoutPanel1.Controls.Add(pictureBox1, 0, 0);
-            tableLayoutPanel1.Controls.Add(menuStrip1, 1, 0);
-            tableLayoutPanel1.Controls.Add(button1, 3, 0);
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel1.Controls.Add(menuStrip1, 0, 0);
+            tableLayoutPanel1.Controls.Add(button1, 2, 0);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(0, 0);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
@@ -61,24 +61,13 @@
             tableLayoutPanel1.Size = new Size(903, 24);
             tableLayoutPanel1.TabIndex = 1;
             // 
-            // pictureBox1
-            // 
-            pictureBox1.Dock = DockStyle.Fill;
-            pictureBox1.Image = Properties.Resources.logo;
-            pictureBox1.Location = new Point(3, 3);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(18, 18);
-            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox1.TabIndex = 1;
-            pictureBox1.TabStop = false;
-            // 
             // menuStrip1
             // 
             menuStrip1.Dock = DockStyle.Fill;
-            menuStrip1.Items.AddRange(new ToolStripItem[] { ファイルToolStripMenuItem, 印刷ToolStripMenuItem });
-            menuStrip1.Location = new Point(24, 0);
+            menuStrip1.Items.AddRange(new ToolStripItem[] { ファイルToolStripMenuItem, 印刷ToolStripMenuItem, toolStripMenuItem1 });
+            menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
-            menuStrip1.Size = new Size(224, 24);
+            menuStrip1.Size = new Size(257, 24);
             menuStrip1.TabIndex = 2;
             menuStrip1.Text = "menuStrip1";
             // 
@@ -92,25 +81,25 @@
             // 新規作成ToolStripMenuItem
             // 
             新規作成ToolStripMenuItem.Name = "新規作成ToolStripMenuItem";
-            新規作成ToolStripMenuItem.Size = new Size(180, 22);
+            新規作成ToolStripMenuItem.Size = new Size(145, 22);
             新規作成ToolStripMenuItem.Text = "新規作成";
             // 
             // ファイルを開くToolStripMenuItem
             // 
             ファイルを開くToolStripMenuItem.Name = "ファイルを開くToolStripMenuItem";
-            ファイルを開くToolStripMenuItem.Size = new Size(180, 22);
+            ファイルを開くToolStripMenuItem.Size = new Size(145, 22);
             ファイルを開くToolStripMenuItem.Text = "ファイルを開く";
             // 
             // ファイルを保存ToolStripMenuItem
             // 
             ファイルを保存ToolStripMenuItem.Name = "ファイルを保存ToolStripMenuItem";
-            ファイルを保存ToolStripMenuItem.Size = new Size(180, 22);
+            ファイルを保存ToolStripMenuItem.Size = new Size(145, 22);
             ファイルを保存ToolStripMenuItem.Text = "ファイルを保存";
             // 
             // プリセットを開くToolStripMenuItem
             // 
             プリセットを開くToolStripMenuItem.Name = "プリセットを開くToolStripMenuItem";
-            プリセットを開くToolStripMenuItem.Size = new Size(180, 22);
+            プリセットを開くToolStripMenuItem.Size = new Size(145, 22);
             プリセットを開くToolStripMenuItem.Text = "プリセットを開く";
             // 
             // 印刷ToolStripMenuItem
@@ -118,6 +107,28 @@
             印刷ToolStripMenuItem.Name = "印刷ToolStripMenuItem";
             印刷ToolStripMenuItem.Size = new Size(43, 20);
             印刷ToolStripMenuItem.Text = "印刷";
+            // 
+            // toolStripMenuItem1
+            // 
+            toolStripMenuItem1.CheckOnClick = true;
+            toolStripMenuItem1.DropDownItems.AddRange(new ToolStripItem[] { dToolStripMenuItem2, dToolStripMenuItem3 });
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new Size(33, 20);
+            toolStripMenuItem1.Text = "3D";
+            // 
+            // dToolStripMenuItem2
+            // 
+            dToolStripMenuItem2.CheckOnClick = true;
+            dToolStripMenuItem2.Name = "dToolStripMenuItem2";
+            dToolStripMenuItem2.Size = new Size(180, 22);
+            dToolStripMenuItem2.Text = "2D";
+            // 
+            // dToolStripMenuItem3
+            // 
+            dToolStripMenuItem3.CheckOnClick = true;
+            dToolStripMenuItem3.Name = "dToolStripMenuItem3";
+            dToolStripMenuItem3.Size = new Size(180, 22);
+            dToolStripMenuItem3.Text = "3D";
             // 
             // button1
             // 
@@ -142,7 +153,6 @@
             Size = new Size(903, 24);
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
             ResumeLayout(false);
@@ -150,7 +160,6 @@
 
         #endregion
         private TableLayoutPanel tableLayoutPanel1;
-        private PictureBox pictureBox1;
         private MenuStrip menuStrip1;
         private ToolStripMenuItem ファイルToolStripMenuItem;
         private ToolStripMenuItem 新規作成ToolStripMenuItem;
@@ -159,5 +168,8 @@
         private ToolStripMenuItem プリセットを開くToolStripMenuItem;
         private ToolStripMenuItem 印刷ToolStripMenuItem;
         private Button button1;
+        private ToolStripMenuItem toolStripMenuItem1;
+        private ToolStripMenuItem dToolStripMenuItem2;
+        private ToolStripMenuItem dToolStripMenuItem3;
     }
 }
