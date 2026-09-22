@@ -4,24 +4,79 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.WinForms;
 using SingleFormsDemo;
+using System.ComponentModel;
 using THREE;
+using WeifenLuo.WinFormsUI.Docking;
 using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
 namespace FrameWebforCS.three
 {
     public partial class ThreeComponent : UserControl
     {
+        private GLControl glControl;
+
         public SceneService threeInstance = null;
 
         private System.Windows.Forms.Timer _timer;
         private int timeInterval = 10;
 
+
         public ThreeComponent()
         {
             InitializeComponent();
-            glControl.MouseWheel += glControl_MouseWheel;
+
+            this.glControl = new GLControl();
+            this.glControl.API = OpenTK.Windowing.Common.ContextAPI.OpenGL;
+            this.glControl.APIVersion = new Version(3, 3, 0, 0);
+            this.glControl.Dock = DockStyle.Fill;
+            this.glControl.Flags = OpenTK.Windowing.Common.ContextFlags.Default;
+            this.glControl.IsEventDriven = true;
+            this.glControl.Location = new Point(0, 0);
+            this.glControl.Name = "glControl";
+            this.glControl.Profile = OpenTK.Windowing.Common.ContextProfile.Core;
+            this.glControl.TabIndex = 0;
+            this.glControl.Text = "glControl1";
+            this.glControl.Load += glControl_Load;
+            this.glControl.Paint += glControl_Paint;
+            this.glControl.KeyDown += glControl_KeyDown;
+            this.glControl.KeyPress += glControl_KeyPress;
+            this.glControl.KeyUp += glControl_KeyUp;
+            this.glControl.MouseDown += glControl_MouseDown;
+            this.glControl.MouseMove += glControl_MouseMove;
+            this.glControl.MouseUp += glControl_MouseUp;
+            this.glControl.Resize += glControl_Resize;
+            this.glControl.MouseWheel += glControl_MouseWheel;
+
+            InitializeDocking();
 
         }
+
+
+        private readonly DockContent glDocument = new()
+        {
+            Text = "3D View",
+            DockAreas = DockAreas.Document,
+            CloseButton = false,
+            CloseButtonVisible = false
+        };
+
+        private void InitializeDocking()
+        {
+            dockPanel1.Theme = new VS2015DarkTheme();
+            dockPanel1.BackgroundImage = Properties.Resources.dock_bottom;
+            dockPanel1.DockBackColor = System.Drawing.Color.Transparent;
+            dockPanel1.BackColor = System.Drawing.Color.Transparent;
+
+            if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+            {
+                return;
+            }
+            //glDocument.Controls.Add(this.glControl);
+            //glDocument.Show(dockPanel1, DockState.Document);
+        }
+
+
+
         private void Run()
         {
             _timer = new System.Windows.Forms.Timer();
@@ -46,7 +101,7 @@ namespace FrameWebforCS.three
             threeInstance.OnMouseWheel(e.X, e.Y, e.Delta);
         }
 
-        private void glControl_Load(object sender, EventArgs e)
+        private void glControl_Load(object? sender, EventArgs e)
         {
             this.glControl.Profile = OpenTK.Windowing.Common.ContextProfile.Compatability;
             threeInstance = new SceneService();
@@ -56,7 +111,7 @@ namespace FrameWebforCS.three
             Run();
         }
 
-        private void glControl_Resize(object sender, EventArgs e)
+        private void glControl_Resize(object? sender, EventArgs e)
         {
             var control = sender as GLControl;
 
@@ -67,7 +122,7 @@ namespace FrameWebforCS.three
             threeInstance?.OnResize(new ResizeEventArgs(control.ClientSize.Width, control.ClientSize.Height));
         }
 
-        private void glControl_Paint(object sender, PaintEventArgs e)
+        private void glControl_Paint(object? sender, PaintEventArgs e)
         {
             Render();
         }
@@ -90,22 +145,22 @@ namespace FrameWebforCS.three
             return button;
         }
 
-        private void glControl_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void glControl_MouseDown(object? sender, System.Windows.Forms.MouseEventArgs e)
         {
             threeInstance?.OnMouseDown(GetMouseButton(e), e.X, e.Y);
         }
 
-        private void glControl_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void glControl_MouseMove(object? sender, System.Windows.Forms.MouseEventArgs e)
         {
             threeInstance?.OnMouseMove(GetMouseButton(e), e.X, e.Y);
         }
 
-        private void glControl_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void glControl_MouseUp(object? sender, System.Windows.Forms.MouseEventArgs e)
         {
             threeInstance?.OnMouseUp(GetMouseButton(e), e.X, e.Y);
         }
 
-        private void glControl_KeyUp(object sender, KeyEventArgs e)
+        private void glControl_KeyUp(object? sender, KeyEventArgs e)
         {
             Keys key = (Keys)e.KeyCode;
             switch (e.KeyCode)
@@ -127,7 +182,7 @@ namespace FrameWebforCS.three
             threeInstance?.OnKeyUp(key, e.KeyValue, (KeyModifiers)e.Modifiers);
         }
 
-        private void glControl_KeyDown(object sender, KeyEventArgs e)
+        private void glControl_KeyDown(object? sender, KeyEventArgs e)
         {
             Keys key = (Keys)e.KeyCode;
             switch (e.KeyCode)
@@ -149,9 +204,33 @@ namespace FrameWebforCS.three
             threeInstance?.OnKeyDown(key, e.KeyValue, (KeyModifiers)e.Modifiers);
         }
 
-        private void glControl_KeyPress(object sender, System.Windows.Forms.KeyPressEventArgs e)
+        private void glControl_KeyPress(object? sender, System.Windows.Forms.KeyPressEventArgs e)
         {
             threeInstance?.OnKeyPress(e.KeyChar.ToString());
+        }
+
+
+        /// <summary>
+        /// 
+        /// デザイナー上で GLControl が実際に初期化されている
+        /// 読み込み経路は次のとおりです。
+        /// 1. FrameWebforCS/AppComponent.Designer.cs:34 が ThreeComponent を生成
+        /// 2. FrameWebforCS/three/ThreeComponent.cs:21 が InitializeComponent() を実行
+        /// 3. FrameWebforCS/three/ThreeComponent.Designer.cs:33 が GLControl を生成
+        /// デザイン時だけ GLControl を非表示にして、ハンドル生成とレンダラー初期化を防ぐことです。
+        /// DesignMode 単独ではコンストラクター内で正しく判定できない場合があるため、LicenseManager と IsAncestorSiteInDesignMode を併用します。実行時の描画処理には影響せず、デザイナーでは ThreeComponent 部分だけ空白になります。
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            if (DesignMode ||
+                IsAncestorSiteInDesignMode ||
+                LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+            {
+                glControl.Visible = false;
+            }
+
+            base.OnHandleCreated(e);
         }
     }
 }

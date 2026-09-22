@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using FrameWebforCS.components.doc_layout;
 
 namespace FrameWebforCS
 {
@@ -25,5 +26,9 @@ namespace FrameWebforCS
 
         }
 
+        private void 材料ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //ContentsDailogShow();
+        }
     }
 }

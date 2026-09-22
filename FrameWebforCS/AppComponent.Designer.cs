@@ -31,6 +31,7 @@ namespace FrameWebforCS
         private void InitializeComponent()
         {
             toolStripContainer1 = new ToolStripContainer();
+            threeComponent1 = new FrameWebforCS.three.ThreeComponent();
             menuStrip2 = new MenuStrip();
             計算ToolStripMenuItem = new ToolStripMenuItem();
             材料ToolStripMenuItem = new ToolStripMenuItem();
@@ -48,7 +49,6 @@ namespace FrameWebforCS
             menuStrip1 = new OptionalHeaderComponent();
             tableLayoutPanel1 = new TableLayoutPanel();
             menuComponent1 = new MenuComponent();
-            threeComponent1 = new FrameWebforCS.three.ThreeComponent();
             toolStripContainer1.ContentPanel.SuspendLayout();
             toolStripContainer1.LeftToolStripPanel.SuspendLayout();
             toolStripContainer1.TopToolStripPanel.SuspendLayout();
@@ -81,6 +81,15 @@ namespace FrameWebforCS
             // 
             toolStripContainer1.TopToolStripPanel.Controls.Add(menuStrip1);
             // 
+            // threeComponent1
+            // 
+            threeComponent1.BackColor = SystemColors.ControlLightLight;
+            threeComponent1.Dock = DockStyle.Fill;
+            threeComponent1.Location = new Point(0, 0);
+            threeComponent1.Name = "threeComponent1";
+            threeComponent1.Size = new Size(733, 385);
+            threeComponent1.TabIndex = 0;
+            // 
             // menuStrip2
             // 
             menuStrip2.Dock = DockStyle.None;
@@ -97,6 +106,7 @@ namespace FrameWebforCS
             計算ToolStripMenuItem.Name = "計算ToolStripMenuItem";
             計算ToolStripMenuItem.Size = new Size(54, 19);
             計算ToolStripMenuItem.Text = "計算";
+            計算ToolStripMenuItem.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // 材料ToolStripMenuItem
             // 
@@ -104,6 +114,8 @@ namespace FrameWebforCS
             材料ToolStripMenuItem.Name = "材料ToolStripMenuItem";
             材料ToolStripMenuItem.Size = new Size(54, 19);
             材料ToolStripMenuItem.Text = "材料";
+            材料ToolStripMenuItem.TextAlign = ContentAlignment.MiddleLeft;
+            材料ToolStripMenuItem.Click += 材料ToolStripMenuItem_Click;
             // 
             // 節点ToolStripMenuItem
             // 
@@ -111,6 +123,7 @@ namespace FrameWebforCS
             節点ToolStripMenuItem.Name = "節点ToolStripMenuItem";
             節点ToolStripMenuItem.Size = new Size(54, 19);
             節点ToolStripMenuItem.Text = "節点";
+            節点ToolStripMenuItem.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // 支点ToolStripMenuItem
             // 
@@ -118,6 +131,7 @@ namespace FrameWebforCS
             支点ToolStripMenuItem.Name = "支点ToolStripMenuItem";
             支点ToolStripMenuItem.Size = new Size(54, 19);
             支点ToolStripMenuItem.Text = "支点";
+            支点ToolStripMenuItem.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // 部材ToolStripMenuItem
             // 
@@ -125,6 +139,7 @@ namespace FrameWebforCS
             部材ToolStripMenuItem.Name = "部材ToolStripMenuItem";
             部材ToolStripMenuItem.Size = new Size(54, 19);
             部材ToolStripMenuItem.Text = "部材";
+            部材ToolStripMenuItem.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // 結合ToolStripMenuItem
             // 
@@ -132,6 +147,7 @@ namespace FrameWebforCS
             結合ToolStripMenuItem.Name = "結合ToolStripMenuItem";
             結合ToolStripMenuItem.Size = new Size(54, 19);
             結合ToolStripMenuItem.Text = "結合";
+            結合ToolStripMenuItem.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // 着目点ToolStripMenuItem
             // 
@@ -139,6 +155,7 @@ namespace FrameWebforCS
             着目点ToolStripMenuItem.Name = "着目点ToolStripMenuItem";
             着目点ToolStripMenuItem.Size = new Size(54, 19);
             着目点ToolStripMenuItem.Text = "着目点";
+            着目点ToolStripMenuItem.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // バネToolStripMenuItem
             // 
@@ -146,6 +163,7 @@ namespace FrameWebforCS
             バネToolStripMenuItem.Name = "バネToolStripMenuItem";
             バネToolStripMenuItem.Size = new Size(54, 19);
             バネToolStripMenuItem.Text = "バネ";
+            バネToolStripMenuItem.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // 荷重ToolStripMenuItem
             // 
@@ -153,6 +171,7 @@ namespace FrameWebforCS
             荷重ToolStripMenuItem.Name = "荷重ToolStripMenuItem";
             荷重ToolStripMenuItem.Size = new Size(54, 19);
             荷重ToolStripMenuItem.Text = "荷重";
+            荷重ToolStripMenuItem.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // 組合せToolStripMenuItem
             // 
@@ -160,6 +179,7 @@ namespace FrameWebforCS
             組合せToolStripMenuItem.Name = "組合せToolStripMenuItem";
             組合せToolStripMenuItem.Size = new Size(54, 19);
             組合せToolStripMenuItem.Text = "組合せ";
+            組合せToolStripMenuItem.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // 変位ToolStripMenuItem
             // 
@@ -167,6 +187,7 @@ namespace FrameWebforCS
             変位ToolStripMenuItem.Name = "変位ToolStripMenuItem";
             変位ToolStripMenuItem.Size = new Size(54, 19);
             変位ToolStripMenuItem.Text = "変位";
+            変位ToolStripMenuItem.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // 反力ToolStripMenuItem
             // 
@@ -174,6 +195,7 @@ namespace FrameWebforCS
             反力ToolStripMenuItem.Name = "反力ToolStripMenuItem";
             反力ToolStripMenuItem.Size = new Size(54, 19);
             反力ToolStripMenuItem.Text = "反力";
+            反力ToolStripMenuItem.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // 断面力ToolStripMenuItem
             // 
@@ -181,6 +203,7 @@ namespace FrameWebforCS
             断面力ToolStripMenuItem.Name = "断面力ToolStripMenuItem";
             断面力ToolStripMenuItem.Size = new Size(54, 19);
             断面力ToolStripMenuItem.Text = "断面力";
+            断面力ToolStripMenuItem.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // menuStrip1
             // 
@@ -216,15 +239,6 @@ namespace FrameWebforCS
             menuComponent1.Name = "menuComponent1";
             menuComponent1.Size = new Size(794, 26);
             menuComponent1.TabIndex = 0;
-            // 
-            // threeComponent1
-            // 
-            threeComponent1.BackColor = SystemColors.ControlLightLight;
-            threeComponent1.Dock = DockStyle.Fill;
-            threeComponent1.Location = new Point(0, 0);
-            threeComponent1.Name = "threeComponent1";
-            threeComponent1.Size = new Size(733, 385);
-            threeComponent1.TabIndex = 0;
             // 
             // AppComponent
             // 

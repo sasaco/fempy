@@ -1,8 +1,6 @@
-﻿using OpenTK.WinForms;
-
-namespace FrameWebforCS.three
+﻿namespace FrameWebforCS.components.doc_layout
 {
-    partial class ThreeComponent
+    partial class DocLayoutComponent
     {
         /// <summary> 
         /// 必要なデザイナー変数です。
@@ -30,30 +28,10 @@ namespace FrameWebforCS.three
         /// </summary>
         private void InitializeComponent()
         {
-            dockPanel1 = new WeifenLuo.WinFormsUI.Docking.DockPanel();
-            SuspendLayout();
-            // 
-            // dockPanel1
-            // 
-            dockPanel1.Dock = DockStyle.Fill;
-            dockPanel1.Location = new Point(0, 0);
-            dockPanel1.Name = "dockPanel1";
-            dockPanel1.Size = new Size(810, 359);
-            dockPanel1.TabIndex = 1;
-            // 
-            // ThreeComponent
-            // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
-            AutoScaleMode = AutoScaleMode.Font;
-            BackColor = SystemColors.ControlLightLight;
-            Controls.Add(dockPanel1);
-            Name = "ThreeComponent";
-            Size = new Size(810, 359);
-            ResumeLayout(false);
+            components = new System.ComponentModel.Container();
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
         }
 
         #endregion
-
-        private WeifenLuo.WinFormsUI.Docking.DockPanel dockPanel1;
     }
 }
