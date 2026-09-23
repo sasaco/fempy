@@ -35,10 +35,9 @@
             // fpSpread1
             // 
             fpSpread1.Dock = DockStyle.Fill;
-            fpSpread1.Font = new Font("ＭＳ Ｐゴシック", 11F);
+            fpSpread1.Font = new Font("ＭＳ ゴシック", 9F);
             fpSpread1.Location = new Point(0, 0);
             fpSpread1.Name = "fpSpread1";
-            fpSpread1.Size = new Size(81, 70);
             fpSpread1.TabIndex = 0;
             // 
             // InputNodesComponent

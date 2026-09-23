@@ -1,4 +1,5 @@
-﻿using FrameWebforCS.providers;
+﻿using FarPoint.Win.Spread;
+using FrameWebforCS.providers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,79 +14,30 @@ namespace FrameWebforCS.components.input
     public partial class InputFixMemberComponent : UserControl
     {
         private InputDataService _input = InputDataService.Instance;
-        private FarPoint.Win.Spread.SheetView fpSpread1_Sheet1;
+        private const int type_count = 6;
+        private List<FarPoint.Win.Spread.SheetView> fpSpread1_Sheets;
+
 
         public InputFixMemberComponent()
         {
             InitializeComponent();
 
-            fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
+            fpSpread1_Sheets = new List<SheetView>();
 
-            fpSpread1_Sheet1.SheetName = "Mamber";
-            var header = fpSpread1_Sheet1.ColumnHeader;
-            header.RowCount = 2;
-
-            if (_input.dimension == 3)
+            for (int i = 0; i < type_count; i++)
             {
-                fpSpread1_Sheet1.ColumnCount = 6;
 
-                header.Cells[0, 0].Text = "節点";
-                header.Cells[1, 0].Text = "i端";
-                header.Cells[0, 1].Text = "";
-                header.Cells[1, 1].Text = "j端";
-                header.Cells[0, 2].Text = "部材長";
-                header.Cells[1, 2].Text = "(m)";
-                header.Cells[0, 3].Text = "材料No";
-                header.Cells[1, 3].Text = " ";
-                header.Cells[0, 4].Text = "コードアングル";
-                header.Cells[1, 4].Text = "(°)";
-                header.Cells[0, 5].Text = "材料名称";
-                header.Cells[1, 5].Text = " ";
+                var fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
 
-                header.Cells[0, 0].ColumnSpan = 2;
+                fpSpread1_Sheet1.SheetName = "TYPE-" + i.ToString();
 
-                var column = fpSpread1_Sheet1.Columns;
-                column[0].Width = 50;
-                column[1].Width = 50;
-                column[2].Width = 80;
-                column[3].Width = 50;
-                column[4].Width = 150;
-                column[5].Width = 150;
+                setColumn(fpSpread1_Sheet1);
 
-                column[2].Locked = true;
-            }
-            else
-            {
-                fpSpread1_Sheet1.ColumnCount = 6;
-
-                header.Cells[0, 0].Text = "節点";
-                header.Cells[1, 0].Text = "i端";
-                header.Cells[0, 1].Text = "";
-                header.Cells[1, 1].Text = "j端";
-                header.Cells[0, 2].Text = "部材長";
-                header.Cells[1, 2].Text = "(m)";
-                header.Cells[0, 3].Text = "材料No";
-                header.Cells[1, 3].Text = " ";
-                header.Cells[0, 4].Text = "コードアングル";
-                header.Cells[1, 4].Text = "(°)";
-                header.Cells[0, 5].Text = "材料名称";
-                header.Cells[1, 5].Text = " ";
-
-                header.Cells[0, 0].ColumnSpan = 2;
-
-                var column = fpSpread1_Sheet1.Columns;
-                column[0].Width = 50;
-                column[1].Width = 50;
-                column[2].Width = 80;
-                column[3].Width = 50;
-                column[4].Width = 150;
-                column[5].Width = 150;
-
-                column[2].Locked = true;
+                fpSpread1_Sheets.Add(fpSpread1_Sheet1);
             }
 
             float w = 0;
-            var col = fpSpread1_Sheet1.Columns;
+            var col = fpSpread1_Sheets.First().Columns;
             for (int i = 0; i < col.Count; i++)
             {
                 w += col[i].Width;
@@ -94,6 +46,55 @@ namespace FrameWebforCS.components.input
 
             this.Width = (int)w;
 
+        }
+
+        private void setColumn(FarPoint.Win.Spread.SheetView fpSpread1_Sheet1)
+        {
+            var header = fpSpread1_Sheet1.ColumnHeader;
+            header.RowCount = 2;
+
+            if (_input.dimension == 3)
+            {
+                fpSpread1_Sheet1.ColumnCount = 5;
+
+                header.Cells[0, 0].Text = "部材";
+                header.Cells[1, 0].Text = "No";
+                header.Cells[0, 1].Text = "変位拘束";
+                header.Cells[1, 1].Text = "部材軸方向";
+                header.Cells[0, 2].Text = "";
+                header.Cells[1, 2].Text = "部材Y軸";
+                header.Cells[0, 3].Text = "";
+                header.Cells[1, 3].Text = "部材Z軸";
+                header.Cells[0, 4].Text = "回転拘束";
+                header.Cells[1, 4].Text = "(kNm/rad/m)";
+
+                header.Cells[0, 1].ColumnSpan = 3;
+
+                var column = fpSpread1_Sheet1.Columns;
+                column[0].Width = 50;
+                for (var i = 1; i < column.Count; i++)
+                {
+                    column[i].Width = 100;
+                }
+            }
+            else
+            {
+                fpSpread1_Sheet1.ColumnCount = 3;
+
+                header.Cells[0, 0].Text = "部材";
+                header.Cells[1, 0].Text = "No";
+                header.Cells[0, 1].Text = "部材軸方向";
+                header.Cells[1, 1].Text = "(kN/m/m)";
+                header.Cells[0, 2].Text = "部材直角方向";
+                header.Cells[1, 2].Text = "(kN/m/m)";
+
+                var column = fpSpread1_Sheet1.Columns;
+                column[0].Width = 50;
+                for (var i = 1; i < column.Count; i++)
+                {
+                    column[i].Width = 100;
+                }
+            }
         }
     }
 }

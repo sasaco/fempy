@@ -26,7 +26,7 @@ namespace FrameWebforCS.components.menu
             { "fix_node", typeof(InputFixNodeComponent) }, // 支点
             { "fix_member", typeof(InputFixMemberComponent) }, // バネ
             { "joint", typeof(InputJointComponent) }, // 結合
-            { "load", typeof(InputLoadNameComponent) }, // 荷重
+            { "load", typeof(InputLoadComponent) }, // 荷重
             { "Combine", typeof(InputDefineComponent) } , // 組合せ
             { "disg", typeof(ResultDisgComponent) }, // 変位: 基本Case
             { "combdisg", typeof(ResultCombineDisgComponent) }, // 変位: 組合せ
