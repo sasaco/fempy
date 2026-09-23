@@ -34,13 +34,9 @@
             // 
             // fpSpread1
             // 
-            fpSpread1.AccessibleDescription = "";
             fpSpread1.Dock = DockStyle.Fill;
-            fpSpread1.Font = new Font("ＭＳ Ｐゴシック", 11F);
             fpSpread1.Location = new Point(0, 0);
-            fpSpread1.Margin = new Padding(2, 1, 2, 1);
             fpSpread1.Name = "fpSpread1";
-            fpSpread1.Size = new Size(850, 373);
             fpSpread1.TabIndex = 0;
             // 
             // InputElementsComponent

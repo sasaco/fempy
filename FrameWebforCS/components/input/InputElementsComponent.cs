@@ -1,4 +1,5 @@
 ﻿using FarPoint.Win.Spread;
+using FrameWebforCS.providers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,8 +12,10 @@ namespace FrameWebforCS.components.input
 {
     public partial class InputElementsComponent : UserControl
     {
+        private InputDataService _input = InputDataService.Instance;
         private const int type_count = 6;
         private List<FarPoint.Win.Spread.SheetView> fpSpread1_Sheets;
+
 
         public InputElementsComponent()
         {
@@ -26,9 +29,30 @@ namespace FrameWebforCS.components.input
 
                 fpSpread1_Sheet1.SheetName = "TYPE-" + i.ToString();
 
-                var header = fpSpread1_Sheet1.ColumnHeader;
-                header.RowCount = 2;
+                setColumn(fpSpread1_Sheet1);
 
+                fpSpread1_Sheets.Add(fpSpread1_Sheet1);
+            }
+
+            float w = 0;
+            var col = fpSpread1_Sheets.First().Columns;
+            for (int i= 0; i < col.Count; i++) 
+            {
+                w += col[i].Width;
+            }
+            w += 100;
+
+            this.Width = (int)w;
+
+        }
+
+        private void setColumn(FarPoint.Win.Spread.SheetView fpSpread1_Sheet1)
+        {
+            var header = fpSpread1_Sheet1.ColumnHeader;
+            header.RowCount = 2;
+
+            if (_input.dimension == 3)
+            {
                 fpSpread1_Sheet1.ColumnCount = 8;
 
                 header.Cells[0, 0].Text = "弾性係数";
@@ -59,15 +83,30 @@ namespace FrameWebforCS.components.input
                 column[5].Width = 80;
                 column[6].Width = 80;
                 column[7].Width = 150;
-
-                fpSpread1_Sheets.Add(fpSpread1_Sheet1);
             }
+            else
+            {
+                fpSpread1_Sheet1.ColumnCount = 5;
 
-            this.Width = 900;
+                header.Cells[0, 0].Text = "弾性係数";
+                header.Cells[1, 0].Text = "E(kN/m2)";
+                header.Cells[0, 1].Text = "膨張係数";
+                header.Cells[1, 1].Text = " ";
+                header.Cells[0, 2].Text = "断面積";
+                header.Cells[1, 2].Text = "A(m2)";
+                header.Cells[0, 3].Text = "断面二次モーメント";
+                header.Cells[1, 3].Text = "I(m4)";
+                header.Cells[0, 4].Text = "名前";
+                header.Cells[1, 4].Text = " ";
 
+                var column = fpSpread1_Sheet1.Columns;
+                column[0].Width = 80;
+                column[1].Width = 80;
+                column[2].Width = 80;
+                column[3].Width = 80;
+                column[4].Width = 150;
+            }
         }
-
-
 
         public void setElementJson(string json)
         {

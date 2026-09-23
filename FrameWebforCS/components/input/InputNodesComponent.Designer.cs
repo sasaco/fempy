@@ -28,31 +28,34 @@
         /// </summary>
         private void InitializeComponent()
         {
-            label1 = new Label();
+            fpSpread1 = new FarPoint.Win.Spread.FpSpread(FarPoint.Win.Spread.LegacyBehaviors.None, null);
+            ((System.ComponentModel.ISupportInitialize)fpSpread1).BeginInit();
             SuspendLayout();
             // 
-            // label1
+            // fpSpread1
             // 
-            label1.AutoSize = true;
-            label1.Location = new Point(47, 51);
-            label1.Name = "label1";
-            label1.Size = new Size(78, 32);
-            label1.TabIndex = 0;
-            label1.Text = "label1";
+            fpSpread1.Dock = DockStyle.Fill;
+            fpSpread1.Font = new Font("ＭＳ Ｐゴシック", 11F);
+            fpSpread1.Location = new Point(0, 0);
+            fpSpread1.Name = "fpSpread1";
+            fpSpread1.Size = new Size(81, 70);
+            fpSpread1.TabIndex = 0;
             // 
             // InputNodesComponent
             // 
-            AutoScaleDimensions = new SizeF(13F, 32F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = SystemColors.Info;
-            Controls.Add(label1);
+            BackColor = SystemColors.Control;
+            Controls.Add(fpSpread1);
+            Margin = new Padding(2, 1, 2, 1);
             Name = "InputNodesComponent";
+            Size = new Size(81, 70);
+            ((System.ComponentModel.ISupportInitialize)fpSpread1).EndInit();
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
 
-        private Label label1;
+        private FarPoint.Win.Spread.FpSpread fpSpread1;
     }
 }
