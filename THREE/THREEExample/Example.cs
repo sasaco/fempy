@@ -1,15 +1,10 @@
 ﻿using ImGuiNET;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using THREE;
-using OpenTK.Windowing.GraphicsLibraryFramework;
-using THREEExample.ThreeImGui;
-using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
-using System.Diagnostics;
 using OpenTK.Windowing.Common;
-using Rectangle = THREE.Rectangle;
 using OpenTK.WinForms;
+using System.Diagnostics;
+using THREE;
+using THREEExample.ThreeImGui;
+using Rectangle = THREE.Rectangle;
 namespace THREEExample
 {
     [Serializable]

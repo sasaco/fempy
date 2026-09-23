@@ -4,37 +4,38 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace FrameWebforCS.providers
+namespace FrameWebforCS
 {
-    internal class DataHelperModule
+    internal class AppRoutingModule
     {
         // Lazy<T> を使ってスレッドセーフかつ遅延評価のシングルトンを実装
-        private static readonly Lazy<DataHelperModule> _instance =
-            new Lazy<DataHelperModule>(() => new DataHelperModule());
+        private static readonly Lazy<AppRoutingModule> _instance =
+            new Lazy<AppRoutingModule>(() => new AppRoutingModule());
 
         // 外部からはこのプロパティを通じてのみインスタンスにアクセスできる
-        public static DataHelperModule Instance => _instance.Value;
+        public static AppRoutingModule Instance => _instance.Value;
 
 
         // コンストラクタを private にして、外部からの new を禁止する
-        private DataHelperModule()
+        private AppRoutingModule()
         {
             // 初期化処理があればここに書く
-            
+            CurrentType = null;
+            CurrentTypeComponent = null;
         }
 
         // --------------------------------------------------
         // 保持したいデータやプロパティを以下に定義する
         // --------------------------------------------------
-        public ToolStrip FloatingWindow { get; internal set; }
+        public ToolStrip ContentsDailog { get; internal set; }
         private Type CurrentType { get; set; }
         private UserControl CurrentTypeComponent { get; set; }
 
-        internal void ChangeWindow(Type type)
+        internal void contentsDailogShow(Type type)
         {
             if (CurrentType == type) return;
 
-            FloatingWindow.Items.Clear();
+            ContentsDailog.Items.Clear();
 
             // 1. 独自のUserControlのインスタンスを作成
             UserControl CurrentUserControl = null;
@@ -97,13 +98,19 @@ namespace FrameWebforCS.providers
                 // menu に combine, pickup 追加
             }
           
+            // 
             if (CurrentUserControl == null) return;
 
             // 2. ToolStripControlHostでラップする
             ToolStripControlHost hostControl = new ToolStripControlHost(CurrentUserControl);
 
             // 3. ToolStripに追加する
-            FloatingWindow.Items.Add(hostControl);
+            ContentsDailog.Items.Add(hostControl);
+
+            // 記憶
+            CurrentType = type;
+            CurrentTypeComponent = CurrentUserControl;
+
         }
     }
 }

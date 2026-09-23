@@ -1,6 +1,5 @@
 ﻿using FrameWebforCS.components.input;
 using FrameWebforCS.components.result;
-using FrameWebforCS.providers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,7 +12,7 @@ namespace FrameWebforCS.components.menu
 {
     public partial class SidebarComponent : UserControl
     {
-        private DataHelperModule helper = DataHelperModule.Instance;
+        private AppRoutingModule helper = AppRoutingModule.Instance;
 
         public SidebarComponent()
         {
@@ -31,7 +30,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.ChangeWindow(typeof(InputElementsComponent));
+            helper.contentsDailogShow(typeof(InputElementsComponent));
         }
 
         private void rbNode_CheckedChanged(object sender, EventArgs e)
@@ -39,7 +38,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.ChangeWindow(typeof(InputNodesComponent));
+            helper.contentsDailogShow(typeof(InputNodesComponent));
         }
 
         private void rbSupport_CheckedChanged(object sender, EventArgs e)
@@ -47,7 +46,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.ChangeWindow(typeof(InputFixNodeComponent));
+            helper.contentsDailogShow(typeof(InputFixNodeComponent));
         }
 
         private void rbMember_CheckedChanged(object sender, EventArgs e)
@@ -55,7 +54,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.ChangeWindow(typeof(InputMembersComponent));
+            helper.contentsDailogShow(typeof(InputMembersComponent));
         }
 
         private void rbShell_CheckedChanged(object sender, EventArgs e)
@@ -63,7 +62,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.ChangeWindow(typeof(InputPanelComponent));
+            helper.contentsDailogShow(typeof(InputPanelComponent));
         }
 
         private void rbJoint_CheckedChanged(object sender, EventArgs e)
@@ -71,7 +70,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.ChangeWindow(typeof(InputJointComponent));
+            helper.contentsDailogShow(typeof(InputJointComponent));
         }
 
         private void rbNotice_CheckedChanged(object sender, EventArgs e)
@@ -79,7 +78,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.ChangeWindow(typeof(InputNoticePointsComponent));
+            helper.contentsDailogShow(typeof(InputNoticePointsComponent));
         }
 
         private void rbSpring_CheckedChanged(object sender, EventArgs e)
@@ -87,7 +86,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.ChangeWindow(typeof(InputFixMemberComponent));
+            helper.contentsDailogShow(typeof(InputFixMemberComponent));
         }
 
         private void rbLoad_CheckedChanged(object sender, EventArgs e)
@@ -95,7 +94,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.ChangeWindow(typeof(InputLoadNameComponent));
+            helper.contentsDailogShow(typeof(InputLoadNameComponent));
         }
 
         private void rbCombine_CheckedChanged(object sender, EventArgs e)
@@ -103,7 +102,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.ChangeWindow(typeof(InputDefineComponent));
+            helper.contentsDailogShow(typeof(InputDefineComponent));
         }
 
         private void rbDisp_CheckedChanged(object sender, EventArgs e)
@@ -111,7 +110,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.ChangeWindow(typeof(ResultDisgComponent));
+            helper.contentsDailogShow(typeof(ResultDisgComponent));
         }
 
         private void rbReact_CheckedChanged(object sender, EventArgs e)
@@ -119,7 +118,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.ChangeWindow(typeof(ResultReacComponent));
+            helper.contentsDailogShow(typeof(ResultReacComponent));
         }
 
         private void rbForce_CheckedChanged(object sender, EventArgs e)
@@ -127,7 +126,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.ChangeWindow(typeof(ResultFsecComponent));
+            helper.contentsDailogShow(typeof(ResultFsecComponent));
         }
     }
 }

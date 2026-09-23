@@ -56,22 +56,22 @@ namespace FrameWebforCS
             tableLayoutPanel1.Controls.Add(tableLayoutPanel2, 0, 1);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(0, 0);
-            tableLayoutPanel1.Margin = new Padding(6, 0, 6, 0);
+            tableLayoutPanel1.Margin = new Padding(3, 0, 3, 0);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 2;
             tableLayoutPanel1.RowStyles.Add(new RowStyle());
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel1.Size = new Size(1486, 960);
+            tableLayoutPanel1.Size = new Size(800, 450);
             tableLayoutPanel1.TabIndex = 4;
             // 
             // menuComponent1
             // 
             menuComponent1.BackColor = SystemColors.Control;
             menuComponent1.Dock = DockStyle.Fill;
-            menuComponent1.Location = new Point(11, 13);
-            menuComponent1.Margin = new Padding(11, 13, 11, 13);
+            menuComponent1.Location = new Point(6, 6);
+            menuComponent1.Margin = new Padding(6, 6, 6, 6);
             menuComponent1.Name = "menuComponent1";
-            menuComponent1.Size = new Size(1464, 55);
+            menuComponent1.Size = new Size(788, 26);
             menuComponent1.TabIndex = 0;
             // 
             // tableLayoutPanel2
@@ -82,22 +82,20 @@ namespace FrameWebforCS
             tableLayoutPanel2.Controls.Add(SidebarComponent1, 0, 0);
             tableLayoutPanel2.Controls.Add(toolStripContainer1, 1, 0);
             tableLayoutPanel2.Dock = DockStyle.Fill;
-            tableLayoutPanel2.Location = new Point(6, 87);
-            tableLayoutPanel2.Margin = new Padding(6);
+            tableLayoutPanel2.Location = new Point(3, 41);
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 1;
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel2.Size = new Size(1474, 867);
+            tableLayoutPanel2.Size = new Size(794, 406);
             tableLayoutPanel2.TabIndex = 2;
             // 
             // SidebarComponent1
             // 
             SidebarComponent1.BackColor = SystemColors.Control;
             SidebarComponent1.Dock = DockStyle.Fill;
-            SidebarComponent1.Location = new Point(6, 6);
-            SidebarComponent1.Margin = new Padding(6);
+            SidebarComponent1.Location = new Point(3, 3);
             SidebarComponent1.Name = "SidebarComponent1";
-            SidebarComponent1.Size = new Size(84, 855);
+            SidebarComponent1.Size = new Size(46, 400);
             SidebarComponent1.TabIndex = 1;
             // 
             // toolStripContainer1
@@ -106,15 +104,17 @@ namespace FrameWebforCS
             // toolStripContainer1.ContentPanel
             // 
             toolStripContainer1.ContentPanel.Controls.Add(glControl1);
-            toolStripContainer1.ContentPanel.Size = new Size(1196, 836);
+            toolStripContainer1.ContentPanel.Margin = new Padding(2, 1, 2, 1);
+            toolStripContainer1.ContentPanel.Size = new Size(651, 392);
             toolStripContainer1.Dock = DockStyle.Fill;
-            toolStripContainer1.Location = new Point(99, 3);
+            toolStripContainer1.Location = new Point(54, 1);
+            toolStripContainer1.Margin = new Padding(2, 1, 2, 1);
             toolStripContainer1.Name = "toolStripContainer1";
             // 
             // toolStripContainer1.RightToolStripPanel
             // 
             toolStripContainer1.RightToolStripPanel.Controls.Add(toolStrip1);
-            toolStripContainer1.Size = new Size(1372, 861);
+            toolStripContainer1.Size = new Size(738, 404);
             toolStripContainer1.TabIndex = 2;
             toolStripContainer1.Text = "toolStripContainer1";
             // 
@@ -126,9 +126,10 @@ namespace FrameWebforCS
             glControl1.Flags = OpenTK.Windowing.Common.ContextFlags.Default;
             glControl1.IsEventDriven = true;
             glControl1.Location = new Point(0, 0);
+            glControl1.Margin = new Padding(2, 1, 2, 1);
             glControl1.Name = "glControl1";
             glControl1.Profile = OpenTK.Windowing.Common.ContextProfile.Core;
-            glControl1.Size = new Size(1196, 836);
+            glControl1.Size = new Size(651, 392);
             glControl1.TabIndex = 0;
             glControl1.Text = "glControl1";
             // 
@@ -139,24 +140,24 @@ namespace FrameWebforCS
             toolStrip1.Items.AddRange(new ToolStripItem[] { toolStripLabel1 });
             toolStrip1.Location = new Point(0, 6);
             toolStrip1.Name = "toolStrip1";
-            toolStrip1.Size = new Size(176, 96);
+            toolStrip1.Size = new Size(87, 29);
             toolStrip1.TabIndex = 0;
             // 
             // toolStripLabel1
             // 
             toolStripLabel1.Name = "toolStripLabel1";
-            toolStripLabel1.Size = new Size(173, 32);
+            toolStripLabel1.Size = new Size(85, 15);
             toolStripLabel1.Text = "toolStripLabel1";
             // 
             // AppComponent
             // 
-            AutoScaleDimensions = new SizeF(13F, 32F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1486, 960);
+            ClientSize = new Size(800, 450);
             Controls.Add(tableLayoutPanel1);
-            Margin = new Padding(6);
             Name = "AppComponent";
             Text = "立体有限要素法構造解析";
+            WindowState = FormWindowState.Maximized;
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel2.ResumeLayout(false);
             toolStripContainer1.ContentPanel.ResumeLayout(false);

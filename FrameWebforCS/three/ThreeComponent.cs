@@ -1,12 +1,9 @@
-﻿using Assimp;
-using OpenTK.Graphics.ES30;
+﻿using OpenTK.Graphics.ES30;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.WinForms;
 using SingleFormsDemo;
 using System.ComponentModel;
-using THREE;
-using WeifenLuo.WinFormsUI.Docking;
 using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
 namespace FrameWebforCS.three
