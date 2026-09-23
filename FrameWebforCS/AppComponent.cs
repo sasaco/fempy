@@ -12,19 +12,16 @@ namespace FrameWebforCS
     public partial class AppComponent : Form
     {
         private ThreeComponent three;
-        private AppRoutingModule routing;
         public AppComponent()
         {
             InitializeComponent();
 
-            splitContainer1.SplitterDistance = SidebarComponent1.Width;
-
-
             three = new ThreeComponent(glControl1);
-            routing = AppRoutingModule.Instance;
-            routing.ContentsDailog = toolStrip1;
         }
 
-  
+        private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            splitContainer1.SplitterDistance = Math.Min(splitContainer1.SplitterDistance, SidebarComponent1.Width);
+        }
     }
 }

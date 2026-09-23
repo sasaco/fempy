@@ -1,5 +1,7 @@
-﻿using FrameWebforCS.components.input;
+﻿using Assimp.Unmanaged;
+using FrameWebforCS.components.input;
 using FrameWebforCS.components.result;
+using FrameWebforCS.providers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,41 +10,26 @@ namespace FrameWebforCS
 {
     internal class AppRoutingModule
     {
-        // Lazy<T> を使ってスレッドセーフかつ遅延評価のシングルトンを実装
-        private static readonly Lazy<AppRoutingModule> _instance =
-            new Lazy<AppRoutingModule>(() => new AppRoutingModule());
+        private InputDataService _input = InputDataService.Instance;
+        // フォームを最前面に常時表示する設定
+        Form? floatForm = null;
 
-        // 外部からはこのプロパティを通じてのみインスタンスにアクセスできる
-        public static AppRoutingModule Instance => _instance.Value;
-
-
-        // コンストラクタを private にして、外部からの new を禁止する
-        private AppRoutingModule()
+        // コンストラクタ
+        public AppRoutingModule()
         {
-            // 初期化処理があればここに書く
-            CurrentType = null;
-            CurrentTypeComponent = null;
         }
 
-        // --------------------------------------------------
-        // 保持したいデータやプロパティを以下に定義する
-        // --------------------------------------------------
-        public ToolStrip ContentsDailog { get; internal set; }
-        private Type CurrentType { get; set; }
-        private UserControl CurrentTypeComponent { get; set; }
 
-        internal void contentsDailogShow(Type type, int target_height)
+        internal void contentsDailogShow(Type type, string title)
         {
-            if (CurrentType == type) return;
+            if (_input.CurrentType == type) return;
 
-            ContentsDailog.Items.Clear();
+            UserControl? CurrentUserControl = null;
 
             // 1. 独自のUserControlのインスタンスを作成
-            UserControl CurrentUserControl = null;
-
             if (type == typeof(InputElementsComponent))
             {
-                CurrentUserControl = new InputElementsComponent(target_height);
+                CurrentUserControl = new InputElementsComponent();
             } 
             else if (type == typeof(InputNodesComponent))
             {
@@ -99,18 +86,40 @@ namespace FrameWebforCS
             }
           
             // 
-            if (CurrentUserControl == null) return;
+            if (CurrentUserControl == null) 
+                return;
 
-            // 2. ToolStripControlHostでラップする
-            ToolStripControlHost hostControl = new ToolStripControlHost(CurrentUserControl);
+            // 非モーダルで表示
+            createFloatForm(CurrentUserControl, title);
 
-            // 3. ToolStripに追加する
-            ContentsDailog.Items.Add(hostControl);
+
 
             // 記憶
-            CurrentType = type;
-            CurrentTypeComponent = CurrentUserControl;
+            _input.CurrentType = type;
+        }
 
+        private void createFloatForm(UserControl currentUserControl, string title)
+        {
+            if (floatForm == null)
+                floatForm = new Form();
+            if (floatForm.IsDisposed)
+                floatForm = new Form();
+
+            floatForm.Text = title;
+            floatForm.Controls.Clear();
+            floatForm.Controls.Add(currentUserControl);
+
+            // サイズをコントロールの幅に合わせる
+            Form? mainForm = Application.OpenForms.Count > 0 ? Application.OpenForms[0] : null;
+            if (mainForm != null) {
+                floatForm.Owner = mainForm;
+                floatForm.Height = (int)(mainForm.Height * 0.6);
+            }
+            floatForm.Width = currentUserControl.Width;
+            currentUserControl.Dock = DockStyle.Fill;
+
+
+            floatForm.Show();
         }
     }
 }

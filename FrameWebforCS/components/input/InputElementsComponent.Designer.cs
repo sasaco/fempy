@@ -28,20 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            panel1 = new Panel();
             fpSpread1 = new FarPoint.Win.Spread.FpSpread(FarPoint.Win.Spread.LegacyBehaviors.None, null);
-            panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)fpSpread1).BeginInit();
             SuspendLayout();
-            // 
-            // panel1
-            // 
-            panel1.Controls.Add(fpSpread1);
-            panel1.Location = new Point(0, 0);
-            panel1.Margin = new Padding(0);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(200, 100);
-            panel1.TabIndex = 1;
             // 
             // fpSpread1
             // 
@@ -51,25 +40,23 @@
             fpSpread1.Location = new Point(0, 0);
             fpSpread1.Margin = new Padding(2, 1, 2, 1);
             fpSpread1.Name = "fpSpread1";
-            fpSpread1.Size = new Size(200, 100);
+            fpSpread1.Size = new Size(850, 373);
             fpSpread1.TabIndex = 0;
             // 
             // InputElementsComponent
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = SystemColors.ActiveCaption;
-            Controls.Add(panel1);
+            BackColor = SystemColors.Control;
+            Controls.Add(fpSpread1);
             Margin = new Padding(2, 1, 2, 1);
             Name = "InputElementsComponent";
-            Size = new Size(354, 222);
-            panel1.ResumeLayout(false);
+            Size = new Size(850, 373);
             ((System.ComponentModel.ISupportInitialize)fpSpread1).EndInit();
             ResumeLayout(false);
         }
 
         #endregion
-        private Panel panel1;
         private FarPoint.Win.Spread.FpSpread fpSpread1;
     }
 }
