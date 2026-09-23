@@ -172,6 +172,11 @@ namespace FrameWebforCS.components.input
 
         }
 
+        public void setActiveSheet(int index)
+        {
+            this.fpSpread1.ActiveSheetIndex = index;　
+        }
+
         // locked 設定してるセルの編集を禁止する
         private void faSpread1_EditModeOn(object sender, EventArgs e)
         {

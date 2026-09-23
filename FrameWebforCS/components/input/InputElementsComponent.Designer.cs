@@ -46,8 +46,8 @@
             // 
             // InputElementsComponent
             // 
-            AutoScaleDimensions = new SizeF(13F, 32F);
-            AutoScaleMode = AutoScaleMode.Font;
+            AutoScaleDimensions = new SizeF(192F, 192F);
+            AutoScaleMode = AutoScaleMode.Dpi;
             BackColor = SystemColors.Control;
             Controls.Add(fpSpread1);
             Margin = new Padding(4, 2, 4, 2);

@@ -27,16 +27,16 @@ namespace FrameWebforCS.components.menu
             { "fix_member", typeof(InputFixMemberComponent) }, // バネ
             { "joint", typeof(InputJointComponent) }, // 結合
             { "load", typeof(InputLoadComponent) }, // 荷重
-            { "Combine", typeof(InputDefineComponent) } , // 組合せ
+            { "Combine", typeof(InputCombineComponent) } , // 組合せ
             { "disg", typeof(ResultDisgComponent) }, // 変位: 基本Case
-            { "combdisg", typeof(ResultCombineDisgComponent) }, // 変位: 組合せ
-            { "pickdisg", typeof(ResultPickupDisgComponent) }, // 変位: ピックアップ
+            { "combdisg", typeof(ResultDisgComponent) }, // 変位: 組合せ
+            { "pickdisg", typeof(ResultDisgComponent) }, // 変位: ピックアップ
             { "reac", typeof(ResultReacComponent) }, //反力: 基本Case
-            { "combreac", typeof(ResultCombineReacComponent) }, //反力: 組合せ
-            { "pickreac", typeof(ResultPickupReacComponent) }, //反力: ピックアップ
+            { "combreac", typeof(ResultReacComponent) }, //反力: 組合せ
+            { "pickreac", typeof(ResultReacComponent) }, //反力: ピックアップ
             { "fsec", typeof(ResultFsecComponent) }, //断面力: 基本Case
-            { "combfsec", typeof(ResultCombineFsecComponent) }, //断面力: 組合せ
-            { "pickfsec", typeof(ResultPickupFsecComponent) }, //断面力: ピックアップ
+            { "combfsec", typeof(ResultFsecComponent) }, //断面力: 組合せ
+            { "pickfsec", typeof(ResultFsecComponent) }, //断面力: ピックアップ
         };
 
         public SidebarComponent()
