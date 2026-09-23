@@ -59,9 +59,9 @@ namespace FrameWebforCS
             {
                 CurrentUserControl = new InputFixMemberComponent();
             }
-            else if (type == typeof(InputLoadNameComponent))
+            else if (type == typeof(InputLoadComponent))
             {
-                CurrentUserControl = new InputLoadNameComponent();
+                CurrentUserControl = new InputLoadComponent();
                 // menu に load 追加
             }
             else if (type == typeof(InputDefineComponent))
