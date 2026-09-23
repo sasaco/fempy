@@ -18,7 +18,7 @@ namespace FrameWebforCS.components.menu
         {
             { "element", typeof(InputElementsComponent) }, // 材料
             { "node", typeof(InputNodesComponent) }, // 節点
-            { "rigid", typeof(InputNodesComponent) }, // 剛域
+            { "rigid", typeof(InputMembersComponent) }, // 剛域
             { "member", typeof(InputMembersComponent) }, // 部材
             { "notice_points", typeof(InputNoticePointsComponent) }, // 着目点
             { "shell", typeof(InputPanelComponent) }, // パネル

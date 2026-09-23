@@ -54,58 +54,50 @@ namespace FrameWebforCS.components.input
 
             if (_input.dimension == 3)
             {
-                fpSpread1_Sheet1.ColumnCount = 8;
+                fpSpread1_Sheet1.ColumnCount = 7;
 
-                header.Cells[0, 0].Text = "弾性係数";
-                header.Cells[1, 0].Text = "E(kN/m2)";
-                header.Cells[0, 1].Text = "せん断弾性係数";
-                header.Cells[1, 1].Text = "G(kN/m2)";
-                header.Cells[0, 2].Text = "膨張係数";
-                header.Cells[1, 2].Text = " ";
-                header.Cells[0, 3].Text = "断面積";
-                header.Cells[1, 3].Text = "A(m2)";
-                header.Cells[0, 4].Text = "ねじり定数";
-                header.Cells[1, 4].Text = "J(m4)";
-                header.Cells[0, 5].Text = "断面二次モーメント";
-                header.Cells[1, 5].Text = "Iy(m4)";
-                header.Cells[0, 6].Text = header.Cells[0, 5].Text;
-                header.Cells[1, 6].Text = "Iz(m4)";
-                header.Cells[0, 7].Text = "名前";
-                header.Cells[1, 7].Text = " ";
+                header.Cells[0, 0].Text = "節点";
+                header.Cells[1, 0].Text = "No";
+                header.Cells[0, 1].Text = "変位拘束";
+                header.Cells[1, 1].Text = "X方向";
+                header.Cells[0, 2].Text = "";
+                header.Cells[1, 2].Text = "Y方向";
+                header.Cells[0, 3].Text = "";
+                header.Cells[1, 3].Text = "Z方向";
+                header.Cells[0, 4].Text = "回転拘束";
+                header.Cells[1, 4].Text = "X軸回り";
+                header.Cells[0, 5].Text = "";
+                header.Cells[1, 5].Text = "Y軸回り";
+                header.Cells[0, 6].Text = "";
+                header.Cells[1, 6].Text = "Z軸回り";
 
-                header.Cells[0, 5].ColumnSpan = 2;
+                header.Cells[0, 1].ColumnSpan = 3;
+                header.Cells[0, 4].ColumnSpan = 3;
 
                 var column = fpSpread1_Sheet1.Columns;
-                column[0].Width = 80;
-                column[1].Width = 150;
-                column[2].Width = 80;
-                column[3].Width = 80;
-                column[4].Width = 100;
-                column[5].Width = 80;
-                column[6].Width = 80;
-                column[7].Width = 150;
+                column[0].Width = 50;
             }
             else
             {
-                fpSpread1_Sheet1.ColumnCount = 5;
+                fpSpread1_Sheet1.ColumnCount = 4;
 
-                header.Cells[0, 0].Text = "弾性係数";
-                header.Cells[1, 0].Text = "E(kN/m2)";
-                header.Cells[0, 1].Text = "膨張係数";
-                header.Cells[1, 1].Text = " ";
-                header.Cells[0, 2].Text = "断面積";
-                header.Cells[1, 2].Text = "A(m2)";
-                header.Cells[0, 3].Text = "断面二次モーメント";
-                header.Cells[1, 3].Text = "I(m4)";
-                header.Cells[0, 4].Text = "名前";
-                header.Cells[1, 4].Text = " ";
+                header.Cells[0, 0].Text = "節点";
+                header.Cells[1, 0].Text = "No";
+                header.Cells[0, 1].Text = "変位拘束";
+                header.Cells[1, 1].Text = "X方向";
+                header.Cells[0, 2].Text = "";
+                header.Cells[1, 2].Text = "Y方向";
+                header.Cells[0, 3].Text = "回転拘束";
+                header.Cells[1, 3].Text = "(kN・m/rad)";
+
+                header.Cells[0, 1].ColumnSpan = 2;
 
                 var column = fpSpread1_Sheet1.Columns;
-                column[0].Width = 80;
-                column[1].Width = 80;
-                column[2].Width = 80;
-                column[3].Width = 80;
-                column[4].Width = 150;
+                column[0].Width = 50;
+                for (var i = 1; i < column.Count; i++)
+                {
+                    column[i].Width = 80;
+                }
             }
         }
     }
