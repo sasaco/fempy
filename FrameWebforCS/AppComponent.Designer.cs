@@ -34,14 +34,17 @@ namespace FrameWebforCS
         {
             tableLayoutPanel1 = new TableLayoutPanel();
             menuComponent1 = new MenuComponent();
-            tableLayoutPanel2 = new TableLayoutPanel();
+            splitContainer1 = new SplitContainer();
             SidebarComponent1 = new SidebarComponent();
             toolStripContainer1 = new ToolStripContainer();
             glControl1 = new GLControl();
             toolStrip1 = new ToolStrip();
             toolStripLabel1 = new ToolStripLabel();
             tableLayoutPanel1.SuspendLayout();
-            tableLayoutPanel2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
+            splitContainer1.Panel1.SuspendLayout();
+            splitContainer1.Panel2.SuspendLayout();
+            splitContainer1.SuspendLayout();
             toolStripContainer1.ContentPanel.SuspendLayout();
             toolStripContainer1.RightToolStripPanel.SuspendLayout();
             toolStripContainer1.SuspendLayout();
@@ -53,7 +56,6 @@ namespace FrameWebforCS
             tableLayoutPanel1.ColumnCount = 1;
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             tableLayoutPanel1.Controls.Add(menuComponent1, 0, 0);
-            tableLayoutPanel1.Controls.Add(tableLayoutPanel2, 0, 1);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(0, 0);
             tableLayoutPanel1.Margin = new Padding(3, 0, 3, 0);
@@ -69,33 +71,34 @@ namespace FrameWebforCS
             menuComponent1.BackColor = SystemColors.Control;
             menuComponent1.Dock = DockStyle.Fill;
             menuComponent1.Location = new Point(6, 6);
-            menuComponent1.Margin = new Padding(6, 6, 6, 6);
+            menuComponent1.Margin = new Padding(6);
             menuComponent1.Name = "menuComponent1";
             menuComponent1.Size = new Size(788, 26);
             menuComponent1.TabIndex = 0;
             // 
-            // tableLayoutPanel2
+            // splitContainer1
             // 
-            tableLayoutPanel2.ColumnCount = 2;
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 6.54911852F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 93.45088F));
-            tableLayoutPanel2.Controls.Add(SidebarComponent1, 0, 0);
-            tableLayoutPanel2.Controls.Add(toolStripContainer1, 1, 0);
-            tableLayoutPanel2.Dock = DockStyle.Fill;
-            tableLayoutPanel2.Location = new Point(3, 41);
-            tableLayoutPanel2.Name = "tableLayoutPanel2";
-            tableLayoutPanel2.RowCount = 1;
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel2.Size = new Size(794, 406);
-            tableLayoutPanel2.TabIndex = 2;
+            splitContainer1.Dock = DockStyle.Fill;
+            splitContainer1.Location = new Point(0, 0);
+            splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            splitContainer1.Panel1.Controls.Add(SidebarComponent1);
+            // 
+            // splitContainer1.Panel2
+            // 
+            splitContainer1.Panel2.Controls.Add(toolStripContainer1);
+            splitContainer1.Size = new Size(800, 450);
+            splitContainer1.TabIndex = 5;
             // 
             // SidebarComponent1
             // 
             SidebarComponent1.BackColor = SystemColors.Control;
             SidebarComponent1.Dock = DockStyle.Fill;
-            SidebarComponent1.Location = new Point(3, 3);
+            SidebarComponent1.Location = new Point(0, 0);
             SidebarComponent1.Name = "SidebarComponent1";
-            SidebarComponent1.Size = new Size(46, 400);
+            SidebarComponent1.Size = new Size(80, 450);
             SidebarComponent1.TabIndex = 1;
             // 
             // toolStripContainer1
@@ -104,17 +107,16 @@ namespace FrameWebforCS
             // toolStripContainer1.ContentPanel
             // 
             toolStripContainer1.ContentPanel.Controls.Add(glControl1);
-            toolStripContainer1.ContentPanel.Margin = new Padding(2, 1, 2, 1);
-            toolStripContainer1.ContentPanel.Size = new Size(651, 392);
+            toolStripContainer1.ContentPanel.Size = new Size(629, 425);
             toolStripContainer1.Dock = DockStyle.Fill;
-            toolStripContainer1.Location = new Point(54, 1);
+            toolStripContainer1.Location = new Point(0, 0);
             toolStripContainer1.Margin = new Padding(2, 1, 2, 1);
             toolStripContainer1.Name = "toolStripContainer1";
             // 
             // toolStripContainer1.RightToolStripPanel
             // 
             toolStripContainer1.RightToolStripPanel.Controls.Add(toolStrip1);
-            toolStripContainer1.Size = new Size(738, 404);
+            toolStripContainer1.Size = new Size(716, 450);
             toolStripContainer1.TabIndex = 2;
             toolStripContainer1.Text = "toolStripContainer1";
             // 
@@ -129,16 +131,15 @@ namespace FrameWebforCS
             glControl1.Margin = new Padding(2, 1, 2, 1);
             glControl1.Name = "glControl1";
             glControl1.Profile = OpenTK.Windowing.Common.ContextProfile.Core;
-            glControl1.Size = new Size(651, 392);
+            glControl1.Size = new Size(629, 425);
             glControl1.TabIndex = 0;
             glControl1.Text = "glControl1";
             // 
             // toolStrip1
             // 
             toolStrip1.Dock = DockStyle.None;
-            toolStrip1.ImageScalingSize = new Size(32, 32);
             toolStrip1.Items.AddRange(new ToolStripItem[] { toolStripLabel1 });
-            toolStrip1.Location = new Point(0, 6);
+            toolStrip1.Location = new Point(0, 3);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new Size(87, 29);
             toolStrip1.TabIndex = 0;
@@ -154,12 +155,16 @@ namespace FrameWebforCS
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(splitContainer1);
             Controls.Add(tableLayoutPanel1);
             Name = "AppComponent";
             Text = "立体有限要素法構造解析";
             WindowState = FormWindowState.Maximized;
             tableLayoutPanel1.ResumeLayout(false);
-            tableLayoutPanel2.ResumeLayout(false);
+            splitContainer1.Panel1.ResumeLayout(false);
+            splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
+            splitContainer1.ResumeLayout(false);
             toolStripContainer1.ContentPanel.ResumeLayout(false);
             toolStripContainer1.RightToolStripPanel.ResumeLayout(false);
             toolStripContainer1.RightToolStripPanel.PerformLayout();
@@ -172,12 +177,12 @@ namespace FrameWebforCS
 
         #endregion
         private TableLayoutPanel tableLayoutPanel1;
-        private TableLayoutPanel tableLayoutPanel2;
         private MenuComponent menuComponent1;
         private SidebarComponent SidebarComponent1;
         private ToolStripContainer toolStripContainer1;
         private GLControl glControl1;
         private ToolStrip toolStrip1;
         private ToolStripLabel toolStripLabel1;
+        private SplitContainer splitContainer1;
     }
 }

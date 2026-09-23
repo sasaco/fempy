@@ -12,14 +12,17 @@ namespace FrameWebforCS
     public partial class AppComponent : Form
     {
         private ThreeComponent three;
-        private AppRoutingModule helper;
+        private AppRoutingModule routing;
         public AppComponent()
         {
             InitializeComponent();
 
+            splitContainer1.SplitterDistance = SidebarComponent1.Width;
+
+
             three = new ThreeComponent(glControl1);
-            helper = AppRoutingModule.Instance;
-            helper.ContentsDailog = toolStrip1;
+            routing = AppRoutingModule.Instance;
+            routing.ContentsDailog = toolStrip1;
         }
 
   

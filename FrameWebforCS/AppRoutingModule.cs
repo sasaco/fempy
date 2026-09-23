@@ -31,7 +31,7 @@ namespace FrameWebforCS
         private Type CurrentType { get; set; }
         private UserControl CurrentTypeComponent { get; set; }
 
-        internal void contentsDailogShow(Type type)
+        internal void contentsDailogShow(Type type, int target_height)
         {
             if (CurrentType == type) return;
 
@@ -42,7 +42,7 @@ namespace FrameWebforCS
 
             if (type == typeof(InputElementsComponent))
             {
-                CurrentUserControl = new InputElementsComponent();
+                CurrentUserControl = new InputElementsComponent(target_height);
             } 
             else if (type == typeof(InputNodesComponent))
             {

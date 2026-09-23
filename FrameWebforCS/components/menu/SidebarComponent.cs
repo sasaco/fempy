@@ -12,7 +12,7 @@ namespace FrameWebforCS.components.menu
 {
     public partial class SidebarComponent : UserControl
     {
-        private AppRoutingModule helper = AppRoutingModule.Instance;
+        private AppRoutingModule routing = AppRoutingModule.Instance;
 
         public SidebarComponent()
         {
@@ -30,7 +30,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.contentsDailogShow(typeof(InputElementsComponent));
+            routing.contentsDailogShow(typeof(InputElementsComponent), tableLayoutPanel1.Height);
         }
 
         private void rbNode_CheckedChanged(object sender, EventArgs e)
@@ -38,7 +38,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.contentsDailogShow(typeof(InputNodesComponent));
+            routing.contentsDailogShow(typeof(InputNodesComponent), tableLayoutPanel1.Height);
         }
 
         private void rbSupport_CheckedChanged(object sender, EventArgs e)
@@ -46,7 +46,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.contentsDailogShow(typeof(InputFixNodeComponent));
+            routing.contentsDailogShow(typeof(InputFixNodeComponent), tableLayoutPanel1.Height);
         }
 
         private void rbMember_CheckedChanged(object sender, EventArgs e)
@@ -54,7 +54,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.contentsDailogShow(typeof(InputMembersComponent));
+            routing.contentsDailogShow(typeof(InputMembersComponent), tableLayoutPanel1.Height);
         }
 
         private void rbShell_CheckedChanged(object sender, EventArgs e)
@@ -62,7 +62,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.contentsDailogShow(typeof(InputPanelComponent));
+            routing.contentsDailogShow(typeof(InputPanelComponent), tableLayoutPanel1.Height);
         }
 
         private void rbJoint_CheckedChanged(object sender, EventArgs e)
@@ -70,7 +70,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.contentsDailogShow(typeof(InputJointComponent));
+            routing.contentsDailogShow(typeof(InputJointComponent), tableLayoutPanel1.Height);
         }
 
         private void rbNotice_CheckedChanged(object sender, EventArgs e)
@@ -78,7 +78,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.contentsDailogShow(typeof(InputNoticePointsComponent));
+            routing.contentsDailogShow(typeof(InputNoticePointsComponent), tableLayoutPanel1.Height);
         }
 
         private void rbSpring_CheckedChanged(object sender, EventArgs e)
@@ -86,7 +86,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.contentsDailogShow(typeof(InputFixMemberComponent));
+            routing.contentsDailogShow(typeof(InputFixMemberComponent), tableLayoutPanel1.Height);
         }
 
         private void rbLoad_CheckedChanged(object sender, EventArgs e)
@@ -94,7 +94,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.contentsDailogShow(typeof(InputLoadNameComponent));
+            routing.contentsDailogShow(typeof(InputLoadNameComponent), tableLayoutPanel1.Height);
         }
 
         private void rbCombine_CheckedChanged(object sender, EventArgs e)
@@ -102,7 +102,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.contentsDailogShow(typeof(InputDefineComponent));
+            routing.contentsDailogShow(typeof(InputDefineComponent), tableLayoutPanel1.Height);
         }
 
         private void rbDisp_CheckedChanged(object sender, EventArgs e)
@@ -110,7 +110,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.contentsDailogShow(typeof(ResultDisgComponent));
+            routing.contentsDailogShow(typeof(ResultDisgComponent), tableLayoutPanel1.Height);
         }
 
         private void rbReact_CheckedChanged(object sender, EventArgs e)
@@ -118,7 +118,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.contentsDailogShow(typeof(ResultReacComponent));
+            routing.contentsDailogShow(typeof(ResultReacComponent), tableLayoutPanel1.Height);
         }
 
         private void rbForce_CheckedChanged(object sender, EventArgs e)
@@ -126,7 +126,7 @@ namespace FrameWebforCS.components.menu
             var rb = sender as RadioButton;
             if (rb == null) return;
             if (!rb.Checked) return;
-            helper.contentsDailogShow(typeof(ResultFsecComponent));
+            routing.contentsDailogShow(typeof(ResultFsecComponent), tableLayoutPanel1.Height);
         }
     }
 }
