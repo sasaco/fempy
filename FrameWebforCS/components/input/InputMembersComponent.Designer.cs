@@ -41,7 +41,6 @@
             fpSpread1.Name = "fpSpread1";
             fpSpread1.Size = new Size(150, 150);
             fpSpread1.TabIndex = 0;
-            fpSpread1.EditModeOn += faSpread1_EditModeOn;
             // 
             // InputMembersComponent
             // 

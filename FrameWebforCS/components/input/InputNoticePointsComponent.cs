@@ -20,6 +20,8 @@ namespace FrameWebforCS.components.input
         {
             InitializeComponent();
 
+            fpSpread1.EditModeOn += DataHelperModule.faSpread_EditModeOn;
+
             fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
 
             fpSpread1_Sheet1.SheetName = "着目点";
@@ -60,16 +62,6 @@ namespace FrameWebforCS.components.input
 
 
 
-        // locked 設定してるセルの編集を禁止する
-        private void faSpread1_EditModeOn(object sender, EventArgs e)
-        {
-            FpSpread? fp = sender as FpSpread;
-            Cell? targetCell = fp.ActiveSheet.ActiveCell;
-            if (targetCell.Locked)
-            {
-                fp.StopCellEditing();
-                return;
-            }
-        }
+
     }
 }

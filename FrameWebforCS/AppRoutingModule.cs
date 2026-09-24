@@ -1,4 +1,5 @@
 ﻿using Assimp.Unmanaged;
+using FarPoint.Excel;
 using FrameWebforCS.components.input;
 using FrameWebforCS.components.result;
 using FrameWebforCS.providers;
@@ -20,27 +21,11 @@ namespace FrameWebforCS
         public static AppRoutingModule Instance => _instance.Value;
 
 
-
         private InputDataService _input = InputDataService.Instance;
         // フォームを最前面に常時表示する設定
         Form? floatForm = null;
 
-        public List<UserControl> myComponents = new List<UserControl>
-        {
-            { new InputElementsComponent() },
-            { new  InputNodesComponent() },
-            { new InputMembersComponent() },
-            { new InputNoticePointsComponent() },
-            { new InputPanelComponent() },
-            { new InputFixNodeComponent() },
-            { new InputFixMemberComponent()},
-            { new InputJointComponent()},
-            { new InputLoadComponent() },
-            { new InputCombineComponent()},
-            { new ResultDisgComponent() },
-            { new ResultReacComponent() },
-            { new ResultFsecComponent() }
-        };
+        public List<UserControl> myComponents = new List<UserControl>();
 
         // コンストラクタを private にして、外部からの new を禁止する
         private AppRoutingModule()
@@ -50,7 +35,10 @@ namespace FrameWebforCS
 
         internal void contentsDailogShow(Type _target, string title, int option = -1)
         {
-            var target = myComponents.Find(x => x.GetType() == _target);
+            if (_target == null)
+                return;
+
+            var target = GetTargetComponent(_target);
             if (target == null)
                 return;
 
@@ -92,6 +80,40 @@ namespace FrameWebforCS
             // 記憶
             _input.CurrentComponent = target;
 
+        }
+
+        /// <summary>
+        /// Componentを取得する（なければ作成する）
+        /// </summary>
+        private UserControl? GetTargetComponent(Type _target)
+        {
+            var result = this.myComponents.Find(x => x.GetType() == _target);
+            if (result == null)
+            {
+                result = createComponent(_target);
+            } 
+            else if (result.IsDisposed)
+            {
+                this.myComponents.Remove(result);
+                result = createComponent(_target);
+            }
+            return result;
+
+        }
+
+        /// <summary>
+        /// Componentを作成してリストに登録する
+        /// </summary>
+        /// <param name="_target"></param>
+        /// <returns></returns>
+        private UserControl? createComponent(Type _target)
+        {
+            var result = (UserControl?)Activator.CreateInstance(_target);
+            if (result != null)
+            {
+                this.myComponents.Add(result);
+            }
+            return result;
         }
     }
 }

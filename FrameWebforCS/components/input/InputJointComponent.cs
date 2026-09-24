@@ -98,10 +98,6 @@ namespace FrameWebforCS.components.input
 
         }
 
-        public void setElementJson(string json)
-        {
-            // Implementation for setting element JSON
-        }
     }
 }
 

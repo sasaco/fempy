@@ -22,6 +22,8 @@ namespace FrameWebforCS.components.input
         {
             InitializeComponent();
 
+            fpSpread1.EditModeOn += DataHelperModule.faSpread_EditModeOn;
+
             fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
 
             SetSheet1();
@@ -177,15 +179,5 @@ namespace FrameWebforCS.components.input
             this.fpSpread1.ActiveSheetIndex = index;　
         }
 
-        // locked 設定してるセルの編集を禁止する
-        private void faSpread1_EditModeOn(object sender, EventArgs e)
-        {
-            FpSpread? fp = sender as FpSpread;
-            Cell? targetCell = fp.ActiveSheet.ActiveCell;
-            if (targetCell.Locked) {
-                fp.StopCellEditing();
-                return;
-            }
-        }
     }
 }

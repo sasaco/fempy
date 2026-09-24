@@ -87,12 +87,5 @@ namespace FrameWebforCS.components.input
             column[j].Width = 200;
             fpSpread1_Sheet3.FrozenTrailingColumnCount = 1;
         }
-
-        public void setActiveSheet(int index)
-        {
-            this.fpSpread1.ActiveSheetIndex = index;
-        }
-
-
     }
 }
