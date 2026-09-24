@@ -12,30 +12,19 @@ namespace FrameWebforCS.components.result
 {
     public partial class ResultReacComponent : UserControl
     {
-        private InputDataService _input = InputDataService.Instance;
         private FarPoint.Win.Spread.SheetView fpSpread1_Sheet1;
-        private FarPoint.Win.Spread.SheetView fpSpread1_Sheet2;
-        private FarPoint.Win.Spread.SheetView fpSpread1_Sheet3;
 
         public ResultReacComponent()
         {
             InitializeComponent();
+            fpSpread1.EditModeOn += DataHelperModule.faSpread_EditModeOn;
 
             fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
             fpSpread1_Sheet1.SheetName = "基本ケース";
             SetSheet1(fpSpread1_Sheet1);
 
-            fpSpread1_Sheet2 = fpSpread1.AddNewSheetView();
-            fpSpread1_Sheet2.SheetName = "COMBINE";
-            SetSheet2(fpSpread1_Sheet2);
-
-            fpSpread1_Sheet3 = fpSpread1.AddNewSheetView();
-            fpSpread1_Sheet3.SheetName = "PICKUP";
-            SetSheet2(fpSpread1_Sheet3);
-
-
             float w = 0;
-            var col = fpSpread1_Sheet2.Columns;
+            var col = fpSpread1_Sheet1.Columns;
             for (int i = 0; i < col.Count; i++)
             {
                 w += col[i].Width;
@@ -51,12 +40,12 @@ namespace FrameWebforCS.components.result
             this.fpSpread1.ActiveSheetIndex = index;
         }
 
-        private void SetSheet1(SheetView _Sheet)
+        internal static void SetSheet1(SheetView _Sheet)
         {
             var header = _Sheet.ColumnHeader;
             header.RowCount = 2;
 
-            if (_input.dimension == 3)
+            if (InputDataService.Instance.dimension == 3)
             {
                 _Sheet.ColumnCount = 7;
 
@@ -104,22 +93,5 @@ namespace FrameWebforCS.components.result
                 }
             }
         }
-
-        private void SetSheet2(SheetView _Sheet)
-        {
-            SetSheet1(_Sheet);
-
-            _Sheet.AddColumns(_Sheet.ColumnCount, 1);
-
-            int index = _Sheet.ColumnCount - 1;
-            var header = _Sheet.ColumnHeader;
-            var column = _Sheet.Columns;
-
-            header.Cells[0, index].Text = "組み合わせ";
-            header.Cells[1, index].Text = " ";
-            column[index].Width = 200;
-
-        }
-
     }
 }

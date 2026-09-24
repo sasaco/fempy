@@ -113,13 +113,13 @@ namespace FrameWebforCS.components.menu
                 option = 0
             }},
             { "combdisg", new targetComponent(){ 
-                Component = typeof(ResultDisgComponent),
+                Component = typeof(ResultCombineDisgComponent),
                 title = "組合せ",
                 root = "disg",
                 option = 1  
             }}, 
             { "pickdisg", new targetComponent(){ 
-                Component = typeof(ResultDisgComponent),
+                Component = typeof(ResultPickupDisgComponent),
                 title = "ピックアップ",
                 root = "disg",
                 option = 2  
@@ -137,13 +137,13 @@ namespace FrameWebforCS.components.menu
                 option = 0
             }},
             { "combreac", new targetComponent(){ 
-                Component = typeof(ResultReacComponent),
+                Component = typeof(ResultCombineReacComponent),
                 title = "組合せ",
                 root = "reac",
                 option = 1  
             }}, 
             { "pickreac", new targetComponent(){ 
-                Component = typeof(ResultReacComponent),
+                Component = typeof(ResultPickupReacComponent),
                 title = "ピックアップ",
                 root = "reac",
                 option = 2  
@@ -161,13 +161,13 @@ namespace FrameWebforCS.components.menu
                 option = 0
             }}, 
             { "combfsec", new targetComponent(){ 
-                Component = typeof(ResultFsecComponent),
+                Component = typeof(ResultCombineFsecComponent),
                 title = "組合せ",
                 root = "fsec",
                 option = 1  
             }}, 
             { "pickfsec", new targetComponent(){ 
-                Component = typeof(ResultFsecComponent),
+                Component = typeof(ResultPickupFsecComponent),
                 title = "ピックアップ",
                 root = "fsec",
                 option = 2  

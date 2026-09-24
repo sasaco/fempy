@@ -1,6 +1,6 @@
 ﻿namespace FrameWebforCS.components.result
 {
-    partial class ResultDisgComponent
+    partial class ResultCombineFsecComponent
     {
         /// <summary> 
         /// 必要なデザイナー変数です。
@@ -26,7 +26,7 @@
         /// デザイナー サポートに必要なメソッドです。このメソッドの内容を 
         /// コード エディターで変更しないでください。
         /// </summary>
-        public void InitializeComponent()
+        private void InitializeComponent()
         {
             fpSpread1 = new FarPoint.Win.Spread.FpSpread(FarPoint.Win.Spread.LegacyBehaviors.None, null);
             ((System.ComponentModel.ISupportInitialize)fpSpread1).BeginInit();
@@ -35,18 +35,18 @@
             // fpSpread1
             // 
             fpSpread1.Dock = DockStyle.Fill;
-            fpSpread1.Font = new Font("ＭＳ Ｐゴシック", 11F);
+            fpSpread1.Font = new Font("ＭＳ Ｐゴシック", 9F);
             fpSpread1.Location = new Point(0, 0);
             fpSpread1.Name = "fpSpread1";
             fpSpread1.Size = new Size(150, 150);
             fpSpread1.TabIndex = 0;
             // 
-            // ResultDisgComponent
+            // ResultCombineFsecComponent
             // 
-            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleDimensions = new SizeF(192F, 192F);
             AutoScaleMode = AutoScaleMode.Dpi;
             Controls.Add(fpSpread1);
-            Name = "ResultDisgComponent";
+            Name = "ResultCombineFsecComponent";
             ((System.ComponentModel.ISupportInitialize)fpSpread1).EndInit();
             ResumeLayout(false);
         }

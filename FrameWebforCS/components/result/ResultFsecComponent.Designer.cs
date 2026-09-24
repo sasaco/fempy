@@ -28,10 +28,32 @@
         /// </summary>
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            fpSpread1 = new FarPoint.Win.Spread.FpSpread(FarPoint.Win.Spread.LegacyBehaviors.None, null);
+            ((System.ComponentModel.ISupportInitialize)fpSpread1).BeginInit();
+            SuspendLayout();
+            // 
+            // fpSpread1
+            // 
+            fpSpread1.AccessibleDescription = "";
+            fpSpread1.Dock = DockStyle.Fill;
+            fpSpread1.Font = new Font("ＭＳ Ｐゴシック", 9F);
+            fpSpread1.Location = new Point(0, 0);
+            fpSpread1.Name = "fpSpread1";
+            fpSpread1.Size = new Size(150, 150);
+            fpSpread1.TabIndex = 0;
+            // 
+            // ResultFsecComponent
+            // 
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            Controls.Add(fpSpread1);
+            Name = "ResultFsecComponent";
+            ((System.ComponentModel.ISupportInitialize)fpSpread1).EndInit();
+            ResumeLayout(false);
         }
 
         #endregion
+
+        private FarPoint.Win.Spread.FpSpread fpSpread1;
     }
 }
