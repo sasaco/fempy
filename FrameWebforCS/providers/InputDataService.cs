@@ -18,7 +18,7 @@ namespace FrameWebforCS.providers
         private InputDataService()
         {
             // 初期化処理があればここに書く
-            CurrentType = null;
+            CurrentComponent = null;
 
 
             dimension = 3;
@@ -30,7 +30,7 @@ namespace FrameWebforCS.providers
         // --------------------------------------------------
 
         //現在編集中のコンポーネント
-        public Type CurrentType { get; set; }
+        public UserControl? CurrentComponent { get; set; }
 
         // ３次元解析=3, ２次元解析=2
         public int dimension { get; set; }

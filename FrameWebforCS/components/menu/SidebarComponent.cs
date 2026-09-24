@@ -17,11 +17,11 @@ namespace FrameWebforCS.components.menu
 
     public partial class SidebarComponent : UserControl
     {
-        private AppRoutingModule routing = new AppRoutingModule();
+        private AppRoutingModule routing = AppRoutingModule.Instance;
 
         internal class targetComponent
         {
-            internal Type? Component { get; set; } = null;
+            internal Type Component { get; set; } = null;
             internal int option { get; set; } = -1;
             internal string? title { get; set; } = null;
             internal string root { get; set; } = null;
