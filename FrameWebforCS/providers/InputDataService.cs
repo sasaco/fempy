@@ -53,6 +53,10 @@ namespace FrameWebforCS.providers
             return result;
         }
 
+        /// <summary>
+        /// Componentに表示するデータを返す
+        /// </summary>
+        /// <returns></returns>
         internal Dictionary<string, object> getDisg()
         {
             var result = new Dictionary<string, object>();
@@ -63,27 +67,37 @@ namespace FrameWebforCS.providers
             }
             return result;
         }
-
+        internal Dictionary<string, object> getCombineDisg()
+        {
+            return getDisg();
+        }
+        internal Dictionary<string, object> getPickupDisg()
+        {
+            return getDisg();
+        }
         internal Dictionary<string, object> getFsec()
         {
-            var result = new Dictionary<string, object>();
-
-            for (int i = 0; i < 20; i++)
-            {
-                result.Add("case " + i.ToString(), null);
-            }
-            return result;
+            return getDisg();
         }
-
+        internal Dictionary<string, object> getCombineFsec()
+        {
+            return getFsec();
+        }
+        internal Dictionary<string, object> getPickupFsec()
+        {
+            return getFsec();
+        }
         internal Dictionary<string, object> getReac()
         {
-            var result = new Dictionary<string, object>();
-
-            for (int i = 0; i < 20; i++)
-            {
-                result.Add("case " + i.ToString(), null);
-            }
-            return result;
+            return getDisg();
+        }
+        internal Dictionary<string, object> getCombineReac()
+        {
+            return getReac();
+        }
+        internal Dictionary<string, object> getPickupReac()
+        {
+            return getReac();
         }
     }
 }

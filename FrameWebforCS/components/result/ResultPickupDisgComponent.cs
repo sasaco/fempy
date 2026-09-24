@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FrameWebforCS.providers;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,9 +7,9 @@ namespace FrameWebforCS.components.result
 {
     internal class ResultPickupDisgComponent : ResultCombineDisgComponent
     {
-        public ResultPickupDisgComponent()
+        public override Dictionary<string, object> getCombineDisg()
         {
-            fpSpread1_Sheet1.SheetName = "PICKUP";
+            return InputDataService.Instance.getPickupDisg();
         }
     }
 }

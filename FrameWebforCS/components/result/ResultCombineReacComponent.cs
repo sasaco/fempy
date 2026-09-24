@@ -12,7 +12,6 @@ namespace FrameWebforCS.components.result
 {
     public partial class ResultCombineReacComponent : UserControl
     {
-        private InputDataService _input = InputDataService.Instance;
         internal FarPoint.Win.Spread.SheetView fpSpread1_Sheet1;
 
         public ResultCombineReacComponent()
@@ -20,13 +19,20 @@ namespace FrameWebforCS.components.result
             InitializeComponent();
             fpSpread1.EditModeOn += DataHelperModule.faSpread_EditModeOn;
 
-            fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
-            fpSpread1_Sheet1.SheetName = "COMBINE";
-            SetSheet2(fpSpread1_Sheet1);
+            Dictionary<string, object> result = getCombineReac();
 
+            foreach (var item in result)
+            {
+                var fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
+
+                fpSpread1_Sheet1.SheetName = item.Key;
+
+                SetSheet2(fpSpread1_Sheet1);
+            }
 
             float w = 0;
-            var col = fpSpread1_Sheet1.Columns;
+            FarPoint.Win.Spread.SheetView fs = (SheetView)fpSpread1.Sheets.First();
+            var col = fs.Columns;
             for (int i = 0; i < col.Count; i++)
             {
                 w += col[i].Width;
@@ -56,9 +62,11 @@ namespace FrameWebforCS.components.result
             header.Cells[0, index].Text = "組み合わせ";
             header.Cells[1, index].Text = " ";
             column[index].Width = 200;
-
         }
-
+        public virtual Dictionary<string, object> getCombineReac()
+        {
+            return InputDataService.Instance.getCombineReac();
+        }
     }
 }
 
