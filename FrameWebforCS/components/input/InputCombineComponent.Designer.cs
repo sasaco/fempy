@@ -38,16 +38,19 @@
             fpSpread1.Dock = DockStyle.Fill;
             fpSpread1.Font = new Font("ＭＳ ゴシック", 9F);
             fpSpread1.Location = new Point(0, 0);
+            fpSpread1.Margin = new Padding(2);
             fpSpread1.Name = "fpSpread1";
-            fpSpread1.Size = new Size(150, 150);
+            fpSpread1.Size = new Size(850, 150);
             fpSpread1.TabIndex = 0;
             // 
             // InputCombineComponent
             // 
-            AutoScaleDimensions = new SizeF(192F, 192F);
+            AutoScaleDimensions = new SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;
             Controls.Add(fpSpread1);
+            Margin = new Padding(2);
             Name = "InputCombineComponent";
+            Size = new Size(850, 150);
             ((System.ComponentModel.ISupportInitialize)fpSpread1).EndInit();
             ResumeLayout(false);
         }

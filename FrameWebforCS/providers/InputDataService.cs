@@ -35,5 +35,22 @@ namespace FrameWebforCS.providers
         // ３次元解析=3, ２次元解析=2
         public int dimension { get; set; }
 
+
+
+        /// <summary>
+        /// Dfineケースのケース番号を
+        /// </summary>
+        /// <returns></returns>
+        internal List<string> GetDifineCase()
+        {
+            var result = new List<string>();
+
+            for(int i = 0; i < 10; i++)
+            {
+                result.Add("D" + (i + 1).ToString());
+            }
+
+            return result;
+        }
     }
 }

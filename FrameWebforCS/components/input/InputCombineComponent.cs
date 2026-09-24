@@ -15,159 +15,68 @@ namespace FrameWebforCS.components.input
         private InputDataService _input = InputDataService.Instance;
         private FarPoint.Win.Spread.SheetView fpSpread1_Sheet1;
         private FarPoint.Win.Spread.SheetView fpSpread1_Sheet2;
+        private FarPoint.Win.Spread.SheetView fpSpread1_Sheet3;
 
         public InputCombineComponent()
         {
             InitializeComponent();
 
             fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
-
             SetSheet1();
 
-            float w = 0;
-            var col = fpSpread1_Sheet1.Columns;
-            for (int i = 0; i < col.Count; i++)
-            {
-                w += col[i].Width;
-            }
-            w += 100;
-
-            this.Width = (int)w;
-
-
             fpSpread1_Sheet2 = fpSpread1.AddNewSheetView();
-
             SetSheet2();
 
+            fpSpread1_Sheet3 = fpSpread1.AddNewSheetView();
+            SetSheet3();
         }
 
         private void SetSheet1()
         {
-            fpSpread1_Sheet1.SheetName = "部材";
+            fpSpread1_Sheet1.SheetName = "DEFINE";
 
             var column = fpSpread1_Sheet1.Columns;
-            foreach (Column col in column)
-            {
-                col.Locked = false;
-            }
-
             var header = fpSpread1_Sheet1.ColumnHeader;
-            header.RowCount = 2;
 
-            if (_input.dimension == 3)
+            fpSpread1_Sheet1.ColumnCount = 50;
+            for(int i =0; i< fpSpread1_Sheet1.ColumnCount; i++)
             {
-                fpSpread1_Sheet1.ColumnCount = 6;
-
-                header.Cells[0, 0].Text = "節点";
-                header.Cells[1, 0].Text = "i端";
-                header.Cells[0, 1].Text = "";
-                header.Cells[1, 1].Text = "j端";
-                header.Cells[0, 2].Text = "部材長";
-                header.Cells[1, 2].Text = "(m)";
-                header.Cells[0, 3].Text = "材料";
-                header.Cells[1, 3].Text = "No";
-                header.Cells[0, 4].Text = "コードアングル";
-                header.Cells[1, 4].Text = "(°)";
-                header.Cells[0, 5].Text = "材料名称";
-                header.Cells[1, 5].Text = " ";
-
-                header.Cells[0, 0].ColumnSpan = 2;
-
-                column[0].Width = 50;
-                column[1].Width = 50;
-                column[2].Width = 80;
-                column[3].Width = 50;
-                column[4].Width = 150;
-                column[5].Width = 150;
-
-                column[2].Locked = true;
-                column[5].Locked = true;
+                header.Cells[0, 1].Text = "C" +i.ToString();
+                column[i].Width = 50;
             }
-            else
-            {
-                fpSpread1_Sheet1.ColumnCount = 5;
-
-                header.Cells[0, 0].Text = "節点";
-                header.Cells[1, 0].Text = "i端";
-                header.Cells[0, 1].Text = "";
-                header.Cells[1, 1].Text = "j端";
-                header.Cells[0, 2].Text = "部材長";
-                header.Cells[1, 2].Text = "(m)";
-                header.Cells[0, 3].Text = "材料";
-                header.Cells[1, 3].Text = "No";
-                header.Cells[0, 5].Text = "材料名称";
-                header.Cells[1, 5].Text = " ";
-
-                header.Cells[0, 0].ColumnSpan = 2;
-
-                column[0].Width = 50;
-                column[1].Width = 50;
-                column[2].Width = 80;
-                column[3].Width = 50;
-                column[4].Width = 150;
-
-                column[2].Locked = true;
-                column[4].Locked = true;
-            }
-
-
-            foreach (Column col in column)
-            {
-                if (col.Locked)
-                {
-                    col.BackColor = SystemColors.Control;
-                }
-            }
-
         }
 
         private void SetSheet2()
         {
-            fpSpread1_Sheet2.SheetName = "剛域";
+            fpSpread1_Sheet2.SheetName = "COMBINE";
             var column = fpSpread1_Sheet2.Columns;
-            foreach (Column col in column)
-            {
-                col.Locked = false;
-            }
-
             var header = fpSpread1_Sheet2.ColumnHeader;
-            header.RowCount = 2;
 
-            fpSpread1_Sheet2.ColumnCount = 7;
+            List<string> difine = _input.GetDifineCase();
 
-            header.Cells[0, 0].Text = "部材長";
-            header.Cells[1, 0].Text = "(m)";
-            header.Cells[0, 1].Text = "材料";
-            header.Cells[1, 1].Text = "No";
-            header.Cells[0, 2].Text = "材料名称";
-            header.Cells[1, 2].Text = " ";
-            header.Cells[0, 3].Text = "剛域";
-            header.Cells[1, 3].Text = "i端の距離";
-            header.Cells[0, 4].Text = "";
-            header.Cells[1, 4].Text = "j端の距離";
-            header.Cells[0, 5].Text = "材料";
-            header.Cells[1, 5].Text = "No";
-            header.Cells[0, 6].Text = "材料名称";
-            header.Cells[1, 6].Text = " ";
+            fpSpread1_Sheet2.ColumnCount = difine.Count;
 
-            header.Cells[0, 3].ColumnSpan = 2;
-
-            column[0].Width = 80;
-            column[1].Width = 50;
-            column[2].Width = 150;
-            column[3].Width = 80;
-            column[4].Width = 80;
-            column[5].Width = 50;
-            column[6].Width = 150;
-
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < fpSpread1_Sheet2.ColumnCount; i++)
             {
-                column[i].Locked = true;
-                column[i].BackColor = SystemColors.Control;
+                header.Cells[0, 1].Text = difine[i];
+                column[i].Width = 50;
             }
-            column[6].Locked = true;
-            column[6].BackColor = SystemColors.Control;
 
+        }
+
+        private void SetSheet3()
+        {
+            fpSpread1_Sheet3.SheetName = "PICKUP";
+
+            var column = fpSpread1_Sheet3.Columns;
+            var header = fpSpread1_Sheet3.ColumnHeader;
+
+            fpSpread1_Sheet3.ColumnCount = 50;
+            for (int i = 0; i < fpSpread1_Sheet3.ColumnCount; i++)
+            {
+                header.Cells[0, 1].Text = "C" + i.ToString();
+                column[i].Width = 50;
+            }
         }
 
         public void setActiveSheet(int index)
@@ -175,16 +84,6 @@ namespace FrameWebforCS.components.input
             this.fpSpread1.ActiveSheetIndex = index;
         }
 
-        // locked 設定してるセルの編集を禁止する
-        private void faSpread1_EditModeOn(object sender, EventArgs e)
-        {
-            FpSpread? fp = sender as FpSpread;
-            Cell? targetCell = fp.ActiveSheet.ActiveCell;
-            if (targetCell.Locked)
-            {
-                fp.StopCellEditing();
-                return;
-            }
-        }
+
     }
 }
