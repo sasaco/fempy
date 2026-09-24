@@ -38,20 +38,16 @@
             fpSpread1.Dock = DockStyle.Fill;
             fpSpread1.Font = new Font("ＭＳ ゴシック", 9F);
             fpSpread1.Location = new Point(0, 0);
-            fpSpread1.Margin = new Padding(6, 6, 6, 6);
             fpSpread1.Name = "fpSpread1";
-            fpSpread1.Size = new Size(279, 320);
+            fpSpread1.Size = new Size(150, 150);
             fpSpread1.TabIndex = 0;
-            fpSpread1.SpreadScaleMode = FarPoint.Win.Spread.ScaleMode.ZoomDpiSupport;
             // 
             // InputJointComponent
             // 
-            AutoScaleDimensions = new SizeF(13F, 32F);
-            AutoScaleMode = AutoScaleMode.Font;
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleMode = AutoScaleMode.Dpi;
             Controls.Add(fpSpread1);
-            Margin = new Padding(6, 6, 6, 6);
             Name = "InputJointComponent";
-            Size = new Size(279, 320);
             ((System.ComponentModel.ISupportInitialize)fpSpread1).EndInit();
             ResumeLayout(false);
         }
