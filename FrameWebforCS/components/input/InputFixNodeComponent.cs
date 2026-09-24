@@ -14,29 +14,24 @@ namespace FrameWebforCS.components.input
     {
         private InputDataService _input = InputDataService.Instance;
         private const int type_count = 6;
-        private List<FarPoint.Win.Spread.SheetView> fpSpread1_Sheets;
 
 
         public InputFixNodeComponent()
         {
             InitializeComponent();
 
-            fpSpread1_Sheets = new List<SheetView>();
-
             for (int i = 0; i < type_count; i++)
             {
-
                 var fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
 
                 fpSpread1_Sheet1.SheetName = "TYPE-" + i.ToString();
 
                 setColumn(fpSpread1_Sheet1);
-
-                fpSpread1_Sheets.Add(fpSpread1_Sheet1);
             }
 
             float w = 0;
-            var col = fpSpread1_Sheets.First().Columns;
+            FarPoint.Win.Spread.SheetView fs = (SheetView)fpSpread1.Sheets.First();
+            var col = fs.Columns;
             for (int i = 0; i < col.Count; i++)
             {
                 w += col[i].Width;

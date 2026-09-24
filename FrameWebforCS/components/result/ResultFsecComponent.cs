@@ -7,25 +7,33 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using static THREE.ArcballControls;
 
 namespace FrameWebforCS.components.result
 {
     public partial class ResultFsecComponent : UserControl
     {
-        private FarPoint.Win.Spread.SheetView fpSpread1_Sheet1;
+        private InputDataService _input = InputDataService.Instance;
 
         public ResultFsecComponent()
         {
             InitializeComponent();
-
             fpSpread1.EditModeOn += DataHelperModule.faSpread_EditModeOn;
 
-            fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
-            fpSpread1_Sheet1.SheetName = "基本ケース";
-            SetSheet1(fpSpread1_Sheet1);
+            Dictionary<string, object> result = _input.getFsec();
+
+            foreach (var item in result)
+            {
+                var fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
+
+                fpSpread1_Sheet1.SheetName = item.Key;
+
+                SetSheet1(fpSpread1_Sheet1);
+            }
 
             float w = 0;
-            var col = fpSpread1_Sheet1.Columns;
+            FarPoint.Win.Spread.SheetView fs = (SheetView)fpSpread1.Sheets.First();
+            var col = fs.Columns;
             for (int i = 0; i < col.Count; i++)
             {
                 w += col[i].Width;

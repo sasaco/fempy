@@ -52,5 +52,38 @@ namespace FrameWebforCS.providers
 
             return result;
         }
+
+        internal Dictionary<string, object> getDisg()
+        {
+            var result = new Dictionary<string, object>();
+
+            for(int i = 0; i < 20; i++)
+            {
+                result.Add("case " + i.ToString(), null);
+            }
+            return result;
+        }
+
+        internal Dictionary<string, object> getFsec()
+        {
+            var result = new Dictionary<string, object>();
+
+            for (int i = 0; i < 20; i++)
+            {
+                result.Add("case " + i.ToString(), null);
+            }
+            return result;
+        }
+
+        internal Dictionary<string, object> getReac()
+        {
+            var result = new Dictionary<string, object>();
+
+            for (int i = 0; i < 20; i++)
+            {
+                result.Add("case " + i.ToString(), null);
+            }
+            return result;
+        }
     }
 }
