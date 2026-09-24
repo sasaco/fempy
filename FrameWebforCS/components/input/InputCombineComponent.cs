@@ -41,7 +41,7 @@ namespace FrameWebforCS.components.input
             fpSpread1_Sheet1.ColumnCount = 50;
             for(int i =0; i< fpSpread1_Sheet1.ColumnCount; i++)
             {
-                header.Cells[0, 1].Text = "C" +i.ToString();
+                header.Cells[0, i].Text = "C" + (i + 1).ToString();
                 column[i].Width = 50;
             }
         }
@@ -54,14 +54,18 @@ namespace FrameWebforCS.components.input
 
             List<string> difine = _input.GetDifineCase();
 
-            fpSpread1_Sheet2.ColumnCount = difine.Count;
+            fpSpread1_Sheet2.ColumnCount = difine.Count + 1;
 
-            for (int i = 0; i < fpSpread1_Sheet2.ColumnCount; i++)
+            for (int i = 0; i < fpSpread1_Sheet2.ColumnCount - 1; i++)
             {
-                header.Cells[0, 1].Text = difine[i];
+                header.Cells[0, i].Text = difine[i];
                 column[i].Width = 50;
             }
 
+            int j = fpSpread1_Sheet2.ColumnCount - 1;
+            header.Cells[0, j].Text = "名称";
+            column[j].Width = 200;
+            fpSpread1_Sheet2.FrozenTrailingColumnCount = 1;
         }
 
         private void SetSheet3()
@@ -71,12 +75,17 @@ namespace FrameWebforCS.components.input
             var column = fpSpread1_Sheet3.Columns;
             var header = fpSpread1_Sheet3.ColumnHeader;
 
-            fpSpread1_Sheet3.ColumnCount = 50;
-            for (int i = 0; i < fpSpread1_Sheet3.ColumnCount; i++)
+            fpSpread1_Sheet3.ColumnCount = 50 + 1;
+            for (int i = 0; i < fpSpread1_Sheet3.ColumnCount - 1; i++)
             {
-                header.Cells[0, 1].Text = "C" + i.ToString();
+                header.Cells[0, i].Text = "C" + (i + 1).ToString();
                 column[i].Width = 50;
             }
+
+            int j = fpSpread1_Sheet3.ColumnCount - 1;
+            header.Cells[0, j].Text = "名称";
+            column[j].Width = 200;
+            fpSpread1_Sheet3.FrozenTrailingColumnCount = 1;
         }
 
         public void setActiveSheet(int index)
