@@ -20,7 +20,7 @@ namespace FrameWebforCS
         }
 
 
-        internal void contentsDailogShow(Type type, string title, int option = 0)
+        internal void contentsDailogShow(Type type, string title, int option = -1)
         {
             if (_input.CurrentType == type) return;
 
@@ -73,8 +73,9 @@ namespace FrameWebforCS
             }
             else if (type == typeof(ResultDisgComponent))
             {
-                CurrentUserControl = new ResultDisgComponent();
-                // menu に combine, pickup 追加
+                var tmp = new ResultDisgComponent();
+                tmp.setActiveSheet(option);
+                CurrentUserControl = tmp;
             }
             else if (type == typeof(ResultReacComponent))
             {

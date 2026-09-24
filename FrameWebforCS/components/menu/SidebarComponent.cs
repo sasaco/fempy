@@ -1,49 +1,215 @@
-﻿using FrameWebforCS.components.input;
+﻿using FastDeepCloner;
+using FrameWebforCS.components.input;
 using FrameWebforCS.components.result;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace FrameWebforCS.components.menu
 {
+
+
     public partial class SidebarComponent : UserControl
     {
         private AppRoutingModule routing = new AppRoutingModule();
 
-        private Dictionary<string, Type> targetComponents = new Dictionary<string, Type>
+        internal class targetComponent
         {
-            { "element", typeof(InputElementsComponent) }, // 材料
-            { "node", typeof(InputNodesComponent) }, // 節点
-            { "rigid", typeof(InputMembersComponent) }, // 剛域
-            { "member", typeof(InputMembersComponent) }, // 部材
-            { "notice_points", typeof(InputNoticePointsComponent) }, // 着目点
-            { "shell", typeof(InputPanelComponent) }, // パネル
-            { "solid", null }, // ソリッド
-            { "fix_node", typeof(InputFixNodeComponent) }, // 支点
-            { "fix_member", typeof(InputFixMemberComponent) }, // バネ
-            { "joint", typeof(InputJointComponent) }, // 結合
-            { "load", typeof(InputLoadComponent) }, // 荷重
-            { "Combine", typeof(InputCombineComponent) } , // 組合せ
-            { "disg", typeof(ResultDisgComponent) }, // 変位: 基本Case
-            { "combdisg", typeof(ResultDisgComponent) }, // 変位: 組合せ
-            { "pickdisg", typeof(ResultDisgComponent) }, // 変位: ピックアップ
-            { "reac", typeof(ResultReacComponent) }, //反力: 基本Case
-            { "combreac", typeof(ResultReacComponent) }, //反力: 組合せ
-            { "pickreac", typeof(ResultReacComponent) }, //反力: ピックアップ
-            { "fsec", typeof(ResultFsecComponent) }, //断面力: 基本Case
-            { "combfsec", typeof(ResultFsecComponent) }, //断面力: 組合せ
-            { "pickfsec", typeof(ResultFsecComponent) }, //断面力: ピックアップ
+            internal Type? Component { get; set; } = null;
+            internal int option { get; set; } = -1;
+            internal string? title { get; set; } = null;
+            internal string root { get; set; } = null;
+            internal TreeNode TreeNode { get; set; } = new TreeNode();
+        }
+
+        private Dictionary<string, targetComponent> targetComponents = new Dictionary<string, targetComponent>
+        {
+            { "input", new targetComponent(){
+                title = "入力"
+            }},
+            { "element", new targetComponent(){ 
+                Component = typeof(InputElementsComponent),
+                title = "材料",
+                root = "input"
+            }}, 
+            { "node", new targetComponent(){ 
+                Component = typeof(InputNodesComponent),
+                title = "節点",
+                root = "input"
+            }}, 
+            { "member",new targetComponent(){ 
+                Component = typeof(InputMembersComponent),
+                title = "部材",
+                root = "input",
+                option = 0  
+            }},
+            { "rigid", new targetComponent(){ 
+                Component = typeof(InputMembersComponent),
+                title = "剛域",
+                root = "member",
+                option = 1  
+            }}, 
+            { "notice_points", new targetComponent(){ 
+                Component = typeof(InputNoticePointsComponent),
+                title = "着目点",
+                root = "member",
+            }}, 
+            { "shell", new targetComponent(){ 
+                Component = typeof(InputPanelComponent),
+                title = "パネル",
+                root = "input"
+            }},
+            { "solid", new targetComponent(){
+                title = "ソリッド",
+                root = "input"
+            }},
+            { "fix_node", new targetComponent(){ 
+                Component = typeof(InputFixNodeComponent),
+                title = "支点",
+                root = "input"
+            }}, 
+            { "fix_member", new targetComponent(){ 
+                Component = typeof(InputFixMemberComponent),
+                title = "バネ",
+                root = "input"
+            }},
+            { "joint", new targetComponent(){ 
+                Component = typeof(InputJointComponent),
+                title = "結合",
+                root = "input"
+            }},
+            { "load", new targetComponent(){ 
+                Component = typeof(InputLoadComponent),
+                title = "荷重",
+                root = "input",
+                option = 0  
+            }},
+            { "Combine", new targetComponent(){ 
+                Component = typeof(InputCombineComponent),
+                title = "組合せ",
+                root = "input",
+                option = 0
+            }} ,
+
+            { "output", new targetComponent(){
+                title = "出力"
+            }},
+            { "disg", new targetComponent(){ 
+                Component = typeof(ResultDisgComponent),
+                title = "変位",
+                root = "output",
+                option = 0 
+            }},
+            { "basedisg", new targetComponent(){
+                Component = typeof(ResultDisgComponent),
+                title = "基本Case",
+                root = "disg",
+                option = 0
+            }},
+            { "combdisg", new targetComponent(){ 
+                Component = typeof(ResultDisgComponent),
+                title = "組合せ",
+                root = "disg",
+                option = 1  
+            }}, 
+            { "pickdisg", new targetComponent(){ 
+                Component = typeof(ResultDisgComponent),
+                title = "ピックアップ",
+                root = "disg",
+                option = 2  
+            }},
+            { "reac", new targetComponent(){ 
+                Component = typeof(ResultReacComponent),
+                title = "反力",
+                root = "output",
+                option = 0  
+            }},
+            { "basereac", new targetComponent(){
+                Component = typeof(ResultReacComponent),
+                title = "基本Case",
+                root = "reac",
+                option = 0
+            }},
+            { "combreac", new targetComponent(){ 
+                Component = typeof(ResultReacComponent),
+                title = "組合せ",
+                root = "reac",
+                option = 1  
+            }}, 
+            { "pickreac", new targetComponent(){ 
+                Component = typeof(ResultReacComponent),
+                title = "ピックアップ",
+                root = "reac",
+                option = 2  
+            }}, 
+            { "fsec", new targetComponent(){ 
+                Component = typeof(ResultFsecComponent),
+                title = "断面力",
+                root = "output",
+                option = 0  
+            }}, //断面力: 基本Case
+            { "basefsec", new targetComponent(){
+                Component = typeof(ResultFsecComponent),
+                title = "基本Case",
+                root = "fsec",
+                option = 0
+            }}, 
+            { "combfsec", new targetComponent(){ 
+                Component = typeof(ResultFsecComponent),
+                title = "組合せ",
+                root = "fsec",
+                option = 1  
+            }}, 
+            { "pickfsec", new targetComponent(){ 
+                Component = typeof(ResultFsecComponent),
+                title = "ピックアップ",
+                root = "fsec",
+                option = 2  
+            }}, 
         };
 
         public SidebarComponent()
         {
             InitializeComponent();
+            setTreeView(targetComponents.Clone());
             treeView1.ExpandAll();
+        }
 
+        private void setTreeView(Dictionary<string, targetComponent> List)
+        {
+            if (List.Count == 0) return;
+
+            var target = List.First();
+
+            TreeNode treeNode1 = target.Value.TreeNode;
+            treeNode1.Name = target.Key;
+            treeNode1.Text = target.Value.title;
+
+            // 自分の子要素を探す
+            Dictionary<string, targetComponent> child = List
+                .Where(item => item.Value.root == target.Key)
+                .ToDictionary(item => item.Key, item => item.Value);
+            // 自分の子要素を登録する
+            foreach (var item in child)
+            {
+                treeNode1.Nodes.Add(item.Value.TreeNode);
+            }
+
+            // ルート要素を TreeView に登録する
+            if (target.Value.root == null)
+                this.treeView1.Nodes.Add(treeNode1);
+
+            // 終了した要素を Listから削除する
+            List.Remove(target.Key);
+
+            // 再帰
+            setTreeView(List);
         }
 
         private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
@@ -58,7 +224,9 @@ namespace FrameWebforCS.components.menu
                 var value = targetComponents[key];
                 if (value != null)
                 {
-                    routing.contentsDailogShow(value, e.Node?.Text);
+                    routing.contentsDailogShow(value.Component, value.title, value.option);
+
+                    // TreeViewの見た目をチェック状態にする
                     e.Node?.Checked = true;
                 }
             }
