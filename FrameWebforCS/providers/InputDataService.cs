@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FrameWebforCS.components.input;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -100,9 +101,16 @@ namespace FrameWebforCS.providers
             return getReac();
         }
 
-        internal void Open()
+        internal void JsonDataOpen(System.Text.Json.JsonElement rootElement)
         {
-            throw new NotImplementedException();
+            InputNodesService.Instance.setNodeJson(rootElement);
+        }
+
+        internal Dictionary<string, object>? GetSaveJson()
+        {
+            return new Dictionary<string, object> { 
+                ["node"] = InputNodesService.Instance.getNodeJson() 
+            };
         }
     }
 }

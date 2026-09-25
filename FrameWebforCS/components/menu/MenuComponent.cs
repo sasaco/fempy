@@ -1,10 +1,13 @@
-﻿using FrameWebforCS.providers;
+﻿using FrameWebforCS.components.input;
+using FrameWebforCS.providers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Windows.Forms;
 
 namespace FrameWebforCS
@@ -20,32 +23,42 @@ namespace FrameWebforCS
 
         private void SaveToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            saveFileDialog1.Filter = "jsonファイル(*.json)|*.json|すべてのファイル(*.*)|*.*";
+            saveFileDialog1.FilterIndex = 1;
+            saveFileDialog1.DefaultExt = "json";
+            saveFileDialog1.AddExtension = true;
+            saveFileDialog1.OverwritePrompt = true;
+            saveFileDialog1.Title = "保存先を選択してください";
+            saveFileDialog1.RestoreDirectory = true;
+
+            if (saveFileDialog1.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+
+            try
+            {
+                var jsonData = _input.GetSaveJson(); 
+                string json = JsonSerializer.Serialize(jsonData, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(saveFileDialog1.FileName, json, new UTF8Encoding(false));
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+            {
+                MessageBox.Show(
+                    "ファイルを保存できませんでした。\n" + ex.Message,
+                    "ファイル保存エラー",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
 
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //はじめのファイル名を指定する
-            //はじめに「ファイル名」で表示される文字列を指定する
-            //openFileDialog1.FileName = "default.json";
-            //はじめに表示されるフォルダを指定する
-            //指定しない（空の文字列）の時は、現在のディレクトリが表示される
-            //openFileDialog1.InitialDirectory = @"C:\";
-            //[ファイルの種類]に表示される選択肢を指定する
-            //指定しないとすべてのファイルが表示される
             openFileDialog1.Filter = "jsonファイル(*.json;*.frd;*.ndt)|*.json;*.frd;*.ndt|すべてのファイル(*.*)|*.*";
-            //[ファイルの種類]ではじめに選択されるものを指定する
-            //2番目の「すべてのファイル」が選択されているようにする
-            openFileDialog1.FilterIndex = 2;
-            //タイトルを設定する
             openFileDialog1.Title = "開くファイルを選択してください";
-            //ダイアログボックスを閉じる前に現在のディレクトリを復元するようにする
             openFileDialog1.RestoreDirectory = true;
-            //存在しないファイルの名前が指定されたとき警告を表示する
-            //デフォルトでTrueなので指定する必要はない
             openFileDialog1.CheckFileExists = true;
-            //存在しないパスが指定されたとき警告を表示する
-            //デフォルトでTrueなので指定する必要はない
             openFileDialog1.CheckPathExists = true;
 
             //ダイアログを表示する
@@ -53,7 +66,21 @@ namespace FrameWebforCS
             {
                 //OKボタンがクリックされたとき、選択されたファイル名を表示する
                 Console.WriteLine(openFileDialog1.FileName);
-                _input.Open();
+                try
+                {
+                    using FileStream jsonFile = File.OpenRead(openFileDialog1.FileName);
+                    using JsonDocument jsonData = JsonDocument.Parse(jsonFile);
+
+                    _input.JsonDataOpen(jsonData.RootElement);
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+                {
+                    MessageBox.Show(
+                        "ファイルを読み込めませんでした。\n" + ex.Message,
+                        "ファイル読み込みエラー",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
             }
 
 

@@ -8,7 +8,7 @@ using Typography.OpenFont.Trimmable;
 
 namespace Typography.OpenFont.WebFont
 {
-    //NOTE: Web Font file structure is not part of 'Open Font Format'.
+    //NOTE: Web Font file structure is not part of 'JsonDataOpen Font Format'.
 
     class WoffHeader
     {
