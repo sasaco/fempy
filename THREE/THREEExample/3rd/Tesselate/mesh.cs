@@ -69,7 +69,7 @@
  * "prev" means to substitute CW for CCW in the definitions above.
  *
  * The mesh keeps global lists of all vertices, faces, and edges,
- * stored as doubly-linked circular lists with a dummy header node.
+ * stored as doubly-linked circular lists with a dummy header _node.
  * The mesh stores pointers to these dummy headers (vHead, fHead, eHead).
  *
  * The circular edge list is special; since half-edges always occur

@@ -60,7 +60,6 @@ namespace FrameWebforCS.components.result
             header.Cells[0, index].Text = "組み合わせ";
             header.Cells[1, index].Text = " ";
             column[index].Width = 200;
-
         }
 
         public virtual Dictionary<string, object> getCombineDisg()

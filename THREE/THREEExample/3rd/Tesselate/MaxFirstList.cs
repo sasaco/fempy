@@ -119,11 +119,11 @@ namespace Tesselate
         }
         public void Delete(RefItem<T> refItem)
         {
-            //delete specfic node 
+            //delete specfic _node 
 
             if (_isSorted)
             {
-                //use binary search to find node 
+                //use binary search to find _node 
                 //1. find middle point 
                 int removeAt = refItem.NodeNumber;
                 for (int i = _innerList.Count - 1; i > removeAt; --i)

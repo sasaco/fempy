@@ -99,5 +99,10 @@ namespace FrameWebforCS.providers
         {
             return getReac();
         }
+
+        internal void Open()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -56,7 +56,7 @@ namespace Tesselate
     public class ActiveRegion
     {
         HalfEdge _upperHalfEdge;		/* upper edge, directed right to left */
-        Dictionary.Node _upperHalfEdgeDictNode;	/* dictionary node corresponding to eUp */
+        Dictionary.Node _upperHalfEdgeDictNode;	/* dictionary _node corresponding to eUp */
         int _windingNumber;	/* used to determine which regions are
                                  * inside the polygon */
         bool _inside;		/* is this region inside the polygon? */

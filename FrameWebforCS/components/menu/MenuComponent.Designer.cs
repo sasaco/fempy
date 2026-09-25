@@ -35,11 +35,14 @@
             ファイルを開くToolStripMenuItem = new ToolStripMenuItem();
             ファイルを保存ToolStripMenuItem = new ToolStripMenuItem();
             プリセットを開くToolStripMenuItem = new ToolStripMenuItem();
+            計算ToolStripMenuItem = new ToolStripMenuItem();
             印刷ToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem1 = new ToolStripMenuItem();
             dToolStripMenuItem2 = new ToolStripMenuItem();
             dToolStripMenuItem3 = new ToolStripMenuItem();
             button1 = new Button();
+            openFileDialog1 = new OpenFileDialog();
+            saveFileDialog1 = new SaveFileDialog();
             tableLayoutPanel1.SuspendLayout();
             menuStrip1.SuspendLayout();
             SuspendLayout();
@@ -64,10 +67,10 @@
             // menuStrip1
             // 
             menuStrip1.Dock = DockStyle.Fill;
-            menuStrip1.Items.AddRange(new ToolStripItem[] { ファイルToolStripMenuItem, 印刷ToolStripMenuItem, toolStripMenuItem1 });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { ファイルToolStripMenuItem, 計算ToolStripMenuItem, 印刷ToolStripMenuItem, toolStripMenuItem1 });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
-            menuStrip1.Size = new Size(257, 24);
+            menuStrip1.Size = new Size(180, 24);
             menuStrip1.TabIndex = 2;
             menuStrip1.Text = "menuStrip1";
             // 
@@ -81,26 +84,35 @@
             // 新規作成ToolStripMenuItem
             // 
             新規作成ToolStripMenuItem.Name = "新規作成ToolStripMenuItem";
-            新規作成ToolStripMenuItem.Size = new Size(145, 22);
+            新規作成ToolStripMenuItem.Size = new Size(180, 22);
             新規作成ToolStripMenuItem.Text = "新規作成";
+            新規作成ToolStripMenuItem.Click += renewToolStripMenuItem_Click;
             // 
             // ファイルを開くToolStripMenuItem
             // 
             ファイルを開くToolStripMenuItem.Name = "ファイルを開くToolStripMenuItem";
-            ファイルを開くToolStripMenuItem.Size = new Size(145, 22);
+            ファイルを開くToolStripMenuItem.Size = new Size(180, 22);
             ファイルを開くToolStripMenuItem.Text = "ファイルを開く";
+            ファイルを開くToolStripMenuItem.Click += OpenToolStripMenuItem_Click;
             // 
             // ファイルを保存ToolStripMenuItem
             // 
             ファイルを保存ToolStripMenuItem.Name = "ファイルを保存ToolStripMenuItem";
-            ファイルを保存ToolStripMenuItem.Size = new Size(145, 22);
+            ファイルを保存ToolStripMenuItem.Size = new Size(180, 22);
             ファイルを保存ToolStripMenuItem.Text = "ファイルを保存";
+            ファイルを保存ToolStripMenuItem.Click += SaveToolStripMenuItem_Click;
             // 
             // プリセットを開くToolStripMenuItem
             // 
             プリセットを開くToolStripMenuItem.Name = "プリセットを開くToolStripMenuItem";
-            プリセットを開くToolStripMenuItem.Size = new Size(145, 22);
+            プリセットを開くToolStripMenuItem.Size = new Size(180, 22);
             プリセットを開くToolStripMenuItem.Text = "プリセットを開く";
+            // 
+            // 計算ToolStripMenuItem
+            // 
+            計算ToolStripMenuItem.Name = "計算ToolStripMenuItem";
+            計算ToolStripMenuItem.Size = new Size(43, 20);
+            計算ToolStripMenuItem.Text = "計算";
             // 
             // 印刷ToolStripMenuItem
             // 
@@ -120,14 +132,14 @@
             // 
             dToolStripMenuItem2.CheckOnClick = true;
             dToolStripMenuItem2.Name = "dToolStripMenuItem2";
-            dToolStripMenuItem2.Size = new Size(180, 22);
+            dToolStripMenuItem2.Size = new Size(88, 22);
             dToolStripMenuItem2.Text = "2D";
             // 
             // dToolStripMenuItem3
             // 
             dToolStripMenuItem3.CheckOnClick = true;
             dToolStripMenuItem3.Name = "dToolStripMenuItem3";
-            dToolStripMenuItem3.Size = new Size(180, 22);
+            dToolStripMenuItem3.Size = new Size(88, 22);
             dToolStripMenuItem3.Text = "3D";
             // 
             // button1
@@ -142,6 +154,10 @@
             button1.TabIndex = 4;
             button1.Text = "login";
             button1.UseVisualStyleBackColor = true;
+            // 
+            // openFileDialog1
+            // 
+            openFileDialog1.FileName = "openFileDialog1";
             // 
             // MenuComponent
             // 
@@ -171,5 +187,8 @@
         private ToolStripMenuItem toolStripMenuItem1;
         private ToolStripMenuItem dToolStripMenuItem2;
         private ToolStripMenuItem dToolStripMenuItem3;
+        private ToolStripMenuItem 計算ToolStripMenuItem;
+        private OpenFileDialog openFileDialog1;
+        private SaveFileDialog saveFileDialog1;
     }
 }
