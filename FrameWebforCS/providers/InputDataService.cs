@@ -1,4 +1,5 @@
 ﻿using FrameWebforCS.components.input;
+using FrameWebforCS.components.result;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -108,7 +109,10 @@ namespace FrameWebforCS.providers
             InputElementsService.Instance.setElementJson(rootElement);
             InputFixNodeService.Instance.setFixNodeJson(rootElement);
             InputFixMemberService.Instance.setFixMemberJson(rootElement);
+            InputLoadService.Instance.setLoadJson(rootElement);
+            InputNoticePointsService.Instance.setNoticePointsJson(rootElement);
             InputCombineService.Instance.setCombineJson(rootElement);
+            //ResultDisgService.Instance.setDisgJson(rootElement);
         }
 
         internal Dictionary<string, object>? GetSaveJson()
@@ -119,9 +123,11 @@ namespace FrameWebforCS.providers
                 ["element"] = InputElementsService.Instance.getElementJson(),
                 ["fix_node"] = InputFixNodeService.Instance.getFixNodeJson(),
                 ["fix_member"] = InputFixMemberService.Instance.getFixMemberJson(),
+                ["load"] = InputLoadService.Instance.getLoadJson(),
+                ["notice_points"] = InputNoticePointsService.Instance.getNoticePointsJson(),
                 ["define"] = InputCombineService.Instance.getDefineJson(),
                 ["combine"] = InputCombineService.Instance.getCombineJson(),
-                ["pickup"] = InputCombineService.Instance.getPickupJson()
+                ["pickup"] = InputCombineService.Instance.getPickupJson(),
             };
         }
     }
