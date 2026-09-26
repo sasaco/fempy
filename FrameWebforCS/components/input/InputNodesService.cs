@@ -1,69 +1,138 @@
-﻿using FarPoint.Win;
-using FarPoint.Win.Spread;
-using FrameWebforCS.providers;
-using OpenTK.Windowing.GraphicsLibraryFramework;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel;
+using System.Globalization;
 using System.Text.Json;
-using THREE;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Text.Json.Serialization;
 
 namespace FrameWebforCS.components.input
 {
-    internal class clsNode
+    internal class clsNode : INotifyPropertyChanged
     {
-        public float? X = null;
-        public float? Y = null;
-        public float? Z = null;
+        private float? _x;
+        private float? _y;
+        private float? _z;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        [JsonPropertyName("x")]
+        public float? X { get => _x; set => SetCoordinate(ref _x, value, nameof(X)); }
+
+        [JsonPropertyName("y")]
+        public float? Y { get => _y; set => SetCoordinate(ref _y, value, nameof(Y)); }
+
+        [JsonPropertyName("z")]
+        public float? Z { get => _z; set => SetCoordinate(ref _z, value, nameof(Z)); }
+
+        [JsonIgnore]
+        public bool IsEmpty => X == null && Y == null && Z == null;
+
+        private void SetCoordinate(ref float? field, float? value, string name)
+        {
+            if (value.HasValue && !float.IsFinite(value.Value))
+                throw new ArgumentOutOfRangeException(nameof(value), "Node coordinates must be finite.");
+            if (field == value)
+                return;
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
     }
 
     internal class InputNodesService
     {
-        // Lazy<T> を使ってスレッドセーフかつ遅延評価のシングルトンを実装
+        private const int MaxNodeId = 100_000;
+
         private static readonly Lazy<InputNodesService> _instance =
             new Lazy<InputNodesService>(() => new InputNodesService());
 
-        // 外部からはこのプロパティを通じてのみインスタンスにアクセスできる
         public static InputNodesService Instance => _instance.Value;
 
+        private Dictionary<string, clsNode> _node = new Dictionary<string, clsNode>();
 
-        private Dictionary<string, clsNode> _node;
+        // Row index + 1 is the node ID; missing IDs are represented by empty rows.
+        public BindingList<clsNode> Nodes { get; } = new BindingList<clsNode>();
 
-        // コンストラクタを private にして、外部からの new を禁止する
         private InputNodesService()
         {
-            this.clear();
+            Nodes.AllowNew = false;
+            Nodes.AllowRemove = false;
+            Nodes.RaiseListChangedEvents = false;
+            for (int row = 0; row < MaxNodeId; row++)
+                Nodes.Add(new clsNode());
+            Nodes.RaiseListChangedEvents = true;
+            Nodes.ListChanged += Nodes_ListChanged;
         }
 
-        public void clear() {
-            this._node = new Dictionary<string, clsNode>();
+        public void clear()
+        {
+            ReplaceRows(new Dictionary<string, clsNode>());
         }
 
-        /// <summary>
-        /// ファイルを読み込むとき
-        /// </summary>
-        /// <param name="jsonData"></param>
         public void setNodeJson(JsonElement jsonData)
         {
-            var nodes = DataHelperModule.JsonToDict<clsNode>(jsonData, "member");
-            if (nodes != null) this._node = nodes;
+            if (!jsonData.TryGetProperty("node", out JsonElement nodeJson) ||
+                nodeJson.ValueKind != JsonValueKind.Object)
+                return;
+
+            var nodes = JsonSerializer.Deserialize<Dictionary<string, clsNode>>(nodeJson.GetRawText())
+                ?? throw new JsonException("Invalid node data.");
+
+            var numberedNodes = new Dictionary<string, clsNode>();
+            var seenIds = new HashSet<string>();
+            foreach (var (id, node) in nodes)
+            {
+                if (!int.TryParse(id, NumberStyles.None, CultureInfo.InvariantCulture, out int row) ||
+                    row < 1 || row > MaxNodeId || node == null)
+                    throw new JsonException($"Invalid node: {id}");
+                string rowId = row.ToString(CultureInfo.InvariantCulture);
+                if (!seenIds.Add(rowId))
+                    throw new JsonException($"Duplicate node: {id}");
+                if (!node.IsEmpty)
+                    numberedNodes.Add(rowId, node);
+            }
+
+            ReplaceRows(numberedNodes);
         }
 
-        /// <summary>
-        /// ファイルに保存するとき
-        /// </summary>
-        /// <param name=""></param>
-        /// <param name=""></param>
-        public Dictionary<string, object> getNodeJson()  {
-
+        public Dictionary<string, object> getNodeJson()
+        {
             var nodes = new Dictionary<string, object>();
-            foreach (KeyValuePair<string, clsNode> n in this._node)
-            {
-                nodes.Add(n.Key, DataHelperModule.ClassToDictionary<clsNode>(n.Value));
-            }
+            foreach (var (id, node) in _node)
+                nodes.Add(id, node);
             return nodes;
         }
 
+        private void Nodes_ListChanged(object? sender, ListChangedEventArgs e)
+        {
+            if (e.ListChangedType != ListChangedType.ItemChanged || e.NewIndex < 0)
+                return;
+
+            var node = Nodes[e.NewIndex];
+            string id = (e.NewIndex + 1).ToString(CultureInfo.InvariantCulture);
+            if (node.IsEmpty)
+                _node.Remove(id);
+            else
+                _node[id] = node;
+
+        }
+
+        private void ReplaceRows(Dictionary<string, clsNode> nextNodes)
+        {
+            Nodes.RaiseListChangedEvents = false;
+            try
+            {
+                foreach (string id in _node.Keys)
+                    if (!nextNodes.ContainsKey(id))
+                        Nodes[int.Parse(id, CultureInfo.InvariantCulture) - 1] = new clsNode();
+                foreach (var (id, node) in nextNodes)
+                    Nodes[int.Parse(id, CultureInfo.InvariantCulture) - 1] = node;
+                _node = nextNodes;
+            }
+            finally
+            {
+                Nodes.RaiseListChangedEvents = true;
+                Nodes.ResetBindings();
+            }
+        }
     }
 }

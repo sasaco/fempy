@@ -1,4 +1,5 @@
-﻿using FrameWebforCS.providers;
+﻿using FarPoint.Win.Spread;
+using FrameWebforCS.providers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -71,7 +72,8 @@ namespace FrameWebforCS.components.input
                     clsElement? Value = e2.Value;
                     element.Add(e2.Key, DataHelperModule.ClassToDictionary<clsElement>(Value));
                 }
-                elements.Add(e1.Key, element);
+                if (element.Count > 0)
+                    elements.Add(e1.Key, element);
             }
             return elements;
         }

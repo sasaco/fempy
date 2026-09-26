@@ -1,63 +1,47 @@
 ﻿using FarPoint.Win.Spread;
+using FarPoint.Win.Spread.CellType;
 using FrameWebforCS.providers;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
+using GrapeCity.Win.Spread.InputMan.CellType;
 using System.Windows.Forms;
 
 namespace FrameWebforCS.components.input
 {
     public partial class InputNodesComponent : UserControl
     {
-        private InputDataService _input = InputDataService.Instance;
+        private readonly InputDataService _input = InputDataService.Instance;
         private FarPoint.Win.Spread.SheetView fpSpread1_Sheet1;
-
 
         public InputNodesComponent()
         {
             InitializeComponent();
 
             fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
-
             fpSpread1_Sheet1.SheetName = "Node";
+            fpSpread1_Sheet1.AutoGenerateColumns = false;
+            fpSpread1_Sheet1.DataAutoCellTypes = false;
+            fpSpread1_Sheet1.DataAutoHeadings = false;
+            fpSpread1_Sheet1.RowHeaderAutoText = HeaderAutoText.Numbers;
+            fpSpread1_Sheet1.StartingRowNumber = 1;
+            fpSpread1_Sheet1.ColumnCount = _input.dimension == 3 ? 3 : 2;
+            fpSpread1_Sheet1.DataSource = InputNodesService.Instance.Nodes;
 
             var header = fpSpread1_Sheet1.ColumnHeader;
-            var column = fpSpread1_Sheet1.Columns;
+            var columns = fpSpread1_Sheet1.Columns;
+            string[] fields = _input.dimension == 3
+                ? new[] { "X", "Y", "Z" }
+                : new[] { "X", "Y" };
+            var coordinateType = new GcNumberCellType();
+            coordinateType.Fields.SetFields("####0.000,,,-,");
 
-            if (_input.dimension == 3)
+            for (int i = 0; i < fields.Length; i++)
             {
-                fpSpread1_Sheet1.ColumnCount = 3;
-                header.Cells[0, 0].Text = "X";
-                header.Cells[0, 1].Text = "Y";
-                header.Cells[0, 2].Text = "Z";
-                column[0].Width = 80;
-                column[1].Width = 80;
-                column[2].Width = 80;
-            }
-            else
-            {
-                fpSpread1_Sheet1.ColumnCount = 2;
-                header.Cells[0, 0].Text = "X";
-                header.Cells[0, 1].Text = "Y";
-                column[0].Width = 80;
-                column[1].Width = 80;
+                header.Cells[0, i].Text = fields[i];
+                columns[i].DataField = fields[i];
+                columns[i].CellType = coordinateType;
+                columns[i].Width = 80;
             }
 
-            float w = 0;
-            var col = fpSpread1_Sheet1.Columns;
-            for (int i = 0; i < col.Count; i++)
-            {
-                w += col[i].Width;
-            }
-            w += 100;
-
-            this.Width = (int)w;
-
+            Width = fields.Length * 80 + 100;
         }
-
-
     }
 }

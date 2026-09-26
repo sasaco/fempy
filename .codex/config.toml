@@ -1,6 +1,6 @@
 # Codex project configuration for FrameWeb3.
-model = "gpt-5.6-sol"
-model_reasoning_effort = "xhigh"
+model = "gpt-6-sol"
+model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 web_search = "live"
 approval_policy = "never"
