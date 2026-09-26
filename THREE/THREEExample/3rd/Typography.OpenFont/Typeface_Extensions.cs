@@ -475,8 +475,8 @@ namespace Typography.OpenFont.Extensions
                     float c = 1.0f - t;
 
                     UpdateMinMax(
-                         (c * c * _curX) + (2 * t * c * x1) + (t * t * x2),  //x
-                         (c * c * _curY) + (2 * t * c * y1) + (t * t * y2)); //y
+                         (c * c * _curX) + (2 * t * c * x1) + (t * t * x2),  //X
+                         (c * c * _curY) + (2 * t * c * y1) + (t * t * y2)); //Y
 
                     t += eachstep;
                 }
@@ -503,8 +503,8 @@ namespace Typography.OpenFont.Extensions
                     float c = 1.0f - t;
 
                     UpdateMinMax(
-                        (_curX * c * c * c) + (x1 * 3 * t * c * c) + (x2 * 3 * t * t * c) + x3 * t * t * t,  //x
-                        (_curY * c * c * c) + (y1 * 3 * t * c * c) + (y2 * 3 * t * t * c) + y3 * t * t * t); //y
+                        (_curX * c * c * c) + (x1 * 3 * t * c * c) + (x2 * 3 * t * t * c) + x3 * t * t * t,  //X
+                        (_curY * c * c * c) + (y1 * 3 * t * c * c) + (y2 * 3 * t * t * c) + y3 * t * t * t); //Y
 
                     t += eachstep;
                 }

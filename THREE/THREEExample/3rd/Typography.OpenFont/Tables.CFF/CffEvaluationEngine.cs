@@ -1064,9 +1064,9 @@ namespace Typography.OpenFont.CFF
 
             //hflex is used when the following are all true:
             //a) the starting and ending points, first and last control points
-            //have the same y value.
+            //have the same Y value.
             //b) the joining point and the neighbor control points have
-            //the same y value.
+            //the same Y value.
             //c) the flex depth is 50.
 
             _currentIndex = 0; //clear stack
@@ -1083,9 +1083,9 @@ namespace Typography.OpenFont.CFF
             //hflex1 is used if the conditions for hflex
             //are not met but all of the following are true:
 
-            //a) the starting and ending points have the same y value,
+            //a) the starting and ending points have the same Y value,
             //b) the joining point and the neighbor control points have 
-            //the same y value.
+            //the same Y value.
             //c) the flex depth is 50.
             _currentIndex = 0; //clear stack
         }
@@ -1100,12 +1100,12 @@ namespace Typography.OpenFont.CFF
 
             //The d6 argument will be either a dx or dy value, depending on
             //the curve(see Figure 3). To determine the correct value, 
-            //compute the distance from the starting point(x, y), the first
+            //compute the distance from the starting point(X, Y), the first
             //point of the first curve, to the last flex control point(dx5, dy5)
             //by summing all the arguments except d6; call this(dx, dy).If
-            //abs(dx) > abs(dy), then the last point’s x-value is given by d6, and
-            //its y - value is equal to y.
-            //  Otherwise, the last point’s x-value is equal to x and its y-value is given by d6.
+            //abs(dx) > abs(dy), then the last point’s X-value is given by d6, and
+            //its Y - value is equal to Y.
+            //  Otherwise, the last point’s X-value is equal to X and its Y-value is given by d6.
 
 
             _currentIndex = 0; //clear stack
@@ -1116,7 +1116,7 @@ namespace Typography.OpenFont.CFF
         //4.3 Hint Operators
         public void H_Stem()
         {
-            //|- y dy {dya dyb}*  hstem (1) |-
+            //|- Y dy {dya dyb}*  hstem (1) |-
 
 
 #if DEBUG
@@ -1130,7 +1130,7 @@ namespace Typography.OpenFont.CFF
         }
         public void V_Stem()
         {
-            //|- x dx {dxa dxb}*  vstem (3) |-
+            //|- X dx {dxa dxb}*  vstem (3) |-
 #if DEBUG
             if ((_currentIndex % 2) != 0)
             {
@@ -1143,7 +1143,7 @@ namespace Typography.OpenFont.CFF
         public void V_StemHM()
         {
 
-            //|- x dx {dxa dxb}* vstemhm (23) |-
+            //|- X dx {dxa dxb}* vstemhm (23) |-
 #if DEBUG
             if ((_currentIndex % 2) != 0)
             {
@@ -1155,7 +1155,7 @@ namespace Typography.OpenFont.CFF
         }
         public void H_StemHM()
         {
-            //|- y dy {dya dyb}*  hstemhm (18) |-
+            //|- Y dy {dya dyb}*  hstemhm (18) |-
 #if DEBUG
             if ((_currentIndex % 2) != 0)
             {

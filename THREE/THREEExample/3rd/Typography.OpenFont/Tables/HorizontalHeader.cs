@@ -56,7 +56,7 @@ namespace Typography.OpenFont.Tables
             CaretSlopRun = input.ReadInt16();
             CaretOffset = input.ReadInt16();
 
-            //reserve 4 int16 fields, int16 x 4 fields
+            //reserve 4 int16 fields, int16 X 4 fields
             input.BaseStream.Seek(2 * 4, SeekOrigin.Current);
 
             MetricDataFormat = input.ReadInt16(); // 0

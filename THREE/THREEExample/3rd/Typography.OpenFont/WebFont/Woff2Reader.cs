@@ -250,8 +250,8 @@ namespace Typography.OpenFont.WebFont
             //       In the range 84 to 119 inclusive, it is two bytes. 
             //       In the range 120 to 123 inclusive, it is three bytes, 
             //       and in the range 124 to 127 inclusive, it is four bytes. 
-            //       Decode these bytes according to the procedure specified in the subclause 5.2 to reconstruct delta-x and delta-y values of the glyph point coordinates.
-            //       Store these delta-x and delta-y values in the reconstructed glyph using the standard TrueType glyph encoding[OFF] subclause 5.3.3.
+            //       Decode these bytes according to the procedure specified in the subclause 5.2 to reconstruct delta-X and delta-Y values of the glyph point coordinates.
+            //       Store these delta-X and delta-Y values in the reconstructed glyph using the standard TrueType glyph encoding[OFF] subclause 5.3.3.
 
             //    4) Read one 255UInt16 value from the glyph stream, which is instructionLength, the number of instruction bytes.
             //    5) Read instructionLength bytes from instructionStream, and store these in the reconstituted glyph as instructions.
@@ -362,7 +362,7 @@ namespace Typography.OpenFont.WebFont
             //representing xMin, yMin, xMax, and yMax, respectively, 
             //and record these into the corresponding fields of the reconstructed glyph.
             //For simple glyphs, if the corresponding bit in the bounding box bit vector is not set,
-            //then derive the bounding box by computing the minimum and maximum x and y coordinates in the outline, and storing that.
+            //then derive the bounding box by computing the minimum and maximum X and Y coordinates in the outline, and storing that.
 
             //A composite glyph MUST have an explicitly supplied bounding box. 
             //The motivation is that computing bounding boxes is more complicated,
@@ -409,7 +409,7 @@ namespace Typography.OpenFont.WebFont
                         //simple glyph
                         //use simple calculation
                         //...For simple glyphs, if the corresponding bit in the bounding box bit vector is not set,
-                        //then derive the bounding box by computing the minimum and maximum x and y coordinates in the outline, and storing that.
+                        //then derive the bounding box by computing the minimum and maximum X and Y coordinates in the outline, and storing that.
                         glyph.Bounds = FindSimpleGlyphBounds(glyph);
                     }
                 }
@@ -525,8 +525,8 @@ namespace Typography.OpenFont.WebFont
             //       In the range 84 to 119 inclusive, it is two bytes. 
             //       In the range 120 to 123 inclusive, it is three bytes, 
             //       and in the range 124 to 127 inclusive, it is four bytes. 
-            //       Decode these bytes according to the procedure specified in the subclause 5.2 to reconstruct delta-x and delta-y values of the glyph point coordinates.
-            //       Store these delta-x and delta-y values in the reconstructed glyph using the standard TrueType glyph encoding[OFF] subclause 5.3.3.
+            //       Decode these bytes according to the procedure specified in the subclause 5.2 to reconstruct delta-X and delta-Y values of the glyph point coordinates.
+            //       Store these delta-X and delta-Y values in the reconstructed glyph using the standard TrueType glyph encoding[OFF] subclause 5.3.3.
 
             //    4) Read one 255UInt16 value from the glyph stream, which is instructionLength, the number of instruction bytes.
             //    5) Read instructionLength bytes from instructionStream, and store these in the reconstituted glyph as instructions. 
@@ -592,12 +592,12 @@ namespace Typography.OpenFont.WebFont
 
                     //int f1 = (f >> 7); // most significant 1 bit -> on/off curve
 
-                    int xyFormat = f & 0x7F; // remainging 7 bits x,y format  
+                    int xyFormat = f & 0x7F; // remainging 7 bits X,Y format  
 
                     TripleEncodingRecord enc = s_encTable[xyFormat]; //0-128 
 
                     byte[] packedXY = glyphStreamReader.ReadBytes(enc.ByteCount - 1); //byte count include 1 byte flags, so actual read=> byteCount-1
-                                                                                      //read x and y 
+                                                                                      //read X and Y 
 
                     int x = 0;
                     int y = 0;
@@ -621,8 +621,8 @@ namespace Typography.OpenFont.WebFont
                                     0;
                             break;
                         case 12: //12,12
-                                 //x = enc.Tx((packedXY[0] << 8) | (packedXY[1] >> 4));
-                                 //y = enc.Ty(((packedXY[1] & 0xF)) | (packedXY[2] >> 4));
+                                 //X = enc.Tx((packedXY[0] << 8) | (packedXY[1] >> 4));
+                                 //Y = enc.Ty(((packedXY[1] & 0xF)) | (packedXY[2] >> 4));
                             x = enc.Tx((packedXY[0] << 4) | (packedXY[1] >> 4));
                             y = enc.Ty(((packedXY[1] & 0xF) << 8) | (packedXY[2]));
                             break;
@@ -845,9 +845,9 @@ namespace Typography.OpenFont.WebFont
                 //--------------------------------------------------------------------
                 if (Glyf.HasFlag(flags, Glyf.CompositeGlyphFlags.ARGS_ARE_XY_VALUES))
                 {
-                    //Argument1 and argument2 can be either x and y offsets to be added to the glyph or two point numbers.  
-                    //x and y offsets to be added to the glyph
-                    //When arguments 1 and 2 are an x and a y offset instead of points and the bit ROUND_XY_TO_GRID is set to 1,
+                    //Argument1 and argument2 can be either X and Y offsets to be added to the glyph or two point numbers.  
+                    //X and Y offsets to be added to the glyph
+                    //When arguments 1 and 2 are an X and a Y offset instead of points and the bit ROUND_XY_TO_GRID is set to 1,
                     //the values are rounded to those of the closest grid lines before they are added to the glyph.
                     //X and Y offsets are described in FUnits. 
 

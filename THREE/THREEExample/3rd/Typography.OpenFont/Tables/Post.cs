@@ -26,7 +26,7 @@ namespace Typography.OpenFont.Tables
     //                              0x00030000 for version 3.0
     //Fixed 	italicAngle 	    Italic angle in counter-clockwise degrees from the vertical. Zero for upright text, negative for text that leans to the right (forward).
     //FWord 	underlinePosition 	This is the suggested distance of the top of the underline from the baseline (negative values indicate below baseline).   
-    //                              The PostScript definition of this FontInfo dictionary key (the y coordinate of the center of the stroke) is not used for historical reasons.
+    //                              The PostScript definition of this FontInfo dictionary key (the Y coordinate of the center of the stroke) is not used for historical reasons.
     //                              The value of the PostScript key may be calculated by subtracting half the underlineThickness from the value of this field.
     //FWord 	underlineThickness 	Suggested values for the underline thickness.
     //uint32 	isFixedPitch 	    Set to 0 if the font is proportionally spaced, non-zero if the font is not proportionally spaced (i.e. monospaced).

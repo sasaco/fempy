@@ -10,6 +10,13 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FrameWebforCS.components.input
 {
+    internal class clsNode
+    {
+        public float? X = null;
+        public float? Y = null;
+        public float? Z = null;
+    }
+
     internal class InputNodesService
     {
         // Lazy<T> を使ってスレッドセーフかつ遅延評価のシングルトンを実装
@@ -20,7 +27,7 @@ namespace FrameWebforCS.components.input
         public static InputNodesService Instance => _instance.Value;
 
 
-        private Dictionary<string, THREE.Vector3> _node;
+        private Dictionary<string, clsNode> _node;
 
         // コンストラクタを private にして、外部からの new を禁止する
         private InputNodesService()
@@ -29,7 +36,7 @@ namespace FrameWebforCS.components.input
         }
 
         public void clear() {
-            this._node = new Dictionary<string, THREE.Vector3>();
+            this._node = new Dictionary<string, clsNode>();
         }
 
         /// <summary>
@@ -41,26 +48,42 @@ namespace FrameWebforCS.components.input
             if (!jsonData.TryGetProperty("node", out JsonElement nodeJson) ||
                 nodeJson.ValueKind != JsonValueKind.Object)
             {
-                throw new JsonException("node がJSONオブジェクトとして定義されていません。");
+                // throw new JsonException("node がJSONオブジェクトとして定義されていません。");
+                return;
             }
 
-            var nodes = new Dictionary<string, THREE.Vector3>();
+            var nodes = new Dictionary<string, clsNode>();
             foreach (JsonProperty nodeProperty in nodeJson.EnumerateObject())
             {
                 JsonElement coordinates = nodeProperty.Value;
-                if (coordinates.ValueKind != JsonValueKind.Object ||
-                    !coordinates.TryGetProperty("x", out JsonElement x) || !x.TryGetSingle(out float xValue) ||
-                    !coordinates.TryGetProperty("y", out JsonElement y) || !y.TryGetSingle(out float yValue) ||
-                    !coordinates.TryGetProperty("z", out JsonElement z) || !z.TryGetSingle(out float zValue) ||
-                    !float.IsFinite(xValue) || !float.IsFinite(yValue) || !float.IsFinite(zValue))
+                if (coordinates.ValueKind != JsonValueKind.Object)
+                    continue;
+
+                var tmp = new clsNode();
+                if (coordinates.TryGetProperty("x", out JsonElement x))
+                    if (x.TryGetSingle(out float xValue))
+                        tmp.X = xValue;
+                if (coordinates.TryGetProperty("y", out JsonElement y))
+                    if (y.TryGetSingle(out float yValue))
+                        tmp.Y = yValue;
+                if (coordinates.TryGetProperty("z", out JsonElement z))
+                    if (z.TryGetSingle(out float zValue))
+                        tmp.Z = zValue;
+
+                // 何か1つでも値が入っていなければPASS
+                var def = new clsNode();
+                if (tmp.X == def.X && tmp.Y == def.Y && tmp.Z == def.Z)
                 {
-                    throw new JsonException($"node '{nodeProperty.Name}' の座標が不正です。");
+                    //throw new JsonException($"node '{nodeProperty.Name}' の座標が不正です。");
+                    continue;
                 }
 
-                if (!nodes.TryAdd(nodeProperty.Name, new THREE.Vector3(xValue, yValue, zValue)))
+                if (!nodes.TryAdd(nodeProperty.Name, tmp))
                 {
-                    throw new JsonException($"node '{nodeProperty.Name}' が重複しています。");
+                    // throw new JsonException($"node '{nodeProperty.Name}' が重複しています。");
+                    continue;
                 }
+
             }
 
             this._node = nodes;
@@ -74,9 +97,9 @@ namespace FrameWebforCS.components.input
         public Dictionary<string, object> getNodeJson()  {
 
             var nodes = new Dictionary<string, object>();
-            foreach (KeyValuePair<string, THREE.Vector3> node in this._node)
+            foreach (KeyValuePair<string, clsNode> n in this._node)
             {
-                nodes.Add(node.Key, new { x = node.Value.X, y = node.Value.Y, z = node.Value.Z });
+                nodes.Add(n.Key, new { x = n.Value.X, y = n.Value.Y, z = n.Value.Z });
             }
             return nodes;
         }

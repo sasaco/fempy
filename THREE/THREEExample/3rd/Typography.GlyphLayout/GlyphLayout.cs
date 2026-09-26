@@ -25,11 +25,11 @@ namespace Typography.TextLayout
         }
         public readonly short AdvanceX;
         /// <summary>
-        /// x offset from current position
+        /// X offset from current position
         /// </summary>
         public readonly short OffsetX;
         /// <summary>
-        /// y offset from current position
+        /// Y offset from current position
         /// </summary>
         public readonly short OffsetY;
 

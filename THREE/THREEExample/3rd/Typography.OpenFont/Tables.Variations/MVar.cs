@@ -226,20 +226,20 @@ namespace Typography.OpenFont.Tables
                 RegisterValueTagInfo("vcof", "vertical caret offset", "vhea.caretOffset");
 
                 //Tag       Mnemonic                Value represented
-                //'xhgt' 	x height                OS/2.sxHeight
+                //'xhgt' 	X height                OS/2.sxHeight
                 //'cpht' 	cap height              OS/2.sCapHeight
 
-                //'sbxs' 	subscript em x size     OS/2.ySubscriptXSize
-                //'sbys' 	subscript em y size     OS/2.ySubscriptYSize
+                //'sbxs' 	subscript em X size     OS/2.ySubscriptXSize
+                //'sbys' 	subscript em Y size     OS/2.ySubscriptYSize
 
-                //'sbxo' 	subscript em x offset   OS/2.ySubscriptXOffset
-                //'sbyo' 	subscript em y offset   OS/2.ySubscriptYOffset
+                //'sbxo' 	subscript em X offset   OS/2.ySubscriptXOffset
+                //'sbyo' 	subscript em Y offset   OS/2.ySubscriptYOffset
 
-                //'spxs' 	superscript em x size   OS/2.ySuperscriptXSize
-                //'spys' 	superscript em y size   OS/2.ySuperscriptYSize
+                //'spxs' 	superscript em X size   OS/2.ySuperscriptXSize
+                //'spys' 	superscript em Y size   OS/2.ySuperscriptYSize
 
-                //'spxo' 	superscript em x offset OS/2.ySuperscriptXOffset
-                //'spyo' 	superscript em y offset OS/2.ySuperscriptYOffset
+                //'spxo' 	superscript em X offset OS/2.ySuperscriptXOffset
+                //'spyo' 	superscript em Y offset OS/2.ySuperscriptYOffset
 
                 //'strs' 	strikeout size          OS/2.yStrikeoutSize
                 //'stro' 	strikeout offset        OS/2.yStrikeoutPosition

@@ -45,7 +45,7 @@ namespace Typography.OpenFont.Tables
     //following the same order as the GlyphIDs. 
     //Any glyph not included in the range of covered GlyphIDs automatically belongs to Class 0.
 
-    //Example 7 at the end of this chapter uses Format 1 to assign class values to the lowercase, x-height, ascender, and descender glyphs in a font.
+    //Example 7 at the end of this chapter uses Format 1 to assign class values to the lowercase, X-height, ascender, and descender glyphs in a font.
     //
     //----------------------------
     //ClassDefFormat1 table: Class array

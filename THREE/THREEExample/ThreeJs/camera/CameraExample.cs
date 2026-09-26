@@ -87,9 +87,9 @@ namespace THREEExample.Three.camera
             for (var i = 0; i < 10000; i++)
             {
 
-                vertices.Add(MathUtils.RandFloatSpread(2000)); // x
-                vertices.Add(MathUtils.RandFloatSpread(2000)); // y
-                vertices.Add(MathUtils.RandFloatSpread(2000)); // z
+                vertices.Add(MathUtils.RandFloatSpread(2000)); // X
+                vertices.Add(MathUtils.RandFloatSpread(2000)); // Y
+                vertices.Add(MathUtils.RandFloatSpread(2000)); // Z
 
             }
 

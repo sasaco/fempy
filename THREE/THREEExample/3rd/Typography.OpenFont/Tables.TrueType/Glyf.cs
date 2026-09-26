@@ -45,10 +45,10 @@ namespace Typography.OpenFont.Tables
                     //header, 
                     //Type 	    Name 	            Description
                     //SHORT 	numberOfContours 	If the number of contours is greater than or equal to zero, this is a single glyph; if negative, this is a composite glyph.
-                    //SHORT 	xMin 	            Minimum x for coordinate data.
-                    //SHORT 	yMin 	            Minimum y for coordinate data.
-                    //SHORT 	xMax 	            Maximum x for coordinate data.
-                    //SHORT 	yMax 	            Maximum y for coordinate data.
+                    //SHORT 	xMin 	            Minimum X for coordinate data.
+                    //SHORT 	yMin 	            Minimum Y for coordinate data.
+                    //SHORT 	xMax 	            Maximum X for coordinate data.
+                    //SHORT 	yMax 	            Maximum Y for coordinate data.
                     short contoursCount = reader.ReadInt16();
                     if (contoursCount >= 0)
                     {
@@ -123,31 +123,31 @@ namespace Typography.OpenFont.Tables
         {
             //https://docs.microsoft.com/en-us/typography/opentype/spec/glyf
             //Note: In the glyf table, the position of a point is not stored in absolute terms but as a vector relative to the previous point. 
-            //The delta-x and delta-y vectors represent these (often small) changes in position.
+            //The delta-X and delta-Y vectors represent these (often small) changes in position.
 
             //Each flag is a single bit. Their meanings are shown below.
             //Bit	Flags  	        Description
             //0     ON_CURVE_POINT  If set, the point is on the curve; otherwise, it is off the curve.
-            //1     X_SHORT_VECTOR  If set, the corresponding x-coordinate is 1 byte long. If not set, 2 bytes.
-            //2     Y_SHORT_VECTOR 	If set, the corresponding y-coordinate is 1 byte long. If not set, 2 bytes.
+            //1     X_SHORT_VECTOR  If set, the corresponding X-coordinate is 1 byte long. If not set, 2 bytes.
+            //2     Y_SHORT_VECTOR 	If set, the corresponding Y-coordinate is 1 byte long. If not set, 2 bytes.
             //3     REPEAT_FLAG     If set, the next byte specifies the number of additional times this set of flags is to be repeated.
             //                      In this way, the number of flags listed can be smaller than the number of points in a character.
 
             //4     X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR
-            //                      This flag has two meanings, depending on how the x-Short Vector flag is set.
-            //                      If x-Short Vector is set, this bit describes the sign of the value, 
+            //                      This flag has two meanings, depending on how the X-Short Vector flag is set.
+            //                      If X-Short Vector is set, this bit describes the sign of the value, 
             //                      with 1 equalling positive and 0 negative. 
-            //                      If the x-Short Vector bit is not set and this bit is set, then the current x-coordinate is the same as the previous x-coordinate. 
-            //                      If the x-Short Vector bit is not set and this bit is also not set, the current x-coordinate is a signed 16-bit delta vector.
+            //                      If the X-Short Vector bit is not set and this bit is set, then the current X-coordinate is the same as the previous X-coordinate. 
+            //                      If the X-Short Vector bit is not set and this bit is also not set, the current X-coordinate is a signed 16-bit delta vector.
 
             //5     Y_IS_SAME_OR_POSITIVE_Y_SHORT_VECTOR
             //                      This flag has two meanings,
-            //                      depending on how the y-Short Vector flag is set. 
-            //                      If y-Short Vector is set, this bit describes the sign of the value,
+            //                      depending on how the Y-Short Vector flag is set. 
+            //                      If Y-Short Vector is set, this bit describes the sign of the value,
             //                      with 1 equalling positive and 0 negative. 
-            //                      If the y-Short Vector bit is not set and this bit is set, then the current y-coordinate is the same as the previous y-coordinate.
-            //                      If the y-Short Vector bit is not set and this bit is also not set,
-            //                      the current y-coordinate is a signed 16-bit delta vector.  
+            //                      If the Y-Short Vector bit is not set and this bit is set, then the current Y-coordinate is the same as the previous Y-coordinate.
+            //                      If the Y-Short Vector bit is not set and this bit is also not set,
+            //                      the current Y-coordinate is a signed 16-bit delta vector.  
             //6     OVERLAP_SIMPLE 	This bit is reserved. Set it to zero. (not used in OpenType)
             //7     Reserved 	 	This bit is reserved. Set it to zero.
 
@@ -238,7 +238,7 @@ namespace Typography.OpenFont.Tables
             //3     WE_HAVE_A_SCALE 	 	This indicates that there is a simple scale for the component. Otherwise, scale = 1.0.
             //4     RESERVED 	        	This bit is reserved. Set it to 0.
             //5     MORE_COMPONENTS 	    Indicates at least one more glyph after this one.
-            //6     WE_HAVE_AN_X_AND_Y_SCALE 	The x direction will use a different scale from the y direction.
+            //6     WE_HAVE_AN_X_AND_Y_SCALE 	The X direction will use a different scale from the Y direction.
             //7     WE_HAVE_A_TWO_BY_TWO 	  	There is a 2 by 2 transformation that will be used to scale the component.
             //8     WE_HAVE_INSTRUCTIONS 	 	Following the last component are instructions for the composite character.
             //9     USE_MY_METRICS 	 	        If set, this forces the aw and lsb (and rsb) for the composite to be equal to those from this original glyph. This works for hinted and unhinted characters.
@@ -273,8 +273,8 @@ namespace Typography.OpenFont.Tables
             //Type 	    Name 	    Description
             //uint16 	flags 	    component flag
             //uint16 	glyphIndex 	glyph index of component
-            //VARIABLE 	argument1 	x-offset for component or point number; type depends on bits 0 and 1 in component flags
-            //VARIABLE 	argument2 	y-offset for component or point number; type depends on bits 0 and 1 in component flags
+            //VARIABLE 	argument1 	X-offset for component or point number; type depends on bits 0 and 1 in component flags
+            //VARIABLE 	argument2 	Y-offset for component or point number; type depends on bits 0 and 1 in component flags
             //---------
             //note: VARIABLE => may be uint8,int8,uint16 or int16
             //see more at https://fontforge.github.io/assets/old/Composites/index.html
@@ -416,11 +416,11 @@ namespace Typography.OpenFont.Tables
                 }
 
                 //Argument1 and argument2 can be either...
-                //   x and y offsets to be added to the glyph(the ARGS_ARE_XY_VALUES flag is set), 
+                //   X and Y offsets to be added to the glyph(the ARGS_ARE_XY_VALUES flag is set), 
                 //or 
                 //   two point numbers(the ARGS_ARE_XY_VALUES flag is **not** set)
 
-                //When arguments 1 and 2 are an x and a y offset instead of points and the bit ROUND_XY_TO_GRID is set to 1,
+                //When arguments 1 and 2 are an X and a Y offset instead of points and the bit ROUND_XY_TO_GRID is set to 1,
                 //the values are rounded to those of the closest grid lines before they are added to the glyph.
                 //X and Y offsets are described in FUnits. 
 

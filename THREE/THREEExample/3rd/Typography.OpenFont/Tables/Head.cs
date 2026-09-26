@@ -33,9 +33,9 @@ namespace Typography.OpenFont.Tables
             //                          If the font is used as a component in a font collection file, 
             //                          the value of this field will be invalidated by changes to the file structure and font table directory, and must be ignored.
             //uint32 	magicNumber 	Set to 0x5F0F3CF5.
-            //uint16 	flags 	        Bit 0: Baseline for font at y=0;
+            //uint16 	flags 	        Bit 0: Baseline for font at Y=0;
 
-            //                          Bit 1: Left sidebearing point at x=0 (relevant only for TrueType rasterizers) — see the note below regarding variable fonts;
+            //                          Bit 1: Left sidebearing point at X=0 (relevant only for TrueType rasterizers) — see the note below regarding variable fonts;
 
             //                          Bit 2: Instructions may depend on point size;
 

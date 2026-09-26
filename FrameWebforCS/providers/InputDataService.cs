@@ -104,12 +104,14 @@ namespace FrameWebforCS.providers
         internal void JsonDataOpen(System.Text.Json.JsonElement rootElement)
         {
             InputNodesService.Instance.setNodeJson(rootElement);
+            InputMembersService.Instance.setMemberJson(rootElement);
         }
 
         internal Dictionary<string, object>? GetSaveJson()
         {
-            return new Dictionary<string, object> { 
-                ["node"] = InputNodesService.Instance.getNodeJson() 
+            return new Dictionary<string, object> {
+                ["node"] = InputNodesService.Instance.getNodeJson()
+                ["member"] = InputMembersService.Instance.getMemberJson()
             };
         }
     }

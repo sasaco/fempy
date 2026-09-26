@@ -968,13 +968,13 @@ namespace Typography.OpenFont.CFF
             //support 4 kinds 
 
             //1. 
-            //|- y dy {dya dyb}*  hstemhm (18) |-
+            //|- Y dy {dya dyb}*  hstemhm (18) |-
             //2.
-            //|- x dx {dxa dxb}* vstemhm (23) |-
+            //|- X dx {dxa dxb}* vstemhm (23) |-
             //3.
-            //|- y dy {dya dyb}*  hstem (1) |-
+            //|- Y dy {dya dyb}*  hstem (1) |-
             //4. 
-            //|- x dx {dxa dxb}*  vstem (3) |- 
+            //|- X dx {dxa dxb}*  vstem (3) |- 
             //-----------------------
 
             //notes

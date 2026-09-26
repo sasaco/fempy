@@ -28,14 +28,13 @@
         /// </summary>
         public void InitializeComponent()
         {
-            fpSpread1 = new FarPoint.Win.Spread.FpSpread(FarPoint.Win.Spread.LegacyBehaviors.None, null);
+            fpSpread1 = new myFpSpread();
             ((System.ComponentModel.ISupportInitialize)fpSpread1).BeginInit();
             SuspendLayout();
             // 
             // fpSpread1
             // 
             fpSpread1.Dock = DockStyle.Fill;
-            fpSpread1.Font = new Font("ＭＳ Ｐゴシック", 11F);
             fpSpread1.Location = new Point(0, 0);
             fpSpread1.Name = "fpSpread1";
             fpSpread1.Size = new Size(150, 150);
@@ -53,6 +52,6 @@
 
         #endregion
 
-        private FarPoint.Win.Spread.FpSpread fpSpread1;
+        private myFpSpread fpSpread1;
     }
 }

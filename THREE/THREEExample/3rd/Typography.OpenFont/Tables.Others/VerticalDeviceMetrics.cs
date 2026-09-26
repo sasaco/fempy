@@ -33,9 +33,9 @@ namespace Typography.OpenFont.Tables
             //RatioRange Record:
             //Type  	Name 	        Description
             //uint8 	bCharSet 	    Character set (see below).
-            //uint8 	xRatio 	        Value to use for x-Ratio
-            //uint8 	yStartRatio 	Starting y-Ratio value.
-            //uint8 	yEndRatio 	    Ending y-Ratio value.
+            //uint8 	xRatio 	        Value to use for X-Ratio
+            //uint8 	yStartRatio 	Starting Y-Ratio value.
+            //uint8 	yEndRatio 	    Ending Y-Ratio value.
             ushort version = reader.ReadUInt16();
             ushort numRecs = reader.ReadUInt16();
             ushort numRatios = reader.ReadUInt16();

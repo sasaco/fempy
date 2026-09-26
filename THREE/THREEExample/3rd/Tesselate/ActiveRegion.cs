@@ -92,7 +92,7 @@ namespace Tesselate
              * all the vertices in a priority queue.  Events are processed in
              * lexicographic order, ie.
              *
-             *	e1 < e2  iff  e1.x < e2.x || (e1.x == e2.x && e1.y < e2.y)
+             *	e1 < e2  iff  e1.X < e2.X || (e1.X == e2.X && e1.Y < e2.Y)
              */
             RemoveDegenerateEdges(tess);
             InitPriorityQue(tess);
@@ -179,8 +179,8 @@ namespace Tesselate
 
         //#undef	MAX
         //#undef	MIN
-        //#define MAX(x,y)	((x) >= (y) ? (x) : (y))
-        //#define MIN(x,y)	((x) <= (y) ? (x) : (y))
+        //#define MAX(X,Y)	((X) >= (Y) ? (X) : (Y))
+        //#define MIN(X,Y)	((X) <= (Y) ? (X) : (Y))
 
         /* When we merge two edges into one, we need to compute the combined
          * winding of the new edge.
@@ -733,20 +733,20 @@ namespace Tesselate
             b = t;
         }
 
-        /* Given parameters a,x,b,y returns the value (b*x+a*y)/(a+b),
-         * or (x+y)/2 if a==b==0.  It requires that a,b >= 0, and enforces
+        /* Given parameters a,X,b,Y returns the value (b*X+a*Y)/(a+b),
+         * or (X+Y)/2 if a==b==0.  It requires that a,b >= 0, and enforces
          * this in the rare case that one argument is slightly negative.
          * The implementation is extremely stable numerically.
          * In particular it guarantees that the result r satisfies
-         * MIN(x,y) <= r <= MAX(x,y), and the results are very accurate
+         * MIN(X,Y) <= r <= MAX(X,Y), and the results are very accurate
          * even when a and b differ greatly in magnitude.
          */
         static double Interpolate(double a, double x, double b, double y)
         {
             //return (a = (a < 0) ? 0 : a, b = (b < 0) ? 0 : b,	
-            //                ((a <= b) ? ((b == 0) ? ((x+y) / 2)			
-            //                : (x + (y-x) * (a/(a+b))))	
-            //                : (y + (x-y) * (b/(a+b)))));
+            //                ((a <= b) ? ((b == 0) ? ((X+Y) / 2)			
+            //                : (X + (Y-X) * (a/(a+b))))	
+            //                : (Y + (X-Y) * (b/(a+b)))));
 
             if (a < 0) a = 0;
             if (b < 0) b = 0;

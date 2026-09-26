@@ -21,7 +21,7 @@ namespace Typography.OpenFont.Tables
         //Note that fonts in a Font Collection which share a CFF table may specify different advanceWidths in their hmtx table for a particular glyph index.
         //For any glyph, xmax and xmin are given in 'glyf' table, lsb and aw are given in 'hmtx' table. rsb is calculated as follows:
         //  rsb = aw - (lsb + xmax - xmin)
-        //If pp1 and pp2 are phantom points used to control lsb and rsb, their initial position in x is calculated as follows:
+        //If pp1 and pp2 are phantom points used to control lsb and rsb, their initial position in X is calculated as follows:
         //  pp1 = xmin - lsb
         //  pp2 = pp1 + aw
 

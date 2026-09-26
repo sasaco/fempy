@@ -687,7 +687,7 @@ namespace Typography.OpenFont
 
                         //    if (opcode == OpCode.IUP0)
                         //    {
-                        //        //y -axis
+                        //        //Y -axis
                         //        touchMask = TouchState.Y;
 
                         //        //
@@ -757,7 +757,7 @@ namespace Typography.OpenFont
                         //    }
                         //    else
                         //    {
-                        //        //x-axis
+                        //        //X-axis
                         //        touchMask = TouchState.X;
                         //        //
                         //        for (int i = 0; i < cnt_count; ++i)

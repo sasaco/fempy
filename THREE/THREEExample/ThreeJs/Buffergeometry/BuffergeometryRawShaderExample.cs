@@ -79,7 +79,7 @@ namespace THREEExample.Three.Buffergeometry
 			for (var i = 0; i < vertexCount; i++)
 			{
 
-				// adding x,y,z
+				// adding X,Y,Z
 				positions.Add(MathUtils.NextFloat() - 0.5f);
 				positions.Add(MathUtils.NextFloat() - 0.5f);
 				positions.Add(MathUtils.NextFloat() - 0.5f);

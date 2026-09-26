@@ -51,7 +51,7 @@ namespace THREEExample.Learning.Chapter11
                     var mesh = new Mesh(box, mat);
                     mesh.Position.Z = -(totalDepth / 2) + (totalDepth / mBoxes) * j;
                     mesh.Position.X = -(totalWidth / 2) + (totalWidth / nBoxes) * i;
-                    // mesh.rotation.y = i;
+                    // mesh.rotation.Y = i;
                     mesh.CastShadow = true;
                     scene.Add(mesh);
                 }

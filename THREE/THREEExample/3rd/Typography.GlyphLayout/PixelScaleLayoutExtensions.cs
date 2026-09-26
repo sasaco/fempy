@@ -23,11 +23,11 @@ namespace Typography.TextLayout
         }
         public readonly float AdvanceX;
         /// <summary>
-        /// x offset from current position
+        /// X offset from current position
         /// </summary>
         public readonly float OffsetX;
         /// <summary>
-        /// y offset from current position
+        /// Y offset from current position
         /// </summary>
         public readonly float OffsetY;
 
@@ -430,8 +430,8 @@ namespace Typography.TextLayout
             //float acc_y = 0;//accum_y
             //float g_x = 0;
             //float g_y = 0;
-            //float x = 0;
-            //float y = 0;
+            //float X = 0;
+            //float Y = 0;
             //foreach (Typography.TextLayout.BreakSpan breakSpan in BreakToLineSegments(str, startAt, len))
             //{
 
@@ -460,8 +460,8 @@ namespace Typography.TextLayout
             //        // -glyphData.TextureXOffset => restore to original pos
             //        // -glyphData.TextureYOffset => restore to original pos 
             //        //--------------------------
-            //        g_x = (float)(x + (ngx)); //ideal x
-            //        g_y = (float)(y + (ngy));
+            //        g_x = (float)(X + (ngx)); //ideal X
+            //        g_y = (float)(Y + (ngy));
             //        float g_w = (float)Math.Round(glyphPlan.AdvanceX * pxscale);
             //        acc_x += g_w;
             //        //g_x = (float)Math.Round(g_x);

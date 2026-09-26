@@ -520,7 +520,7 @@ namespace THREEExample.Three.Geometries
 				if (lid.Value || (surf < 20 || surf >= 28))
 				{
 
-					// get M * G * M matrix for x,y,z
+					// get M * G * M matrix for X,Y,Z
 					for (i = 0; i < 3; i++)
 					{
 
@@ -617,7 +617,7 @@ namespace THREEExample.Three.Geometries
 
 							
 
-							// do for x,y,z
+							// do for X,Y,Z
 							for (i = 0; i < 3; i++)
 							{
 

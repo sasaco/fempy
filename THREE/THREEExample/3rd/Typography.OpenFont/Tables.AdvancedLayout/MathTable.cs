@@ -82,7 +82,7 @@ namespace Typography.OpenFont.MathGlyphs
         public MathValueRecord AxisHeight { get; internal set; }
         /// <summary>
         /// Maximum (ink) height of accent base that does not require raising the accents.
-        /// Suggested: x‑height of the font (os2.sxHeight) plus any possible overshots.
+        /// Suggested: X‑height of the font (os2.sxHeight) plus any possible overshots.
         /// </summary>
         public MathValueRecord AccentBaseHeight { get; internal set; }
         /// <summary>
@@ -100,7 +100,7 @@ namespace Typography.OpenFont.MathGlyphs
         public MathValueRecord SubscriptShiftDown { get; internal set; }
         /// <summary>
         /// Maximum allowed height of the (ink) top of subscripts that does not require moving subscripts further down.
-        /// Suggested: 4/5 x- height.
+        /// Suggested: 4/5 X- height.
         /// </summary>
         public MathValueRecord SubscriptTopMax { get; internal set; }
         /// <summary>
@@ -120,7 +120,7 @@ namespace Typography.OpenFont.MathGlyphs
         public MathValueRecord SuperscriptShiftUpCramped { get; internal set; }
         /// <summary>
         /// Minimum allowed height of the (ink) bottom of superscripts that does not require moving subscripts further up. 
-        /// Suggested: ¼ x-height.
+        /// Suggested: ¼ X-height.
         /// </summary>
         public MathValueRecord SuperscriptBottomMin { get; internal set; }
         /// <summary>
@@ -136,7 +136,7 @@ namespace Typography.OpenFont.MathGlyphs
         /// <summary>
         /// The maximum level to which the (ink) bottom of superscript can be pushed to increase the gap between 
         /// superscript and subscript, before subscript starts being moved down. 
-        /// Suggested: 4/5 x-height.
+        /// Suggested: 4/5 X-height.
         /// </summary>
         public MathValueRecord SuperscriptBottomMaxWithSubscript { get; internal set; }
         /// <summary>
@@ -318,7 +318,7 @@ namespace Typography.OpenFont.MathGlyphs
         public MathValueRecord RadicalVerticalGap { get; internal set; }
         /// <summary>
         ///  Space between the (ink) top of the expression and the bar over it. 
-        ///  Suggested: default rule thickness + ¼ x-height.
+        ///  Suggested: default rule thickness + ¼ X-height.
         /// </summary>
         public MathValueRecord RadicalDisplayStyleVerticalGap { get; internal set; }
         /// <summary>

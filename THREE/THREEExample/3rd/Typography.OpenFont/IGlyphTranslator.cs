@@ -47,26 +47,26 @@ namespace Typography.OpenFont
         /// <summary>
         /// add line,begin from CURRENT pen position to (x1,y1) then set (x1,y1) as CURRENT pen position
         /// </summary>
-        /// <param name="x1">end point x</param>
-        /// <param name="y1">end point y</param>
+        /// <param name="x1">end point X</param>
+        /// <param name="y1">end point Y</param>
         void LineTo(float x1, float y1);
         /// <summary>
         /// add Quadratic Bézier curve,begin from CURRENT pen pos, to (x2,y2), then set (x2,y2) as CURRENT pen pos
         /// </summary>
-        /// <param name="x1">x of 1st control point</param>
-        /// <param name="y1">y of 1st control point</param>
-        /// <param name="x2">end point x</param>
-        /// <param name="y2">end point y</param>
+        /// <param name="x1">X of 1st control point</param>
+        /// <param name="y1">Y of 1st control point</param>
+        /// <param name="x2">end point X</param>
+        /// <param name="y2">end point Y</param>
         void Curve3(float x1, float y1, float x2, float y2);
         /// <summary>
         /// add Cubic Bézier curve,begin from CURRENT pen pos, to (x3,y3), then set (x3,y3) as CURRENT pen pos
         /// </summary>
-        /// <param name="x1">x of 1st control point</param>
-        /// <param name="y1">y of 1st control point</param>
-        /// <param name="x2">x of 2nd control point</param>
-        /// <param name="y2">y of 2dn control point</param>
-        /// <param name="x3">end point x</param>
-        /// <param name="y3">end point y</param>
+        /// <param name="x1">X of 1st control point</param>
+        /// <param name="y1">Y of 1st control point</param>
+        /// <param name="x2">X of 2nd control point</param>
+        /// <param name="y2">Y of 2dn control point</param>
+        /// <param name="x3">end point X</param>
+        /// <param name="y3">end point Y</param>
         void Curve4(float x1, float y1, float x2, float y2, float x3, float y3);
 
         /// <summary>
@@ -244,11 +244,11 @@ namespace Typography.OpenFont
 
                             //if (has_dropout)
                             //{
-                            //    //printf("[%d] on,dropoutMode=%d: %d,y:%d \n", mm, dropoutMode, vpoint.x, vpoint.y);
+                            //    //printf("[%d] on,dropoutMode=%d: %d,Y:%d \n", mm, dropoutMode, vpoint.X, vpoint.Y);
                             //}
                             //else
                             //{
-                            //    //printf("[%d] on,x: %d,y:%d \n", mm, vpoint.x, vpoint.y);
+                            //    //printf("[%d] on,X: %d,Y:%d \n", mm, vpoint.X, vpoint.Y);
                             //}
                         }
                     }
@@ -328,7 +328,7 @@ namespace Typography.OpenFont
                                     c1 = new Vector2(p_x, p_y);
                                     offCurveMode = true;
                                     //
-                                    //printf("[%d] bzc2nd,  x: %d,y:%d \n", mm, vpoint.x, vpoint.y); 
+                                    //printf("[%d] bzc2nd,  X: %d,Y:%d \n", mm, vpoint.X, vpoint.Y); 
                                 }
                                 break;
                             default:

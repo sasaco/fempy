@@ -49,7 +49,7 @@ namespace Typography.OpenFont.Tables
         //Each Width value is the width of the particular glyph, in pixels,
         //at the pixels per em (ppem) size listed at the start of the DeviceRecord.
 
-        //The ppem sizes are measured along the y axis. 
+        //The ppem sizes are measured along the Y axis. 
 
         protected override void ReadContentFrom(BinaryReader reader)
         {

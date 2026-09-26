@@ -126,8 +126,8 @@ namespace Typography.OpenFont
                    newY = (float)Math.Round((x * m01) + (y * m11)),
                    p.onCurve);
 
-                //short newX = xs[i] = (short)Math.Round((x * m00) + (y * m10));
-                //short newY = ys[i] = (short)Math.Round((x * m01) + (y * m11));
+                //short newX = xs[i] = (short)Math.Round((X * m00) + (Y * m10));
+                //short newY = ys[i] = (short)Math.Round((X * m01) + (Y * m11));
                 //------
                 if (newX < new_xmin)
                 {
