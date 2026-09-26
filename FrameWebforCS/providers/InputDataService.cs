@@ -109,6 +109,7 @@ namespace FrameWebforCS.providers
             InputElementsService.Instance.setElementJson(rootElement);
             InputFixNodeService.Instance.setFixNodeJson(rootElement);
             InputFixMemberService.Instance.setFixMemberJson(rootElement);
+            InputJointService.Instance.setJointJson(rootElement);
             InputLoadService.Instance.setLoadJson(rootElement);
             InputNoticePointsService.Instance.setNoticePointsJson(rootElement);
             InputCombineService.Instance.setCombineJson(rootElement);
@@ -123,6 +124,7 @@ namespace FrameWebforCS.providers
                 ["element"] = InputElementsService.Instance.getElementJson(),
                 ["fix_node"] = InputFixNodeService.Instance.getFixNodeJson(),
                 ["fix_member"] = InputFixMemberService.Instance.getFixMemberJson(),
+                ["joint"] = InputJointService.Instance.getJointJson(),
                 ["load"] = InputLoadService.Instance.getLoadJson(),
                 ["notice_points"] = InputNoticePointsService.Instance.getNoticePointsJson(),
                 ["define"] = InputCombineService.Instance.getDefineJson(),

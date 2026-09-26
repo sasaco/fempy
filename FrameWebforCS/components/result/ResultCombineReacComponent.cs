@@ -17,7 +17,7 @@ namespace FrameWebforCS.components.result
         public ResultCombineReacComponent()
         {
             InitializeComponent();
-            fpSpread1.EditModeOn += DataHelperModule.faSpread_EditModeOn;
+            fpSpread1.EditModeOn += fpSpread1.faSpread_EditModeOn;
 
             Dictionary<string, object> result = getCombineReac();
 

@@ -12,19 +12,22 @@ namespace FrameWebforCS.components.input
 {
     public partial class InputNoticePointsComponent : UserControl
     {
-        private InputDataService _input = InputDataService.Instance;
         private FarPoint.Win.Spread.SheetView fpSpread1_Sheet1;
-        private FarPoint.Win.Spread.SheetView fpSpread1_Sheet2;
 
         public InputNoticePointsComponent()
         {
             InitializeComponent();
 
-            fpSpread1.EditModeOn += DataHelperModule.faSpread_EditModeOn;
+            fpSpread1.EditModeOn += fpSpread1.faSpread_EditModeOn;
 
             fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
 
             fpSpread1_Sheet1.SheetName = "着目点";
+            fpSpread1_Sheet1.AutoGenerateColumns = false;
+            fpSpread1_Sheet1.DataAutoCellTypes = false;
+            fpSpread1_Sheet1.DataAutoHeadings = false;
+            fpSpread1_Sheet1.RowHeaderAutoText = HeaderAutoText.Numbers;
+            fpSpread1_Sheet1.StartingRowNumber = 1;
 
             var column = fpSpread1_Sheet1.Columns;
             foreach (Column col in column)
@@ -57,6 +60,10 @@ namespace FrameWebforCS.components.input
 
             column[1].Locked = true;
             column[1].BackColor = SystemColors.Control;
+            column[0].DataField = "M";
+            for (int i = 2; i < column.Count; i++)
+                column[i].DataField = "P" + (i - 1).ToString();
+            fpSpread1_Sheet1.DataSource = InputNoticePointsService.Instance.NoticePoints;
 
         }
 

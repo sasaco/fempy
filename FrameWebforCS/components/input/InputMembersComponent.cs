@@ -22,9 +22,11 @@ namespace FrameWebforCS.components.input
         {
             InitializeComponent();
 
-            fpSpread1.EditModeOn += DataHelperModule.faSpread_EditModeOn;
+            fpSpread1.EditModeOn += fpSpread1.faSpread_EditModeOn;
 
             fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
+
+            ConfigureSheet(fpSpread1_Sheet1);
 
             SetSheet1();
 
@@ -41,8 +43,20 @@ namespace FrameWebforCS.components.input
 
             fpSpread1_Sheet2 = fpSpread1.AddNewSheetView();
 
+            ConfigureSheet(fpSpread1_Sheet2);
+
             SetSheet2();
 
+        }
+
+        private static void ConfigureSheet(SheetView sheet)
+        {
+            sheet.AutoGenerateColumns = false;
+            sheet.DataAutoCellTypes = false;
+            sheet.DataAutoHeadings = false;
+            sheet.RowHeaderAutoText = HeaderAutoText.Numbers;
+            sheet.StartingRowNumber = 1;
+            sheet.DataSource = InputMembersService.Instance.Members;
         }
 
         private void SetSheet1()
@@ -99,8 +113,8 @@ namespace FrameWebforCS.components.input
                 header.Cells[1, 2].Text = "(m)";
                 header.Cells[0, 3].Text = "材料";
                 header.Cells[1, 3].Text = "No";
-                header.Cells[0, 5].Text = "材料名称";
-                header.Cells[1, 5].Text = " ";
+                header.Cells[0, 4].Text = "材料名称";
+                header.Cells[1, 4].Text = " ";
 
                 header.Cells[0, 0].ColumnSpan = 2;
 
@@ -122,6 +136,12 @@ namespace FrameWebforCS.components.input
                     col.BackColor = SystemColors.Control;
                 }
             }
+
+            column[0].DataField = nameof(clsMember.Ni);
+            column[1].DataField = nameof(clsMember.Nj);
+            column[3].DataField = nameof(clsMember.E);
+            if (_input.dimension == 3)
+                column[4].DataField = nameof(clsMember.Cg);
 
         }
 
@@ -171,6 +191,8 @@ namespace FrameWebforCS.components.input
             }
             column[6].Locked = true;
             column[6].BackColor = SystemColors.Control;
+
+            column[1].DataField = nameof(clsMember.E);
 
         }
 

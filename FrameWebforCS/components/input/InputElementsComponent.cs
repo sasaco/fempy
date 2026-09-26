@@ -13,7 +13,7 @@ namespace FrameWebforCS.components.input
     public partial class InputElementsComponent : UserControl
     {
         private InputDataService _input = InputDataService.Instance;
-        private const int type_count = 6;
+        private const int type_count = InputElementsService.TypeCount;
         private List<FarPoint.Win.Spread.SheetView> fpSpread1_Sheets;
 
 
@@ -27,7 +27,14 @@ namespace FrameWebforCS.components.input
 
                 var fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
 
-                fpSpread1_Sheet1.SheetName = "TYPE-" + i.ToString();
+                fpSpread1_Sheet1.SheetName = "TYPE-" + (i + 1).ToString();
+
+                fpSpread1_Sheet1.AutoGenerateColumns = false;
+                fpSpread1_Sheet1.DataAutoCellTypes = false;
+                fpSpread1_Sheet1.DataAutoHeadings = false;
+                fpSpread1_Sheet1.RowHeaderAutoText = HeaderAutoText.Numbers;
+                fpSpread1_Sheet1.StartingRowNumber = 1;
+                fpSpread1_Sheet1.DataSource = InputElementsService.Instance.GetRows(i + 1);
 
                 setColumn(fpSpread1_Sheet1);
 
@@ -83,6 +90,15 @@ namespace FrameWebforCS.components.input
                 column[5].Width = 80;
                 column[6].Width = 80;
                 column[7].Width = 150;
+
+                column[0].DataField = nameof(clsElement.ElasticModulus);
+                column[1].DataField = nameof(clsElement.ShearModulus);
+                column[2].DataField = nameof(clsElement.Expansion);
+                column[3].DataField = nameof(clsElement.Area);
+                column[4].DataField = nameof(clsElement.Torsion);
+                column[5].DataField = nameof(clsElement.InertiaY);
+                column[6].DataField = nameof(clsElement.InertiaZ);
+                column[7].DataField = nameof(clsElement.Name);
             }
             else
             {
@@ -105,6 +121,12 @@ namespace FrameWebforCS.components.input
                 column[2].Width = 80;
                 column[3].Width = 80;
                 column[4].Width = 150;
+
+                column[0].DataField = nameof(clsElement.ElasticModulus);
+                column[1].DataField = nameof(clsElement.Expansion);
+                column[2].DataField = nameof(clsElement.Area);
+                column[3].DataField = nameof(clsElement.InertiaZ);
+                column[4].DataField = nameof(clsElement.Name);
             }
         }
 

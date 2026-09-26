@@ -1,6 +1,8 @@
 ﻿using FrameWebforCS.providers;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
 using System.Text.Json;
 
 namespace FrameWebforCS.components.input
@@ -43,8 +45,64 @@ namespace FrameWebforCS.components.input
         public List<clsLoadMember>? load_member = null;
     }
 
+    internal sealed class clsLoadNameRow : INotifyPropertyChanged
+    {
+        public clsLoad Value { get; set; } = new();
+        public event PropertyChangedEventHandler? PropertyChanged;
+        public bool IsEmpty => Value.fix_node == null && Value.fix_member == null &&
+            Value.element == null && Value.joint == null && string.IsNullOrWhiteSpace(Value.symbol) &&
+            Value.LL_pitch == null && string.IsNullOrWhiteSpace(Value.name);
+        private void Changed(string property) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
+        public int? fix_node { get => Value.fix_node; set { Value.fix_node = value; Changed(nameof(fix_node)); } }
+        public int? fix_member { get => Value.fix_member; set { Value.fix_member = value; Changed(nameof(fix_member)); } }
+        public int? element { get => Value.element; set { Value.element = value; Changed(nameof(element)); } }
+        public int? joint { get => Value.joint; set { Value.joint = value; Changed(nameof(joint)); } }
+        public string? symbol { get => Value.symbol; set { Value.symbol = value; Changed(nameof(symbol)); } }
+        public float? LL_pitch { get => Value.LL_pitch; set { Value.LL_pitch = value; Changed(nameof(LL_pitch)); } }
+        public string? name { get => Value.name; set { Value.name = value; Changed(nameof(name)); } }
+    }
+
+    internal sealed class clsLoadIntensityRow : INotifyPropertyChanged
+    {
+        public int Row { get; init; }
+        public string CaseId { get; set; } = "1";
+        public clsLoadMember? Member { get; set; }
+        public clsLoadNode? Node { get; set; }
+        public event PropertyChangedEventHandler? PropertyChanged;
+        public string LoadId => InputLoadService.Instance.SelectedCaseId;
+        public bool HasMember => Member != null &&
+            (!string.IsNullOrWhiteSpace(Member.m1) || !string.IsNullOrWhiteSpace(Member.m2) ||
+             !string.IsNullOrWhiteSpace(Member.direction) || !string.IsNullOrWhiteSpace(Member.mark) ||
+             !string.IsNullOrWhiteSpace(Member.L1) || !string.IsNullOrWhiteSpace(Member.L2) ||
+             Member.P1 != null || Member.P2 != null);
+        public bool HasNode => Node != null &&
+            (!string.IsNullOrWhiteSpace(Node.n) || Node.tx != null || Node.ty != null ||
+             Node.tz != null || Node.rx != null || Node.ry != null || Node.rz != null);
+        private clsLoadMember EnsureMember() => Member ??= new clsLoadMember { row = Row };
+        private clsLoadNode EnsureNode() => Node ??= new clsLoadNode { row = Row };
+        private void Changed(string property) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
+        public string? m1 { get => Member?.m1; set { EnsureMember().m1 = value; Changed(nameof(m1)); } }
+        public string? m2 { get => Member?.m2; set { EnsureMember().m2 = value; Changed(nameof(m2)); } }
+        public string? direction { get => Member?.direction; set { EnsureMember().direction = value; Changed(nameof(direction)); } }
+        public string? mark { get => Member?.mark; set { EnsureMember().mark = value; Changed(nameof(mark)); } }
+        public string? L1 { get => Member?.L1; set { EnsureMember().L1 = value; Changed(nameof(L1)); } }
+        public string? L2 { get => Member?.L2; set { EnsureMember().L2 = value; Changed(nameof(L2)); } }
+        public float? P1 { get => Member?.P1; set { EnsureMember().P1 = value; Changed(nameof(P1)); } }
+        public float? P2 { get => Member?.P2; set { EnsureMember().P2 = value; Changed(nameof(P2)); } }
+        public string? n { get => Node?.n; set { EnsureNode().n = value; Changed(nameof(n)); } }
+        public float? tx { get => Node?.tx; set { EnsureNode().tx = value; Changed(nameof(tx)); } }
+        public float? ty { get => Node?.ty; set { EnsureNode().ty = value; Changed(nameof(ty)); } }
+        public float? tz { get => Node?.tz; set { EnsureNode().tz = value; Changed(nameof(tz)); } }
+        public float? rx { get => Node?.rx; set { EnsureNode().rx = value; Changed(nameof(rx)); } }
+        public float? ry { get => Node?.ry; set { EnsureNode().ry = value; Changed(nameof(ry)); } }
+        public float? rz { get => Node?.rz; set { EnsureNode().rz = value; Changed(nameof(rz)); } }
+    }
+
     internal class InputLoadService
     {
+        private const int MaxNodeId = 100_000;
         // Lazy<T> を使ってスレッドセーフかつ遅延評価のシングルトンを実装
         private static readonly Lazy<InputLoadService> _instance =
             new Lazy<InputLoadService>(() => new InputLoadService());
@@ -53,16 +111,38 @@ namespace FrameWebforCS.components.input
         public static InputLoadService Instance => _instance.Value;
 
         private Dictionary<string, clsLoad> _load;
+        private readonly HashSet<int> _visibleIntensityRows = new();
+        private string _selectedCaseId = "1";
+        public BindingList<clsLoadNameRow> LoadNames { get; } = new();
+        public BindingList<clsLoadIntensityRow> IntensityRows { get; } = new();
+        public event EventHandler? CasesChanged;
+        public string SelectedCaseId => _selectedCaseId;
+        public IEnumerable<string> CaseIds => _load.Keys;
 
         // コンストラクタを private にして、外部からの new を禁止する
         private InputLoadService()
         {
             this._load = new Dictionary<string, clsLoad>();
+            LoadNames.AllowNew = false;
+            LoadNames.AllowRemove = false;
+            LoadNames.RaiseListChangedEvents = false;
+            IntensityRows.AllowNew = false;
+            IntensityRows.AllowRemove = false;
+            IntensityRows.RaiseListChangedEvents = false;
+            for (int index = 0; index < MaxNodeId; index++)
+            {
+                LoadNames.Add(new clsLoadNameRow());
+                IntensityRows.Add(new clsLoadIntensityRow { Row = index + 1 });
+            }
+            LoadNames.RaiseListChangedEvents = true;
+            IntensityRows.RaiseListChangedEvents = true;
+            LoadNames.ListChanged += LoadNames_ListChanged;
+            IntensityRows.ListChanged += IntensityRows_ListChanged;
         }
 
         public void clear()
         {
-            this._load = new Dictionary<string, clsLoad>();
+            ReplaceLoad(new Dictionary<string, clsLoad>());
         }
 
         /// <summary>
@@ -72,7 +152,19 @@ namespace FrameWebforCS.components.input
         public void setLoadJson(JsonElement jsonData)
         {
             var load = DataHelperModule.JsonToDict(jsonData, "load", ReadLoad);
-            if (load != null) this._load = load;
+            if (load == null) return;
+            var normalized = new Dictionary<string, clsLoad>();
+            foreach (var (id, item) in load)
+            {
+                if (!int.TryParse(id, NumberStyles.None, CultureInfo.InvariantCulture, out int number) ||
+                    number < 1 || number > MaxNodeId)
+                    throw new JsonException($"Invalid load case ID: {id}");
+                ValidateRows(item.load_node, id);
+                ValidateRows(item.load_member, id);
+                if (!normalized.TryAdd(number.ToString(CultureInfo.InvariantCulture), item))
+                    throw new JsonException($"Duplicate load case ID: {id}");
+            }
+            ReplaceLoad(normalized);
         }
 
         /// <summary>
@@ -83,9 +175,158 @@ namespace FrameWebforCS.components.input
             var load = new Dictionary<string, object>();
             foreach (KeyValuePair<string, clsLoad> item in this._load)
             {
-                load.Add(item.Key, WriteLoad(item.Value));
+                if (HasData(item.Value))
+                    load.Add(item.Key, WriteLoad(item.Value));
             }
             return load;
+        }
+
+        public void SelectCase(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                throw new ArgumentException("Load case ID is required.", nameof(id));
+            if (_selectedCaseId == id) return;
+            _selectedCaseId = id;
+            ReplaceIntensityRows();
+        }
+
+        private static void ValidateRows<T>(List<T>? rows, string id) where T : class
+        {
+            if (rows == null) return;
+            var seen = new HashSet<int>();
+            foreach (T item in rows)
+            {
+                int row = item is clsLoadNode node ? node.row : ((clsLoadMember)(object)item).row;
+                if (row < 1 || row > MaxNodeId || !seen.Add(row))
+                    throw new JsonException($"Invalid or duplicate load row in case {id}: {row}");
+            }
+        }
+
+        private static bool HasData(clsLoad item)
+        {
+            if (item.fix_node != null || item.fix_member != null || item.element != null ||
+                item.joint != null || !string.IsNullOrWhiteSpace(item.symbol) ||
+                item.LL_pitch != null || !string.IsNullOrWhiteSpace(item.name))
+                return true;
+            foreach (clsLoadNode node in item.load_node ?? new List<clsLoadNode>())
+                if (!string.IsNullOrWhiteSpace(node.n) || node.tx != null || node.ty != null ||
+                    node.tz != null || node.rx != null || node.ry != null || node.rz != null)
+                    return true;
+            foreach (clsLoadMember member in item.load_member ?? new List<clsLoadMember>())
+                if (!string.IsNullOrWhiteSpace(member.m1) || !string.IsNullOrWhiteSpace(member.m2) ||
+                    !string.IsNullOrWhiteSpace(member.direction) || !string.IsNullOrWhiteSpace(member.mark) ||
+                    !string.IsNullOrWhiteSpace(member.L1) || !string.IsNullOrWhiteSpace(member.L2) ||
+                    member.P1 != null || member.P2 != null)
+                    return true;
+            return false;
+        }
+
+        private void LoadNames_ListChanged(object? sender, ListChangedEventArgs change)
+        {
+            if (change.ListChangedType != ListChangedType.ItemChanged || change.NewIndex < 0)
+                return;
+            string id = (change.NewIndex + 1).ToString(CultureInfo.InvariantCulture);
+            clsLoadNameRow row = LoadNames[change.NewIndex];
+            if (row.IsEmpty && row.Value.load_node?.Count is not > 0 &&
+                row.Value.load_member?.Count is not > 0)
+                _load.Remove(id);
+            else
+                _load[id] = row.Value;
+            CasesChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void IntensityRows_ListChanged(object? sender, ListChangedEventArgs change)
+        {
+            if (change.ListChangedType != ListChangedType.ItemChanged || change.NewIndex < 0)
+                return;
+            clsLoadIntensityRow row = IntensityRows[change.NewIndex];
+            if (!_load.TryGetValue(_selectedCaseId, out clsLoad? load))
+            {
+                _load[_selectedCaseId] = load = new clsLoad();
+                if (int.TryParse(_selectedCaseId, NumberStyles.None, CultureInfo.InvariantCulture,
+                    out int caseNumber) && caseNumber >= 1 && caseNumber <= MaxNodeId &&
+                    _selectedCaseId == caseNumber.ToString(CultureInfo.InvariantCulture))
+                    LoadNames[caseNumber - 1].Value = load;
+            }
+            UpdateNestedRow(load.load_member ??= new List<clsLoadMember>(), row.Row,
+                row.HasMember ? row.Member : null, member => member.row);
+            UpdateNestedRow(load.load_node ??= new List<clsLoadNode>(), row.Row,
+                row.HasNode ? row.Node : null, node => node.row);
+            if (row.HasMember || row.HasNode)
+                _visibleIntensityRows.Add(row.Row);
+            else
+                _visibleIntensityRows.Remove(row.Row);
+            if (!HasData(load)) _load.Remove(_selectedCaseId);
+            CasesChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private static void UpdateNestedRow<T>(List<T> list, int row, T? value,
+            Func<T, int> getRow) where T : class
+        {
+            int index = list.FindIndex(item => getRow(item) == row);
+            if (value == null)
+            {
+                if (index >= 0) list.RemoveAt(index);
+            }
+            else if (index < 0)
+                list.Add(value);
+            else
+                list[index] = value;
+        }
+
+        private void ReplaceLoad(Dictionary<string, clsLoad> next)
+        {
+            LoadNames.RaiseListChangedEvents = false;
+            try
+            {
+                foreach (string id in _load.Keys)
+                    if (int.TryParse(id, NumberStyles.None, CultureInfo.InvariantCulture, out int number) &&
+                        number >= 1 && number <= MaxNodeId &&
+                        id == number.ToString(CultureInfo.InvariantCulture))
+                        LoadNames[number - 1] = new clsLoadNameRow();
+                _load = next;
+                foreach (var (id, item) in _load)
+                    if (int.TryParse(id, NumberStyles.None, CultureInfo.InvariantCulture, out int number) &&
+                        number >= 1 && number <= MaxNodeId &&
+                        id == number.ToString(CultureInfo.InvariantCulture))
+                        LoadNames[number - 1] = new clsLoadNameRow { Value = item };
+            }
+            finally
+            {
+                LoadNames.RaiseListChangedEvents = true;
+                LoadNames.ResetBindings();
+            }
+            ReplaceIntensityRows();
+            CasesChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void ReplaceIntensityRows()
+        {
+            IntensityRows.RaiseListChangedEvents = false;
+            try
+            {
+                foreach (int row in _visibleIntensityRows)
+                    IntensityRows[row - 1] = new clsLoadIntensityRow { Row = row, CaseId = _selectedCaseId };
+                _visibleIntensityRows.Clear();
+                if (_load.TryGetValue(_selectedCaseId, out clsLoad? load))
+                {
+                    foreach (clsLoadMember member in load.load_member ?? new List<clsLoadMember>())
+                    {
+                        IntensityRows[member.row - 1].Member = member;
+                        _visibleIntensityRows.Add(member.row);
+                    }
+                    foreach (clsLoadNode node in load.load_node ?? new List<clsLoadNode>())
+                    {
+                        IntensityRows[node.row - 1].Node = node;
+                        _visibleIntensityRows.Add(node.row);
+                    }
+                }
+            }
+            finally
+            {
+                IntensityRows.RaiseListChangedEvents = true;
+                IntensityRows.ResetBindings();
+            }
         }
 
         private static clsLoad? ReadLoad(JsonElement json)
@@ -121,8 +362,25 @@ namespace FrameWebforCS.components.input
 
             var values = new List<Dictionary<string, object?>>();
             foreach (T row in rows)
-                values.Add(DataHelperModule.ClassToDictionary(row));
-            target[key] = values;
+            {
+                bool hasData = row switch
+                {
+                    clsLoadNode node => !string.IsNullOrWhiteSpace(node.n) || node.tx != null ||
+                        node.ty != null || node.tz != null || node.rx != null ||
+                        node.ry != null || node.rz != null,
+                    clsLoadMember member => !string.IsNullOrWhiteSpace(member.m1) ||
+                        !string.IsNullOrWhiteSpace(member.m2) ||
+                        !string.IsNullOrWhiteSpace(member.direction) ||
+                        !string.IsNullOrWhiteSpace(member.mark) ||
+                        !string.IsNullOrWhiteSpace(member.L1) ||
+                        !string.IsNullOrWhiteSpace(member.L2) || member.P1 != null || member.P2 != null,
+                    _ => false
+                };
+                if (hasData)
+                    values.Add(DataHelperModule.ClassToDictionary(row));
+            }
+            if (values.Count == 0) target.Remove(key);
+            else target[key] = values;
         }
     }
 }

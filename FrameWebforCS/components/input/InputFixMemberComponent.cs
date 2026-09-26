@@ -24,9 +24,15 @@ namespace FrameWebforCS.components.input
             {
                 var fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
 
-                fpSpread1_Sheet1.SheetName = "TYPE-" + i.ToString();
+                fpSpread1_Sheet1.SheetName = (i + 1).ToString();
+                fpSpread1_Sheet1.AutoGenerateColumns = false;
+                fpSpread1_Sheet1.DataAutoCellTypes = false;
+                fpSpread1_Sheet1.DataAutoHeadings = false;
+                fpSpread1_Sheet1.RowHeaderAutoText = HeaderAutoText.Numbers;
+                fpSpread1_Sheet1.StartingRowNumber = 1;
 
                 setColumn(fpSpread1_Sheet1);
+                fpSpread1_Sheet1.DataSource = InputFixMemberService.Instance.GetRows(fpSpread1_Sheet1.SheetName);
             }
 
             float w = 0;
@@ -89,6 +95,11 @@ namespace FrameWebforCS.components.input
                     column[i].Width = 100;
                 }
             }
+            string[] fields = _input.dimension == 3
+                ? new[] { "M", "Tx", "Ty", "Tz", "Tr" }
+                : new[] { "M", "Tx", "Ty" };
+            for (int i = 0; i < fields.Length; i++)
+                fpSpread1_Sheet1.Columns[i].DataField = fields[i];
         }
     }
 }

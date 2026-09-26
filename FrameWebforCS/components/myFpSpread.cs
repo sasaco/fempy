@@ -52,5 +52,19 @@ namespace FrameWebforCS.components
             sheet.Cells[row, column].Value = null;
             e.SuppressKeyPress = true;
         }
+
+        // locked 設定してるセルの編集を禁止する
+        public void faSpread_EditModeOn(object sender, EventArgs e)
+        {
+            FpSpread? fp = sender as FpSpread;
+            if (fp == null) return;
+
+            Cell? targetCell = fp.ActiveSheet.ActiveCell;
+            if (targetCell.Locked)
+            {
+                fp.StopCellEditing();
+                return;
+            }
+        }
     }
 }

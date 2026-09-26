@@ -1,65 +1,115 @@
-﻿using FrameWebforCS.providers;
+using FrameWebforCS.providers;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel;
+using System.Globalization;
 using System.Text.Json;
 
 namespace FrameWebforCS.components.input
 {
-    internal class clsMember
+    internal class clsMember : INotifyPropertyChanged
     {
         public string? ni = null;
         public string? nj = null;
         public string? e = null;
         public float? cg = null;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public string? Ni { get => ni; set { ni = value; Changed(nameof(Ni)); } }
+        public string? Nj { get => nj; set { nj = value; Changed(nameof(Nj)); } }
+        public string? E { get => e; set { e = value; Changed(nameof(E)); } }
+        public float? Cg { get => cg; set { cg = value; Changed(nameof(Cg)); } }
+
+        public bool IsEmpty => string.IsNullOrWhiteSpace(ni) && string.IsNullOrWhiteSpace(nj)
+            && string.IsNullOrWhiteSpace(e) && cg == null;
+
+        private void Changed(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
     internal class InputMembersService
     {
-        // Lazy<T> を使ってスレッドセーフかつ遅延評価のシングルトンを実装
-        private static readonly Lazy<InputMembersService> _instance =
-            new Lazy<InputMembersService>(() => new InputMembersService());
-
-        // 外部からはこのプロパティを通じてのみインスタンスにアクセスできる
+        private const int MaxNodeId = 100_000;
+        private static readonly Lazy<InputMembersService> _instance = new(() => new InputMembersService());
         public static InputMembersService Instance => _instance.Value;
 
+        private Dictionary<string, clsMember> _member = new();
+        public BindingList<clsMember> Members { get; } = new();
 
-        private Dictionary<string, clsMember> _member;
-
-        // コンストラクタを private にして、外部からの new を禁止する
         private InputMembersService()
         {
-            this.clear();
+            Members.AllowNew = false;
+            Members.AllowRemove = false;
+            Members.RaiseListChangedEvents = false;
+            for (int row = 0; row < MaxNodeId; row++)
+                Members.Add(new clsMember());
+            Members.RaiseListChangedEvents = true;
+            Members.ListChanged += Members_ListChanged;
         }
 
-        public void clear()
-        {
-            this._member = new Dictionary<string, clsMember>();
-        }
+        public void clear() => ReplaceRows(new Dictionary<string, clsMember>());
 
-        /// <summary>
-        /// ファイルを読み込むとき
-        /// </summary>
-        /// <param name="jsonData"></param>
         public void setMemberJson(JsonElement jsonData)
         {
-            var members = DataHelperModule.JsonToDict<clsMember>(jsonData, "member");
-            if (members != null) this._member = members;
+            if (!jsonData.TryGetProperty("member", out JsonElement memberJson) ||
+                memberJson.ValueKind != JsonValueKind.Object)
+                return;
+
+            var next = new Dictionary<string, clsMember>();
+            var seenIds = new HashSet<string>();
+            foreach (JsonProperty entry in memberJson.EnumerateObject())
+            {
+                if (!int.TryParse(entry.Name, NumberStyles.None, CultureInfo.InvariantCulture, out int row) ||
+                    row < 1 || row > MaxNodeId)
+                    throw new JsonException($"Invalid member: {entry.Name}");
+                string id = row.ToString(CultureInfo.InvariantCulture);
+                if (!seenIds.Add(id))
+                    throw new JsonException($"Duplicate member: {entry.Name}");
+                clsMember? member = DataHelperModule.JsonToClass<clsMember>(entry.Value);
+                if (member != null && !member.IsEmpty)
+                    next.Add(id, member);
+            }
+            ReplaceRows(next);
         }
 
-        /// <summary>
-        /// ファイルに保存するとき
-        /// </summary>
-        /// <param name=""></param>
-        /// <param name=""></param>
         public Dictionary<string, object> getMemberJson()
         {
             var members = new Dictionary<string, object>();
-            foreach (KeyValuePair<string, clsMember> m in this._member)
-            {
-                members.Add(m.Key, DataHelperModule.ClassToDictionary<clsMember>(m.Value));
-            }
+            foreach (var (id, member) in _member)
+                if (!member.IsEmpty)
+                    members.Add(id, DataHelperModule.ClassToDictionary(member));
             return members;
+        }
+
+        private void Members_ListChanged(object? sender, ListChangedEventArgs e)
+        {
+            if (e.ListChangedType != ListChangedType.ItemChanged || e.NewIndex < 0)
+                return;
+            string id = (e.NewIndex + 1).ToString(CultureInfo.InvariantCulture);
+            clsMember member = Members[e.NewIndex];
+            if (member.IsEmpty)
+                _member.Remove(id);
+            else
+                _member[id] = member;
+        }
+
+        private void ReplaceRows(Dictionary<string, clsMember> next)
+        {
+            Members.RaiseListChangedEvents = false;
+            try
+            {
+                foreach (string id in _member.Keys)
+                    if (!next.ContainsKey(id))
+                        Members[int.Parse(id, CultureInfo.InvariantCulture) - 1] = new clsMember();
+                foreach (var (id, member) in next)
+                    Members[int.Parse(id, CultureInfo.InvariantCulture) - 1] = member;
+                _member = next;
+            }
+            finally
+            {
+                Members.RaiseListChangedEvents = true;
+                Members.ResetBindings();
+            }
         }
     }
 }

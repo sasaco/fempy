@@ -1,12 +1,14 @@
-﻿using FrameWebforCS.providers;
+using FrameWebforCS.providers;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel;
+using System.Globalization;
+using System.Linq;
 using System.Text.Json;
 
 namespace FrameWebforCS.components.input
 {
-    internal class clsFixMember
+    internal class clsFixMember : INotifyPropertyChanged
     {
         public int row;
         public string? m = null;
@@ -14,63 +16,107 @@ namespace FrameWebforCS.components.input
         public float? ty = null;
         public float? tz = null;
         public float? tr = null;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        public string? M { get => m; set { m = value; Changed(nameof(M)); } }
+        public float? Tx { get => tx; set { tx = value; Changed(nameof(Tx)); } }
+        public float? Ty { get => ty; set { ty = value; Changed(nameof(Ty)); } }
+        public float? Tz { get => tz; set { tz = value; Changed(nameof(Tz)); } }
+        public float? Tr { get => tr; set { tr = value; Changed(nameof(Tr)); } }
+        public bool IsEmpty => string.IsNullOrWhiteSpace(m) && tx == null && ty == null && tz == null && tr == null;
+        private void Changed(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
     internal class InputFixMemberService
     {
-        // Lazy<T> を使ってスレッドセーフかつ遅延評価のシングルトンを実装
-        private static readonly Lazy<InputFixMemberService> _instance =
-            new Lazy<InputFixMemberService>(() => new InputFixMemberService());
-
-        // 外部からはこのプロパティを通じてのみインスタンスにアクセスできる
+        private const int MaxNodeId = 100_000;
+        private const int SheetCount = 6;
+        private static readonly Lazy<InputFixMemberService> _instance = new(() => new InputFixMemberService());
         public static InputFixMemberService Instance => _instance.Value;
 
+        private Dictionary<string, List<clsFixMember>> _fixMember = new();
+        private readonly Dictionary<string, BindingList<clsFixMember>> _sheets = new();
 
-        private Dictionary<string, List<clsFixMember>> _fixMember;
-
-        // コンストラクタを private にして、外部からの new を禁止する
         private InputFixMemberService()
         {
-            this.clear();
+            for (int sheet = 1; sheet <= SheetCount; sheet++)
+            {
+                string id = sheet.ToString(CultureInfo.InvariantCulture);
+                var rows = new BindingList<clsFixMember> { AllowNew = false, AllowRemove = false, RaiseListChangedEvents = false };
+                for (int index = 0; index < MaxNodeId; index++) rows.Add(new clsFixMember());
+                rows.RaiseListChangedEvents = true;
+                rows.ListChanged += (_, e) => RowsChanged(id, rows, e);
+                _sheets.Add(id, rows);
+            }
         }
 
-        public void clear()
-        {
-            this._fixMember = new Dictionary<string, List<clsFixMember>>();
-        }
+        public BindingList<clsFixMember> GetRows(string sheetName) => _sheets[sheetName];
 
-        /// <summary>
-        /// ファイルを読み込むとき
-        /// </summary>
-        /// <param name="jsonData"></param>
+        public void clear() => ReplaceRows(new Dictionary<string, List<clsFixMember>>());
+
         public void setFixMemberJson(JsonElement jsonData)
         {
-            var fixMembers = DataHelperModule.JsonToDict(
-                jsonData,
-                "fix_member",
-                static fixMembersJson => DataHelperModule.JsonToList<clsFixMember>(fixMembersJson));
-
-            if (fixMembers != null) this._fixMember = fixMembers;
+            var loaded = DataHelperModule.JsonToDict(jsonData, "fix_member",
+                static json => DataHelperModule.JsonToList<clsFixMember>(json));
+            if (loaded == null) return;
+            ValidateRows(loaded);
+            ReplaceRows(loaded);
         }
 
-        /// <summary>
-        /// ファイルに保存するとき
-        /// </summary>
-        /// <param name=""></param>
-        /// <param name=""></param>
         public Dictionary<string, object> getFixMemberJson()
         {
-            var fixMembers = new Dictionary<string, object>();
-            foreach (KeyValuePair<string, List<clsFixMember>> fixMember in this._fixMember)
+            var result = new Dictionary<string, object>();
+            foreach (var (sheet, rows) in _fixMember)
             {
-                var rows = new List<Dictionary<string, object?>>();
-                foreach (clsFixMember value in fixMember.Value)
-                {
-                    rows.Add(DataHelperModule.ClassToDictionary(value));
-                }
-                fixMembers.Add(fixMember.Key, rows);
+                var data = new List<Dictionary<string, object?>>();
+                foreach (var value in rows.OrderBy(value => value.row))
+                    if (!value.IsEmpty) data.Add(DataHelperModule.ClassToDictionary(value));
+                if (data.Count > 0) result.Add(sheet, data);
             }
-            return fixMembers;
+            return result;
+        }
+
+        private static void ValidateRows(Dictionary<string, List<clsFixMember>> data)
+        {
+            foreach (var (sheet, values) in data)
+            {
+                if (!int.TryParse(sheet, NumberStyles.None, CultureInfo.InvariantCulture, out int number) ||
+                    number < 1 || number > SheetCount || sheet != number.ToString(CultureInfo.InvariantCulture))
+                    throw new JsonException($"Invalid fix_member sheet: {sheet}");
+                var seen = new HashSet<int>();
+                foreach (var value in values)
+                    if (value.row < 1 || value.row > MaxNodeId || !seen.Add(value.row))
+                        throw new JsonException($"Invalid fix_member row: {value.row}");
+            }
+        }
+
+        private void RowsChanged(string sheet, BindingList<clsFixMember> rows, ListChangedEventArgs e)
+        {
+            if (e.ListChangedType != ListChangedType.ItemChanged || e.NewIndex < 0) return;
+            var value = rows[e.NewIndex];
+            value.row = e.NewIndex + 1;
+            if (!_fixMember.TryGetValue(sheet, out var active))
+                _fixMember[sheet] = active = new List<clsFixMember>();
+            active.RemoveAll(item => item.row == value.row);
+            if (!value.IsEmpty) active.Add(value);
+            if (active.Count == 0) _fixMember.Remove(sheet);
+        }
+
+        private void ReplaceRows(Dictionary<string, List<clsFixMember>> next)
+        {
+            foreach (var (sheet, rows) in _sheets)
+            {
+                rows.RaiseListChangedEvents = false;
+                try
+                {
+                    if (_fixMember.TryGetValue(sheet, out var old))
+                        foreach (var item in old) rows[item.row - 1] = new clsFixMember();
+                    if (next.TryGetValue(sheet, out var current))
+                        foreach (var item in current) rows[item.row - 1] = item;
+                }
+                finally { rows.RaiseListChangedEvents = true; rows.ResetBindings(); }
+            }
+            _fixMember = next;
         }
     }
 }
