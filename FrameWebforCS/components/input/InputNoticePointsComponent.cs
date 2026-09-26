@@ -28,17 +28,12 @@ namespace FrameWebforCS.components.input
             fpSpread1_Sheet1.DataAutoHeadings = false;
             fpSpread1_Sheet1.RowHeaderAutoText = HeaderAutoText.Numbers;
             fpSpread1_Sheet1.StartingRowNumber = 1;
+            fpSpread1_Sheet1.DataSource = InputNoticePointsService.Instance.NoticePoints;
 
-            var column = fpSpread1_Sheet1.Columns;
-            foreach (Column col in column)
-            {
-                col.Locked = false;
-            }
+            fpSpread1_Sheet1.ColumnCount = 22;
 
             var header = fpSpread1_Sheet1.ColumnHeader;
             header.RowCount = 2;
-
-            fpSpread1_Sheet1.ColumnCount = 22;
 
             header.Cells[0, 0].Text = "部材";
             header.Cells[1, 0].Text = "No";
@@ -46,6 +41,12 @@ namespace FrameWebforCS.components.input
             header.Cells[1, 1].Text = "(m)";
             header.Cells[0, 2].Text = "i端からの距離(m)";
             header.Cells[0, 2].HorizontalAlignment = CellHorizontalAlignment.Left;
+
+            var column = fpSpread1_Sheet1.Columns;
+
+            column[0].DataField = "M";
+            for (int i = 2; i < column.Count; i++)
+                column[i].DataField = "P" + (i - 1).ToString();
 
             for (int i = 2; i < column.Count; i++)
             {
@@ -58,13 +59,7 @@ namespace FrameWebforCS.components.input
             column[0].Width = 50;
             column[1].Width = 80;
 
-            column[1].Locked = true;
             column[1].BackColor = SystemColors.Control;
-            column[0].DataField = "M";
-            for (int i = 2; i < column.Count; i++)
-                column[i].DataField = "P" + (i - 1).ToString();
-            fpSpread1_Sheet1.DataSource = InputNoticePointsService.Instance.NoticePoints;
-
         }
 
 

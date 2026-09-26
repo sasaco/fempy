@@ -76,6 +76,10 @@ namespace FrameWebforCS.components.input
                 header.Cells[0, 4].ColumnSpan = 3;
 
                 var column = fpSpread1_Sheet1.Columns;
+                string[] fields = ["N", "Tx", "Ty", "Tz", "Rx", "Ry", "Rz"];
+                for (int i = 0; i < fields.Length; i++)
+                    column[i].DataField = fields[i];
+
                 column[0].Width = 50;
             }
             else
@@ -94,17 +98,16 @@ namespace FrameWebforCS.components.input
                 header.Cells[0, 1].ColumnSpan = 2;
 
                 var column = fpSpread1_Sheet1.Columns;
+                string[] fields = ["N", "Tx", "Ty", "Rz"];
+                for (int i = 0; i < fields.Length; i++)
+                    column[i].DataField = fields[i];
+
                 column[0].Width = 50;
                 for (var i = 1; i < column.Count; i++)
                 {
                     column[i].Width = 80;
                 }
             }
-            string[] fields = _input.dimension == 3
-                ? new[] { "N", "Tx", "Ty", "Tz", "Rx", "Ry", "Rz" }
-                : new[] { "N", "Tx", "Ty", "Rz" };
-            for (int i = 0; i < fields.Length; i++)
-                fpSpread1_Sheet1.Columns[i].DataField = fields[i];
         }
     }
 }

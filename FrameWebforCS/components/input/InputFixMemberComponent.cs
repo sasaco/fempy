@@ -71,6 +71,10 @@ namespace FrameWebforCS.components.input
                 header.Cells[0, 1].ColumnSpan = 3;
 
                 var column = fpSpread1_Sheet1.Columns;
+                string[] fields = ["M", "Tx", "Ty", "Tz", "Tr"];
+                for (int i = 0; i < fields.Length; i++)
+                    column[i].DataField = fields[i];
+
                 column[0].Width = 50;
                 for (var i = 1; i < column.Count; i++)
                 {
@@ -89,17 +93,16 @@ namespace FrameWebforCS.components.input
                 header.Cells[1, 2].Text = "(kN/m/m)";
 
                 var column = fpSpread1_Sheet1.Columns;
+                string[] fields = ["M", "Tx", "Ty"];
+                for (int i = 0; i < fields.Length; i++)
+                    column[i].DataField = fields[i];
+
                 column[0].Width = 50;
                 for (var i = 1; i < column.Count; i++)
                 {
                     column[i].Width = 100;
                 }
             }
-            string[] fields = _input.dimension == 3
-                ? new[] { "M", "Tx", "Ty", "Tz", "Tr" }
-                : new[] { "M", "Tx", "Ty" };
-            for (int i = 0; i < fields.Length; i++)
-                fpSpread1_Sheet1.Columns[i].DataField = fields[i];
         }
     }
 }

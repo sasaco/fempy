@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Text.Json;
 
 namespace FrameWebforCS.components.input
@@ -13,6 +14,9 @@ namespace FrameWebforCS.components.input
         public string? nj = null;
         public string? e = null;
         public float? cg = null;
+        private float? _iLength;
+        private float? _jLength;
+        private int? _rigidMaterial;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -20,9 +24,13 @@ namespace FrameWebforCS.components.input
         public string? Nj { get => nj; set { nj = value; Changed(nameof(Nj)); } }
         public string? E { get => e; set { e = value; Changed(nameof(E)); } }
         public float? Cg { get => cg; set { cg = value; Changed(nameof(Cg)); } }
+        public float? Ilength { get => _iLength; set { _iLength = value; Changed(nameof(Ilength)); } }
+        public float? Jlength { get => _jLength; set { _jLength = value; Changed(nameof(Jlength)); } }
+        public int? E1 { get => _rigidMaterial; set { _rigidMaterial = value; Changed(nameof(E1)); } }
 
         public bool IsEmpty => string.IsNullOrWhiteSpace(ni) && string.IsNullOrWhiteSpace(nj)
             && string.IsNullOrWhiteSpace(e) && cg == null;
+        public bool IsRigidEmpty => Ilength == null && Jlength == null && E1 == null;
 
         private void Changed(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
@@ -34,6 +42,7 @@ namespace FrameWebforCS.components.input
         public static InputMembersService Instance => _instance.Value;
 
         private Dictionary<string, clsMember> _member = new();
+        private HashSet<int> _rigidRows = new();
         public BindingList<clsMember> Members { get; } = new();
 
         private InputMembersService()
@@ -47,7 +56,11 @@ namespace FrameWebforCS.components.input
             Members.ListChanged += Members_ListChanged;
         }
 
-        public void clear() => ReplaceRows(new Dictionary<string, clsMember>());
+        public void clear()
+        {
+            ReplaceRows(new Dictionary<string, clsMember>());
+            ReplaceRigidRows(new Dictionary<int, (float? ILength, float? JLength, int? Material)>());
+        }
 
         public void setMemberJson(JsonElement jsonData)
         {
@@ -81,6 +94,95 @@ namespace FrameWebforCS.components.input
             return members;
         }
 
+        public void setRigidJson(JsonElement jsonData)
+        {
+            var next = new Dictionary<int, (float? ILength, float? JLength, int? Material)>();
+            if (jsonData.TryGetProperty("rigid", out JsonElement rigidJson))
+            {
+                if (rigidJson.ValueKind != JsonValueKind.Array)
+                    throw new JsonException("Invalid rigid data");
+                foreach (JsonElement entry in rigidJson.EnumerateArray())
+                {
+                    if (entry.ValueKind != JsonValueKind.Object ||
+                        !entry.TryGetProperty("m", out JsonElement idJson) ||
+                        idJson.ValueKind != JsonValueKind.String ||
+                        !int.TryParse(idJson.GetString(), NumberStyles.None, CultureInfo.InvariantCulture, out int row) ||
+                        row < 1 || row > MaxNodeId || next.ContainsKey(row))
+                        throw new JsonException("Invalid rigid member number");
+                    next.Add(row, (
+                        ReadRigidLength(entry, "Ilength"),
+                        ReadRigidLength(entry, "Jlength"),
+                        ReadRigidMaterial(entry)));
+                }
+            }
+            ReplaceRigidRows(next);
+        }
+
+        public List<object> getRigidJson()
+        {
+            var result = new List<object>();
+            foreach (int row in _rigidRows.OrderBy(row => row))
+            {
+                clsMember member = Members[row - 1];
+                if (member.E1 is int material)
+                    result.Add(new {
+                        m = row.ToString(CultureInfo.InvariantCulture),
+                        Ilength = member.Ilength ?? 0,
+                        Jlength = member.Jlength ?? 0,
+                        e = material
+                    });
+            }
+            return result;
+        }
+
+        private static float? ReadRigidLength(JsonElement entry, string name)
+        {
+            if (!entry.TryGetProperty(name, out JsonElement value) || value.ValueKind == JsonValueKind.Null)
+                return null;
+            if (value.ValueKind == JsonValueKind.Number && value.TryGetSingle(out float length) && float.IsFinite(length))
+                return length;
+            throw new JsonException($"Invalid rigid {name}");
+        }
+
+        private static int? ReadRigidMaterial(JsonElement entry)
+        {
+            if (!entry.TryGetProperty("e", out JsonElement value) || value.ValueKind == JsonValueKind.Null)
+                return null;
+            if (value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int material))
+                return material;
+            throw new JsonException("Invalid rigid material");
+        }
+
+        private void ReplaceRigidRows(Dictionary<int, (float? ILength, float? JLength, int? Material)> next)
+        {
+            Members.RaiseListChangedEvents = false;
+            try
+            {
+                foreach (int row in _rigidRows)
+                {
+                    clsMember member = Members[row - 1];
+                    member.Ilength = null;
+                    member.Jlength = null;
+                    member.E1 = null;
+                }
+                foreach (var (row, value) in next)
+                {
+                    clsMember member = Members[row - 1];
+                    member.Ilength = value.ILength;
+                    member.Jlength = value.JLength;
+                    member.E1 = value.Material;
+                }
+                _rigidRows = next.Where(item => item.Value.ILength != null ||
+                    item.Value.JLength != null || item.Value.Material != null)
+                    .Select(item => item.Key).ToHashSet();
+            }
+            finally
+            {
+                Members.RaiseListChangedEvents = true;
+                Members.ResetBindings();
+            }
+        }
+
         private void Members_ListChanged(object? sender, ListChangedEventArgs e)
         {
             if (e.ListChangedType != ListChangedType.ItemChanged || e.NewIndex < 0)
@@ -91,6 +193,10 @@ namespace FrameWebforCS.components.input
                 _member.Remove(id);
             else
                 _member[id] = member;
+            if (member.IsRigidEmpty)
+                _rigidRows.Remove(e.NewIndex + 1);
+            else
+                _rigidRows.Add(e.NewIndex + 1);
         }
 
         private void ReplaceRows(Dictionary<string, clsMember> next)

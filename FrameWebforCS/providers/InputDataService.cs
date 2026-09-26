@@ -106,6 +106,7 @@ namespace FrameWebforCS.providers
         {
             InputNodesService.Instance.setNodeJson(rootElement);
             InputMembersService.Instance.setMemberJson(rootElement);
+            InputMembersService.Instance.setRigidJson(rootElement);
             InputElementsService.Instance.setElementJson(rootElement);
             InputFixNodeService.Instance.setFixNodeJson(rootElement);
             InputFixMemberService.Instance.setFixMemberJson(rootElement);
@@ -121,6 +122,7 @@ namespace FrameWebforCS.providers
             return new Dictionary<string, object> {
                 ["node"] = InputNodesService.Instance.getNodeJson(),
                 ["member"] = InputMembersService.Instance.getMemberJson(),
+                ["rigid"] = InputMembersService.Instance.getRigidJson(),
                 ["element"] = InputElementsService.Instance.getElementJson(),
                 ["fix_node"] = InputFixNodeService.Instance.getFixNodeJson(),
                 ["fix_member"] = InputFixMemberService.Instance.getFixMemberJson(),

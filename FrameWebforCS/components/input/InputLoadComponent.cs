@@ -100,7 +100,8 @@ namespace FrameWebforCS.components.input
                 "P1", "P2", "n", "tx", "ty", "tz", "rx", "ry", "rz" };
             for (int i = 0; i < fields.Length; i++)
                 column[i].DataField = fields[i];
-            column[0].Locked = true;
+
+            column[0].BackColor = SystemColors.Control;
 
             header.Cells[0, 0].Text = "実荷重番号";
             header.Cells[1, 0].Text = "";

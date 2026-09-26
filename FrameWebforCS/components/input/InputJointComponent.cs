@@ -76,9 +76,12 @@ namespace FrameWebforCS.components.input
                 header.Cells[0, 1].ColumnSpan = 3;
                 header.Cells[0, 4].ColumnSpan = 3;
 
-                foreach (Column column in fpSpread1_Sheet1.Columns)
+                var column = fpSpread1_Sheet1.Columns;
+                string[] fields = ["M", "Xi", "Yi", "Zi", "Xj", "Yj", "Zj"];
+                for (int i = 0; i < column.Count; i++)
                 {
-                    column.Width = 50;
+                    column[i].DataField = fields[i];
+                    column[i].Width = 50;
                 }
             }
             else
@@ -91,17 +94,15 @@ namespace FrameWebforCS.components.input
                 header.Cells[0, 2].Text = "j端";
 
                 var column = fpSpread1_Sheet1.Columns;
+                string[] fields = ["M", "Zi", "Zj"];
+                for (int i = 0; i < fields.Length; i++)
+                    column[i].DataField = fields[i];
+
                 column[0].Width = 80;
                 column[1].Width = 50;
                 column[2].Width = 50;
 
             }
-
-            string[] fields = _input.dimension == 3
-                ? new[] { "M", "Xi", "Yi", "Zi", "Xj", "Yj", "Zj" }
-                : new[] { "M", "Zi", "Zj" };
-            for (int i = 0; i < fields.Length; i++)
-                fpSpread1_Sheet1.Columns[i].DataField = fields[i];
         }
 
     }

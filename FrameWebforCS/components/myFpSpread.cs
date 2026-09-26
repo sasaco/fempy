@@ -60,7 +60,7 @@ namespace FrameWebforCS.components
             if (fp == null) return;
 
             Cell? targetCell = fp.ActiveSheet.ActiveCell;
-            if (targetCell.Locked)
+            if (targetCell.BackColor == SystemColors.Control)
             {
                 fp.StopCellEditing();
                 return;

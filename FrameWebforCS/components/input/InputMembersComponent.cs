@@ -64,10 +64,12 @@ namespace FrameWebforCS.components.input
             fpSpread1_Sheet1.SheetName = "部材";
 
             var column = fpSpread1_Sheet1.Columns;
-            foreach (Column col in column)
-            {
-                col.Locked = false;
-            }
+
+            column[0].DataField = nameof(clsMember.Ni);
+            column[1].DataField = nameof(clsMember.Nj);
+            column[3].DataField = nameof(clsMember.E);
+            if (_input.dimension == 3)
+                column[4].DataField = nameof(clsMember.Cg);
 
             var header = fpSpread1_Sheet1.ColumnHeader;
             header.RowCount = 2;
@@ -98,8 +100,8 @@ namespace FrameWebforCS.components.input
                 column[4].Width = 150;
                 column[5].Width = 150;
 
-                column[2].Locked = true;
-                column[5].Locked = true;
+                column[2].BackColor = SystemColors.Control;
+                column[5].BackColor = SystemColors.Control;
             }
             else
             {
@@ -124,24 +126,9 @@ namespace FrameWebforCS.components.input
                 column[3].Width = 50;
                 column[4].Width = 150;
 
-                column[2].Locked = true;
-                column[4].Locked = true;
+                column[2].BackColor = SystemColors.Control;
+                column[4].BackColor = SystemColors.Control;
             }
-
-
-            foreach(Column col in column)
-            {
-                if (col.Locked)
-                {
-                    col.BackColor = SystemColors.Control;
-                }
-            }
-
-            column[0].DataField = nameof(clsMember.Ni);
-            column[1].DataField = nameof(clsMember.Nj);
-            column[3].DataField = nameof(clsMember.E);
-            if (_input.dimension == 3)
-                column[4].DataField = nameof(clsMember.Cg);
 
         }
 
@@ -149,10 +136,11 @@ namespace FrameWebforCS.components.input
         {
             fpSpread1_Sheet2.SheetName = "剛域";
             var column = fpSpread1_Sheet2.Columns;
-            foreach (Column col in column)
-            {
-                col.Locked = false;
-            }
+
+            column[1].DataField = nameof(clsMember.E);
+            column[3].DataField = nameof(clsMember.Ilength);
+            column[4].DataField = nameof(clsMember.Jlength);
+            column[5].DataField = nameof(clsMember.E1);
 
             var header = fpSpread1_Sheet2.ColumnHeader;
             header.RowCount = 2;
@@ -186,13 +174,11 @@ namespace FrameWebforCS.components.input
 
             for (int i=0; i<3; i++)
             {
-                column[i].Locked = true;
+                column[i].BackColor = SystemColors.Control;
                 column[i].BackColor = SystemColors.Control;
             }
-            column[6].Locked = true;
             column[6].BackColor = SystemColors.Control;
-
-            column[1].DataField = nameof(clsMember.E);
+            column[6].BackColor = SystemColors.Control;
 
         }
 

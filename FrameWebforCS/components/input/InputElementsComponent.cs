@@ -82,15 +82,6 @@ namespace FrameWebforCS.components.input
                 header.Cells[0, 5].ColumnSpan = 2;
 
                 var column = fpSpread1_Sheet1.Columns;
-                column[0].Width = 80;
-                column[1].Width = 150;
-                column[2].Width = 80;
-                column[3].Width = 80;
-                column[4].Width = 100;
-                column[5].Width = 80;
-                column[6].Width = 80;
-                column[7].Width = 150;
-
                 column[0].DataField = nameof(clsElement.ElasticModulus);
                 column[1].DataField = nameof(clsElement.ShearModulus);
                 column[2].DataField = nameof(clsElement.Expansion);
@@ -99,6 +90,15 @@ namespace FrameWebforCS.components.input
                 column[5].DataField = nameof(clsElement.InertiaY);
                 column[6].DataField = nameof(clsElement.InertiaZ);
                 column[7].DataField = nameof(clsElement.Name);
+
+                column[0].Width = 80;
+                column[1].Width = 150;
+                column[2].Width = 80;
+                column[3].Width = 80;
+                column[4].Width = 100;
+                column[5].Width = 80;
+                column[6].Width = 80;
+                column[7].Width = 150;
             }
             else
             {
@@ -116,23 +116,20 @@ namespace FrameWebforCS.components.input
                 header.Cells[1, 4].Text = " ";
 
                 var column = fpSpread1_Sheet1.Columns;
+                column[0].DataField = nameof(clsElement.ElasticModulus);
+                column[1].DataField = nameof(clsElement.Expansion);
+                column[2].DataField = nameof(clsElement.Area);
+                column[3].DataField = nameof(clsElement.InertiaZ);
+                column[4].DataField = nameof(clsElement.Name);
+
                 column[0].Width = 80;
                 column[1].Width = 80;
                 column[2].Width = 80;
                 column[3].Width = 80;
                 column[4].Width = 150;
 
-                column[0].DataField = nameof(clsElement.ElasticModulus);
-                column[1].DataField = nameof(clsElement.Expansion);
-                column[2].DataField = nameof(clsElement.Area);
-                column[3].DataField = nameof(clsElement.InertiaZ);
-                column[4].DataField = nameof(clsElement.Name);
             }
         }
 
-        public void setElementJson(string json)
-        {
-            // Implementation for setting element JSON
-        }
     }
 }
