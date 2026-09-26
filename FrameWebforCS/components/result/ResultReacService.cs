@@ -8,12 +8,12 @@ namespace FrameWebforCS.components.result
 {
     internal class clsReac
     {
-        public float? dx = null;
-        public float? dy = null;
-        public float? dz = null;
-        public float? rx = null;
-        public float? ry = null;
-        public float? rz = null;
+        public float? tx = null;
+        public float? ty = null;
+        public float? tz = null;
+        public float? mx = null;
+        public float? my = null;
+        public float? mz = null;
     }
 
     internal class ResultReacService
@@ -26,7 +26,7 @@ namespace FrameWebforCS.components.result
         public static ResultReacService Instance => _instance.Value;
 
 
-        private Dictionary<string, clsReac> _reac;
+        private Dictionary<string, Dictionary<string, clsReac>> _reac;
 
 
         // コンストラクタを private にして、外部からの new を禁止する
@@ -37,7 +37,11 @@ namespace FrameWebforCS.components.result
 
         public void clear()
         {
-            this._reac = new Dictionary<string, clsReac>();
+            this._reac = new Dictionary<string, Dictionary<string, clsReac>>();
+        }
+        public Dictionary<string, Dictionary<string, clsReac>> getReac()
+        {
+            return this._reac;
         }
 
         /// <summary>
@@ -46,7 +50,11 @@ namespace FrameWebforCS.components.result
         /// <param name="jsonData"></param>
         public void setReacJson(JsonElement jsonData)
         {
-            var reacs = DataHelperModule.JsonToDict<clsReac>(jsonData, "reac");
+            var reacs = DataHelperModule.JsonToDict(
+                jsonData,
+                "result",
+                static resultJson => DataHelperModule.JsonToDict<clsReac>(resultJson, "reac"));
+
             if (reacs != null) this._reac = reacs;
         }
 
@@ -59,9 +67,14 @@ namespace FrameWebforCS.components.result
         {
 
             var reacs = new Dictionary<string, object>();
-            foreach (KeyValuePair<string, clsReac> d in this._reac)
+            foreach (KeyValuePair<string, Dictionary<string, clsReac>> result in this._reac)
             {
-                reacs.Add(d.Key, DataHelperModule.ClassToDictionary<clsReac>(d.Value));
+                var nodes = new Dictionary<string, object>();
+                foreach (KeyValuePair<string, clsReac> node in result.Value)
+                {
+                    nodes.Add(node.Key, DataHelperModule.ClassToDictionary(node.Value));
+                }
+                reacs.Add(result.Key, new Dictionary<string, object> { ["reac"] = nodes });
             }
             return reacs;
         }

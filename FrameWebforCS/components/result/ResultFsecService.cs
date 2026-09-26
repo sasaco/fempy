@@ -15,12 +15,14 @@ namespace FrameWebforCS.components.result
         public float? mxi = null;
         public float? myi = null;
         public float? mzi = null;
+        public bool? dummyi = null;
         public float? fxj = null;
         public float? fyj = null;
         public float? fzj = null;
         public float? mxj = null;
         public float? myj = null;
         public float? mzj = null;
+        public bool? dummyj = null;
         public float? L = null;
     }
 
@@ -34,7 +36,7 @@ namespace FrameWebforCS.components.result
         public static ResultFsecService Instance => _instance.Value;
 
 
-        private Dictionary<string, Dictionary<string, clsFsec>> _fsec;
+        private Dictionary<string, Dictionary<string, Dictionary<string, clsFsec>>> _fsec;
 
 
         // コンストラクタを private にして、外部からの new を禁止する
@@ -45,7 +47,11 @@ namespace FrameWebforCS.components.result
 
         public void clear()
         {
-            this._fsec = new Dictionary<string, Dictionary<string, clsFsec>>();
+            this._fsec = new Dictionary<string, Dictionary<string, Dictionary<string, clsFsec>>>();
+        }
+        public Dictionary<string, Dictionary<string, Dictionary<string, clsFsec>>> getFsec()
+        {
+            return this._fsec;
         }
 
         /// <summary>
@@ -54,12 +60,15 @@ namespace FrameWebforCS.components.result
         /// <param name="jsonData"></param>
         public void setFsecJson(JsonElement jsonData)
         {
-            var fsec = DataHelperModule.JsonToDict(
+            var fsecs = DataHelperModule.JsonToDict(
                 jsonData,
-                "fsec",
-                static fsecJson => DataHelperModule.JsonToDict<clsFsec>(fsecJson));
+                "result",
+                static resultJson => DataHelperModule.JsonToDict(
+                    resultJson,
+                    "fsec",
+                    static memberJson => DataHelperModule.JsonToDict<clsFsec>(memberJson)));
 
-            if (fsec != null) this._fsec = fsec;
+            if (fsecs != null) this._fsec = fsecs;
         }
 
 
@@ -71,16 +80,19 @@ namespace FrameWebforCS.components.result
         public Dictionary<string, object> getFsecJson()
         {
             var fsecs = new Dictionary<string, object>();
-            foreach (KeyValuePair<string, Dictionary<string, clsFsec>> f1 in this._fsec)
+            foreach (KeyValuePair<string, Dictionary<string, Dictionary<string, clsFsec>>> result in this._fsec)
             {
-                var fsec = new Dictionary<string, object>();
-                foreach (KeyValuePair<string, clsFsec> f2 in f1.Value)
+                var members = new Dictionary<string, object>();
+                foreach (KeyValuePair<string, Dictionary<string, clsFsec>> member in result.Value)
                 {
-                    clsFsec? Value = f2.Value;
-                    fsec.Add(f2.Key, DataHelperModule.ClassToDictionary<clsFsec>(Value));
+                    var points = new Dictionary<string, object>();
+                    foreach (KeyValuePair<string, clsFsec> point in member.Value)
+                    {
+                        points.Add(point.Key, DataHelperModule.ClassToDictionary(point.Value));
+                    }
+                    members.Add(member.Key, points);
                 }
-                if (fsec.Count > 0)
-                    fsecs.Add(f1.Key, fsec);
+                fsecs.Add(result.Key, new Dictionary<string, object> { ["fsec"] = members });
             }
             return fsecs;
         }

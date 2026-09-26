@@ -106,7 +106,7 @@ namespace FrameWebforCS.providers
         {
             InputNodesService.Instance.setNodeJson(rootElement);
             InputMembersService.Instance.setMemberJson(rootElement);
-            InputMembersService.Instance.setRigidJson(rootElement);
+            InputRigidZoneService.Instance.setRigidJson(rootElement);
             InputElementsService.Instance.setElementJson(rootElement);
             InputFixNodeService.Instance.setFixNodeJson(rootElement);
             InputFixMemberService.Instance.setFixMemberJson(rootElement);
@@ -114,7 +114,9 @@ namespace FrameWebforCS.providers
             InputLoadService.Instance.setLoadJson(rootElement);
             InputNoticePointsService.Instance.setNoticePointsJson(rootElement);
             InputCombineService.Instance.setCombineJson(rootElement);
-            //ResultDisgService.Instance.setDisgJson(rootElement);
+            ResultDisgService.Instance.setDisgJson(rootElement);
+            ResultFsecService.Instance.setFsecJson(rootElement);
+            ResultReacService.Instance.setReacJson(rootElement);
         }
 
         internal Dictionary<string, object>? GetSaveJson()
@@ -122,7 +124,7 @@ namespace FrameWebforCS.providers
             return new Dictionary<string, object> {
                 ["node"] = InputNodesService.Instance.getNodeJson(),
                 ["member"] = InputMembersService.Instance.getMemberJson(),
-                ["rigid"] = InputMembersService.Instance.getRigidJson(),
+                ["rigid"] = InputRigidZoneService.Instance.getRigidJson(),
                 ["element"] = InputElementsService.Instance.getElementJson(),
                 ["fix_node"] = InputFixNodeService.Instance.getFixNodeJson(),
                 ["fix_member"] = InputFixMemberService.Instance.getFixMemberJson(),

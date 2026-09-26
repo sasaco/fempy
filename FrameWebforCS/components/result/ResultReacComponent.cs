@@ -12,19 +12,18 @@ namespace FrameWebforCS.components.result
 {
     public partial class ResultReacComponent : UserControl
     {
-        private InputDataService _input = InputDataService.Instance;
+        private ResultReacService _input = ResultReacService.Instance;
 
         public ResultReacComponent()
         {
             InitializeComponent();
             fpSpread1.EditModeOn += fpSpread1.faSpread_EditModeOn;
 
-            Dictionary<string, object> result = _input.getReac();
+            var result = _input.getReac();
 
             foreach (var item in result)
             {
                 var fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
-
                 fpSpread1_Sheet1.SheetName = item.Key;
 
                 SetSheet1(fpSpread1_Sheet1);

@@ -28,7 +28,7 @@ namespace FrameWebforCS.components.result
         public static ResultDisgService Instance => _instance.Value;
 
 
-        private Dictionary<string, clsDisg> _disg;
+        private Dictionary<string, Dictionary<string, clsDisg>> _disg;
 
 
         // コンストラクタを private にして、外部からの new を禁止する
@@ -39,7 +39,12 @@ namespace FrameWebforCS.components.result
 
         public void clear()
         {
-            this._disg = new Dictionary<string, clsDisg>();
+            this._disg = new Dictionary<string, Dictionary<string, clsDisg>>();
+        }
+
+        public Dictionary<string, Dictionary<string, clsDisg>> getDisg()
+        {
+            return this._disg;
         }
 
         /// <summary>
@@ -48,7 +53,11 @@ namespace FrameWebforCS.components.result
         /// <param name="jsonData"></param>
         public void setDisgJson(JsonElement jsonData)
         {
-            var disgs = DataHelperModule.JsonToDict<clsDisg>(jsonData, "disg");
+            var disgs = DataHelperModule.JsonToDict(
+                jsonData,
+                "result",
+                static resultJson => DataHelperModule.JsonToDict<clsDisg>(resultJson, "disg"));
+
             if (disgs != null) this._disg = disgs;
         }
 
@@ -61,9 +70,14 @@ namespace FrameWebforCS.components.result
         {
 
             var disgs = new Dictionary<string, object>();
-            foreach (KeyValuePair<string, clsDisg> d in this._disg)
+            foreach (KeyValuePair<string, Dictionary<string, clsDisg>> result in this._disg)
             {
-                disgs.Add(d.Key, DataHelperModule.ClassToDictionary<clsDisg>(d.Value));
+                var nodes = new Dictionary<string, object>();
+                foreach (KeyValuePair<string, clsDisg> node in result.Value)
+                {
+                    nodes.Add(node.Key, DataHelperModule.ClassToDictionary(node.Value));
+                }
+                disgs.Add(result.Key, new Dictionary<string, object> { ["disg"] = nodes });
             }
             return disgs;
         }

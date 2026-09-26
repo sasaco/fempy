@@ -18,8 +18,6 @@ namespace FrameWebforCS.components.input
         {
             InitializeComponent();
 
-            fpSpread1.EditModeOn += fpSpread1.faSpread_EditModeOn;
-
             fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
 
             fpSpread1_Sheet1.SheetName = "着目点";
@@ -59,7 +57,11 @@ namespace FrameWebforCS.components.input
             column[0].Width = 50;
             column[1].Width = 80;
 
+            for (int i = 0; i < column.Count; i++)
+                column[i].Locked = false;
+            column[1].Locked = true;
             column[1].BackColor = SystemColors.Control;
+            fpSpread1_Sheet1.Protect = true;
         }
 
 

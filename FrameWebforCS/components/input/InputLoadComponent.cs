@@ -101,7 +101,11 @@ namespace FrameWebforCS.components.input
             for (int i = 0; i < fields.Length; i++)
                 column[i].DataField = fields[i];
 
+            for (int i = 0; i < column.Count; i++)
+                column[i].Locked = false;
+            column[0].Locked = true;
             column[0].BackColor = SystemColors.Control;
+            fpSpread1_Sheet2.Protect = true;
 
             header.Cells[0, 0].Text = "実荷重番号";
             header.Cells[1, 0].Text = "";

@@ -49,6 +49,9 @@ namespace FrameWebforCS.components
             if (row < 0 || row >= sheet.RowCount || column < 0 || column >= sheet.ColumnCount)
                 return;
 
+            if (sheet.Protect && sheet.GetStyleInfo(row, column).Locked)
+                return;
+
             sheet.Cells[row, column].Value = null;
             e.SuppressKeyPress = true;
         }

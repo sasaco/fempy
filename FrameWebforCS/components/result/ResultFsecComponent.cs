@@ -13,19 +13,18 @@ namespace FrameWebforCS.components.result
 {
     public partial class ResultFsecComponent : UserControl
     {
-        private InputDataService _input = InputDataService.Instance;
+        private ResultFsecService _input = ResultFsecService.Instance;
 
         public ResultFsecComponent()
         {
             InitializeComponent();
             fpSpread1.EditModeOn += fpSpread1.faSpread_EditModeOn;
 
-            Dictionary<string, object> result = _input.getFsec();
+            var result = _input.getFsec();
 
             foreach (var item in result)
             {
                 var fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
-
                 fpSpread1_Sheet1.SheetName = item.Key;
 
                 SetSheet1(fpSpread1_Sheet1);

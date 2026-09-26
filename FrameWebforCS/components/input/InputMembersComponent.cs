@@ -22,11 +22,10 @@ namespace FrameWebforCS.components.input
         {
             InitializeComponent();
 
-            fpSpread1.EditModeOn += fpSpread1.faSpread_EditModeOn;
-
             fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
 
             ConfigureSheet(fpSpread1_Sheet1);
+            fpSpread1_Sheet1.DataSource = InputMembersService.Instance.Members;
 
             SetSheet1();
 
@@ -44,6 +43,7 @@ namespace FrameWebforCS.components.input
             fpSpread1_Sheet2 = fpSpread1.AddNewSheetView();
 
             ConfigureSheet(fpSpread1_Sheet2);
+            fpSpread1_Sheet2.DataSource = InputRigidZoneService.Instance.Rows;
 
             SetSheet2();
 
@@ -56,7 +56,6 @@ namespace FrameWebforCS.components.input
             sheet.DataAutoHeadings = false;
             sheet.RowHeaderAutoText = HeaderAutoText.Numbers;
             sheet.StartingRowNumber = 1;
-            sheet.DataSource = InputMembersService.Instance.Members;
         }
 
         private void SetSheet1()
@@ -130,6 +129,12 @@ namespace FrameWebforCS.components.input
                 column[4].BackColor = SystemColors.Control;
             }
 
+            for (int i = 0; i < column.Count; i++)
+                column[i].Locked = false;
+            column[2].Locked = true;
+            column[_input.dimension == 3 ? 5 : 4].Locked = true;
+            fpSpread1_Sheet1.Protect = true;
+
         }
 
         private void SetSheet2()
@@ -137,10 +142,10 @@ namespace FrameWebforCS.components.input
             fpSpread1_Sheet2.SheetName = "剛域";
             var column = fpSpread1_Sheet2.Columns;
 
-            column[1].DataField = nameof(clsMember.E);
-            column[3].DataField = nameof(clsMember.Ilength);
-            column[4].DataField = nameof(clsMember.Jlength);
-            column[5].DataField = nameof(clsMember.E1);
+            column[1].DataField = nameof(clsRigit.E);
+            column[3].DataField = nameof(clsRigit.Ilength);
+            column[4].DataField = nameof(clsRigit.Jlength);
+            column[5].DataField = nameof(clsRigit.E1);
 
             var header = fpSpread1_Sheet2.ColumnHeader;
             header.RowCount = 2;
@@ -172,13 +177,17 @@ namespace FrameWebforCS.components.input
             column[5].Width = 50;
             column[6].Width = 150;
 
+            for (int i = 0; i < column.Count; i++)
+                column[i].Locked = false;
+
             for (int i=0; i<3; i++)
             {
-                column[i].BackColor = SystemColors.Control;
+                column[i].Locked = true;
                 column[i].BackColor = SystemColors.Control;
             }
+            column[6].Locked = true;
             column[6].BackColor = SystemColors.Control;
-            column[6].BackColor = SystemColors.Control;
+            fpSpread1_Sheet2.Protect = true;
 
         }
 
