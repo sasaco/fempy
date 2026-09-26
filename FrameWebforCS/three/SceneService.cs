@@ -87,6 +87,7 @@ namespace SingleFormsDemo
 
             // カメラを2Dモードで再登録
             changeCamera();
+            input_data.RegisterSceneService(this);
         }
 
         // カメラをシーンに登録する
@@ -158,6 +159,23 @@ namespace SingleFormsDemo
                     this.controls.NoRotate = false;
             }
 
+            if (this.controls != null)
+                this.controls.camera = this.camera;
+
+        }
+
+        internal (float X, float Y, float Z) GetCameraPosition()
+        {
+            return (camera.Position.X, camera.Position.Y, camera.Position.Z);
+        }
+
+        internal void SetCameraPosition(float x, float y, float z)
+        {
+            camera.Position.Set(x, y, z);
+            if (input_data.dimension == 2)
+                camera.LookAt(x, y, 0);
+            else
+                camera.LookAt(0, 0, 0);
         }
 
         public void createRender()

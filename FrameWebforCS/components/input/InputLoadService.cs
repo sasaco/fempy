@@ -118,6 +118,21 @@ namespace FrameWebforCS.components.input
         public event EventHandler? CasesChanged;
         public string SelectedCaseId => _selectedCaseId;
         public IEnumerable<string> CaseIds => _load.Keys;
+        internal int MaximumEffectiveCaseId
+        {
+            get
+            {
+                int maximum = 0;
+                foreach (var (id, load) in _load)
+                {
+                    if (IsEffectiveCase(load) &&
+                        int.TryParse(id, NumberStyles.None, CultureInfo.InvariantCulture, out int number) &&
+                        number > maximum)
+                        maximum = number;
+                }
+                return maximum;
+            }
+        }
 
         // コンストラクタを private にして、外部からの new を禁止する
         private InputLoadService()
@@ -220,6 +235,33 @@ namespace FrameWebforCS.components.input
                     return true;
             return false;
         }
+
+        // COMBINE の列数は旧版の有効ケース判定に合わせ、保存対象の判定とは分ける。
+        private static bool IsEffectiveCase(clsLoad item)
+        {
+            if (item.fix_node != null || item.fix_member != null || item.element != null ||
+                item.joint != null || !string.IsNullOrWhiteSpace(item.symbol) ||
+                !string.IsNullOrWhiteSpace(item.name))
+                return true;
+            if (item.load_node != null)
+                foreach (clsLoadNode node in item.load_node)
+                    if (IsNumeric(node.n) && (node.tx != null || node.ty != null ||
+                        node.tz != null || node.rx != null || node.ry != null || node.rz != null))
+                        return true;
+            if (item.load_member != null)
+                foreach (clsLoadMember member in item.load_member)
+                    if (IsNumeric(member.m1) || IsNumeric(member.m2) ||
+                        !string.IsNullOrWhiteSpace(member.direction) || IsNumeric(member.mark) ||
+                        IsNumeric(member.L1) || IsNumeric(member.L2) ||
+                        member.P1 != null || member.P2 != null)
+                        return true;
+            return false;
+        }
+
+        private static bool IsNumeric(string? value) =>
+            !string.IsNullOrWhiteSpace(value) &&
+            double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture,
+                out double number) && double.IsFinite(number);
 
         private void LoadNames_ListChanged(object? sender, ListChangedEventArgs change)
         {

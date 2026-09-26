@@ -1,7 +1,7 @@
 ﻿using FarPoint.Win.Spread;
-using FrameWebforCS.providers;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.Windows.Forms;
 
@@ -9,8 +9,10 @@ namespace FrameWebforCS.components.input
 {
     public partial class InputCombineComponent : UserControl
     {
-        private readonly InputDataService _input = InputDataService.Instance;
         private readonly InputCombineService _service = InputCombineService.Instance;
+        private readonly InputLoadService _load = InputLoadService.Instance;
+        private readonly Label _overflowWarning = new();
+        private readonly int _uiThreadId = Environment.CurrentManagedThreadId;
         private FarPoint.Win.Spread.SheetView fpSpread1_Sheet1;
         private FarPoint.Win.Spread.SheetView fpSpread1_Sheet2;
         private FarPoint.Win.Spread.SheetView fpSpread1_Sheet3;
@@ -18,10 +20,18 @@ namespace FrameWebforCS.components.input
         private readonly HashSet<int> _shownCombineRows = new();
         private readonly HashSet<int> _shownPickupRows = new();
         private bool _refreshing;
+        private int _combineCoefficientCount = -1;
+        private char _combinePrefix;
 
         public InputCombineComponent()
         {
             InitializeComponent();
+            _overflowWarning.Dock = DockStyle.Top;
+            _overflowWarning.Height = 24;
+            _overflowWarning.BackColor = Color.MistyRose;
+            _overflowWarning.Visible = false;
+            Controls.Add(_overflowWarning);
+            _overflowWarning.BringToFront();
 
             fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
             SetSheet1();
@@ -34,7 +44,13 @@ namespace FrameWebforCS.components.input
 
             fpSpread1.Change += OnChange;
             _service.RowsReplaced += OnRowsReplaced;
-            Disposed += (_, _) => _service.RowsReplaced -= OnRowsReplaced;
+            _load.CasesChanged += OnLoadCasesChanged;
+            HandleCreated += (_, _) => RefreshRows();
+            Disposed += (_, _) =>
+            {
+                _service.RowsReplaced -= OnRowsReplaced;
+                _load.CasesChanged -= OnLoadCasesChanged;
+            };
             RefreshRows();
         }
 
@@ -58,23 +74,43 @@ namespace FrameWebforCS.components.input
         {
             fpSpread1_Sheet2.SheetName = "COMBINE";
             ConfigureRows(fpSpread1_Sheet2);
-            var column = fpSpread1_Sheet2.Columns;
-            var header = fpSpread1_Sheet2.ColumnHeader;
+            RefreshCombineColumns();
+        }
 
-            List<string> difine = _input.GetDifineCase();
+        private bool RefreshCombineColumns()
+        {
+            int defineMaximum = 0;
+            foreach (var (row, item) in _service.DefineRows)
+                if (item.Coefficients.Count > 0 && row > defineMaximum)
+                    defineMaximum = row;
 
-            fpSpread1_Sheet2.ColumnCount = difine.Count + 1;
+            char prefix = defineMaximum > 0 ? 'D' : 'C';
+            int maximum = defineMaximum > 0 ? defineMaximum : _load.MaximumEffectiveCaseId;
+            int count = Math.Min(50, Math.Max(5, maximum));
+            _overflowWarning.Text = $"ケース番号が50を超えています。{prefix}51以降の列は非表示ですが、入力値は保持されます。";
+            _overflowWarning.Visible = maximum > 50;
+            if (_combineCoefficientCount == count && _combinePrefix == prefix) return false;
 
-            for (int i = 0; i < fpSpread1_Sheet2.ColumnCount - 1; i++)
+            bool wasRefreshing = _refreshing;
+            _refreshing = true;
+            try
             {
-                header.Cells[0, i].Text = difine[i];
-                column[i].Width = 50;
+                var sheet = fpSpread1_Sheet2;
+                sheet.ColumnCount = count + 1;
+                for (int column = 0; column < count; column++)
+                {
+                    sheet.ColumnHeader.Cells[0, column].Text =
+                        prefix + (column + 1).ToString(CultureInfo.InvariantCulture);
+                    sheet.Columns[column].Width = 50;
+                }
+                sheet.ColumnHeader.Cells[0, count].Text = "名称";
+                sheet.Columns[count].Width = 200;
+                sheet.FrozenTrailingColumnCount = 1;
+                _combineCoefficientCount = count;
+                _combinePrefix = prefix;
             }
-
-            int j = fpSpread1_Sheet2.ColumnCount - 1;
-            header.Cells[0, j].Text = "名称";
-            column[j].Width = 200;
-            fpSpread1_Sheet2.FrozenTrailingColumnCount = 1;
+            finally { _refreshing = wasRefreshing; }
+            return true;
         }
 
         private void SetSheet3()
@@ -110,13 +146,29 @@ namespace FrameWebforCS.components.input
 
         private void OnRowsReplaced(object? sender, EventArgs e)
         {
-            if (IsDisposed) return;
-            if (InvokeRequired)
+            RunOnUiThread(RefreshRows);
+        }
+
+        private void OnLoadCasesChanged(object? sender, EventArgs e)
+        {
+            RunOnUiThread(() =>
             {
-                BeginInvoke((System.Action)RefreshRows);
+                if (!RefreshCombineColumns()) return;
+                _refreshing = true;
+                try { RefreshSheet(fpSpread1_Sheet2, _service.CombineRows, _shownCombineRows, true); }
+                finally { _refreshing = false; }
+            });
+        }
+
+        private void RunOnUiThread(System.Action action)
+        {
+            if (IsDisposed) return;
+            if (Environment.CurrentManagedThreadId != _uiThreadId)
+            {
+                if (IsHandleCreated) BeginInvoke(action);
                 return;
             }
-            RefreshRows();
+            action();
         }
 
         private void RefreshRows()
@@ -124,6 +176,7 @@ namespace FrameWebforCS.components.input
             _refreshing = true;
             try
             {
+                RefreshCombineColumns();
                 RefreshSheet(fpSpread1_Sheet1, _service.DefineRows, _shownDefineRows, false);
                 RefreshSheet(fpSpread1_Sheet2, _service.CombineRows, _shownCombineRows, true);
                 RefreshSheet(fpSpread1_Sheet3, _service.PickupRows, _shownPickupRows, true);
@@ -171,6 +224,12 @@ namespace FrameWebforCS.components.input
                 if (!TryReadInt(value, out int? number)) { RejectEdit(); return; }
                 _service.SetDefineCoefficient(row, e.Column + 1, number);
                 _shownDefineRows.Add(row);
+                if (RefreshCombineColumns())
+                {
+                    _refreshing = true;
+                    try { RefreshSheet(fpSpread1_Sheet2, _service.CombineRows, _shownCombineRows, true); }
+                    finally { _refreshing = false; }
+                }
             }
             else if (sheet == fpSpread1_Sheet2)
             {

@@ -1,8 +1,10 @@
 ﻿using FrameWebforCS.components.input;
 using FrameWebforCS.components.result;
+using SingleFormsDemo;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 
 namespace FrameWebforCS.providers
 {
@@ -37,6 +39,18 @@ namespace FrameWebforCS.providers
         // ３次元解析=3, ２次元解析=2
         public int dimension { get; set; }
 
+        private SceneService? _sceneService;
+        private (float X, float Y, float Z)? _cameraPosition;
+
+        internal void RegisterSceneService(SceneService sceneService)
+        {
+            _sceneService = sceneService;
+            if (_cameraPosition is { } position)
+            {
+                sceneService.SetCameraPosition(position.X, position.Y, position.Z);
+            }
+        }
+
 
 
         /// <summary>
@@ -59,7 +73,7 @@ namespace FrameWebforCS.providers
         /// Componentに表示するデータを返す
         /// </summary>
         /// <returns></returns>
-        internal Dictionary<string, object> getDisg()
+        private Dictionary<string, object> getDisg()
         {
             var result = new Dictionary<string, object>();
 
@@ -77,7 +91,7 @@ namespace FrameWebforCS.providers
         {
             return getDisg();
         }
-        internal Dictionary<string, object> getFsec()
+        private Dictionary<string, object> getFsec()
         {
             return getDisg();
         }
@@ -89,7 +103,7 @@ namespace FrameWebforCS.providers
         {
             return getFsec();
         }
-        internal Dictionary<string, object> getReac()
+        private Dictionary<string, object> getReac()
         {
             return getDisg();
         }
@@ -102,8 +116,51 @@ namespace FrameWebforCS.providers
             return getReac();
         }
 
-        internal void JsonDataOpen(System.Text.Json.JsonElement rootElement)
+        internal void JsonDataOpen(JsonElement rootElement)
         {
+            var combineCoordinator = ResultCombineDisgCoordinator.Instance;
+            combineCoordinator.BeginLoad();
+            try
+            {
+                bool hasResult = rootElement.TryGetProperty("result", out _);
+                JsonDataOpenCore(rootElement);
+                if (hasResult)
+                    combineCoordinator.CompleteLoad(dimension);
+                else
+                    combineCoordinator.FailLoad();
+            }
+            catch
+            {
+                combineCoordinator.FailLoad();
+                throw;
+            }
+        }
+
+        private void JsonDataOpenCore(JsonElement rootElement)
+        {
+            int loadedDimension = 3;
+            if (rootElement.TryGetProperty("dimension", out var dimensionElement))
+            {
+                if (dimensionElement.ValueKind != JsonValueKind.Number ||
+                    !dimensionElement.TryGetInt32(out loadedDimension) ||
+                    loadedDimension is not (2 or 3))
+                    throw new JsonException("dimension must be 2 or 3.");
+            }
+
+            (float X, float Y, float Z)? loadedCameraPosition = null;
+            if (rootElement.TryGetProperty("three", out var threeElement))
+            {
+                if (threeElement.ValueKind != JsonValueKind.Object ||
+                    !threeElement.TryGetProperty("camera", out var cameraElement) ||
+                    cameraElement.ValueKind != JsonValueKind.Object)
+                    throw new JsonException("three.camera must be an object.");
+
+                loadedCameraPosition = (
+                    ReadCameraCoordinate(cameraElement, "x"),
+                    ReadCameraCoordinate(cameraElement, "y"),
+                    ReadCameraCoordinate(cameraElement, "z"));
+            }
+
             InputNodesService.Instance.setNodeJson(rootElement);
             InputMembersService.Instance.setMemberJson(rootElement);
             InputRigidZoneService.Instance.setRigidJson(rootElement);
@@ -117,11 +174,42 @@ namespace FrameWebforCS.providers
             ResultDisgService.Instance.setDisgJson(rootElement);
             ResultFsecService.Instance.setFsecJson(rootElement);
             ResultReacService.Instance.setReacJson(rootElement);
+
+            dimension = loadedDimension;
+            _cameraPosition = loadedCameraPosition;
+            if (_sceneService != null)
+            {
+                _sceneService.changeCamera();
+                if (loadedCameraPosition is { } position)
+                    _sceneService.SetCameraPosition(position.X, position.Y, position.Z);
+            }
+        }
+
+        private static float ReadCameraCoordinate(JsonElement camera, string name)
+        {
+            if (!camera.TryGetProperty(name, out var value) ||
+                value.ValueKind != JsonValueKind.Number ||
+                !value.TryGetSingle(out float coordinate) ||
+                !float.IsFinite(coordinate))
+                throw new JsonException($"three.camera.{name} must be a finite number.");
+
+            return coordinate;
         }
 
         internal Dictionary<string, object>? GetSaveJson()
         {
+            var cameraPosition = _sceneService?.GetCameraPosition() ??
+                _cameraPosition ?? (50.0f, 50.0f, -50.0f);
+
             return new Dictionary<string, object> {
+                ["dimension"] = dimension,
+                ["three"] = new Dictionary<string, object> {
+                    ["camera"] = new Dictionary<string, float> {
+                        ["x"] = cameraPosition.X,
+                        ["y"] = cameraPosition.Y,
+                        ["z"] = cameraPosition.Z,
+                    },
+                },
                 ["node"] = InputNodesService.Instance.getNodeJson(),
                 ["member"] = InputMembersService.Instance.getMemberJson(),
                 ["rigid"] = InputRigidZoneService.Instance.getRigidJson(),

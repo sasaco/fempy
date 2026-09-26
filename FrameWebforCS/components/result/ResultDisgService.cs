@@ -1,86 +1,99 @@
-﻿using FrameWebforCS.components.input;
-using FrameWebforCS.providers;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Text.Json;
 
 namespace FrameWebforCS.components.result
 {
     internal class clsDisg
     {
-        public float? dx = null;
-        public float? dy = null;
-        public float? dz = null;
-        public float? rx= null;
-        public float? ry = null;
-        public float? rz = null;
+        public float? dx;
+        public float? dy;
+        public float? dz;
+        public float? rx;
+        public float? ry;
+        public float? rz;
     }
-
 
     internal class ResultDisgService
     {
-        // Lazy<T> を使ってスレッドセーフかつ遅延評価のシングルトンを実装
-        private static readonly Lazy<ResultDisgService> _instance =
-            new Lazy<ResultDisgService>(() => new ResultDisgService());
-
-        // 外部からはこのプロパティを通じてのみインスタンスにアクセスできる
+        private static readonly Lazy<ResultDisgService> _instance = new(() => new ResultDisgService());
         public static ResultDisgService Instance => _instance.Value;
+        private Dictionary<string, Dictionary<string, clsDisg>> _disg = new();
+        public event EventHandler? Changed;
 
-
-        private Dictionary<string, Dictionary<string, clsDisg>> _disg;
-
-
-        // コンストラクタを private にして、外部からの new を禁止する
-        private ResultDisgService()
-        {
-            this.clear();
-        }
+        private ResultDisgService() { }
 
         public void clear()
         {
-            this._disg = new Dictionary<string, Dictionary<string, clsDisg>>();
+            _disg = new();
+            Changed?.Invoke(this, EventArgs.Empty);
         }
 
-        public Dictionary<string, Dictionary<string, clsDisg>> getDisg()
-        {
-            return this._disg;
-        }
+        public Dictionary<string, Dictionary<string, clsDisg>> getDisg() => _disg;
 
-        /// <summary>
-        /// ファイルを読み込むとき
-        /// </summary>
-        /// <param name="jsonData"></param>
         public void setDisgJson(JsonElement jsonData)
         {
-            var disgs = DataHelperModule.JsonToDict(
-                jsonData,
-                "result",
-                static resultJson => DataHelperModule.JsonToDict<clsDisg>(resultJson, "disg"));
+            if (!jsonData.TryGetProperty("result", out JsonElement result)) return;
+            if (result.ValueKind != JsonValueKind.Object)
+                throw new JsonException("result must be a JSON object.");
 
-            if (disgs != null) this._disg = disgs;
+            var candidate = new Dictionary<string, Dictionary<string, clsDisg>>();
+            foreach (JsonProperty caseProperty in result.EnumerateObject())
+            {
+                if (caseProperty.Value.ValueKind != JsonValueKind.Object ||
+                    !caseProperty.Value.TryGetProperty("disg", out JsonElement nodes) ||
+                    nodes.ValueKind != JsonValueKind.Object)
+                    throw new JsonException($"result '{caseProperty.Name}' has no valid disg object.");
+                var nodeValues = new Dictionary<string, clsDisg>();
+                foreach (JsonProperty node in nodes.EnumerateObject())
+                {
+                    if (node.Value.ValueKind != JsonValueKind.Object)
+                        throw new JsonException($"result '{caseProperty.Name}' node '{node.Name}' is invalid.");
+                    var value = new clsDisg
+                    {
+                        dx = ReadComponent(node.Value, "dx"),
+                        dy = ReadComponent(node.Value, "dy"),
+                        dz = ReadComponent(node.Value, "dz"),
+                        rx = ReadComponent(node.Value, "rx"),
+                        ry = ReadComponent(node.Value, "ry"),
+                        rz = ReadComponent(node.Value, "rz")
+                    };
+                    if (!nodeValues.TryAdd(node.Name, value))
+                        throw new JsonException($"Duplicate displacement node '{node.Name}'.");
+                }
+                if (!candidate.TryAdd(caseProperty.Name, nodeValues))
+                    throw new JsonException($"Duplicate result case '{caseProperty.Name}'.");
+            }
+            _disg = candidate;
+            Changed?.Invoke(this, EventArgs.Empty);
         }
 
-        /// <summary>
-        /// ファイルに保存するとき
-        /// </summary>
-        /// <param name=""></param>
-        /// <param name=""></param>
+        private static float? ReadComponent(JsonElement node, string name)
+        {
+            if (!node.TryGetProperty(name, out JsonElement component) ||
+                component.ValueKind == JsonValueKind.Null) return null;
+            if (component.ValueKind != JsonValueKind.Number ||
+                !component.TryGetSingle(out float value) || !float.IsFinite(value))
+                throw new JsonException($"Displacement component '{name}' must be a finite number or null.");
+            return value;
+        }
+
         public Dictionary<string, object> getDisgJson()
         {
-
             var disgs = new Dictionary<string, object>();
-            foreach (KeyValuePair<string, Dictionary<string, clsDisg>> result in this._disg)
+            foreach (KeyValuePair<string, Dictionary<string, clsDisg>> result in _disg)
             {
                 var nodes = new Dictionary<string, object>();
                 foreach (KeyValuePair<string, clsDisg> node in result.Value)
-                {
-                    nodes.Add(node.Key, DataHelperModule.ClassToDictionary(node.Value));
-                }
+                    nodes.Add(node.Key, new Dictionary<string, object?>
+                    {
+                        ["dx"] = node.Value.dx, ["dy"] = node.Value.dy,
+                        ["dz"] = node.Value.dz, ["rx"] = node.Value.rx,
+                        ["ry"] = node.Value.ry, ["rz"] = node.Value.rz
+                    });
                 disgs.Add(result.Key, new Dictionary<string, object> { ["disg"] = nodes });
             }
             return disgs;
         }
-
     }
 }

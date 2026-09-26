@@ -18,6 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>FrameWebforCS.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\THREE\THREE.OpenGL\THREE.OpenGL.csproj" />
     <ProjectReference Include="..\THREE\THREE\THREE.csproj" />
   </ItemGroup>

@@ -35,6 +35,7 @@ namespace FrameWebforCS.components.input
         public IReadOnlyDictionary<int, clsCombine<float>> CombineRows => _combine;
         public IReadOnlyDictionary<int, clsCombine<int>> PickupRows => _pickup;
         public event EventHandler? RowsReplaced;
+        public event EventHandler? RowsChanged;
 
         // コンストラクタを private にして、外部からの new を禁止する
         private InputCombineService() { }
@@ -45,6 +46,7 @@ namespace FrameWebforCS.components.input
             _define = new();
             _pickup = new();
             RowsReplaced?.Invoke(this, EventArgs.Empty);
+            RowsChanged?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -65,6 +67,7 @@ namespace FrameWebforCS.components.input
             _define = define;
             _pickup = pickup;
             RowsReplaced?.Invoke(this, EventArgs.Empty);
+            RowsChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private static Dictionary<int, clsCombine<T>> JsonToDict<T>(
@@ -164,51 +167,78 @@ namespace FrameWebforCS.components.input
             return result;
         }
 
-        public void SetDefineCoefficient(int row, int column, int? value) =>
-            SetCoefficient(_define, row, column, value);
+        public void SetDefineCoefficient(int row, int column, int? value)
+        {
+            if (SetCoefficient(_define, row, column, value))
+                RowsChanged?.Invoke(this, EventArgs.Empty);
+        }
 
         public void SetCombineCoefficient(int row, int column, float? value)
         {
             if (value.HasValue && !float.IsFinite(value.Value))
                 throw new ArgumentOutOfRangeException(nameof(value));
-            SetCoefficient(_combine, row, column, value);
+            if (SetCoefficient(_combine, row, column, value))
+                RowsChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public void SetPickupCoefficient(int row, int column, int? value) =>
-            SetCoefficient(_pickup, row, column, value);
+        public void SetPickupCoefficient(int row, int column, int? value)
+        {
+            if (SetCoefficient(_pickup, row, column, value))
+                RowsChanged?.Invoke(this, EventArgs.Empty);
+        }
 
-        public void SetCombineName(int row, string? name) => SetName(_combine, row, name);
-        public void SetPickupName(int row, string? name) => SetName(_pickup, row, name);
+        public void SetCombineName(int row, string? name)
+        {
+            if (SetName(_combine, row, name))
+                RowsChanged?.Invoke(this, EventArgs.Empty);
+        }
 
-        private static void SetCoefficient<T>(Dictionary<int, clsCombine<T>> rows,
+        public void SetPickupName(int row, string? name)
+        {
+            if (SetName(_pickup, row, name))
+                RowsChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private static bool SetCoefficient<T>(Dictionary<int, clsCombine<T>> rows,
             int row, int column, T? value) where T : struct
         {
             if (row < 1 || row > MaxRows || column < 1)
                 throw new ArgumentOutOfRangeException(nameof(row));
             if (!rows.TryGetValue(row, out clsCombine<T>? item))
             {
-                if (!value.HasValue) return;
+                if (!value.HasValue) return false;
                 item = AddRow(rows, row);
             }
             if (value.HasValue)
+            {
+                if (item.Coefficients.TryGetValue(column, out T previous) &&
+                    EqualityComparer<T>.Default.Equals(previous, value.Value))
+                    return false;
                 item.Coefficients[column] = value.Value;
+            }
             else
-                item.Coefficients.Remove(column);
+            {
+                if (!item.Coefficients.Remove(column)) return false;
+            }
             if (item.IsEmpty) rows.Remove(row);
+            return true;
         }
 
-        private static void SetName<T>(Dictionary<int, clsCombine<T>> rows,
+        private static bool SetName<T>(Dictionary<int, clsCombine<T>> rows,
             int row, string? name) where T : struct
         {
             if (row < 1 || row > MaxRows)
                 throw new ArgumentOutOfRangeException(nameof(row));
+            string? normalizedName = string.IsNullOrWhiteSpace(name) ? null : name;
             if (!rows.TryGetValue(row, out clsCombine<T>? item))
             {
-                if (string.IsNullOrWhiteSpace(name)) return;
+                if (normalizedName == null) return false;
                 item = AddRow(rows, row);
             }
-            item.name = string.IsNullOrWhiteSpace(name) ? null : name;
+            if (item.name == normalizedName) return false;
+            item.name = normalizedName;
             if (item.IsEmpty) rows.Remove(row);
+            return true;
         }
 
         private static clsCombine<T> AddRow<T>(Dictionary<int, clsCombine<T>> rows,

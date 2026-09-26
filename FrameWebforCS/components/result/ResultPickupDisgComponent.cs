@@ -7,6 +7,8 @@ namespace FrameWebforCS.components.result
 {
     internal class ResultPickupDisgComponent : ResultCombineDisgComponent
     {
+        protected override bool UsesLegacyPickup => true;
+
         public override Dictionary<string, object> getCombineDisg()
         {
             return InputDataService.Instance.getPickupDisg();
