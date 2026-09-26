@@ -25,6 +25,8 @@ namespace FrameWebforCS.components.result
         // 外部からはこのプロパティを通じてのみインスタンスにアクセスできる
         public static ResultReacService Instance => _instance.Value;
 
+        public event EventHandler? Changed;
+
 
         private Dictionary<string, Dictionary<string, clsReac>> _reac;
 
@@ -38,6 +40,7 @@ namespace FrameWebforCS.components.result
         public void clear()
         {
             this._reac = new Dictionary<string, Dictionary<string, clsReac>>();
+            Changed?.Invoke(this, EventArgs.Empty);
         }
         public Dictionary<string, Dictionary<string, clsReac>> getReac()
         {
@@ -50,12 +53,50 @@ namespace FrameWebforCS.components.result
         /// <param name="jsonData"></param>
         public void setReacJson(JsonElement jsonData)
         {
-            var reacs = DataHelperModule.JsonToDict(
-                jsonData,
-                "result",
-                static resultJson => DataHelperModule.JsonToDict<clsReac>(resultJson, "reac"));
+            if (!jsonData.TryGetProperty("result", out JsonElement results)) return;
+            if (results.ValueKind != JsonValueKind.Object)
+                throw new JsonException("result must be a JSON object.");
 
-            if (reacs != null) this._reac = reacs;
+            var candidate = new Dictionary<string, Dictionary<string, clsReac>>();
+            foreach (JsonProperty result in results.EnumerateObject())
+            {
+                if (result.Value.ValueKind != JsonValueKind.Object)
+                    throw new JsonException($"result '{result.Name}' must be a JSON object.");
+                if (!result.Value.TryGetProperty("reac", out JsonElement nodes)) continue;
+                if (nodes.ValueKind != JsonValueKind.Object)
+                    throw new JsonException($"result '{result.Name}' reac must be a JSON object.");
+                var parsedNodes = new Dictionary<string, clsReac>();
+                foreach (JsonProperty node in nodes.EnumerateObject())
+                {
+                    if (node.Value.ValueKind != JsonValueKind.Object)
+                        throw new JsonException($"reaction node '{node.Name}' must be a JSON object.");
+                    var parsed = new clsReac
+                    {
+                        tx = ReadComponent(node.Value, "tx"),
+                        ty = ReadComponent(node.Value, "ty"),
+                        tz = ReadComponent(node.Value, "tz"),
+                        mx = ReadComponent(node.Value, "mx"),
+                        my = ReadComponent(node.Value, "my"),
+                        mz = ReadComponent(node.Value, "mz")
+                    };
+                    if (!parsedNodes.TryAdd(node.Name, parsed))
+                        throw new JsonException($"Duplicate reaction node '{node.Name}'.");
+                }
+                if (!candidate.TryAdd(result.Name, parsedNodes))
+                    throw new JsonException($"Duplicate result case '{result.Name}'.");
+            }
+            _reac = candidate;
+            Changed?.Invoke(this, EventArgs.Empty);
+        }
+
+        private static float? ReadComponent(JsonElement source, string name)
+        {
+            if (!source.TryGetProperty(name, out JsonElement value) ||
+                value.ValueKind == JsonValueKind.Null) return null;
+            if (value.ValueKind != JsonValueKind.Number ||
+                !value.TryGetSingle(out float parsed) || !float.IsFinite(parsed))
+                throw new JsonException($"Reaction component '{name}' must be finite or null.");
+            return parsed;
         }
 
         /// <summary>

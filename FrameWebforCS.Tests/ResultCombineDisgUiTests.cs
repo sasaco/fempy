@@ -84,13 +84,26 @@ public sealed class ResultCombineDisgUiTests
             Assert.Equal("0.7500", spread.Sheets[0].Cells[0, 6].Text);
 
             using var pickup = new ResultPickupDisgComponent();
+            form.Controls.Add(pickup);
             var pickupSpread = (FpSpread)pickup.Controls.Find("fpSpread1", true).Single();
-            Assert.Equal(20, pickupSpread.Sheets.Count);
-            Assert.False(pickup.Controls.Find("modeSelector", true).Single().Visible);
+            var pickupModes = (ComboBox)pickup.Controls.Find("modeSelector", true).Single();
+            var pickupStatus = (Label)pickup.Controls.Find("statusLabel", true).Single();
+            try
+            {
+                PumpUntil(() => pickupSpread.Sheets.Count == 1 && pickupSpread.Sheets[0].RowCount == 1);
+            }
+            catch (Exception exception)
+            {
+                throw new InvalidOperationException(
+                    $"PICKUP sheet count: {pickupSpread.Sheets.Count}; status: {pickupStatus.Text}", exception);
+            }
+            Assert.Equal(8, pickupSpread.Sheets[0].ColumnCount);
+            Assert.Equal(12, pickupModes.Items.Count);
+            Assert.Equal("1.8750", pickupSpread.Sheets[0].Cells[0, 1].Text);
             pickup.setActiveSheet(2);
-            Assert.Equal(2, pickupSpread.ActiveSheetIndex);
+            Assert.Equal(0, pickupSpread.ActiveSheetIndex);
             ResultCombineDisgCoordinator.Instance.FailLoad();
-            Assert.Equal(20, pickupSpread.Sheets.Count);
+            Assert.Equal(0, pickupSpread.Sheets.Count);
         });
     }
 
@@ -334,7 +347,8 @@ public sealed class ResultCombineDisgUiTests
         coordinator.BeginLoad();
         using var definitions = JsonDocument.Parse("""
             {"define":{"5":{"row":1,"C1":1}},
-             "combine":{"7":{"row":1,"name":"Main","C5":1.5}}}
+             "combine":{"7":{"row":1,"name":"Main","C5":1.5}},
+             "pickup":{"9":{"row":1,"C1":7}}}
             """);
         InputCombineService.Instance.setCombineJson(definitions.RootElement);
         using var displacements = JsonDocument.Parse("""

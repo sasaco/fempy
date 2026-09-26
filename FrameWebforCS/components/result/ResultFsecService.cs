@@ -35,6 +35,8 @@ namespace FrameWebforCS.components.result
         // 外部からはこのプロパティを通じてのみインスタンスにアクセスできる
         public static ResultFsecService Instance => _instance.Value;
 
+        public event EventHandler? Changed;
+
 
         private Dictionary<string, Dictionary<string, Dictionary<string, clsFsec>>> _fsec;
 
@@ -48,6 +50,7 @@ namespace FrameWebforCS.components.result
         public void clear()
         {
             this._fsec = new Dictionary<string, Dictionary<string, Dictionary<string, clsFsec>>>();
+            Changed?.Invoke(this, EventArgs.Empty);
         }
         public Dictionary<string, Dictionary<string, Dictionary<string, clsFsec>>> getFsec()
         {
@@ -60,15 +63,76 @@ namespace FrameWebforCS.components.result
         /// <param name="jsonData"></param>
         public void setFsecJson(JsonElement jsonData)
         {
-            var fsecs = DataHelperModule.JsonToDict(
-                jsonData,
-                "result",
-                static resultJson => DataHelperModule.JsonToDict(
-                    resultJson,
-                    "fsec",
-                    static memberJson => DataHelperModule.JsonToDict<clsFsec>(memberJson)));
+            if (!jsonData.TryGetProperty("result", out JsonElement results)) return;
+            if (results.ValueKind != JsonValueKind.Object)
+                throw new JsonException("result must be a JSON object.");
 
-            if (fsecs != null) this._fsec = fsecs;
+            var candidate = new Dictionary<string, Dictionary<string, Dictionary<string, clsFsec>>>();
+            foreach (JsonProperty result in results.EnumerateObject())
+            {
+                if (result.Value.ValueKind != JsonValueKind.Object)
+                    throw new JsonException($"result '{result.Name}' must be a JSON object.");
+                if (!result.Value.TryGetProperty("fsec", out JsonElement members)) continue;
+                if (members.ValueKind != JsonValueKind.Object)
+                    throw new JsonException($"result '{result.Name}' fsec must be a JSON object.");
+                var parsedMembers = new Dictionary<string, Dictionary<string, clsFsec>>();
+                foreach (JsonProperty member in members.EnumerateObject())
+                {
+                    if (member.Value.ValueKind != JsonValueKind.Object)
+                        throw new JsonException($"section force member '{member.Name}' must be a JSON object.");
+                    var parsedPoints = new Dictionary<string, clsFsec>();
+                    foreach (JsonProperty point in member.Value.EnumerateObject())
+                    {
+                        if (point.Value.ValueKind != JsonValueKind.Object)
+                            throw new JsonException($"section force point '{point.Name}' must be a JSON object.");
+                        var parsed = new clsFsec
+                        {
+                            fxi = ReadComponent(point.Value, "fxi"),
+                            fyi = ReadComponent(point.Value, "fyi"),
+                            fzi = ReadComponent(point.Value, "fzi"),
+                            mxi = ReadComponent(point.Value, "mxi"),
+                            myi = ReadComponent(point.Value, "myi"),
+                            mzi = ReadComponent(point.Value, "mzi"),
+                            fxj = ReadComponent(point.Value, "fxj"),
+                            fyj = ReadComponent(point.Value, "fyj"),
+                            fzj = ReadComponent(point.Value, "fzj"),
+                            mxj = ReadComponent(point.Value, "mxj"),
+                            myj = ReadComponent(point.Value, "myj"),
+                            mzj = ReadComponent(point.Value, "mzj"),
+                            L = ReadComponent(point.Value, "L"),
+                            dummyi = ReadFlag(point.Value, "dummyi"),
+                            dummyj = ReadFlag(point.Value, "dummyj")
+                        };
+                        if (!parsedPoints.TryAdd(point.Name, parsed))
+                            throw new JsonException($"Duplicate section force point '{point.Name}'.");
+                    }
+                    if (!parsedMembers.TryAdd(member.Name, parsedPoints))
+                        throw new JsonException($"Duplicate section force member '{member.Name}'.");
+                }
+                if (!candidate.TryAdd(result.Name, parsedMembers))
+                    throw new JsonException($"Duplicate result case '{result.Name}'.");
+            }
+            _fsec = candidate;
+            Changed?.Invoke(this, EventArgs.Empty);
+        }
+
+        private static float? ReadComponent(JsonElement source, string name)
+        {
+            if (!source.TryGetProperty(name, out JsonElement value) ||
+                value.ValueKind == JsonValueKind.Null) return null;
+            if (value.ValueKind != JsonValueKind.Number ||
+                !value.TryGetSingle(out float parsed) || !float.IsFinite(parsed))
+                throw new JsonException($"Section force component '{name}' must be finite or null.");
+            return parsed;
+        }
+
+        private static bool? ReadFlag(JsonElement source, string name)
+        {
+            if (!source.TryGetProperty(name, out JsonElement value) ||
+                value.ValueKind == JsonValueKind.Null) return null;
+            if (value.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
+                throw new JsonException($"Section force flag '{name}' must be boolean or null.");
+            return value.GetBoolean();
         }
 
 

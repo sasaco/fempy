@@ -1,73 +1,350 @@
 ﻿using FarPoint.Win.Spread;
 using FrameWebforCS.providers;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
+using System.Globalization;
 
-namespace FrameWebforCS.components.result
+namespace FrameWebforCS.components.result;
+
+public partial class ResultCombineFsecComponent : UserControl
 {
-    public partial class ResultCombineFsecComponent : UserControl
+    private static readonly (string Key, string Title)[] Modes3D =
+    [
+        ("fx_max", "軸方向力 最大"), ("fx_min", "軸方向力 最小"),
+        ("fy_max", "Y方向のせん断力 最大"), ("fy_min", "Y方向のせん断力 最小"),
+        ("fz_max", "Z方向のせん断力 最大"), ("fz_min", "Z方向のせん断力 最小"),
+        ("mx_max", "ねじりモーメント 最大"), ("mx_min", "ねじりモーメント 最小"),
+        ("my_max", "Y軸回りの曲げモーメント 最大"), ("my_min", "Y軸回りの曲げモーメント 最小"),
+        ("mz_max", "Z軸回りの曲げモーメント 最大"), ("mz_min", "Z軸回りの曲げモーメント 最小")
+    ];
+
+    private static readonly (string Key, string Title)[] Modes2D =
+    [
+        ("fx_max", "軸方向力 最大"), ("fx_min", "軸方向力 最小"),
+        ("fy_max", "せん断力 最大"), ("fy_min", "せん断力 最小"),
+        ("mz_max", "曲げモーメント 最大"), ("mz_min", "曲げモーメント 最小")
+    ];
+
+    private readonly ResultCombineFsecCoordinator _coordinator = ResultCombineFsecCoordinator.Instance;
+    private readonly Func<ResultCombineFsecSnapshot, CancellationToken, ResultCombineFsecOutput> _calculate;
+    private Control? _uiDispatcher;
+    private ResultCombineFsecOutput? _output;
+    private ResultCombineFsecSnapshot? _pending;
+    private CancellationTokenSource? _runningCancellation;
+    internal Task? CurrentCalculationTask { get; private set; }
+    internal bool IsCalculationRunning => _runningCancellation != null;
+    private long _generation;
+    private long _publishedRevision = -1;
+    private int _materializedSheet = -1;
+    private bool _rebuilding;
+    private bool _disposed;
+
+    public ResultCombineFsecComponent() : this(ResultCombineFsecAggregator.Calculate) { }
+
+    internal ResultCombineFsecComponent(
+        Func<ResultCombineFsecSnapshot, CancellationToken, ResultCombineFsecOutput> calculate)
     {
-        internal FarPoint.Win.Spread.SheetView fpSpread1_Sheet1;
+        _calculate = calculate ?? throw new ArgumentNullException(nameof(calculate));
+        InitializeComponent();
+        fpSpread1.EditModeOn += fpSpread1.faSpread_EditModeOn;
+        // This handle outlives the view handle, so in-flight work can complete
+        // on the UI thread even while WinForms recreates the view handle.
+        _uiDispatcher = new Control();
+        _ = _uiDispatcher.Handle;
 
-        public ResultCombineFsecComponent()
+        modeSelector.SelectedIndexChanged += (_, _) => MaterializeSelectedSheet();
+        fpSpread1.ActiveSheetChanged += (_, _) => MaterializeSelectedSheet();
+        HandleCreated += (_, _) => RefreshFromCoordinator();
+        HandleDestroyed += (_, _) =>
         {
-            InitializeComponent();
-            fpSpread1.EditModeOn += fpSpread1.faSpread_EditModeOn;
+            CancelRunning();
+        };
+        _coordinator.Changed += OnCoordinatorChanged;
+        RefreshFromCoordinator();
+    }
 
-            Dictionary<string, object> result = getCombineFsec();
+    public void setActiveSheet(int index)
+    {
+        // Sidebar option=1 is the route category, not a result sheet index.
+        if (fpSpread1.Sheets.Count > 0 && fpSpread1.ActiveSheetIndex < 0)
+            fpSpread1.ActiveSheetIndex = 0;
+        RefreshFromCoordinator();
+    }
 
-            foreach (var item in result)
+    public virtual Dictionary<string, object> getCombineFsec() =>
+        InputDataService.Instance.getCombineFsec();
+
+    private void OnCoordinatorChanged(object? sender, EventArgs e)
+    {
+        if (_disposed || _uiDispatcher is not { } dispatcher) return;
+        if (dispatcher.InvokeRequired)
+        {
+            try { dispatcher.BeginInvoke((System.Action)RefreshFromCoordinator); }
+            catch (InvalidOperationException) { }
+            return;
+        }
+        RefreshFromCoordinator();
+    }
+
+    private void RefreshFromCoordinator()
+    {
+        if (_disposed) return;
+        long generation = ++_generation;
+        CancelRunning();
+        _pending = null;
+
+        if (_coordinator.State != CombineFsecState.Valid ||
+            _coordinator.Snapshot is not { } snapshot)
+        {
+            _output = null;
+            _publishedRevision = -1;
+            ClearDisplay();
+            statusLabel.Text = _coordinator.State == CombineFsecState.Loading
+                ? "組合せ断面力を読み込み中..."
+                : _coordinator.Error is { } error
+                    ? $"組合せ断面力を表示できません: {error}"
+                    : "組合せ断面力を表示できません。結果を読み込んでください。";
+            return;
+        }
+
+        if (_publishedRevision == snapshot.Revision && _output != null) return;
+        _output = null;
+        _publishedRevision = -1;
+        ClearDisplay();
+        statusLabel.Text = "組合せ断面力を集計中...";
+        _pending = snapshot;
+        if (IsHandleCreated && _runningCancellation == null)
+            StartPending(generation);
+    }
+
+    private void StartPending(long generation)
+    {
+        if (_disposed || !IsHandleCreated || _runningCancellation != null ||
+            _pending is not { } snapshot) return;
+        _pending = null;
+        var cancellation = new CancellationTokenSource();
+        _runningCancellation = cancellation;
+        CurrentCalculationTask = CalculateAsync(snapshot, generation, cancellation);
+    }
+
+    private async Task CalculateAsync(
+        ResultCombineFsecSnapshot snapshot, long generation, CancellationTokenSource cancellation)
+    {
+        ResultCombineFsecOutput? result = null;
+        Exception? error = null;
+        try
+        {
+            result = await Task.Run(
+                () => _calculate(snapshot, cancellation.Token),
+                cancellation.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
+        catch (Exception ex) { error = ex; }
+
+        if (_disposed || _uiDispatcher is not { } dispatcher)
+        {
+            cancellation.Dispose();
+            return;
+        }
+        try
+        {
+            dispatcher.BeginInvoke((System.Action)(() =>
+                CompleteCalculation(snapshot, generation, cancellation, result, error)));
+        }
+        catch (InvalidOperationException) { cancellation.Dispose(); }
+    }
+
+    private void CompleteCalculation(
+        ResultCombineFsecSnapshot snapshot, long generation, CancellationTokenSource cancellation,
+        ResultCombineFsecOutput? result, Exception? error)
+    {
+        if (!ReferenceEquals(_runningCancellation, cancellation))
+        {
+            cancellation.Dispose();
+            return;
+        }
+        _runningCancellation = null;
+        cancellation.Dispose();
+        if (_disposed) return;
+
+        if (IsHandleCreated && generation == _generation &&
+            _coordinator.State == CombineFsecState.Valid &&
+            _coordinator.Revision == snapshot.Revision)
+        {
+            if (error != null)
             {
-                var fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
-
-                fpSpread1_Sheet1.SheetName = item.Key;
-
-                SetSheet2(fpSpread1_Sheet1);
+                _output = null;
+                ClearDisplay();
+                statusLabel.Text = $"組合せ断面力の集計に失敗しました: {error.Message}";
             }
-
-            float w = 0;
-            FarPoint.Win.Spread.SheetView fs = (SheetView)fpSpread1.Sheets.First();
-            var col = fs.Columns;
-            for (int i = 0; i < col.Count; i++)
+            else if (result != null)
             {
-                w += col[i].Width;
+                try
+                {
+                    _output = result;
+                    PublishResult(result, snapshot.Dimension);
+                    _publishedRevision = snapshot.Revision;
+                }
+                catch (Exception ex)
+                {
+                    _output = null;
+                    _publishedRevision = -1;
+                    ClearDisplay();
+                    statusLabel.Text = $"組合せ断面力の表示に失敗しました: {ex.Message}";
+                }
             }
-            w += 100;
-
-            this.Width = (int)w;
-
         }
+        if (IsHandleCreated && _pending != null) StartPending(_generation);
+    }
 
-        public void setActiveSheet(int index)
+    private void PublishResult(ResultCombineFsecOutput result, int dimension)
+    {
+        _rebuilding = true;
+        try
         {
-            this.fpSpread1.ActiveSheetIndex = index;
+            fpSpread1.Sheets.Clear();
+            _materializedSheet = -1;
+            modeSelector.Items.Clear();
+            foreach (var mode in dimension == 3 ? Modes3D : Modes2D)
+                modeSelector.Items.Add(new ModeChoice(mode.Key, mode.Title));
+
+            foreach (CombineFsecCaseResult item in result.Cases)
+            {
+                SheetView sheet = fpSpread1.AddNewSheetView();
+                sheet.SheetName = string.IsNullOrWhiteSpace(item.Name)
+                    ? item.Id : $"{item.Id} {item.Name}";
+                ConfigureSheet(sheet, dimension);
+                sheet.RowCount = 0;
+            }
+            if (modeSelector.Items.Count > 0) modeSelector.SelectedIndex = 0;
+            if (fpSpread1.Sheets.Count > 0) fpSpread1.ActiveSheetIndex = 0;
+            Width = dimension == 3 ? 900 : 650;
         }
+        finally { _rebuilding = false; }
 
+        statusLabel.Text = result.Cases.Count == 0
+            ? "組合せ結果がありません。"
+            : $"{result.Cases.Count} 件の組合せ断面力";
+        MaterializeSelectedSheet();
+    }
 
-        private void SetSheet2(SheetView _Sheet)
+    private void MaterializeSelectedSheet()
+    {
+        if (_rebuilding || _output == null || modeSelector.SelectedItem is not ModeChoice mode)
+            return;
+        int sheetIndex = fpSpread1.ActiveSheetIndex;
+        if (sheetIndex < 0 || sheetIndex >= _output.Cases.Count) return;
+
+        if (_materializedSheet >= 0 && _materializedSheet != sheetIndex &&
+            _materializedSheet < fpSpread1.Sheets.Count)
+            fpSpread1.Sheets[_materializedSheet].RowCount = 0;
+
+        SheetView sheet = fpSpread1.Sheets[sheetIndex];
+        IReadOnlyList<CombineFsecRowResult> rows =
+            _output.Cases[sheetIndex].Rows.TryGetValue(mode.Key, out var selected)
+                ? selected : Array.Empty<CombineFsecRowResult>();
+        sheet.RowCount = rows.Count;
+        bool is3D = sheet.ColumnCount == 10;
+        for (int row = 0; row < rows.Count; row++)
         {
-            ResultFsecComponent.SetSheet1(_Sheet);
-
-            _Sheet.AddColumns(_Sheet.ColumnCount, 1);
-
-            int index = _Sheet.ColumnCount - 1;
-            var header = _Sheet.ColumnHeader;
-            var column = _Sheet.Columns;
-
-            header.Cells[0, index].Text = "組み合わせ";
-            header.Cells[1, index].Text = " ";
-            column[index].Width = 200;
-
+            CombineFsecRowResult value = rows[row];
+            sheet.Cells[row, 0].Text = value.MemberDisplay;
+            sheet.Cells[row, 1].Text = value.NodeId;
+            sheet.Cells[row, 2].Text = value.Location.ToString("F3", CultureInfo.InvariantCulture);
+            sheet.Cells[row, 3].Text = Format(value.Fx);
+            sheet.Cells[row, 4].Text = Format(value.Fy);
+            if (is3D)
+            {
+                sheet.Cells[row, 5].Text = Format(value.Fz);
+                sheet.Cells[row, 6].Text = Format(value.Mx);
+                sheet.Cells[row, 7].Text = Format(value.My);
+                sheet.Cells[row, 8].Text = Format(value.Mz);
+                sheet.Cells[row, 9].Text = value.Case;
+            }
+            else
+            {
+                sheet.Cells[row, 5].Text = Format(value.Mz);
+                sheet.Cells[row, 6].Text = value.Case;
+            }
         }
-        public virtual Dictionary<string, object> getCombineFsec()
+        _materializedSheet = sheetIndex;
+    }
+
+    private static string Format(double value) => value.ToString("F2", CultureInfo.InvariantCulture);
+
+    private void ClearDisplay()
+    {
+        _rebuilding = true;
+        try
         {
-            return InputDataService.Instance.getCombineFsec();
+            fpSpread1.Sheets.Clear();
+            modeSelector.Items.Clear();
+            _materializedSheet = -1;
         }
+        finally { _rebuilding = false; }
+    }
+
+    private static void ConfigureSheet(SheetView sheet, int dimension)
+    {
+        sheet.ColumnCount = dimension == 3 ? 10 : 7;
+        var header = sheet.ColumnHeader;
+        header.RowCount = 2;
+        header.Cells[0, 0].Text = "部材";
+        header.Cells[1, 0].Text = "No";
+        header.Cells[0, 1].Text = "節点";
+        header.Cells[1, 1].Text = "No";
+        header.Cells[0, 2].Text = "着目位置";
+        header.Cells[1, 2].Text = "(m)";
+        header.Cells[0, 3].Text = "軸方向力";
+        header.Cells[1, 3].Text = "(kN)";
+        header.Cells[0, 4].Text = dimension == 3 ? "せん断力(kN)" : "せん断力";
+        header.Cells[1, 4].Text = dimension == 3 ? "Y軸方向" : "(kN)";
+        if (dimension == 3)
+        {
+            header.Cells[1, 5].Text = "Z軸方向";
+            header.Cells[0, 4].ColumnSpan = 2;
+            header.Cells[0, 6].Text = "ねじりモーメント";
+            header.Cells[1, 6].Text = "(kN・m)";
+            header.Cells[0, 7].Text = "曲げモーメント(kN・m)";
+            header.Cells[1, 7].Text = "Y軸回り";
+            header.Cells[1, 8].Text = "Z軸回り";
+            header.Cells[0, 7].ColumnSpan = 2;
+        }
+        else
+        {
+            header.Cells[0, 5].Text = "曲げモーメント";
+            header.Cells[1, 5].Text = "(kN・m)";
+        }
+        int caseColumn = sheet.ColumnCount - 1;
+        header.Cells[0, caseColumn].Text = "組み合わせ";
+        sheet.Columns[0].Width = 50;
+        sheet.Columns[1].Width = 50;
+        for (int i = 0; i < sheet.ColumnCount; i++)
+            sheet.Columns[i].CellType = new FarPoint.Win.Spread.CellType.TextCellType();
+        for (int i = 2; i < caseColumn; i++) sheet.Columns[i].Width = 80;
+        sheet.Columns[caseColumn].Width = 200;
+        sheet.Protect = true;
+    }
+
+    private void DisposeCombineResources()
+    {
+        _disposed = true;
+        _coordinator.Changed -= OnCoordinatorChanged;
+        CancelRunning();
+        _runningCancellation?.Dispose();
+        _runningCancellation = null;
+        _uiDispatcher?.Dispose();
+        _uiDispatcher = null;
+        _pending = null;
+    }
+
+    private void CancelRunning()
+    {
+        try { _runningCancellation?.Cancel(); }
+        catch (ObjectDisposedException) { }
+    }
+
+    private sealed record ModeChoice(string Key, string Title)
+    {
+        public override string ToString() => Title;
     }
 }
 

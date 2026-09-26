@@ -119,19 +119,33 @@ namespace FrameWebforCS.providers
         internal void JsonDataOpen(JsonElement rootElement)
         {
             var combineCoordinator = ResultCombineDisgCoordinator.Instance;
+            var combineFsecCoordinator = ResultCombineFsecCoordinator.Instance;
+            var combineReacCoordinator = ResultCombineReacCoordinator.Instance;
             combineCoordinator.BeginLoad();
+            combineFsecCoordinator.BeginLoad();
+            combineReacCoordinator.BeginLoad();
             try
             {
                 bool hasResult = rootElement.TryGetProperty("result", out _);
                 JsonDataOpenCore(rootElement);
                 if (hasResult)
+                {
                     combineCoordinator.CompleteLoad(dimension);
+                    combineFsecCoordinator.CompleteLoad(dimension);
+                    combineReacCoordinator.CompleteLoad(dimension);
+                }
                 else
+                {
                     combineCoordinator.FailLoad();
+                    combineFsecCoordinator.FailLoad();
+                    combineReacCoordinator.FailLoad();
+                }
             }
             catch
             {
                 combineCoordinator.FailLoad();
+                combineFsecCoordinator.FailLoad();
+                combineReacCoordinator.FailLoad();
                 throw;
             }
         }
