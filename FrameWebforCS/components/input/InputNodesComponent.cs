@@ -30,8 +30,8 @@ namespace FrameWebforCS.components.input
             string[] fields = _input.dimension == 3
                 ? new[] { "X", "Y", "Z" }
                 : new[] { "X", "Y" };
-            var coordinateType = new GcNumberCellType();
-            coordinateType.Fields.SetFields("####0.000,,,-,");
+            var coordinateType = new NumberCellType();
+            coordinateType.DecimalPlaces = 3;
 
             for (int i = 0; i < fields.Length; i++)
             {
@@ -43,5 +43,7 @@ namespace FrameWebforCS.components.input
 
             Width = fields.Length * 80 + 100;
         }
+
+
     }
 }

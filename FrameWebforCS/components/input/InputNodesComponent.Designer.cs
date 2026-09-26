@@ -13,11 +13,6 @@
         /// <param name="disposing">マネージド リソースを破棄する場合は true を指定し、その他の場合は false を指定します。</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && fpSpread1_Sheet1 != null && !fpSpread1.IsDisposed)
-            {
-                // Unsubscribe the bound sheet before its Spread control is disposed.
-                fpSpread1_Sheet1.DataSource = null;
-            }
             if (disposing && (components != null))
             {
                 components.Dispose();

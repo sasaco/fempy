@@ -1,5 +1,4 @@
 ﻿using FarPoint.Win.Spread;
-using FrameWebforCS.components.input;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -22,11 +21,36 @@ namespace FrameWebforCS.components
             return fpSpread1_Sheet1;
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                foreach (SheetView sheet in Sheets)
+                {
+                    if (sheet.DataSource != null)
+                        sheet.DataSource = null;
+                }
+            }
+
+            base.Dispose(disposing);
+        }
+
         private void myFpSpread_KeyDown(object? sender, KeyEventArgs e)
         {
-            //if (e.KeyCode != Keys.Delete || e.Modifiers != Keys.None || EditMode)
-            //    return;
+            if (e.KeyCode != Keys.Delete || e.Modifiers != Keys.None || this.EditMode)
+                return;
 
+            var sheet = ActiveSheet;
+            if (sheet?.DataSource == null)
+                return;
+
+            int row = sheet.ActiveRowIndex;
+            int column = sheet.ActiveColumnIndex;
+            if (row < 0 || row >= sheet.RowCount || column < 0 || column >= sheet.ColumnCount)
+                return;
+
+            sheet.Cells[row, column].Value = null;
+            e.SuppressKeyPress = true;
         }
     }
 }
