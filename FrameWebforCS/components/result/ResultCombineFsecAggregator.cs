@@ -42,7 +42,8 @@ internal static class ResultCombineFsecAggregator
     internal const int MaxCombinations = 1_000;
     internal const int MaxRows = 100_000;
     internal const long MaxScalarOperations = 50_000_000;
-    internal const long MaxOutputCells = 10_000_000;
+    // At most 1.2 million materialized rows across all modes and combinations.
+    internal const long MaxOutputCells = 12_000_000;
 
     internal static readonly string[] Modes3D =
     [
@@ -228,10 +229,15 @@ internal static class ResultCombineFsecAggregator
             string key = row.MemberId + "-" +
                 Math.Round(row.Location, 3, MidpointRounding.AwayFromZero)
                     .ToString("F3", CultureInfo.InvariantCulture);
-            result[key] = row;
+            // The legacy base worker keeps the preceding j-end when the next
+            // segment's i-end repeats the same station.
+            result.TryAdd(key, row);
         }
         return result;
     }
+
+    internal static int CountStationRows(ImmutableArray<FsecRowSnapshot> rows) =>
+        ToStationMap(rows).Count;
 
     private static int ComponentOf(string mode) => mode[..2] switch
     {

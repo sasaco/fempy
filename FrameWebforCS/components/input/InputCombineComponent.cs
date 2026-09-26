@@ -237,7 +237,7 @@ namespace FrameWebforCS.components.input
                     _service.SetCombineName(row, value?.ToString());
                 else
                 {
-                    if (!TryReadFloat(value, out float? number)) { RejectEdit(); return; }
+                    if (!TryReadDouble(value, out double? number)) { RejectEdit(); return; }
                     _service.SetCombineCoefficient(row, e.Column + 1, number);
                 }
                 _shownCombineRows.Add(row);
@@ -291,12 +291,12 @@ namespace FrameWebforCS.components.input
             return true;
         }
 
-        private static bool TryReadFloat(object? value, out float? result)
+        private static bool TryReadDouble(object? value, out double? result)
         {
             result = null;
             if (value == null || string.IsNullOrWhiteSpace(value.ToString())) return true;
-            if (!float.TryParse(value.ToString(), NumberStyles.Float,
-                CultureInfo.CurrentCulture, out float number) || !float.IsFinite(number))
+            if (!double.TryParse(value.ToString(), NumberStyles.Float,
+                CultureInfo.CurrentCulture, out double number) || !double.IsFinite(number))
                 return false;
             result = number;
             return true;

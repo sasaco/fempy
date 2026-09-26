@@ -27,12 +27,12 @@ namespace FrameWebforCS.components.input
         // 外部からはこのプロパティを通じてのみインスタンスにアクセスできる
         public static InputCombineService Instance => _instance.Value;
 
-        private Dictionary<int, clsCombine<float>> _combine = new();
+        private Dictionary<int, clsCombine<double>> _combine = new();
         private Dictionary<int, clsCombine<int>> _define = new();
         private Dictionary<int, clsCombine<int>> _pickup = new();
 
         public IReadOnlyDictionary<int, clsCombine<int>> DefineRows => _define;
-        public IReadOnlyDictionary<int, clsCombine<float>> CombineRows => _combine;
+        public IReadOnlyDictionary<int, clsCombine<double>> CombineRows => _combine;
         public IReadOnlyDictionary<int, clsCombine<int>> PickupRows => _pickup;
         public event EventHandler? RowsReplaced;
         public event EventHandler? RowsChanged;
@@ -55,8 +55,8 @@ namespace FrameWebforCS.components.input
         /// <param name="jsonData"></param>
         public void setCombineJson(JsonElement jsonData)
         {
-            Dictionary<int, clsCombine<float>> combine =
-                JsonToDict(jsonData, "combine", ReadSingle);
+            Dictionary<int, clsCombine<double>> combine =
+                JsonToDict(jsonData, "combine", ReadDouble);
             Dictionary<int, clsCombine<int>> define =
                 JsonToDict(jsonData, "define", ReadInt32);
             Dictionary<int, clsCombine<int>> pickup =
@@ -144,11 +144,11 @@ namespace FrameWebforCS.components.input
             return combine;
         }
 
-        private static float ReadSingle(JsonElement value)
+        private static double ReadDouble(JsonElement value)
         {
             if (value.ValueKind != JsonValueKind.Number ||
-                !value.TryGetSingle(out float result) ||
-                !float.IsFinite(result))
+                !value.TryGetDouble(out double result) ||
+                !double.IsFinite(result))
             {
                 throw new JsonException("有限な数値ではありません。");
             }
@@ -173,9 +173,9 @@ namespace FrameWebforCS.components.input
                 RowsChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public void SetCombineCoefficient(int row, int column, float? value)
+        public void SetCombineCoefficient(int row, int column, double? value)
         {
-            if (value.HasValue && !float.IsFinite(value.Value))
+            if (value.HasValue && !double.IsFinite(value.Value))
                 throw new ArgumentOutOfRangeException(nameof(value));
             if (SetCoefficient(_combine, row, column, value))
                 RowsChanged?.Invoke(this, EventArgs.Empty);

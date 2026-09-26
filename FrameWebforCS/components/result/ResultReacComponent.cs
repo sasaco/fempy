@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
 using System.Text;
 using System.Windows.Forms;
 
@@ -12,39 +13,80 @@ namespace FrameWebforCS.components.result
 {
     public partial class ResultReacComponent : UserControl
     {
-        private ResultReacService _input = ResultReacService.Instance;
+        private readonly ResultReacService _input = ResultReacService.Instance;
 
         public ResultReacComponent()
         {
             InitializeComponent();
             fpSpread1.EditModeOn += fpSpread1.faSpread_EditModeOn;
 
-            var result = _input.getReac();
-
-            foreach (var item in result)
-            {
-                var fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
-                fpSpread1_Sheet1.SheetName = item.Key;
-
-                SetSheet1(fpSpread1_Sheet1);
-            }
-
-            float w = 0;
-            FarPoint.Win.Spread.SheetView fs = (SheetView)fpSpread1.Sheets.First();
-            var col = fs.Columns;
-            for (int i = 0; i < col.Count; i++)
-            {
-                w += col[i].Width;
-            }
-            w += 100;
-
-            this.Width = (int)w;
+            _input.Changed += OnResultsChanged;
+            Disposed += (_, _) => _input.Changed -= OnResultsChanged;
+            HandleCreated += (_, _) => RefreshResults();
+            RefreshResults();
 
         }
 
         public void setActiveSheet(int index)
         {
-            this.fpSpread1.ActiveSheetIndex = index;
+            if (fpSpread1.Sheets.Count > 0 && index >= 0 && index < fpSpread1.Sheets.Count)
+                fpSpread1.ActiveSheetIndex = index;
+        }
+
+        private void OnResultsChanged(object? sender, EventArgs e)
+        {
+            if (IsDisposed) return;
+            if (InvokeRequired)
+            {
+                if (IsHandleCreated) BeginInvoke((System.Action)RefreshResults);
+                return;
+            }
+            RefreshResults();
+        }
+
+        private void RefreshResults()
+        {
+            fpSpread1.Sheets.Clear();
+            foreach (var result in _input.getReac())
+            {
+                SheetView sheet = fpSpread1.AddNewSheetView();
+                sheet.SheetName = result.Key.Replace("Case", "", StringComparison.Ordinal);
+                SetSheet1(sheet);
+                for (int column = 0; column < sheet.ColumnCount; column++)
+                    sheet.Columns[column].CellType = new FarPoint.Win.Spread.CellType.TextCellType();
+                sheet.RowCount = result.Value.Count;
+                int row = 0;
+                foreach (var node in result.Value)
+                {
+                    sheet.Cells[row, 0].Text = node.Key.Replace("node", "", StringComparison.Ordinal);
+                    sheet.Cells[row, 1].Text = Format(node.Value.tx);
+                    sheet.Cells[row, 2].Text = Format(node.Value.ty);
+                    if (sheet.ColumnCount == 7)
+                    {
+                        sheet.Cells[row, 3].Text = Format(node.Value.tz);
+                        sheet.Cells[row, 4].Text = Format(node.Value.mx);
+                        sheet.Cells[row, 5].Text = Format(node.Value.my);
+                        sheet.Cells[row, 6].Text = Format(node.Value.mz);
+                    }
+                    else sheet.Cells[row, 3].Text = Format(node.Value.mz);
+                    row++;
+                }
+                sheet.Protect = true;
+            }
+            if (fpSpread1.Sheets.Count > 0)
+            {
+                fpSpread1.ActiveSheetIndex = 0;
+                float width = 100;
+                var columns = fpSpread1.Sheets[0].Columns;
+                for (int column = 0; column < columns.Count; column++) width += columns[column].Width;
+                Width = (int)width;
+            }
+        }
+
+        private static string Format(double? value)
+        {
+            double rounded = Math.Floor((value ?? 0) * 100 + 0.5) / 100;
+            return rounded.ToString("F2", CultureInfo.InvariantCulture);
         }
 
         internal static void SetSheet1(SheetView _Sheet)

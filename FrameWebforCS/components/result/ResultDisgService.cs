@@ -6,12 +6,12 @@ namespace FrameWebforCS.components.result
 {
     internal class clsDisg
     {
-        public float? dx;
-        public float? dy;
-        public float? dz;
-        public float? rx;
-        public float? ry;
-        public float? rz;
+        public double? dx;
+        public double? dy;
+        public double? dz;
+        public double? rx;
+        public double? ry;
+        public double? rz;
     }
 
     internal class ResultDisgService
@@ -68,12 +68,12 @@ namespace FrameWebforCS.components.result
             Changed?.Invoke(this, EventArgs.Empty);
         }
 
-        private static float? ReadComponent(JsonElement node, string name)
+        private static double? ReadComponent(JsonElement node, string name)
         {
             if (!node.TryGetProperty(name, out JsonElement component) ||
                 component.ValueKind == JsonValueKind.Null) return null;
             if (component.ValueKind != JsonValueKind.Number ||
-                !component.TryGetSingle(out float value) || !float.IsFinite(value))
+                !component.TryGetDouble(out double value) || !double.IsFinite(value))
                 throw new JsonException($"Displacement component '{name}' must be a finite number or null.");
             return value;
         }

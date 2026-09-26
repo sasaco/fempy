@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
 using System.Text;
 using System.Windows.Forms;
 
@@ -13,39 +14,82 @@ namespace FrameWebforCS.components.result
     public partial class ResultDisgComponent : UserControl
     {
 
-        private ResultDisgService _input = ResultDisgService.Instance;
+        private readonly ResultDisgService _input = ResultDisgService.Instance;
 
         public ResultDisgComponent()
         {
             InitializeComponent();
             fpSpread1.EditModeOn += fpSpread1.faSpread_EditModeOn;
 
-            var result = _input.getDisg();
-
-            foreach(var item in result)
-            {
-                var fpSpread1_Sheet1 = fpSpread1.AddNewSheetView();
-                fpSpread1_Sheet1.SheetName = item.Key;
-
-                SetSheet1(fpSpread1_Sheet1);
-            }
-
-            float w = 0;
-            FarPoint.Win.Spread.SheetView fs = (SheetView)fpSpread1.Sheets.First();
-            var col = fs.Columns;
-            for (int i = 0; i < col.Count; i++)
-            {
-                w += col[i].Width;
-            }
-            w += 100;
-
-            this.Width = (int)w;
+            _input.Changed += OnResultsChanged;
+            Disposed += (_, _) => _input.Changed -= OnResultsChanged;
+            HandleCreated += (_, _) => RefreshResults();
+            RefreshResults();
 
         }
 
         public void setActiveSheet(int index)
         {
-            this.fpSpread1.ActiveSheetIndex = index;
+            if (fpSpread1.Sheets.Count > 0 && index >= 0 && index < fpSpread1.Sheets.Count)
+                fpSpread1.ActiveSheetIndex = index;
+        }
+
+        private void OnResultsChanged(object? sender, EventArgs e)
+        {
+            if (IsDisposed) return;
+            if (InvokeRequired)
+            {
+                if (IsHandleCreated) BeginInvoke((System.Action)RefreshResults);
+                return;
+            }
+            RefreshResults();
+        }
+
+        private void RefreshResults()
+        {
+            fpSpread1.Sheets.Clear();
+            foreach (var result in _input.getDisg())
+            {
+                SheetView sheet = fpSpread1.AddNewSheetView();
+                sheet.SheetName = result.Key.Replace("Case", "", StringComparison.Ordinal);
+                SetSheet1(sheet);
+                for (int column = 0; column < sheet.ColumnCount; column++)
+                    sheet.Columns[column].CellType = new FarPoint.Win.Spread.CellType.TextCellType();
+                int row = 0;
+                foreach (var node in result.Value)
+                {
+                    string id = node.Key.Replace("node", "", StringComparison.Ordinal);
+                    if (id.Contains('n') || id.Contains('l')) continue;
+                    sheet.RowCount = ++row;
+                    sheet.Cells[row - 1, 0].Text = id;
+                    sheet.Cells[row - 1, 1].Text = Format(node.Value.dx);
+                    sheet.Cells[row - 1, 2].Text = Format(node.Value.dy);
+                    if (sheet.ColumnCount == 7)
+                    {
+                        sheet.Cells[row - 1, 3].Text = Format(node.Value.dz);
+                        sheet.Cells[row - 1, 4].Text = Format(node.Value.rx);
+                        sheet.Cells[row - 1, 5].Text = Format(node.Value.ry);
+                        sheet.Cells[row - 1, 6].Text = Format(node.Value.rz);
+                    }
+                    else sheet.Cells[row - 1, 3].Text = Format(node.Value.rz);
+                }
+                sheet.Protect = true;
+            }
+            if (fpSpread1.Sheets.Count > 0)
+            {
+                fpSpread1.ActiveSheetIndex = 0;
+                float width = 100;
+                var columns = fpSpread1.Sheets[0].Columns;
+                for (int column = 0; column < columns.Count; column++) width += columns[column].Width;
+                Width = (int)width;
+            }
+        }
+
+        private static string Format(double? value)
+        {
+            double scaled = (value ?? 0) * 1000;
+            double rounded = Math.Floor(scaled * 10000 + 0.5) / 10000;
+            return rounded.ToString("F4", CultureInfo.InvariantCulture);
         }
 
         public static void SetSheet1(SheetView _Sheet)

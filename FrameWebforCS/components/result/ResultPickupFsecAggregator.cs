@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Numerics;
 
 namespace FrameWebforCS.components.result;
 
@@ -32,5 +33,32 @@ internal static class ResultPickupFsecAggregator
                     Format(row.Fx), Format(row.Fy), Format(row.Mz), caseId + ":" + row.Case],
             cancellationToken);
 
-    internal static string Format(double value) => value.ToString("F2", CultureInfo.InvariantCulture);
+    // JavaScript Number.toFixed(2) rounds the exact binary64 value. Decimal
+    // midpoint rounding changes values such as -7.625 and 1.005.
+    internal static string Format(double value)
+    {
+        if (!double.IsFinite(value) || Math.Abs(value) >= 1e21)
+            return value.ToString("G", CultureInfo.InvariantCulture);
+
+        bool negative = value < 0;
+        long bits = BitConverter.DoubleToInt64Bits(Math.Abs(value));
+        int exponentBits = (int)((bits >> 52) & 0x7ff);
+        long fraction = bits & ((1L << 52) - 1);
+        BigInteger significand = exponentBits == 0
+            ? fraction : (1L << 52) | fraction;
+        int exponent = exponentBits == 0 ? -1074 : exponentBits - 1023 - 52;
+        BigInteger scaled = significand * 100;
+        if (exponent >= 0)
+            scaled <<= exponent;
+        else
+        {
+            BigInteger divisor = BigInteger.One << -exponent;
+            scaled = BigInteger.DivRem(scaled, divisor, out BigInteger remainder);
+            if (remainder * 2 >= divisor) scaled++;
+        }
+        BigInteger whole = BigInteger.DivRem(scaled, 100, out BigInteger cents);
+        return (negative ? "-" : string.Empty) +
+            whole.ToString(CultureInfo.InvariantCulture) + "." +
+            cents.ToString(CultureInfo.InvariantCulture).PadLeft(2, '0');
+    }
 }

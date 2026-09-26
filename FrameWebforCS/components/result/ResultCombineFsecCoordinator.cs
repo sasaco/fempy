@@ -139,12 +139,6 @@ internal sealed class ResultCombineFsecCoordinator
         long terms = combine.DefineRows.Values.Sum(row => (long)row.Coefficients.Count) +
             combine.CombineRows.Values.Sum(row => (long)row.Coefficients.Count);
         ResultCombineFsecAggregator.ValidateBudget(segmentCount * 2, terms, 0);
-        long largestCaseRows = source.Count == 0 ? 0 : source.Values.Max(result =>
-            result.Values.Sum(points => (long)points.Count * 2));
-        int modeCount = dimension == 3 ? 12 : 6;
-        ResultCombineFsecAggregator.ValidateBudget(segmentCount * 2, terms,
-            checked(largestCaseRows * modeCount * combine.CombineRows.Count * 10L));
-
         var members = InputMembersService.Instance.Members;
         var cases = source.Select(result =>
         {
@@ -166,17 +160,27 @@ internal sealed class ResultCombineFsecCoordinator
                     string startNode = index == 0 ? memberInfo?.ni ?? string.Empty : string.Empty;
                     string endNode = index == pointCount - 1 ? memberInfo?.nj ?? string.Empty : string.Empty;
                     rows.Add(new FsecRowSnapshot(member.Key, index == 0 ? member.Key : string.Empty,
-                        startNode, location, new FsecVector(segment.fxi ?? 0, segment.fyi ?? 0,
-                            segment.fzi ?? 0, segment.mxi ?? 0, segment.myi ?? 0, segment.mzi ?? 0)));
-                    location += length;
+                        startNode, location, new FsecVector(LegacyRound(segment.fxi ?? 0, 100),
+                            LegacyRound(segment.fyi ?? 0, 100), LegacyRound(segment.fzi ?? 0, 100),
+                            LegacyRound(segment.mxi ?? 0, 100), LegacyRound(segment.myi ?? 0, 100),
+                            LegacyRound(segment.mzi ?? 0, 100))));
+                    location += LegacyRound(length, 1_000);
                     rows.Add(new FsecRowSnapshot(member.Key, string.Empty,
-                        endNode, location, new FsecVector(segment.fxj ?? 0, segment.fyj ?? 0,
-                            segment.fzj ?? 0, segment.mxj ?? 0, segment.myj ?? 0, segment.mzj ?? 0)));
+                        endNode, location, new FsecVector(LegacyRound(segment.fxj ?? 0, 100),
+                            LegacyRound(segment.fyj ?? 0, 100), LegacyRound(segment.fzj ?? 0, 100),
+                            LegacyRound(segment.mxj ?? 0, 100), LegacyRound(segment.myj ?? 0, 100),
+                            LegacyRound(segment.mzj ?? 0, 100))));
                     index++;
                 }
             }
             return new FsecCaseSnapshot(result.Key, rows.ToImmutable());
         }).ToImmutableArray();
+        long largestCaseRows = cases.IsEmpty ? 0 :
+            cases.Max(item => (long)ResultCombineFsecAggregator.CountStationRows(item.Rows));
+        int modeCount = dimension == 3 ? 12 : 6;
+        ResultCombineFsecAggregator.ValidateBudget(segmentCount * 2, terms,
+            checked(largestCaseRows * modeCount * combine.CombineRows.Count * 10L));
+
         var definitions = combine.DefineRows.Values.Select(row =>
             new DefineDisgSnapshot(row.Id, row.Coefficients.Values.ToImmutableArray()))
             .ToImmutableArray();
@@ -192,4 +196,7 @@ internal sealed class ResultCombineFsecCoordinator
         return new ResultCombineFsecSnapshot(revision, dimension, cases,
             definitions, combinations, caseIds);
     }
+
+    private static double LegacyRound(double value, double factor) =>
+        Math.Floor(value * factor + 0.5) / factor;
 }

@@ -32,7 +32,7 @@ public sealed class ResultCombineDisgUiTests
             Assert.Equal(0, spread.ActiveSheetIndex);
             Assert.Equal(5, spread.Sheets[0].ColumnCount);
             Assert.Equal(0, spread.Sheets[1].RowCount);
-            Assert.Equal("2.5000", spread.Sheets[0].Cells[0, 1].Text);
+            Assert.Equal("2500.0000", spread.Sheets[0].Cells[0, 1].Text);
             Assert.Equal("+5", spread.Sheets[0].Cells[0, 4].Text);
             Assert.Equal(6, modes.Items.Count);
             Assert.Contains("2 件", status.Text);
@@ -42,10 +42,10 @@ public sealed class ResultCombineDisgUiTests
             spread.ActiveSheetIndex = 1;
             Assert.Equal(0, spread.Sheets[0].RowCount);
             Assert.Equal(1, spread.Sheets[1].RowCount);
-            Assert.Equal("5.0000", spread.Sheets[1].Cells[0, 1].Text);
+            Assert.Equal("5000.0000", spread.Sheets[1].Cells[0, 1].Text);
 
             modes.SelectedIndex = 1;
-            Assert.Equal("-4.0000", spread.Sheets[1].Cells[0, 1].Text);
+            Assert.Equal("-4000.0000", spread.Sheets[1].Cells[0, 1].Text);
             Assert.Equal(0, spread.Sheets[0].RowCount);
 
             ResultCombineDisgCoordinator.Instance.FailLoad();
@@ -80,8 +80,8 @@ public sealed class ResultCombineDisgUiTests
 
             Assert.Equal(8, spread.Sheets[0].ColumnCount);
             Assert.Equal(12, modes.Items.Count);
-            Assert.Equal("0.3750", spread.Sheets[0].Cells[0, 3].Text);
-            Assert.Equal("0.7500", spread.Sheets[0].Cells[0, 6].Text);
+            Assert.Equal("375.0000", spread.Sheets[0].Cells[0, 3].Text);
+            Assert.Equal("750.0000", spread.Sheets[0].Cells[0, 6].Text);
 
             using var pickup = new ResultPickupDisgComponent();
             form.Controls.Add(pickup);
@@ -99,7 +99,7 @@ public sealed class ResultCombineDisgUiTests
             }
             Assert.Equal(8, pickupSpread.Sheets[0].ColumnCount);
             Assert.Equal(12, pickupModes.Items.Count);
-            Assert.Equal("1.8750", pickupSpread.Sheets[0].Cells[0, 1].Text);
+            Assert.Equal("1875.0000", pickupSpread.Sheets[0].Cells[0, 1].Text);
             pickup.setActiveSheet(2);
             Assert.Equal(0, pickupSpread.ActiveSheetIndex);
             ResultCombineDisgCoordinator.Instance.FailLoad();

@@ -1,17 +1,8 @@
 ﻿using FrameWebforCS.providers;
 using OpenTK.Windowing.Common;
 using OpenTK.WinForms;
-using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using THREE;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Color = THREE.Color;
-using Mesh = THREE.Mesh;
 
 namespace SingleFormsDemo
 {

@@ -127,7 +127,7 @@ namespace FrameWebforCS.providers
             try
             {
                 bool hasResult = rootElement.TryGetProperty("result", out _);
-                JsonDataOpenCore(rootElement);
+                JsonDataOpenCore(rootElement, hasResult);
                 if (hasResult)
                 {
                     combineCoordinator.CompleteLoad(dimension);
@@ -150,7 +150,7 @@ namespace FrameWebforCS.providers
             }
         }
 
-        private void JsonDataOpenCore(JsonElement rootElement)
+        private void JsonDataOpenCore(JsonElement rootElement, bool hasResult)
         {
             int loadedDimension = 3;
             if (rootElement.TryGetProperty("dimension", out var dimensionElement))
@@ -185,9 +185,18 @@ namespace FrameWebforCS.providers
             InputLoadService.Instance.setLoadJson(rootElement);
             InputNoticePointsService.Instance.setNoticePointsJson(rootElement);
             InputCombineService.Instance.setCombineJson(rootElement);
-            ResultDisgService.Instance.setDisgJson(rootElement);
-            ResultFsecService.Instance.setFsecJson(rootElement);
-            ResultReacService.Instance.setReacJson(rootElement);
+            if (hasResult)
+            {
+                ResultDisgService.Instance.setDisgJson(rootElement);
+                ResultFsecService.Instance.setFsecJson(rootElement);
+                ResultReacService.Instance.setReacJson(rootElement);
+            }
+            else
+            {
+                ResultDisgService.Instance.clear();
+                ResultFsecService.Instance.clear();
+                ResultReacService.Instance.clear();
+            }
 
             dimension = loadedDimension;
             _cameraPosition = loadedCameraPosition;

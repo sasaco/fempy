@@ -9,21 +9,21 @@ namespace FrameWebforCS.components.result
 {
     internal class clsFsec
     {
-        public float? fxi = null;
-        public float? fyi = null;
-        public float? fzi = null;
-        public float? mxi = null;
-        public float? myi = null;
-        public float? mzi = null;
+        public double? fxi = null;
+        public double? fyi = null;
+        public double? fzi = null;
+        public double? mxi = null;
+        public double? myi = null;
+        public double? mzi = null;
         public bool? dummyi = null;
-        public float? fxj = null;
-        public float? fyj = null;
-        public float? fzj = null;
-        public float? mxj = null;
-        public float? myj = null;
-        public float? mzj = null;
+        public double? fxj = null;
+        public double? fyj = null;
+        public double? fzj = null;
+        public double? mxj = null;
+        public double? myj = null;
+        public double? mzj = null;
         public bool? dummyj = null;
-        public float? L = null;
+        public double? L = null;
     }
 
     internal class ResultFsecService
@@ -116,12 +116,12 @@ namespace FrameWebforCS.components.result
             Changed?.Invoke(this, EventArgs.Empty);
         }
 
-        private static float? ReadComponent(JsonElement source, string name)
+        private static double? ReadComponent(JsonElement source, string name)
         {
             if (!source.TryGetProperty(name, out JsonElement value) ||
                 value.ValueKind == JsonValueKind.Null) return null;
             if (value.ValueKind != JsonValueKind.Number ||
-                !value.TryGetSingle(out float parsed) || !float.IsFinite(parsed))
+                !value.TryGetDouble(out double parsed) || !double.IsFinite(parsed))
                 throw new JsonException($"Section force component '{name}' must be finite or null.");
             return parsed;
         }

@@ -156,11 +156,16 @@ namespace FrameWebforCS.components.result
             if (potentialCells > ResultCombineDisgAggregator.MaxOutputCells)
                 throw new InvalidOperationException("Combination output exceeds snapshot limits.");
 
+            // Match the legacy base worker: auxiliary notice/load nodes are hidden,
+            // and metres/radians become millimetres/milliradians before derivation.
             var displacements = sourceDisg.Select(result => new DisgCaseSnapshot(result.Key,
-                result.Value.Select(node => new DisgNodeSnapshot(node.Key, new DisgVector(
-                    node.Value.dx ?? 0, node.Value.dy ?? 0, node.Value.dz ?? 0,
-                    node.Value.rx ?? 0, node.Value.ry ?? 0, node.Value.rz ?? 0)))
-                .ToImmutableArray())).ToImmutableArray();
+                result.Value.Select(node => (node, Id: DisplayNodeId(node.Key)))
+                    .Where(item => !item.Id.Contains('n') && !item.Id.Contains('l'))
+                    .Select(item => new DisgNodeSnapshot(item.Id, new DisgVector(
+                        Scale(item.node.Value.dx), Scale(item.node.Value.dy),
+                        Scale(item.node.Value.dz), Scale(item.node.Value.rx),
+                        Scale(item.node.Value.ry), Scale(item.node.Value.rz))))
+                    .ToImmutableArray())).ToImmutableArray();
             var definitions = sourceCombine.DefineRows.Values.Select(row =>
                 new DefineDisgSnapshot(row.Id, row.Coefficients.Values.ToImmutableArray()))
                 .ToImmutableArray();
@@ -175,6 +180,20 @@ namespace FrameWebforCS.components.result
                 .Where(value => value > 0).ToImmutableArray();
             return new ResultCombineDisgSnapshot(revision, dimension,
                 displacements, definitions, combinations, caseIds);
+        }
+
+        private static string DisplayNodeId(string sourceId)
+        {
+            int marker = sourceId.IndexOf("node", StringComparison.Ordinal);
+            return marker < 0 ? sourceId : sourceId.Remove(marker, 4);
+        }
+
+        private static double Scale(double? value)
+        {
+            double result = (value ?? 0) * 1_000;
+            if (!double.IsFinite(result))
+                throw new InvalidOperationException("Displacement exceeds the display range.");
+            return result;
         }
 
     }

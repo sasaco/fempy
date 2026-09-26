@@ -168,8 +168,8 @@ public sealed class ResultPickupTests
             var spread = (FpSpread)view.Controls.Find("fpSpread1", true).Single();
             PumpUntil(() => spread.Sheets.Count == 1 && spread.Sheets[0].RowCount == 1);
             Assert.Equal("9 Envelope", spread.Sheets[0].SheetName);
-            Assert.Equal("3.0000", spread.Sheets[0].Cells[0, 1].Text);
-            Assert.Equal("30.0000", spread.Sheets[0].Cells[0, 2].Text);
+            Assert.Equal("3000.0000", spread.Sheets[0].Cells[0, 1].Text);
+            Assert.Equal("30000.0000", spread.Sheets[0].Cells[0, 2].Text);
             Assert.Equal("+6", spread.Sheets[0].Cells[0, 4].Text);
             coordinator.FailLoad();
             Assert.Equal(0, spread.Sheets.Count);

@@ -268,7 +268,7 @@ public partial class ResultCombineFsecComponent : UserControl
         _materializedSheet = sheetIndex;
     }
 
-    private static string Format(double value) => value.ToString("F2", CultureInfo.InvariantCulture);
+    private static string Format(double value) => ResultPickupFsecAggregator.Format(value);
 
     private void ClearDisplay()
     {

@@ -8,12 +8,12 @@ namespace FrameWebforCS.components.result
 {
     internal class clsReac
     {
-        public float? tx = null;
-        public float? ty = null;
-        public float? tz = null;
-        public float? mx = null;
-        public float? my = null;
-        public float? mz = null;
+        public double? tx = null;
+        public double? ty = null;
+        public double? tz = null;
+        public double? mx = null;
+        public double? my = null;
+        public double? mz = null;
     }
 
     internal class ResultReacService
@@ -89,12 +89,12 @@ namespace FrameWebforCS.components.result
             Changed?.Invoke(this, EventArgs.Empty);
         }
 
-        private static float? ReadComponent(JsonElement source, string name)
+        private static double? ReadComponent(JsonElement source, string name)
         {
             if (!source.TryGetProperty(name, out JsonElement value) ||
                 value.ValueKind == JsonValueKind.Null) return null;
             if (value.ValueKind != JsonValueKind.Number ||
-                !value.TryGetSingle(out float parsed) || !float.IsFinite(parsed))
+                !value.TryGetDouble(out double parsed) || !double.IsFinite(parsed))
                 throw new JsonException($"Reaction component '{name}' must be finite or null.");
             return parsed;
         }
