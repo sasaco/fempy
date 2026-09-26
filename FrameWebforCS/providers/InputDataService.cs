@@ -105,13 +105,23 @@ namespace FrameWebforCS.providers
         {
             InputNodesService.Instance.setNodeJson(rootElement);
             InputMembersService.Instance.setMemberJson(rootElement);
+            InputElementsService.Instance.setElementJson(rootElement);
+            InputFixNodeService.Instance.setFixNodeJson(rootElement);
+            InputFixMemberService.Instance.setFixMemberJson(rootElement);
+            InputCombineService.Instance.setCombineJson(rootElement);
         }
 
         internal Dictionary<string, object>? GetSaveJson()
         {
             return new Dictionary<string, object> {
-                ["node"] = InputNodesService.Instance.getNodeJson()
-                ["member"] = InputMembersService.Instance.getMemberJson()
+                ["node"] = InputNodesService.Instance.getNodeJson(),
+                ["member"] = InputMembersService.Instance.getMemberJson(),
+                ["element"] = InputElementsService.Instance.getElementJson(),
+                ["fix_node"] = InputFixNodeService.Instance.getFixNodeJson(),
+                ["fix_member"] = InputFixMemberService.Instance.getFixMemberJson(),
+                ["define"] = InputCombineService.Instance.getDefineJson(),
+                ["combine"] = InputCombineService.Instance.getCombineJson(),
+                ["pickup"] = InputCombineService.Instance.getPickupJson()
             };
         }
     }

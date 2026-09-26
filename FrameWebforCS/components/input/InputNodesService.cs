@@ -1,4 +1,5 @@
-﻿using FarPoint.Win.Spread;
+﻿using FarPoint.Win;
+using FarPoint.Win.Spread;
 using FrameWebforCS.providers;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
@@ -45,48 +46,8 @@ namespace FrameWebforCS.components.input
         /// <param name="jsonData"></param>
         public void setNodeJson(JsonElement jsonData)
         {
-            if (!jsonData.TryGetProperty("node", out JsonElement nodeJson) ||
-                nodeJson.ValueKind != JsonValueKind.Object)
-            {
-                // throw new JsonException("node がJSONオブジェクトとして定義されていません。");
-                return;
-            }
-
-            var nodes = new Dictionary<string, clsNode>();
-            foreach (JsonProperty nodeProperty in nodeJson.EnumerateObject())
-            {
-                JsonElement coordinates = nodeProperty.Value;
-                if (coordinates.ValueKind != JsonValueKind.Object)
-                    continue;
-
-                var tmp = new clsNode();
-                if (coordinates.TryGetProperty("x", out JsonElement x))
-                    if (x.TryGetSingle(out float xValue))
-                        tmp.X = xValue;
-                if (coordinates.TryGetProperty("y", out JsonElement y))
-                    if (y.TryGetSingle(out float yValue))
-                        tmp.Y = yValue;
-                if (coordinates.TryGetProperty("z", out JsonElement z))
-                    if (z.TryGetSingle(out float zValue))
-                        tmp.Z = zValue;
-
-                // 何か1つでも値が入っていなければPASS
-                var def = new clsNode();
-                if (tmp.X == def.X && tmp.Y == def.Y && tmp.Z == def.Z)
-                {
-                    //throw new JsonException($"node '{nodeProperty.Name}' の座標が不正です。");
-                    continue;
-                }
-
-                if (!nodes.TryAdd(nodeProperty.Name, tmp))
-                {
-                    // throw new JsonException($"node '{nodeProperty.Name}' が重複しています。");
-                    continue;
-                }
-
-            }
-
-            this._node = nodes;
+            var nodes = DataHelperModule.JsonToDict<clsNode>(jsonData, "member");
+            if (nodes != null) this._node = nodes;
         }
 
         /// <summary>
@@ -99,7 +60,7 @@ namespace FrameWebforCS.components.input
             var nodes = new Dictionary<string, object>();
             foreach (KeyValuePair<string, clsNode> n in this._node)
             {
-                nodes.Add(n.Key, new { x = n.Value.X, y = n.Value.Y, z = n.Value.Z });
+                nodes.Add(n.Key, DataHelperModule.ClassToDictionary<clsNode>(n.Value));
             }
             return nodes;
         }
